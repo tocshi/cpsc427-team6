@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+.vs/
+out/
+ext/project_path.hpp

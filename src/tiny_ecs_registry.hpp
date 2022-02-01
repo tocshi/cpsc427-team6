@@ -11,7 +11,6 @@ class ECSRegistry
 
 public:
 	// Manually created list of all components this game has
-	// TODO: A1 add a LightUp component
 	ComponentContainer<DeathTimer> deathTimers;
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
@@ -24,11 +23,20 @@ public:
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<vec3> colors;
 
+	// =============================
+	ComponentContainer<Damageable> damageables;
+	ComponentContainer<Consumable> consumables;
+	ComponentContainer<Equipable> equipables;
+	ComponentContainer<Guardable> guardables;
+	ComponentContainer<Interactable> interactables;
+	ComponentContainer<Stat> stats;
+	ComponentContainer<Queueable> queueables;
+	ComponentContainer<Test> test;	// for testing
+
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
 	ECSRegistry()
 	{
-		// TODO: A1 add a LightUp component
 		registry_list.push_back(&deathTimers);
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
@@ -40,6 +48,17 @@ public:
 		registry_list.push_back(&deadlys);
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&colors);
+
+		// =========================
+		registry_list.push_back(&damageables);
+		registry_list.push_back(&consumables);
+		registry_list.push_back(&equipables);
+		registry_list.push_back(&guardables);
+		registry_list.push_back(&interactables);
+		registry_list.push_back(&stats);
+		registry_list.push_back(&queueables);
+		registry_list.push_back(&test);
+
 	}
 
 	void clear_all_components() {

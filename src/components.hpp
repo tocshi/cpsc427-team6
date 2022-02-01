@@ -86,6 +86,42 @@ struct Mesh
 	std::vector<uint16_t> vertex_indices;
 };
 
+// =========================================
+// 
+struct Damageable {
+
+};
+
+struct Consumable {
+
+};
+
+struct Equipable {
+
+};
+
+struct Guardable {
+
+};
+
+struct Interactable {
+	
+};
+
+struct Stat {
+	float hp = 0;
+	float mp = 0;
+	float ep = 0;
+};
+
+struct Queueable {
+
+};
+
+struct Test {
+
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -113,7 +149,17 @@ struct Mesh
 enum class TEXTURE_ASSET_ID {
 	BUG = 0,
 	EAGLE = BUG + 1,
-	TEXTURE_COUNT = EAGLE + 1
+	PLAYER = EAGLE + 1,
+	ENEMY = PLAYER + 1,
+	BOSS = ENEMY + 1,
+	ARTIFACT = BOSS + 1,
+	CONSUMABLE = ARTIFACT + 1,
+	EQUIPABLE = CONSUMABLE + 1,
+	CHEST = EQUIPABLE + 1,
+	DOOR = CHEST + 1,
+	SIGN = DOOR + 1,
+	STAIR = SIGN + 1,
+	TEXTURE_COUNT = STAIR + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

@@ -72,7 +72,7 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwWindowHint(GLFW_RESIZABLE, 0);
 
 	// Create the main window (for rendering, keyboard, and mouse input)
-	window = glfwCreateWindow(window_width_px, window_height_px, "Chicken Game Assignment", nullptr, nullptr);
+	window = glfwCreateWindow(window_width_px, window_height_px, "Adrift In Somnium", nullptr, nullptr);
 	if (window == nullptr) {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
@@ -231,6 +231,18 @@ void WorldSystem::restart_game() {
 		registry.colors.insert(egg, { brightness, brightness, brightness});
 	}
 	*/
+
+	// For testing textures
+	createPlayer(renderer, {50.f, 250.f});
+	createEnemy(renderer, {50.f, 350.f});
+	createBoss(renderer, {50.f, 450.f});
+	createArtifact(renderer, {50.f, 550.f});
+	createConsumable(renderer, {50.f, 650.f});
+	createEquipable(renderer, {150.f, 250.f});
+	createChest(renderer, {150.f, 350.f});
+	createDoor(renderer, {150.f, 450.f});
+	createSign(renderer, {150.f, 550.f});
+	createStair(renderer, {150.f, 650.f});
 }
 
 // Compute collisions between entities

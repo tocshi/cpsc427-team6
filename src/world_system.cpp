@@ -340,6 +340,11 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		else
 			debugging.in_debug_mode = true;
 	}
+
+	double xpos, ypos;
+	//getting cursor position
+	glfwGetCursorPos(window, &xpos, &ypos);
+	printf("Cursor Position at (%f, %f)\n", xpos, ypos);
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {

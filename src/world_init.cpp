@@ -427,7 +427,7 @@ Entity createBackground(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values
-	motion.scale = vec2({ 1400, 980 });
+	motion.scale = vec2({ window_width_px, window_height_px });
 
 	registry.renderRequests.insert(
 		entity,

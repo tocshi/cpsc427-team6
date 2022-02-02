@@ -14,8 +14,6 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	Transform transform;
 	transform.translate(motion.position);
 	transform.scale(motion.scale);
-	// !!! TODO A1: add rotation to the chain of transformations, mind the order
-	// of transformations
 
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest &render_request = registry.renderRequests.get(entity);
@@ -209,6 +207,16 @@ void RenderSystem::draw()
 	gl_has_errors();
 	mat3 projection_2D = createProjectionMatrix();
 	// Draw all textured meshes that have a position and size component
+	registry.renderRequests.sort(
+		[](Entity a, Entity b) {
+			if (!registry.renderRequests.has(a)) {
+				return false;
+			}
+			if (!registry.renderRequests.has(b)) {
+				return true;
+			}
+			return registry.renderRequests.get(a).used_layer < registry.renderRequests.get(b).used_layer;
+		});
 	for (Entity entity : registry.renderRequests.entities)
 	{
 		if (!registry.motions.has(entity))

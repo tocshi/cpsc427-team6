@@ -147,7 +147,8 @@ struct Test {
  */
 
 enum class TEXTURE_ASSET_ID {
-	BUG = 0,
+	BG = 0,
+	BUG = BG + 1,
 	EAGLE = BUG + 1,
 	PLAYER = EAGLE + 1,
 	ENEMY = PLAYER + 1,
@@ -183,9 +184,20 @@ enum class GEOMETRY_BUFFER_ID {
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
+enum class RENDER_LAYER_ID {
+	BG = 0,
+	SPRITE = BG + 1,
+	EFFECT = SPRITE + 1,
+	UI = EFFECT + 1,
+	DEBUG = UI + 1,
+	LAYER_COUNT = DEBUG + 1
+};
+const int layer_count = (int)RENDER_LAYER_ID::LAYER_COUNT;
+
 struct RenderRequest {
 	TEXTURE_ASSET_ID used_texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
 	EFFECT_ASSET_ID used_effect = EFFECT_ASSET_ID::EFFECT_COUNT;
 	GEOMETRY_BUFFER_ID used_geometry = GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
+	RENDER_LAYER_ID used_layer = RENDER_LAYER_ID::SPRITE;
 };
 

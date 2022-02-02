@@ -252,6 +252,7 @@ void WorldSystem::restart_game() {
 	createSign(renderer, {150.f, 550.f});
 	createStair(renderer, {150.f, 650.f});
 	createMenuStart(renderer, { 150.f, 750.f });
+	createMenuQuit(renderer, { 150.f, 850.f });
 }
 
 // Compute collisions between entities
@@ -360,7 +361,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			if ((xpos <= (buttonX + m.scale[0] / 2) && xpos >= (buttonX - m.scale[0] / 2)) && 
 				(ypos >= (buttonY - m.scale[1] / 2) && ypos <= (buttonY + m.scale[1] / 2))) {
 				// perform action based on button ENUM
-				printf("test ");
+				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
+				printf("%f", (float)action_taken);
+				switch (action_taken) {
+				case BUTTON_ACTION_ID::MENU_START: printf("start"); break;
+				case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
+				}
 			}
 		}
 	}

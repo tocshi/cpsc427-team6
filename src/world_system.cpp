@@ -162,7 +162,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Spawning new bug
 	next_bug_spawn -= elapsed_ms_since_last_update * current_speed;
 	if (registry.eatables.components.size() <= MAX_BUG && next_bug_spawn < 0.f) {
-		// !!!  TODO A1: Create new bug with createBug({0,0}), as for the Eagles above
+		// Reset timer
+		next_eagle_spawn = (BUG_DELAY_MS / 2) + uniform_dist(rng) * (BUG_DELAY_MS / 2);
+		// Create bug with random initial position
+		createBug(renderer, vec2(window_width_px/2, window_height_px - 200));
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -215,6 +218,9 @@ void WorldSystem::restart_game() {
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
+
+	// Create the map/level/background
+	background = createBackground(renderer, vec2(window_width_px/2,window_height_px/2));
 
 	// Create a new chicken
 	player_chicken = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
@@ -340,6 +346,23 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			debugging.in_debug_mode = false;
 		else
 			debugging.in_debug_mode = true;
+	}
+
+	if (button == GLFW_MOUSE_BUTTON_1) {
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		// Clicking the start button on the menu screen
+		for (Entity e : registry.buttons.entities) {
+			Motion m = registry.motions.get(e);
+			int buttonX = m.position[0];
+			int buttonY = m.position[1];
+			// if mouse is interating with a button
+			if ((xpos <= (buttonX + m.scale[0] / 2) && xpos >= (buttonX - m.scale[0] / 2)) && 
+				(ypos >= (buttonY - m.scale[1] / 2) && ypos <= (buttonY + m.scale[1] / 2))) {
+				// perform action based on button ENUM
+				printf("test ");
+			}
+		}
 	}
 
 	double xpos, ypos;

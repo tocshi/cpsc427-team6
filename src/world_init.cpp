@@ -23,7 +23,8 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
 			EFFECT_ASSET_ID::CHICKEN,
-			GEOMETRY_BUFFER_ID::CHICKEN });
+			GEOMETRY_BUFFER_ID::CHICKEN,
+			RENDER_LAYER_ID::SPRITE});
 
 	return entity;
 }
@@ -411,7 +412,35 @@ Entity createStair(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-// Menu Start
+Entity createBackground(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+
+	// Setting initial values
+	motion.scale = vec2({ window_width_px, window_height_px });
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BG,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::BG
+		});
+
+	return entity;
+}
+
+// Menu Start Button
 Entity createMenuStart(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
@@ -428,8 +457,8 @@ Entity createMenuStart(RenderSystem* renderer, vec2 pos)
 
 	motion.scale = vec2({ START_BB_WIDTH, START_BB_HEIGHT });
 
-	// Create and (empty) START component to be able to refer to all stairs
-	registry.test.emplace(entity);
+	// Create and (empty) START component to be able to refer to all start buttons
+	registry.buttons.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::START,

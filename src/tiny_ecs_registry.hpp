@@ -32,6 +32,7 @@ public:
 	ComponentContainer<Stat> stats;
 	ComponentContainer<Queueable> queueables;
 	ComponentContainer<Test> test;	// for testing
+	ComponentContainer<Button> buttons;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -58,6 +59,7 @@ public:
 		registry_list.push_back(&stats);
 		registry_list.push_back(&queueables);
 		registry_list.push_back(&test);
+		registry_list.push_back(&buttons);
 
 	}
 

@@ -362,10 +362,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				(ypos >= (buttonY - m.scale[1] / 2) && ypos <= (buttonY + m.scale[1] / 2))) {
 				// perform action based on button ENUM
 				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
-				printf("%f", (float)action_taken);
+
 				switch (action_taken) {
-				case BUTTON_ACTION_ID::MENU_START: printf("start"); break;
-				case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
+					case BUTTON_ACTION_ID::MENU_START: printf("start"); break;
+					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 				}
 			}
 		}

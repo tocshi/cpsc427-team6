@@ -83,8 +83,10 @@ GLFWwindow* WorldSystem::create_window() {
 	// http://www.glfw.org/docs/latest/input_guide.html
 	glfwSetWindowUserPointer(window, this);
 	auto key_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2, int _3) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_key(_0, _1, _2, _3); };
+	auto mouse_redirect = [](GLFWwindow* wnd, int _0, int _1, int _2) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse(_0, _1, _2); };
 	auto cursor_pos_redirect = [](GLFWwindow* wnd, double _0, double _1) { ((WorldSystem*)glfwGetWindowUserPointer(wnd))->on_mouse_move({ _0, _1 }); };
 	glfwSetKeyCallback(window, key_redirect);
+	glfwSetMouseButtonCallback(window, mouse_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
 
 	//////////////////////////////////////
@@ -160,7 +162,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Spawning new bug
 	next_bug_spawn -= elapsed_ms_since_last_update * current_speed;
 	if (registry.eatables.components.size() <= MAX_BUG && next_bug_spawn < 0.f) {
-		// !!!  TODO A1: Create new bug with createBug({0,0}), as for the Eagles above
+		// Reset timer
+		next_eagle_spawn = (BUG_DELAY_MS / 2) + uniform_dist(rng) * (BUG_DELAY_MS / 2);
+		// Create bug with random initial position
+		createBug(renderer, vec2(window_width_px/2, window_height_px - 200));
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -213,6 +218,9 @@ void WorldSystem::restart_game() {
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
+
+	// Create the map/level/background
+	background = createBackground(renderer, vec2(window_width_px/2,window_height_px/2));
 
 	// Create a new chicken
 	player_chicken = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
@@ -326,6 +334,23 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("Current speed = %f\n", current_speed);
 	}
 	current_speed = fmax(0.f, current_speed);
+}
+
+// On mouse click callback
+void WorldSystem::on_mouse(int button, int action, int mod) {
+
+	// Testing
+	if (button == GLFW_MOUSE_BUTTON_2) {
+		if (action == GLFW_RELEASE)
+			debugging.in_debug_mode = false;
+		else
+			debugging.in_debug_mode = true;
+	}
+
+	double xpos, ypos;
+	//getting cursor position
+	glfwGetCursorPos(window, &xpos, &ypos);
+	printf("Cursor Position at (%f, %f)\n", xpos, ypos);
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {

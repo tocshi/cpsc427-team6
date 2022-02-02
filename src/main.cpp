@@ -55,7 +55,7 @@ int main()
 
 		world.step(0);
 		ai.step(0);
-		world.handle_collisions();
+		//world.handle_collisions();
 
 		renderer.draw();
 

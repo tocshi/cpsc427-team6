@@ -40,6 +40,7 @@ public:
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
+	void on_mouse(int button, int action, int mod);
 	void on_mouse_move(vec2 pos);
 
 	// restart level
@@ -57,6 +58,7 @@ private:
 	float next_eagle_spawn;
 	float next_bug_spawn;
 	Entity player_chicken;
+	Entity background;
 
 	// music references
 	Mix_Music* background_music;

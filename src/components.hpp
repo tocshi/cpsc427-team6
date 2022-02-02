@@ -159,7 +159,8 @@ enum class TEXTURE_ASSET_ID {
 	DOOR = CHEST + 1,
 	SIGN = DOOR + 1,
 	STAIR = SIGN + 1,
-	TEXTURE_COUNT = STAIR + 1
+	START = STAIR + 1,
+	TEXTURE_COUNT = START + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

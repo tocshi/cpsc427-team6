@@ -245,6 +245,7 @@ void WorldSystem::restart_game() {
 	createDoor(renderer, {150.f, 450.f});
 	createSign(renderer, {150.f, 550.f});
 	createStair(renderer, {150.f, 650.f});
+	createMenuStart(renderer, { 150.f, 750.f });
 }
 
 // Compute collisions between entities

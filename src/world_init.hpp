@@ -35,6 +35,8 @@ const float START_BB_WIDTH = 0.6f * 900.f;
 const float START_BB_HEIGHT = 0.6f * 150.f;
 const float QUIT_BB_WIDTH = 0.6f * 900.f;
 const float QUIT_BB_HEIGHT = 0.6f * 150.f;
+const float TITLE_BB_WIDTH = 0.6f * 870.f;
+const float TITLE_BB_HEIGHT = 0.6f * 300.f;
 
 // the player
 Entity createChicken(RenderSystem* renderer, vec2 pos);
@@ -74,3 +76,5 @@ Entity createStair(RenderSystem* renderer, vec2 pos);
 Entity createMenuStart(RenderSystem* renderer, vec2 pos);
 // Menu quit
 Entity createMenuQuit(RenderSystem* renderer, vec2 pos);
+// Menu title
+Entity createMenuTitle(RenderSystem* renderer, vec2 pos);

@@ -287,6 +287,7 @@ void WorldSystem::restart_game() {
 	//createStair(renderer, {150.f, 650.f});
 	createMenuStart(renderer, { window_width_px / 2, 500.f });
 	createMenuQuit(renderer, { window_width_px / 2, 850.f });
+	createMenuTitle(renderer, { window_width_px / 2, 200.f });
 }
 
 // Compute collisions between entities

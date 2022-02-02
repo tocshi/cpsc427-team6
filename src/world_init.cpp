@@ -18,7 +18,6 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 	motion.scale.y *= -1; // point front to the right
 
 	// Create and (empty) Chicken component to be able to refer to all eagles
-	registry.players.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed

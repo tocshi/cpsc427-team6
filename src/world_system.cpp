@@ -339,18 +339,23 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 // On mouse click callback
 void WorldSystem::on_mouse(int button, int action, int mod) {
 
-	// Testing
-	if (button == GLFW_MOUSE_BUTTON_2) {
-		if (action == GLFW_RELEASE)
-			debugging.in_debug_mode = false;
-		else
-			debugging.in_debug_mode = true;
-	}
-
 	double xpos, ypos;
 	//getting cursor position
 	glfwGetCursorPos(window, &xpos, &ypos);
-	printf("Cursor Position at (%f, %f)\n", xpos, ypos);
+	//printf("Cursor Position at (%f, %f)\n", xpos, ypos);
+
+	if (button == GLFW_MOUSE_BUTTON_2) {
+		for (Entity& player : registry.players.entities) {
+			Motion& motion_struct = registry.motions.get(player);
+
+			// set velocity to the direction of the cursor, at a magnitude of player_velocity
+			float player_velocity = 100;
+			float angle = atan2(ypos - motion_struct.position.y, xpos - motion_struct.position.x);
+			float x_component = cos(angle) * player_velocity;
+			float y_component = sin(angle) * player_velocity;
+			motion_struct.velocity = { x_component, y_component};
+		}
+	}
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {

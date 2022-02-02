@@ -458,6 +458,7 @@ Entity createMenuStart(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ START_BB_WIDTH, START_BB_HEIGHT });
 
 	// Create and (empty) START component to be able to refer to all start buttons
+	registry.menuItems.emplace(entity);
 	registry.buttons.insert(
 		entity,
 		{ BUTTON_ACTION_ID::MENU_START

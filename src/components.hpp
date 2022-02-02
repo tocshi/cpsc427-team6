@@ -133,6 +133,10 @@ struct Button {
 	BUTTON_ACTION_ID action_taken = BUTTON_ACTION_ID::ACTION_COUNT;
 };
 
+struct MenuItem {
+
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture

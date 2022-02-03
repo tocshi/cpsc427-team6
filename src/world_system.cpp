@@ -14,7 +14,6 @@ const size_t MAX_BUG = 5;
 const size_t EAGLE_DELAY_MS = 2000 * 3;
 const size_t BUG_DELAY_MS = 5000 * 3;
 
-
 // Create the bug world
 WorldSystem::WorldSystem()
 	: points(0)
@@ -47,6 +46,9 @@ namespace {
 		fprintf(stderr, "%d: %s", error, desc);
 	}
 }
+
+// In start menu
+bool inMenu;
 
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
@@ -89,6 +91,9 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwSetKeyCallback(window, key_redirect);
 	glfwSetMouseButtonCallback(window, mouse_redirect);
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
+
+	// Set the game to start on the menu screen
+	inMenu = true;
 
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
@@ -151,22 +156,31 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// Spawning new eagles
-	next_eagle_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.deadlys.components.size() <= MAX_EAGLES && next_eagle_spawn < 0.f) {
-		// Reset timer
-		next_eagle_spawn = (EAGLE_DELAY_MS / 2) + uniform_dist(rng) * (EAGLE_DELAY_MS / 2);
-		// Create eagle with random initial position
-        createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
-	}
+	// If started, remove menu entities, and spawn game entities
+	if (!inMenu) {
+		// TODO, remove all components of (menu component)
+		for (Entity e : registry.menuItems.entities) {
+			registry.remove_all_components_of(e);
+		}
 
-	// Spawning new bug
-	next_bug_spawn -= elapsed_ms_since_last_update * current_speed;
-	if (registry.eatables.components.size() <= MAX_BUG && next_bug_spawn < 0.f) {
-		// Reset timer
-		next_eagle_spawn = (BUG_DELAY_MS / 2) + uniform_dist(rng) * (BUG_DELAY_MS / 2);
-		// Create bug with random initial position
-		createBug(renderer, vec2(window_width_px/2, window_height_px - 200));
+		// create template objects
+		// Spawning new eagles
+		next_eagle_spawn -= elapsed_ms_since_last_update * current_speed;
+		if (registry.deadlys.components.size() <= MAX_EAGLES && next_eagle_spawn < 0.f) {
+			// Reset timer
+			next_eagle_spawn = (EAGLE_DELAY_MS / 2) + uniform_dist(rng) * (EAGLE_DELAY_MS / 2);
+			// Create eagle with random initial position
+			createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
+		}
+
+		// Spawning new bug
+		next_bug_spawn -= elapsed_ms_since_last_update * current_speed;
+		if (registry.eatables.components.size() <= MAX_BUG && next_bug_spawn < 0.f) {
+			// Reset timer
+			next_eagle_spawn = (BUG_DELAY_MS / 2) + uniform_dist(rng) * (BUG_DELAY_MS / 2);
+			// Create bug with random initial position
+			createBug(renderer, vec2(window_width_px / 2, window_height_px - 200));
+		}
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -223,9 +237,9 @@ void WorldSystem::restart_game() {
 	// Create the map/level/background
 	background = createBackground(renderer, vec2(window_width_px/2,window_height_px/2));
 
-	// Create a new chicken
-	player_chicken = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
-	registry.colors.insert(player_chicken, {1, 0.8f, 0.8f});
+	//// Create a new chicken
+	//player_chicken = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
+	//registry.colors.insert(player_chicken, {1, 0.8f, 0.8f});
 
 	// !! TODO A3: Enable static eggs on the ground
 	// Create eggs on the floor for reference
@@ -241,18 +255,44 @@ void WorldSystem::restart_game() {
 	}
 	*/
 
+	// restart the game on the menu screen
+	inMenu = true;
+
 	// For testing textures
-	createPlayer(renderer, {50.f, 250.f});
-	createEnemy(renderer, {50.f, 350.f});
-	createBoss(renderer, {50.f, 450.f});
-	createArtifact(renderer, {50.f, 550.f});
-	createConsumable(renderer, {50.f, 650.f});
-	createEquipable(renderer, {150.f, 250.f});
-	createChest(renderer, {150.f, 350.f});
-	createDoor(renderer, {150.f, 450.f});
-	createSign(renderer, {150.f, 550.f});
-	createStair(renderer, {150.f, 650.f});
+	//createPlayer(renderer, {50.f, 250.f});
+	//createEnemy(renderer, {50.f, 350.f});
+	//createBoss(renderer, {50.f, 450.f});
+	//createArtifact(renderer, {50.f, 550.f});
+	//createConsumable(renderer, {50.f, 650.f});
+	//createEquipable(renderer, {150.f, 250.f});
+	//createChest(renderer, {150.f, 350.f});
+	//createDoor(renderer, {150.f, 450.f});
+	//createSign(renderer, {150.f, 550.f});
+	//createStair(renderer, {150.f, 650.f});
+	createMenuStart(renderer, { window_width_px / 2, 500.f });
+	createMenuQuit(renderer, { window_width_px / 2, 850.f });
+	createMenuTitle(renderer, { window_width_px / 2, 200.f });
+}
+
+// spawn the game entities
+void WorldSystem::spawn_game_entities() {
+	// Create a new chicken
+	player_chicken = createChicken(renderer, { window_width_px / 2, window_height_px - 200 });
+	registry.colors.insert(player_chicken, { 1, 0.8f, 0.8f });
+
+	// create all non-menu game objects
+	createPlayer(renderer, { 50.f, 250.f });
+	createEnemy(renderer, { 50.f, 350.f });
+	createBoss(renderer, { 50.f, 450.f });
+	createArtifact(renderer, { 50.f, 550.f });
+	createConsumable(renderer, { 50.f, 650.f });
+	createEquipable(renderer, { 150.f, 250.f });
+	createChest(renderer, { 150.f, 350.f });
+	createDoor(renderer, { 150.f, 450.f });
+	createSign(renderer, { 150.f, 550.f });
+	createStair(renderer, { 150.f, 650.f });
 	createStats(renderer, { 1400.f, 100.f }); // Kaiti added for stats
+}
 }
 
 // Compute collisions between entities
@@ -341,18 +381,46 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 // On mouse click callback
 void WorldSystem::on_mouse(int button, int action, int mod) {
 
-	// Testing
-	if (button == GLFW_MOUSE_BUTTON_2) {
-		if (action == GLFW_RELEASE)
-			debugging.in_debug_mode = false;
-		else
-			debugging.in_debug_mode = true;
-	}
-
 	double xpos, ypos;
 	//getting cursor position
 	glfwGetCursorPos(window, &xpos, &ypos);
-	printf("Cursor Position at (%f, %f)\n", xpos, ypos);
+	//printf("Cursor Position at (%f, %f)\n", xpos, ypos);
+
+	if (button == GLFW_MOUSE_BUTTON_1) {
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		// Clicking the start button on the menu screen
+		for (Entity e : registry.buttons.entities) {
+			Motion m = registry.motions.get(e);
+			int buttonX = m.position[0];
+			int buttonY = m.position[1];
+			// if mouse is interating with a button
+			if ((xpos <= (buttonX + m.scale[0] / 2) && xpos >= (buttonX - m.scale[0] / 2)) && 
+				(ypos >= (buttonY - m.scale[1] / 2) && ypos <= (buttonY + m.scale[1] / 2))) {
+				// perform action based on button ENUM
+				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
+
+				switch (action_taken) {
+				case BUTTON_ACTION_ID::MENU_START: inMenu = false; spawn_game_entities(); break;
+					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
+				}
+			}
+		}
+	}
+
+
+	if (button == GLFW_MOUSE_BUTTON_2) {
+		for (Entity& player : registry.players.entities) {
+			Motion& motion_struct = registry.motions.get(player);
+
+			// set velocity to the direction of the cursor, at a magnitude of player_velocity
+			float player_velocity = 100;
+			float angle = atan2(ypos - motion_struct.position.y, xpos - motion_struct.position.x);
+			float x_component = cos(angle) * player_velocity;
+			float y_component = sin(angle) * player_velocity;
+			motion_struct.velocity = { x_component, y_component};
+		}
+	}
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {

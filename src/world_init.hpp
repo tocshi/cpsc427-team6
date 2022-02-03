@@ -31,6 +31,12 @@ const float SIGN_BB_WIDTH = 0.6f * 150.f;
 const float SIGN_BB_HEIGHT = 0.6f * 150.f;
 const float STAIR_BB_WIDTH = 0.6f * 150.f;
 const float STAIR_BB_HEIGHT = 0.6f * 150.f;
+const float START_BB_WIDTH = 0.6f * 900.f;
+const float START_BB_HEIGHT = 0.6f * 150.f;
+const float QUIT_BB_WIDTH = 0.6f * 900.f;
+const float QUIT_BB_HEIGHT = 0.6f * 150.f;
+const float TITLE_BB_WIDTH = 0.6f * 870.f;
+const float TITLE_BB_HEIGHT = 0.6f * 300.f;
 const float STAT_BB_WIDTH = 0.6f * 150.f;
 const float STAT_BB_HEIGHT = 0.6f * 150.f;
 
@@ -68,6 +74,12 @@ Entity createDoor(RenderSystem* renderer, vec2 pos);
 Entity createSign(RenderSystem* renderer, vec2 pos);
 // Stair
 Entity createStair(RenderSystem* renderer, vec2 pos);
+// Menu start
+Entity createMenuStart(RenderSystem* renderer, vec2 pos);
+// Menu quit
+Entity createMenuQuit(RenderSystem* renderer, vec2 pos);
+// Menu title
+Entity createMenuTitle(RenderSystem* renderer, vec2 pos);
 
 // Stat Kaiti
 Entity createStats(RenderSystem* renderer, vec2 position);

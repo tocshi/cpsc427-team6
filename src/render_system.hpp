@@ -42,8 +42,12 @@ class RenderSystem {
 			textures_path("chest.png"),
 			textures_path("door.png"),
 			textures_path("sign.png"),
-			textures_path("stair.png"),
+			textures_path("stair.png"), 
+			textures_path("start.png"),
+			textures_path("quit.png"),
+			textures_path("title.png")
 			textures_path("stat.png") };
+
 
 	std::array<GLuint, effect_count> effects;
 	// Make sure these paths remain in sync with the associated enumerators.

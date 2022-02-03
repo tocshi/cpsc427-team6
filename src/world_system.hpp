@@ -46,6 +46,9 @@ private:
 	// restart level
 	void restart_game();
 
+	// spawn entities
+	void spawn_game_entities();
+
 	// OpenGL window handle
 	GLFWwindow* window;
 

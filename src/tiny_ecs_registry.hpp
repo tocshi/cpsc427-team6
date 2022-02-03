@@ -32,6 +32,7 @@ public:
 	ComponentContainer<Stat> stats;
 	ComponentContainer<Queueable> queueables;
 	ComponentContainer<Test> test;	// for testing
+	ComponentContainer<SlimeEnemy> slimeEnemies;
 	ComponentContainer<Button> buttons;
 	ComponentContainer<MenuItem> menuItems;
 
@@ -60,6 +61,7 @@ public:
 		registry_list.push_back(&stats);
 		registry_list.push_back(&queueables);
 		registry_list.push_back(&test);
+		registry_list.push_back(&slimeEnemies);
 		registry_list.push_back(&buttons);
 		registry_list.push_back(&menuItems);
 	}

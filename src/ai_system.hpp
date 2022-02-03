@@ -13,4 +13,6 @@ class AISystem
 {
 public:
 	void step(float elapsed_ms);
+	void slime_logic();
+	bool player_in_range(vec2 position, float radius);
 };

@@ -384,7 +384,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	glfwGetCursorPos(window, &xpos, &ypos);
 	//printf("Cursor Position at (%f, %f)\n", xpos, ypos);
 
-	if (button == GLFW_MOUSE_BUTTON_1) {
+	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
 		// Clicking the start button on the menu screen
@@ -407,7 +407,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	}
 
 
-	if (button == GLFW_MOUSE_BUTTON_2) {
+	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE) {
 		for (Entity& player : registry.players.entities) {
 			Motion& motion_struct = registry.motions.get(player);
 
@@ -417,6 +417,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			float x_component = cos(angle) * player_velocity;
 			float y_component = sin(angle) * player_velocity;
 			motion_struct.velocity = { x_component, y_component};
+			motion_struct.destination = { xpos, ypos };
 		}
 	}
 }

@@ -10,4 +10,4 @@
 out/
 build/
 ext/project_path.hpp
-ext/project_path.hpp.out
+ext/project_path.hpp.*

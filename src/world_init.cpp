@@ -177,7 +177,12 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	// Create and (empty) Enemy component to be able to refer to all enemies
-	registry.test.emplace(entity);
+	registry.slimeEnemies.insert(
+		entity,
+		{ 10.f,
+		300,
+		{ window_width_px / 2, 400.f },
+		SLIME_STATE::IDLE_DOWN });
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMY,

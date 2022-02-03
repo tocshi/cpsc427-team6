@@ -122,6 +122,20 @@ struct Test {
 
 };
 
+enum class SLIME_STATE {
+	IDLE_DOWN = 0,
+	IDLE_UP = IDLE_DOWN + 1,
+	CHASING = IDLE_UP + 1,
+	STATE_COUNT = CHASING + 1
+};
+
+struct SlimeEnemy {
+	float hp = 0;
+	float chaseRange = 0;
+	vec2 initialPosition = { 0, 0 };
+	SLIME_STATE state = SLIME_STATE::STATE_COUNT;
+};
+
 enum class BUTTON_ACTION_ID {
 	MENU_QUIT = 0,
 	MENU_START = MENU_QUIT + 1,

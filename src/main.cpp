@@ -43,18 +43,20 @@ int main()
 		// Processes system messages, if this wasn't present the window would become unresponsive
 		glfwPollEvents();
 
-		// simple turn-based implementation
-		while (turnOrder.is_player_turn()) {
-			// Calculating elapsed times in milliseconds from the previous iteration
-			auto now = Clock::now();
-			float elapsed_ms =
-				(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
-			t = now;
-			physics.step(elapsed_ms);
-		}
+		// Calculating elapsed times in milliseconds from the previous iteration
+		auto now = Clock::now();
+		float elapsed_ms =
+			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
+		t = now;
 
-		world.step(0);
-		ai.step(0);
+		physics.step(elapsed_ms);
+		world.step(elapsed_ms);
+		if (!world.get_is_player_turn()) {
+			printf("FUCIKKKKKK");
+			ai.step(0);
+			world.set_is_player_turn(true); // add enemy queue for the future where enemies move one by one
+		}
+		
 		//world.handle_collisions();
 
 		renderer.draw();

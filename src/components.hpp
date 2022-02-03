@@ -28,7 +28,8 @@ struct Motion {
 	float angle = 0;
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { 10, 10 };
-	vec2 destination = { -100, -100 };
+	vec2 destination = { 0, 0 };
+	bool in_motion = false;
 };
 
 // Stucture to store collision information

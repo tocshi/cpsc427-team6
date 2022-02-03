@@ -181,22 +181,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// Create bug with random initial position
 			createBug(renderer, vec2(window_width_px / 2, window_height_px - 200));
 		}
-
-		// Create a new chicken
-		player_chicken = createChicken(renderer, { window_width_px / 2, window_height_px - 200 });
-		registry.colors.insert(player_chicken, { 1, 0.8f, 0.8f });
-
-		// create all non-menu game objects
-		createPlayer(renderer, { 50.f, 250.f });
-		createEnemy(renderer, { 50.f, 350.f });
-		createBoss(renderer, { 50.f, 450.f });
-		createArtifact(renderer, { 50.f, 550.f });
-		createConsumable(renderer, { 50.f, 650.f });
-		createEquipable(renderer, { 150.f, 250.f });
-		createChest(renderer, { 150.f, 350.f });
-		createDoor(renderer, { 150.f, 450.f });
-		createSign(renderer, { 150.f, 550.f });
-		createStair(renderer, { 150.f, 650.f });
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -288,6 +272,25 @@ void WorldSystem::restart_game() {
 	createMenuStart(renderer, { window_width_px / 2, 500.f });
 	createMenuQuit(renderer, { window_width_px / 2, 850.f });
 	createMenuTitle(renderer, { window_width_px / 2, 200.f });
+}
+
+// spawn the game entities
+void WorldSystem::spawn_game_entities() {
+	// Create a new chicken
+	player_chicken = createChicken(renderer, { window_width_px / 2, window_height_px - 200 });
+	registry.colors.insert(player_chicken, { 1, 0.8f, 0.8f });
+
+	// create all non-menu game objects
+	createPlayer(renderer, { 50.f, 250.f });
+	createEnemy(renderer, { 50.f, 350.f });
+	createBoss(renderer, { 50.f, 450.f });
+	createArtifact(renderer, { 50.f, 550.f });
+	createConsumable(renderer, { 50.f, 650.f });
+	createEquipable(renderer, { 150.f, 250.f });
+	createChest(renderer, { 150.f, 350.f });
+	createDoor(renderer, { 150.f, 450.f });
+	createSign(renderer, { 150.f, 550.f });
+	createStair(renderer, { 150.f, 650.f });
 }
 
 // Compute collisions between entities
@@ -396,7 +399,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
 
 				switch (action_taken) {
-					case BUTTON_ACTION_ID::MENU_START: inMenu = false; break;
+				case BUTTON_ACTION_ID::MENU_START: inMenu = false; spawn_game_entities(); break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 				}
 			}

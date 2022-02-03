@@ -31,6 +31,8 @@ const float SIGN_BB_WIDTH = 0.6f * 150.f;
 const float SIGN_BB_HEIGHT = 0.6f * 150.f;
 const float STAIR_BB_WIDTH = 0.6f * 150.f;
 const float STAIR_BB_HEIGHT = 0.6f * 150.f;
+const float STAT_BB_WIDTH = 0.6f * 150.f;
+const float STAT_BB_HEIGHT = 0.6f * 150.f;
 
 // the player
 Entity createChicken(RenderSystem* renderer, vec2 pos);
@@ -67,3 +69,5 @@ Entity createSign(RenderSystem* renderer, vec2 pos);
 // Stair
 Entity createStair(RenderSystem* renderer, vec2 pos);
 
+// Stat Kaiti
+Entity createStats(RenderSystem* renderer, vec2 position);

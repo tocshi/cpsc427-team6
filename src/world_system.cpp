@@ -14,6 +14,7 @@ const size_t MAX_BUG = 5;
 const size_t EAGLE_DELAY_MS = 2000 * 3;
 const size_t BUG_DELAY_MS = 5000 * 3;
 
+
 // Create the bug world
 WorldSystem::WorldSystem()
 	: points(0)
@@ -251,6 +252,7 @@ void WorldSystem::restart_game() {
 	createDoor(renderer, {150.f, 450.f});
 	createSign(renderer, {150.f, 550.f});
 	createStair(renderer, {150.f, 650.f});
+	createStats(renderer, { 1400.f, 100.f }); // Kaiti added for stats
 }
 
 // Compute collisions between entities

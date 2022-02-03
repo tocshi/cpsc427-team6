@@ -7,6 +7,8 @@
 // Player component
 struct Player
 {
+	float s; 
+	
 
 };
 
@@ -160,7 +162,8 @@ enum class TEXTURE_ASSET_ID {
 	DOOR = CHEST + 1,
 	SIGN = DOOR + 1,
 	STAIR = SIGN + 1,
-	TEXTURE_COUNT = STAIR + 1
+	STAT = STAIR +1, // Kaiti Key STAT pic rendered 
+	TEXTURE_COUNT = STAT + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

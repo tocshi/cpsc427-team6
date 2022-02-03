@@ -293,7 +293,6 @@ void WorldSystem::spawn_game_entities() {
 	createStair(renderer, { 150.f, 650.f });
 	createStats(renderer, { 1400.f, 100.f }); // Kaiti added for stats
 }
-}
 
 // Compute collisions between entities
 void WorldSystem::handle_collisions() {

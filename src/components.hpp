@@ -28,6 +28,7 @@ struct Motion {
 	float angle = 0;
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { 10, 10 };
+	vec2 destination = { -100, -100 };
 };
 
 // Stucture to store collision information
@@ -120,6 +121,20 @@ struct Queueable {
 
 struct Test {
 
+};
+
+enum class SLIME_STATE {
+	IDLE_DOWN = 0,
+	IDLE_UP = IDLE_DOWN + 1,
+	CHASING = IDLE_UP + 1,
+	STATE_COUNT = CHASING + 1
+};
+
+struct SlimeEnemy {
+	float hp = 0;
+	float chaseRange = 0;
+	vec2 initialPosition = { 0, 0 };
+	SLIME_STATE state = SLIME_STATE::STATE_COUNT;
 };
 
 enum class BUTTON_ACTION_ID {

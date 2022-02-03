@@ -37,6 +37,10 @@ public:
 
 	// Should the game be over ?
 	bool is_over()const;
+
+	bool get_is_player_turn();
+
+	void set_is_player_turn(bool val);
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -62,6 +66,8 @@ private:
 	float next_bug_spawn;
 	Entity player_chicken;
 	Entity background;
+	bool is_player_turn = true;
+	bool player_right_click = false;
 
 	// music references
 	Mix_Music* background_music;

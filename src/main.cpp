@@ -10,6 +10,7 @@
 #include "physics_system.hpp"
 #include "render_system.hpp"
 #include "world_system.hpp"
+#include "turn_order_system.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
 
@@ -21,6 +22,7 @@ int main()
 	RenderSystem renderer;
 	PhysicsSystem physics;
 	AISystem ai;
+	TurnOrderSystem turnOrder;
 
 	// Initializing window
 	GLFWwindow* window = world.create_window();
@@ -47,9 +49,13 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		world.step(elapsed_ms);
-		ai.step(elapsed_ms);
 		physics.step(elapsed_ms);
+		world.step(elapsed_ms);
+		if (!world.get_is_player_turn()) {
+			ai.step(0);
+			world.set_is_player_turn(true); // add enemy queue for the future where enemies move one by one
+		}
+		
 		//world.handle_collisions();
 
 		renderer.draw();

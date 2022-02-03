@@ -181,22 +181,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// Create bug with random initial position
 			createBug(renderer, vec2(window_width_px / 2, window_height_px - 200));
 		}
-
-		// Create a new chicken
-		player_chicken = createChicken(renderer, { window_width_px / 2, window_height_px - 200 });
-		registry.colors.insert(player_chicken, { 1, 0.8f, 0.8f });
-
-		// create all non-menu game objects
-		createPlayer(renderer, { 50.f, 250.f });
-		createEnemy(renderer, { 50.f, 350.f });
-		createBoss(renderer, { 50.f, 450.f });
-		createArtifact(renderer, { 50.f, 550.f });
-		createConsumable(renderer, { 50.f, 650.f });
-		createEquipable(renderer, { 150.f, 250.f });
-		createChest(renderer, { 150.f, 350.f });
-		createDoor(renderer, { 150.f, 450.f });
-		createSign(renderer, { 150.f, 550.f });
-		createStair(renderer, { 150.f, 650.f });
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -290,6 +274,25 @@ void WorldSystem::restart_game() {
 	createMenuTitle(renderer, { window_width_px / 2, 200.f });
 }
 
+// spawn the game entities
+void WorldSystem::spawn_game_entities() {
+	// Create a new chicken
+	player_chicken = createChicken(renderer, { window_width_px / 2, window_height_px - 200 });
+	registry.colors.insert(player_chicken, { 1, 0.8f, 0.8f });
+
+	// create all non-menu game objects
+	createPlayer(renderer, { 50.f, 250.f });
+	createEnemy(renderer, { 50.f, 350.f });
+	createBoss(renderer, { 50.f, 450.f });
+	createArtifact(renderer, { 50.f, 550.f });
+	createConsumable(renderer, { 50.f, 650.f });
+	createEquipable(renderer, { 150.f, 250.f });
+	createChest(renderer, { 150.f, 350.f });
+	createDoor(renderer, { 150.f, 450.f });
+	createSign(renderer, { 150.f, 550.f });
+	createStair(renderer, { 150.f, 650.f });
+}
+
 // Compute collisions between entities
 void WorldSystem::handle_collisions() {
 	// Loop over all collisions detected by the physics system
@@ -376,13 +379,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 // On mouse click callback
 void WorldSystem::on_mouse(int button, int action, int mod) {
 
-	// Testing
-	if (button == GLFW_MOUSE_BUTTON_2) {
-		if (action == GLFW_RELEASE)
-			debugging.in_debug_mode = false;
-		else
-			debugging.in_debug_mode = true;
-	}
+	double xpos, ypos;
+	//getting cursor position
+	glfwGetCursorPos(window, &xpos, &ypos);
+	//printf("Cursor Position at (%f, %f)\n", xpos, ypos);
 
 	if (button == GLFW_MOUSE_BUTTON_1) {
 		double xpos, ypos;
@@ -399,17 +399,26 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
 
 				switch (action_taken) {
-					case BUTTON_ACTION_ID::MENU_START: inMenu = false; break;
+				case BUTTON_ACTION_ID::MENU_START: inMenu = false; spawn_game_entities(); break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 				}
 			}
 		}
 	}
 
-	double xpos, ypos;
-	//getting cursor position
-	glfwGetCursorPos(window, &xpos, &ypos);
-	printf("Cursor Position at (%f, %f)\n", xpos, ypos);
+
+	if (button == GLFW_MOUSE_BUTTON_2) {
+		for (Entity& player : registry.players.entities) {
+			Motion& motion_struct = registry.motions.get(player);
+
+			// set velocity to the direction of the cursor, at a magnitude of player_velocity
+			float player_velocity = 100;
+			float angle = atan2(ypos - motion_struct.position.y, xpos - motion_struct.position.x);
+			float x_component = cos(angle) * player_velocity;
+			float y_component = sin(angle) * player_velocity;
+			motion_struct.velocity = { x_component, y_component};
+		}
+	}
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {

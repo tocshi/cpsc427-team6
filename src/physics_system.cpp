@@ -51,7 +51,8 @@ void PhysicsSystem::step(float elapsed_ms)
 		if (vel.x * step_seconds != 0 || vel.y * step_seconds != 0) {
 			if (dist_to(pos_final, dest) <= vel_mag) {
 				motion.velocity = { 0, 0 };
-				motion.destination = { -100, -100 };
+				motion.destination = motion.position;
+				motion.in_motion = false;
 			}
 		}
 

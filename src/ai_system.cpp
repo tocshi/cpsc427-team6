@@ -32,8 +32,8 @@ void AISystem::slime_logic() {
 		// perform action based on state, and update state before next turn if required
 		switch (state) {
 			case SLIME_STATE::IDLE_DOWN: 
-				motion_struct.position = { motion_struct.position.x, motion_struct.position.y + 1 };
-
+				motion_struct.destination = { motion_struct.position.x, motion_struct.position.y + 50 };
+				motion_struct.velocity = { 0, 100 };
 				// check if player is in range first
 				if (player_in_range(motion_struct.position, chaseRange)) {
 					registry.slimeEnemies.get(slime).state = SLIME_STATE::CHASING;
@@ -41,9 +41,11 @@ void AISystem::slime_logic() {
 					// if the idle boundry is hit, bounce up
 					registry.slimeEnemies.get(slime).state = SLIME_STATE::IDLE_UP;
 				}
+				motion_struct.in_motion = true;
 				break;
 			case SLIME_STATE::IDLE_UP: 
-				motion_struct.position = { motion_struct.position.x, motion_struct.position.y - 1 };
+				motion_struct.destination = { motion_struct.position.x, motion_struct.position.y - 50 };
+				motion_struct.velocity = { 0, -100 };
 
 				// check if player is in range first
 				if (player_in_range(motion_struct.position, chaseRange)) {
@@ -52,6 +54,7 @@ void AISystem::slime_logic() {
 					// if the idle boundry is hit, bounce down
 					registry.slimeEnemies.get(slime).state = SLIME_STATE::IDLE_DOWN;
 				}
+				motion_struct.in_motion = true;
 				break;
 			case SLIME_STATE::CHASING:
 				// move towards player
@@ -62,9 +65,16 @@ void AISystem::slime_logic() {
 					// move towards player
 					float dist = distance(motion_struct.position, player_motion.position);
 					vec2 direction = normalize(player_motion.position - motion_struct.position);
-			
-					float slime_velocity = 0.5;
-					motion_struct.position += direction * slime_velocity;
+					float slime_velocity = 100;
+
+					float angle = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
+					float x_component = cos(angle) * slime_velocity;
+					float y_component = sin(angle) * slime_velocity;
+					
+
+					motion_struct.velocity = { x_component, y_component };
+					motion_struct.destination = motion_struct.position + (direction * 24.f);
+					motion_struct.in_motion = true;
 				}
 				
 				// if player moves out of range, return to idle animation

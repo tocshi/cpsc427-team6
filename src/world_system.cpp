@@ -156,6 +156,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// end player turn if it has stopped moving
+	if (get_is_player_turn() && player_right_click) {
+		for (Entity player : registry.players.entities) {
+			Motion player_motion = registry.motions.get(player);
+			if (!player_motion.in_motion) {
+				set_is_player_turn(false);
+				player_right_click = false;
+			}
+		}
+	}
+
 	// If started, remove menu entities, and spawn game entities
 	if (!inMenu) {
 		// TODO, remove all components of (menu component)
@@ -399,7 +410,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
 
 				switch (action_taken) {
-				case BUTTON_ACTION_ID::MENU_START: inMenu = false; spawn_game_entities(); break;
+					case BUTTON_ACTION_ID::MENU_START: inMenu = false; spawn_game_entities(); is_player_turn = true; break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 				}
 			}
@@ -407,7 +418,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	}
 
 
-	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE) {
+	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_right_click) {
 		for (Entity& player : registry.players.entities) {
 			Motion& motion_struct = registry.motions.get(player);
 
@@ -418,6 +429,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			float y_component = sin(angle) * player_velocity;
 			motion_struct.velocity = { x_component, y_component};
 			motion_struct.destination = { xpos, ypos };
+			motion_struct.in_motion = true;
+			player_right_click = true;
 		}
 	}
 }
@@ -430,4 +443,12 @@ void WorldSystem::on_mouse_move(vec2 mouse_position) {
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	(vec2)mouse_position; // dummy to avoid compiler warning
+}
+
+void WorldSystem::set_is_player_turn(bool val) {
+	is_player_turn = val;
+}
+
+bool WorldSystem::get_is_player_turn() {
+	return is_player_turn;
 }

@@ -4,6 +4,5 @@
 #include "tiny_ecs_registry.hpp"
 
 class TurnOrderSystem {
-public :
-	bool is_player_turn();
+
 };

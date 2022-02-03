@@ -282,7 +282,7 @@ void WorldSystem::spawn_game_entities() {
 
 	// create all non-menu game objects
 	createPlayer(renderer, { 50.f, 250.f });
-	createEnemy(renderer, { 50.f, 350.f });
+	createEnemy(renderer, { window_width_px / 2, 350.f });
 	createBoss(renderer, { 50.f, 450.f });
 	createArtifact(renderer, { 50.f, 550.f });
 	createConsumable(renderer, { 50.f, 650.f });

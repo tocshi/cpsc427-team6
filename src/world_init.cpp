@@ -159,7 +159,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-// Enemy (split into different enemies for future)
+// Enemy slime (split into different enemies for future)
 Entity createEnemy(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
@@ -177,11 +177,12 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	// Create and (empty) Enemy component to be able to refer to all enemies
+	// make it a slime enemy for now
 	registry.slimeEnemies.insert(
 		entity,
 		{ 10.f,
 		300,
-		{ window_width_px / 2, 400.f },
+		{ window_width_px / 2, 350.f },
 		SLIME_STATE::IDLE_DOWN });
 	registry.renderRequests.insert(
 		entity,

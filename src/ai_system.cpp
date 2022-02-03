@@ -94,10 +94,7 @@ bool AISystem::player_in_range(vec2 position, float radius) {
 		double absY = abs(yPos - playerY);
 		double r = (double)radius;
 
-		if (absX > r) {
-			return false;
-		}
-		else if (absY > r) {
+		if (absX > r || absY > r) {
 			return false;
 		}
 		else if ((absX * absX + absY * absY) <= r * r) {

@@ -70,6 +70,8 @@ void AISystem::slime_logic() {
 				// if player moves out of range, return to idle animation
 				if (!player_in_range(motion_struct.position, chaseRange)) {
 					registry.slimeEnemies.get(slime).state = SLIME_STATE::IDLE_DOWN;
+					// need to update initialPosition of slime so it idles from its new location
+					registry.slimeEnemies.get(slime).initialPosition = motion_struct.position;
 				}
 				break;
 		}	

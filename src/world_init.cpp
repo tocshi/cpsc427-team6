@@ -505,7 +505,8 @@ Entity createMenuQuit(RenderSystem* renderer, vec2 pos)
 		entity,
 		{ TEXTURE_ASSET_ID::QUIT,
 		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::EFFECT });
 
 	return entity;
 }

@@ -164,12 +164,32 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				set_is_player_turn(false);
 				player_right_click = false;
 			}
+			else {
+				// update the fog of war if the player is moving
+				remove_fog_of_war();
+				create_fog_of_war(500.f);
+			}
+		}
+	}
+
+	// if all ai have moved, start player turn
+	if (!get_is_player_turn() && get_is_ai_turn()) {
+		bool all_moved = true;
+		for (Entity ai : registry.slimeEnemies.entities) {
+			Motion ai_motion = registry.motions.get(ai);
+			if (ai_motion.in_motion) {
+				all_moved = false;
+			}
+		}
+		if (all_moved) {
+			set_is_ai_turn(false);
+			set_is_player_turn(true);
 		}
 	}
 
 	// If started, remove menu entities, and spawn game entities
 	if (!inMenu) {
-		// TODO, remove all components of (menu component)
+		// remove all menu entities
 		for (Entity e : registry.menuItems.entities) {
 			registry.remove_all_components_of(e);
 		}
@@ -303,6 +323,43 @@ void WorldSystem::spawn_game_entities() {
 	createSign(renderer, { 150.f, 550.f });
 	createStair(renderer, { 150.f, 650.f });
 	createWall(renderer, { window_width_px / 3, 300.f});
+
+	createStats(renderer, { 1400.f, 100.f }); //added for stats
+	create_fog_of_war(500.f);
+}
+
+// render fog of war around the player past a given radius
+void WorldSystem::create_fog_of_war(float radius) {	
+	// render fog everywhere except in visible circle around the player
+	for (int x = 0; x <= window_width_px; x+=50) {
+		for (int y = 0; y <= window_height_px; y += 50) {
+			// if the point is not witin the visible circle, render fog there
+			for (Entity player : registry.players.entities) {
+				// get player position
+				Motion player_motion = registry.motions.get(player);
+				float playerX = player_motion.position.x;
+				float playerY = player_motion.position.y;
+
+				// check if position is within the radius of the players position
+				double absX = abs(x - playerX);
+				double absY = abs(y - playerY);
+				double r = (double)radius;
+
+				// only create fog entities if they are not within the circle
+				if ((absX > r || absY > r) || !((absX * absX + absY * absY) <= r * r)) {
+					createFog(renderer, { x, y });
+				}
+			}
+		}
+	}
+}
+
+// remove all fog entities
+void WorldSystem::remove_fog_of_war() {
+	for (Entity e : registry.fog.entities) {
+		registry.remove_all_components_of(e);
+	}
+
 }
 
 // Compute collisions between entities
@@ -424,7 +481,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			Motion& motion_struct = registry.motions.get(player);
 
 			// set velocity to the direction of the cursor, at a magnitude of player_velocity
-			float player_velocity = 100;
+			float player_velocity = 200;
 			float angle = atan2(ypos - motion_struct.position.y, xpos - motion_struct.position.x);
 			float x_component = cos(angle) * player_velocity;
 			float y_component = sin(angle) * player_velocity;
@@ -452,4 +509,12 @@ void WorldSystem::set_is_player_turn(bool val) {
 
 bool WorldSystem::get_is_player_turn() {
 	return is_player_turn;
+}
+
+void WorldSystem::set_is_ai_turn(bool val) {
+	is_ai_turn = val;
+}
+
+bool WorldSystem::get_is_ai_turn() {
+	return is_ai_turn;
 }

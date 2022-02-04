@@ -36,6 +36,7 @@ public:
 	ComponentContainer<SlimeEnemy> slimeEnemies;
 	ComponentContainer<Button> buttons;
 	ComponentContainer<MenuItem> menuItems;
+	ComponentContainer<Fog> fog;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -66,6 +67,7 @@ public:
 		registry_list.push_back(&slimeEnemies);
 		registry_list.push_back(&buttons);
 		registry_list.push_back(&menuItems);
+		registry_list.push_back(&fog);
 	}
 
 	void clear_all_components() {

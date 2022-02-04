@@ -419,6 +419,35 @@ Entity createStair(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+// Wall
+Entity createWall(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ WALL_BB_WIDTH, WALL_BB_HEIGHT });
+
+	// Create and (empty) DOOR component to be able to refer to all doors
+	registry.test.emplace(entity);
+	registry.solid.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::WALL,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 Entity createBackground(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();

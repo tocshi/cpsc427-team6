@@ -302,6 +302,7 @@ void WorldSystem::spawn_game_entities() {
 	createDoor(renderer, { 150.f, 450.f });
 	createSign(renderer, { 150.f, 550.f });
 	createStair(renderer, { 150.f, 650.f });
+	createWall(renderer, { window_width_px / 3, 300.f});
 }
 
 // Compute collisions between entities
@@ -313,7 +314,7 @@ void WorldSystem::handle_collisions() {
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other;
 
-		// For now, we are only interested in collisions that involve the chicken
+		// For now, we are only interested in collisions that involve the player
 		if (registry.players.has(entity)) {
 			//Player& player = registry.players.get(entity);
 

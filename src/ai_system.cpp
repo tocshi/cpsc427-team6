@@ -37,7 +37,7 @@ void AISystem::slime_logic() {
 				// check if player is in range first
 				if (player_in_range(motion_struct.position, chaseRange)) {
 					registry.slimeEnemies.get(slime).state = SLIME_STATE::CHASING;
-				} else if (motion_struct.position.y > initialY + 150) {
+				} else if (motion_struct.position.y > initialY + 80) {
 					// if the idle boundry is hit, bounce up
 					registry.slimeEnemies.get(slime).state = SLIME_STATE::IDLE_UP;
 				}
@@ -50,7 +50,7 @@ void AISystem::slime_logic() {
 				// check if player is in range first
 				if (player_in_range(motion_struct.position, chaseRange)) {
 					registry.slimeEnemies.get(slime).state = SLIME_STATE::CHASING;
-				} else if (motion_struct.position.y < initialY - 150) {
+				} else if (motion_struct.position.y < initialY - 80) {
 					// if the idle boundry is hit, bounce down
 					registry.slimeEnemies.get(slime).state = SLIME_STATE::IDLE_DOWN;
 				}

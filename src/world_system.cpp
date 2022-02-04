@@ -167,6 +167,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// if all ai have moved, start player turn
+	if (!get_is_player_turn() && get_is_ai_turn()) {
+		bool all_moved = true;
+		for (Entity ai : registry.slimeEnemies.entities) {
+			Motion ai_motion = registry.motions.get(ai);
+			if (ai_motion.in_motion) {
+				all_moved = false;
+			}
+		}
+		if (all_moved) {
+			set_is_ai_turn(false);
+			set_is_player_turn(true);
+		}
+	}
+
 	// If started, remove menu entities, and spawn game entities
 	if (!inMenu) {
 		// TODO, remove all components of (menu component)
@@ -451,4 +466,12 @@ void WorldSystem::set_is_player_turn(bool val) {
 
 bool WorldSystem::get_is_player_turn() {
 	return is_player_turn;
+}
+
+void WorldSystem::set_is_ai_turn(bool val) {
+	is_ai_turn = val;
+}
+
+bool WorldSystem::get_is_ai_turn() {
+	return is_ai_turn;
 }

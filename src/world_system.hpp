@@ -53,6 +53,12 @@ private:
 	// spawn entities
 	void spawn_game_entities();
 
+	// create fog of war
+	void create_fog_of_war(float radius);
+
+	// remove all fog entities
+	void remove_fog_of_war();
+
 	// OpenGL window handle
 	GLFWwindow* window;
 

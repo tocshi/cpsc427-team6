@@ -52,8 +52,7 @@ int main()
 		physics.step(elapsed_ms);
 		world.step(elapsed_ms);
 		if (!world.get_is_player_turn()) {
-			ai.step(0);
-			world.set_is_player_turn(true); // add enemy queue for the future where enemies move one by one
+			ai.step(0); // add enemy queue for the future where enemies move one by one
 		}
 		
 		//world.handle_collisions();

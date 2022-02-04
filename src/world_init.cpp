@@ -430,7 +430,7 @@ Entity createBackground(RenderSystem* renderer, vec2 position)
 	// Initialize the motion
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0, 0 };
+	motion.velocity = { 0.f, 0.f };
 	motion.position = position;
 
 	// Setting initial values
@@ -539,6 +539,35 @@ Entity createMenuTitle(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+
+// Kaiti put in create Stat Entity for player 
+Entity createStats(RenderSystem* renderer, vec2 position) {
+	
+	auto statEntity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(statEntity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(statEntity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	
+	// Setting initial values
+	motion.scale = vec2({ STAT_BB_WIDTH, STAT_BB_HEIGHT });
+
+	registry.renderRequests.insert(
+		statEntity,
+		{ TEXTURE_ASSET_ID::STAT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE
+		});
+
+	return statEntity;
+
+
+}
+
 // Fog entity for fog of war
 Entity createFog(RenderSystem* renderer, vec2 pos)
 {
@@ -567,3 +596,4 @@ Entity createFog(RenderSystem* renderer, vec2 pos)
 
 	return entity;
 }
+

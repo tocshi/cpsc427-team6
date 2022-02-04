@@ -322,6 +322,7 @@ void WorldSystem::spawn_game_entities() {
 	createDoor(renderer, { 150.f, 450.f });
 	createSign(renderer, { 150.f, 550.f });
 	createStair(renderer, { 150.f, 650.f });
+	createStats(renderer, { 1400.f, 100.f }); //added for stats
 	create_fog_of_war(500.f);
 }
 
@@ -356,6 +357,7 @@ void WorldSystem::remove_fog_of_war() {
 	for (Entity e : registry.fog.entities) {
 		registry.remove_all_components_of(e);
 	}
+
 }
 
 // Compute collisions between entities

@@ -506,7 +506,7 @@ Entity createMenuQuit(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::QUIT,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::EFFECT });
+		 RENDER_LAYER_ID::UI });
 
 	return entity;
 }
@@ -562,7 +562,8 @@ Entity createFog(RenderSystem* renderer, vec2 pos)
 		entity,
 		{ TEXTURE_ASSET_ID::FOG,
 		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::EFFECT});
 
 	return entity;
 }

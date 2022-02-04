@@ -589,7 +589,8 @@ Entity createStats(RenderSystem* renderer, vec2 position) {
 		statEntity,
 		{ TEXTURE_ASSET_ID::STAT,
 		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI
 		});
 
 	return statEntity;

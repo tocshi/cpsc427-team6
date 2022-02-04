@@ -201,7 +201,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// Reset timer
 			next_eagle_spawn = (EAGLE_DELAY_MS / 2) + uniform_dist(rng) * (EAGLE_DELAY_MS / 2);
 			// Create eagle with random initial position
-			createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
+			createEagle(renderer, vec2(200.f + uniform_dist(rng) * (window_width_px - 200.f), 200.f));
 		}
 
 		// Spawning new bug
@@ -312,17 +312,25 @@ void WorldSystem::spawn_game_entities() {
 	registry.colors.insert(player_chicken, { 1, 0.8f, 0.8f });
 
 	// create all non-menu game objects
-	createPlayer(renderer, { 50.f, 250.f });
+	createPlayer(renderer, { 250.f, 250.f });
 	createEnemy(renderer, { window_width_px / 2, 350.f });
-	createBoss(renderer, { 50.f, 450.f });
-	createArtifact(renderer, { 50.f, 550.f });
-	createConsumable(renderer, { 50.f, 650.f });
-	createEquipable(renderer, { 150.f, 250.f });
-	createChest(renderer, { 150.f, 350.f });
-	createDoor(renderer, { 150.f, 450.f });
-	createSign(renderer, { 150.f, 550.f });
-	createStair(renderer, { 150.f, 650.f });
-	createWall(renderer, { window_width_px / 3, 300.f});
+	createBoss(renderer, { 250.f, 450.f });
+	createArtifact(renderer, { 250.f, 550.f });
+	createConsumable(renderer, { 250.f, 650.f });
+	createEquipable(renderer, { 350.f, 250.f });
+	createChest(renderer, { 350.f, 350.f });
+	createDoor(renderer, { 350.f, 450.f });
+	createSign(renderer, { 350.f, 550.f });
+	createStair(renderer, { 350.f, 650.f });
+	for (uint i = 0; WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i < window_width_px; i++) {
+		createWall(renderer, { WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i, WALL_BB_HEIGHT / 2 });
+		createWall(renderer, { WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i, window_height_px - WALL_BB_HEIGHT / 2 });
+	}
+	for (uint i = 1; WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i < window_width_px - WALL_BB_HEIGHT; i++) {
+		createWall(renderer, { WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
+		createWall(renderer, { window_width_px - WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
+	}
+	
 
 	createStats(renderer, { 1400.f, 100.f }); //added for stats
 	create_fog_of_war(500.f);

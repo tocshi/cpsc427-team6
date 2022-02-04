@@ -193,25 +193,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		for (Entity e : registry.menuItems.entities) {
 			registry.remove_all_components_of(e);
 		}
-
-		// create template objects
-		// Spawning new eagles
-		next_eagle_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (registry.deadlys.components.size() <= MAX_EAGLES && next_eagle_spawn < 0.f) {
-			// Reset timer
-			next_eagle_spawn = (EAGLE_DELAY_MS / 2) + uniform_dist(rng) * (EAGLE_DELAY_MS / 2);
-			// Create eagle with random initial position
-			createEagle(renderer, vec2(200.f + uniform_dist(rng) * (window_width_px - 200.f), 200.f));
-		}
-
-		// Spawning new bug
-		next_bug_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (registry.eatables.components.size() <= MAX_BUG && next_bug_spawn < 0.f) {
-			// Reset timer
-			next_eagle_spawn = (BUG_DELAY_MS / 2) + uniform_dist(rng) * (BUG_DELAY_MS / 2);
-			// Create bug with random initial position
-			createBug(renderer, vec2(window_width_px / 2, window_height_px - 200));
-		}
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -307,9 +288,6 @@ void WorldSystem::restart_game() {
 
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
-	// Create a new chicken
-	player_chicken = createChicken(renderer, { window_width_px / 2, window_height_px - 200 });
-	registry.colors.insert(player_chicken, { 1, 0.8f, 0.8f });
 
 	// create all non-menu game objects
 	createPlayer(renderer, { 250.f, 250.f });

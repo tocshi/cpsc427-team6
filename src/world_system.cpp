@@ -327,13 +327,8 @@ void WorldSystem::create_fog_of_war(float radius) {
 				double absY = abs(y - playerY);
 				double r = (double)radius;
 
-				if (absX > r || absY > r) {
-					createFog(renderer, { x, y });
-				}
-				else if ((absX * absX + absY * absY) <= r * r) {
-					// do nothing (don't render fog)
-				}
-				else {
+				// only create fog entities if they are not within the circle
+				if ((absX > r || absY > r) || !((absX * absX + absY * absY) <= r * r)) {
 					createFog(renderer, { x, y });
 				}
 			}

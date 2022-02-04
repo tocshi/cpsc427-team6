@@ -30,6 +30,8 @@ struct Motion {
 	float angle = 0;
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { 10, 10 };
+	vec2 destination = { 0, 0 };
+	bool in_motion = false;
 };
 
 // Stucture to store collision information
@@ -124,6 +126,20 @@ struct Test {
 
 };
 
+enum class SLIME_STATE {
+	IDLE_DOWN = 0,
+	IDLE_UP = IDLE_DOWN + 1,
+	CHASING = IDLE_UP + 1,
+	STATE_COUNT = CHASING + 1
+};
+
+struct SlimeEnemy {
+	float hp = 0;
+	float chaseRange = 0;
+	vec2 initialPosition = { 0, 0 };
+	SLIME_STATE state = SLIME_STATE::STATE_COUNT;
+};
+
 enum class BUTTON_ACTION_ID {
 	MENU_QUIT = 0,
 	MENU_START = MENU_QUIT + 1,
@@ -136,6 +152,10 @@ struct Button {
 };
 
 struct MenuItem {
+
+};
+
+struct Fog {
 
 };
 
@@ -177,12 +197,12 @@ enum class TEXTURE_ASSET_ID {
 	DOOR = CHEST + 1,
 	SIGN = DOOR + 1,
 	STAIR = SIGN + 1,
-	START = STAIR + 1,
+	FOG = STAIR + 1,
+	START = FOG + 1,
 	QUIT = START + 1,
 	TITLE = QUIT + 1,
 	STAT = TITLE +1,
 	TEXTURE_COUNT = STAT + 1
-
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

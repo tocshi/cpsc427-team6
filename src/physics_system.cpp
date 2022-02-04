@@ -68,16 +68,14 @@ void PhysicsSystem::step(float elapsed_ms)
 		motion.position = pos_final;
 
 		// check to see if entity is now colliding with a wall, and reset it to its previous position
-		if (registry.players.has(entity)) {
-			if (motion.velocity.x != 0 || motion.velocity.y != 0) {
-				for (uint j = 0; j < motion_registry.size(); j++) {
-					if (j != i && registry.solid.has(motion_registry.entities[j])) {
-						if (collides_AABB(motion, motion_registry.components[j])) {
-							motion.position = pos;
-							motion.destination = motion.position;
-							motion.velocity = { 0,0 };
-							motion.in_motion = false;
-						}
+		if (motion.velocity.x != 0 || motion.velocity.y != 0) {
+			for (uint j = 0; j < motion_registry.size(); j++) {
+				if (j != i && registry.solid.has(motion_registry.entities[j])) {
+					if (collides_AABB(motion, motion_registry.components[j])) {
+						motion.position = pos;
+						motion.destination = motion.position;
+						motion.velocity = { 0,0 };
+						motion.in_motion = false;
 					}
 				}
 			}

@@ -126,6 +126,10 @@ struct Test {
 
 };
 
+struct Solid {
+
+};
+
 enum class SLIME_STATE {
 	IDLE_DOWN = 0,
 	IDLE_UP = IDLE_DOWN + 1,
@@ -202,7 +206,8 @@ enum class TEXTURE_ASSET_ID {
 	QUIT = START + 1,
 	TITLE = QUIT + 1,
 	STAT = TITLE +1,
-	TEXTURE_COUNT = STAT + 1
+	WALL = STAT + 1,
+	TEXTURE_COUNT = WALL + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

@@ -60,7 +60,7 @@ int main()
 			// add enemy queue for the future where enemies move one by one
 		}
 		
-		//world.handle_collisions();
+		world.handle_collisions();
 
 		renderer.draw();
 

@@ -193,25 +193,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		for (Entity e : registry.menuItems.entities) {
 			registry.remove_all_components_of(e);
 		}
-
-		// create template objects
-		// Spawning new eagles
-		next_eagle_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (registry.deadlys.components.size() <= MAX_EAGLES && next_eagle_spawn < 0.f) {
-			// Reset timer
-			next_eagle_spawn = (EAGLE_DELAY_MS / 2) + uniform_dist(rng) * (EAGLE_DELAY_MS / 2);
-			// Create eagle with random initial position
-			createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
-		}
-
-		// Spawning new bug
-		next_bug_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (registry.eatables.components.size() <= MAX_BUG && next_bug_spawn < 0.f) {
-			// Reset timer
-			next_eagle_spawn = (BUG_DELAY_MS / 2) + uniform_dist(rng) * (BUG_DELAY_MS / 2);
-			// Create bug with random initial position
-			createBug(renderer, vec2(window_width_px / 2, window_height_px - 200));
-		}
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -307,23 +288,29 @@ void WorldSystem::restart_game() {
 
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
-	// Create a new chicken
-	player_chicken = createChicken(renderer, { window_width_px / 2, window_height_px - 200 });
-	registry.colors.insert(player_chicken, { 1, 0.8f, 0.8f });
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
 	spawn_player_random_location();
 	spawn_enemy_random_location();
-
-	createBoss(renderer, { 50.f, 450.f });
-	createArtifact(renderer, { 50.f, 550.f });
-	createConsumable(renderer, { 50.f, 650.f });
-	createEquipable(renderer, { 150.f, 250.f });
-	createChest(renderer, { 150.f, 350.f });
-	createDoor(renderer, { 150.f, 450.f });
-	createSign(renderer, { 150.f, 550.f });
-	createStair(renderer, { 150.f, 650.f });
+  
+	createBoss(renderer, { 250.f, 450.f });
+	createArtifact(renderer, { 250.f, 550.f });
+	createConsumable(renderer, { 250.f, 650.f });
+	createEquipable(renderer, { 350.f, 250.f });
+	createChest(renderer, { 350.f, 350.f });
+	createDoor(renderer, { 350.f, 450.f });
+	createSign(renderer, { 350.f, 550.f });
+	createStair(renderer, { 350.f, 650.f });
+	for (uint i = 0; WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i < window_width_px; i++) {
+		createWall(renderer, { WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i, WALL_BB_HEIGHT / 2 });
+		createWall(renderer, { WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i, window_height_px - WALL_BB_HEIGHT / 2 });
+	}
+	for (uint i = 1; WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i < window_width_px - WALL_BB_HEIGHT; i++) {
+		createWall(renderer, { WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
+		createWall(renderer, { window_width_px - WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
+	}
+	
 	createStats(renderer, { 1400.f, 100.f }); //added for stats
 	create_fog_of_war(500.f);
 }
@@ -389,7 +376,7 @@ void WorldSystem::handle_collisions() {
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other;
 
-		// For now, we are only interested in collisions that involve the chicken
+		// For now, we are only interested in collisions that involve the player
 		if (registry.players.has(entity)) {
 			//Player& player = registry.players.get(entity);
 

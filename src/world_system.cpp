@@ -137,10 +137,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	std::stringstream title_ss;
 	title_ss << "Points: " << points;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
-	// STAT FOR PLAYER (Kaiti)
-	Entity Stat;
-	// starting EP for player
-	float playerEP = registry.stats.get(Stat).ep = 100.0;
+
+
 
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
@@ -164,19 +162,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (get_is_player_turn() && player_right_click) {
 		for (Entity player : registry.players.entities) {
 			Motion player_motion = registry.motions.get(player);
+			// player EP VALUE 
+			//float playerEP = registry.players.get(player).ep; 
+
 			if (!player_motion.in_motion) {
 				set_is_player_turn(false);
 				player_right_click = false;
-				printf("The player's ep is :");
-				printf("%f", playerEP);
+
+
 			}
 			else {
 				// update the fog of war if the player is moving & update Player's EP minus 10
 				remove_fog_of_war();
 				create_fog_of_war(500.f);
-				playerEP = subtractEP(playerEP);
-				printf("The player's ep is :");
-				printf("%f", playerEP);
+
 			}
 		}
 	}
@@ -193,8 +192,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (all_moved) {
 			set_is_ai_turn(false);
 			set_is_player_turn(true);
+
+			
+
 		}
 	}
+
 
 	// If started, remove menu entities, and spawn game entities
 	if (!inMenu) {
@@ -272,8 +275,7 @@ void WorldSystem::restart_game() {
 		registry.remove_all_components_of(registry.motions.entities.back());
 
 	// set EP to full
-	Entity Stat;
-	registry.stats.get(Stat).ep = 100; 
+	//registry.stats.get(Stat).ep = 100; 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
@@ -485,9 +487,22 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		}
 	}
 
+	// click button player, ep decrease while moving, and increase while not moving and once they hit 0 revive and get 100 ep 
 	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_right_click) {
 		for (Entity& player : registry.players.entities) {
 			Motion& motion_struct = registry.motions.get(player);
+			float playerEP = registry.players.get(player).ep;
+			if (!player_right_click) {
+				// when the player ep value goes down to 0 add 100 ep
+				if (playerEP == 0) {	
+					registry.players.get(player).ep = 100; 
+					playerEP = registry.players.get(player).ep; 
+				}
+				//playerEP = addEP(playerEP);
+				printf("The player's ep is before moving:");
+				printf("%f", playerEP);
+			}
+	
 
 			// set velocity to the direction of the cursor, at a magnitude of player_velocity
 			float player_velocity = 200;
@@ -498,6 +513,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			motion_struct.destination = { xpos, ypos };
 			motion_struct.in_motion = true;
 			player_right_click = true;
+			if (player_right_click) {
+				registry.players.get(player).ep = subtractEP(playerEP);
+				playerEP = registry.players.get(player).ep; 
+				printf("The player's ep is after moving:");
+				printf("%f", playerEP);
+			}
 		}
 	}
 }
@@ -529,7 +550,14 @@ bool WorldSystem::get_is_ai_turn() {
 }
 
 float WorldSystem:: subtractEP(float ep) {
-
+	//float ep = 0.0;
 	ep = ep - 10.0;
+	return ep; 
+}
+
+float WorldSystem::addEP(float ep) {
+	//float ep = 0.0;
+	ep = ep +10.0;
 	return ep;
 }
+

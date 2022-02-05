@@ -9,7 +9,9 @@ struct Player
 {
 	float s; 
 	//Entity Stat; // hp, ep ,mp 
-	
+	float hp = 100;
+	float mp = 100;
+	float ep = 100; 
 
 	
 

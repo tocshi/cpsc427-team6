@@ -86,7 +86,9 @@ private:
 	bool player_right_click = false;
 	bool is_ai_turn = false;
 	// subtract ep function
-	float subtractEP(float e);
+	float subtractEP(float ep);
+	// add ep function
+	float WorldSystem::addEP(float ep);
 
 
 	// music references

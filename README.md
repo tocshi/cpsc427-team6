@@ -8,8 +8,8 @@ Implemented Features:
     - Player spawns in a random location upon game restart
     - Enemy spawns in a random location upon game restart
     Entry points: 
-world_system.cpp | spawn_player_random_location() | line 376
-world_system.cpp | spawn_enemy_random_location() | line 399
+world_system.cpp | spawn_player_random_location() | line 391
+world_system.cpp | spawn_enemy_random_location() | line 414
 
 - Collision with walls
     - Entities cannot phase through walls

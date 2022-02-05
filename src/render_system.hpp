@@ -47,8 +47,13 @@ class RenderSystem {
 			textures_path("start.png"),
 			textures_path("quit.png"),
 			textures_path("title.png"),
-			textures_path("stat.png"),
-			textures_path("wall.png")
+			textures_path("wall.png"),
+			textures_path("statbars/hpbar.png"),
+			textures_path("statbars/mpbar.png"),
+			textures_path("statbars/epbar.png"),
+			textures_path("statbars/hpfill.png"),
+			textures_path("statbars/mpfill.png"),
+			textures_path("statbars/epfill.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

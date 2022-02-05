@@ -8,6 +8,7 @@
 struct Player
 {
 	float s; 
+	Stat stats; // hp, ep ,mp 
 	
 
 };

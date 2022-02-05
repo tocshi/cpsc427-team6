@@ -53,3 +53,8 @@ world_system.cpp | spawn_enemy_random_location() | line 414
 - Render 
     - Layer variable added to RenderRequest for sorting render order
     Entry point: render_system.cpp | RenderSystem::draw() | line 210
+
+- EP depletion 
+   - Ep Bar Fill  (display) world_init.cpp | createEPFill() | line 718
+   - check if player in motion decremet Ep by1 world_system.cpp| check_in_motion() | line 608
+   - subtract ep  world_system.cpp| subtractEP() | line 595

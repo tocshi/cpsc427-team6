@@ -8,6 +8,12 @@
 struct Player
 {
 	float s; 
+	//Entity Stat; // hp, ep ,mp 
+	float hp = 100;
+	float mp = 100;
+	float ep = 100; 
+	float maxEP = 100; 
+
 	
 
 };
@@ -113,9 +119,10 @@ struct Interactable {
 };
 
 struct Stat {
-	float hp = 0;
-	float mp = 0;
-	float ep = 0;
+	// set intial stats to 100 points
+	float hp = 100;
+	float mp = 100;
+	float ep = 100;
 };
 
 struct Queueable {

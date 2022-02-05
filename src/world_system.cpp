@@ -195,27 +195,36 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// Update HP/MP/EP bars
+	// Update HP/MP/EP bars and movement
 	for (Entity player : registry.players.entities) {
 		for (Entity entity : registry.motions.entities) {
 			Motion& motion_struct = registry.motions.get(entity);
 			RenderRequest& render_struct = registry.renderRequests.get(entity);
+
+			float maxEP = registry.players.get(player).maxEP;
+			float hp = registry.players.get(player).hp;
+			float mp = registry.players.get(player).mp;
+			float ep = registry.players.get(player).ep;
+			
 			switch (render_struct.used_texture) {
 			case TEXTURE_ASSET_ID::HPFILL:
-				motion_struct.scale = { (50.f / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
-				motion_struct.position[0] = 150.f - 150.f*(1.f - (50.f / 100.f));	// original pos (full bar) - (1-multiplier) (hard coded for now)
+				motion_struct.scale = { (hp / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (hp / 100.f));	// original pos (full bar) - (1-multiplier)
 				break;
 			case TEXTURE_ASSET_ID::MPFILL:
-				motion_struct.scale = { (75.f / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
-				motion_struct.position[0] = 150.f - 150.f*(1.f - (75.f / 100.f));	// original pos (full bar) - (1-multiplier) (hard coded for now)
+				motion_struct.scale = { (mp / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (mp / 100.f));	// original pos (full bar) - (1-multiplier)
 				break;
 			case TEXTURE_ASSET_ID::EPFILL:
-				motion_struct.scale = { (25.f / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
-				motion_struct.position[0] = 150.f - 150.f*(1.f - (25.f / 100.f));	// original pos (full bar) - (1-multiplier) (hard coded for now)
+				motion_struct.scale = { (ep / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (ep / 100.f));	// original pos (full bar) - (1-multiplier)
 				break;
 			}
+
+			registry.players.get(player).ep = check_in_motion(motion_struct.in_motion, ep, maxEP);
 		}
 	}
+
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A3: HANDLE EGG SPAWN HERE
@@ -552,6 +561,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			motion_struct.destination = { xpos, ypos };
 			motion_struct.in_motion = true;
 			player_right_click = true;
+
 		}
 	}
 }
@@ -580,4 +590,30 @@ void WorldSystem::set_is_ai_turn(bool val) {
 
 bool WorldSystem::get_is_ai_turn() {
 	return is_ai_turn;
+}
+
+float WorldSystem::subtractEP(float ep) {
+	//float ep = 0.0;
+	ep = ep - 1.0;
+	return ep;
+}
+
+/*float WorldSystem::addEP(float ep) {
+	//float ep = 0.0;
+	ep = ep +10;
+	return ep;
+}*/
+
+// returns float and check if player is in motion 
+float WorldSystem::check_in_motion(bool motion, float ep, float maxEP) {
+	if (!motion) {
+		// when the player ep value goes down to 0, reset to maxEP 100
+		if (ep == 0) {
+			ep = maxEP;
+		}
+	}
+	else if (motion) {
+		ep = subtractEP(ep);
+	}
+	return ep;
 }

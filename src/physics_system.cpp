@@ -26,6 +26,15 @@ bool collides(const Motion& motion1, const Motion& motion2)
 	return false;
 }
 
+bool collides_AABB(const Motion& motion1, const Motion& motion2) {
+	vec2 bounding_box_a = get_bounding_box(motion1);
+	vec2 bounding_box_b = get_bounding_box(motion2);
+	return motion1.position.x < motion2.position.x + bounding_box_b.x
+		&& motion1.position.x + bounding_box_a.x > motion2.position.x
+		&& motion1.position.y < motion2.position.y + bounding_box_b.y
+		&& motion1.position.y + bounding_box_a.y > motion2.position.y;
+}
+
 float dist_to(const vec2 position1, const vec2 position2) {
 	return sqrt(pow(position2.x - position1.x, 2) + pow(position2.y - position1.y, 2));
 }
@@ -58,6 +67,19 @@ void PhysicsSystem::step(float elapsed_ms)
 
 		motion.position = pos_final;
 
+		// check to see if entity is now colliding with a wall, and reset it to its previous position
+		if (motion.velocity.x != 0 || motion.velocity.y != 0) {
+			for (uint j = 0; j < motion_registry.size(); j++) {
+				if (j != i && registry.solid.has(motion_registry.entities[j])) {
+					if (collides_AABB(motion, motion_registry.components[j])) {
+						motion.position = pos;
+						motion.destination = motion.position;
+						motion.velocity = { 0,0 };
+						motion.in_motion = false;
+					}
+				}
+			}
+		}
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

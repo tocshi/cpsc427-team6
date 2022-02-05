@@ -29,7 +29,7 @@ world_system.cpp | spawn_enemy_random_location() | line 414
 
 - Fog of War
     - Player has a limited field of vision, the rest is obscured by a fog
-    Entry point: world_system.cpp | create_fog_of_war() | line 319
+    Entry point: world_system.cpp | create_fog_of_war() | line 357
 
 - Turn Based Action
     - The player and the enemy moves based on turn

@@ -14,6 +14,9 @@ const size_t MAX_BUG = 5;
 const size_t EAGLE_DELAY_MS = 2000 * 3;
 const size_t BUG_DELAY_MS = 5000 * 3;
 
+//  EP states 
+float ep = 100;
+float maxEP = 100; 
 // Create the bug world
 WorldSystem::WorldSystem()
 	: points(0)
@@ -153,7 +156,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	for (int i = (int)motions_registry.components.size() - 1; i >= 0; --i) {
 		Motion& motion = motions_registry.components[i];
 		if (motion.position.x + abs(motion.scale.x) < 0.f) {
-			if (!registry.players.has(motions_registry.entities[i])) // don't remove the player
+			if (!registry.players.has(motions_registry.entities[i])) // don't remove the 
 				registry.remove_all_components_of(motions_registry.entities[i]);
 		}
 	}
@@ -168,13 +171,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (!player_motion.in_motion) {
 				set_is_player_turn(false);
 				player_right_click = false;
-
+				ep = check_in_motion(player_motion.in_motion, ep, maxEP);
 
 			}
 			else {
 				// update the fog of war if the player is moving & update Player's EP minus 10
 				remove_fog_of_war();
 				create_fog_of_war(500.f);
+				ep = check_in_motion(player_motion.in_motion, ep, maxEP);
 
 			}
 		}
@@ -351,7 +355,6 @@ void WorldSystem::create_fog_of_war(float radius) {
 				Motion player_motion = registry.motions.get(player);
 				float playerX = player_motion.position.x;
 				float playerY = player_motion.position.y;
-
 				// check if position is within the radius of the players position
 				double absX = abs(x - playerX);
 				double absY = abs(y - playerY);
@@ -491,8 +494,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_right_click) {
 		for (Entity& player : registry.players.entities) {
 			Motion& motion_struct = registry.motions.get(player);
-			float playerEP = registry.players.get(player).ep;
-			if (!player_right_click) {
+			//float maxEP = registry.players.get(player).maxEP;
+			//float ep = registry.players.get(player).ep;
+			registry.players.get(player).ep = check_in_motion(motion_struct.in_motion, ep, maxEP);
+			/*if (!motion_struct.in_motion) {
 				// when the player ep value goes down to 0, reset to maxEP 100
 				if (playerEP == 0) {	
 					registry.players.get(player).ep = registry.players.get(player).maxEP; 
@@ -501,8 +506,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				//playerEP = addEP(playerEP);
 				printf("The player's ep is before moving:");
 				printf("%f", playerEP);
-			}
+			} */
 	
+
 
 			// set velocity to the direction of the cursor, at a magnitude of player_velocity
 			float player_velocity = 200;
@@ -513,12 +519,14 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			motion_struct.destination = { xpos, ypos };
 			motion_struct.in_motion = true;
 			player_right_click = true;
-			if (player_right_click) {
+
+			registry.players.get(player).ep = check_in_motion(motion_struct.in_motion, ep, maxEP);
+			/*if (motion_struct.in_motion) {
 				registry.players.get(player).ep = subtractEP(playerEP);
 				playerEP = registry.players.get(player).ep; 
 				printf("The player's ep is after moving:");
 				printf("%f", playerEP);
-			}
+			}*/
 		}
 	}
 }
@@ -551,13 +559,28 @@ bool WorldSystem::get_is_ai_turn() {
 
 float WorldSystem:: subtractEP(float ep) {
 	//float ep = 0.0;
-	ep = ep - 10.0;
+	ep = ep - 1.0;
 	return ep; 
 }
 
-float WorldSystem::addEP(float ep) {
+/*float WorldSystem::addEP(float ep) {
 	//float ep = 0.0;
-	ep = ep +10.0;
+	ep = ep +10;
+	return ep;
+}*/
+
+// returns float and check if player is in motion 
+float WorldSystem::check_in_motion( bool motion, float ep, float maxEP) {
+	if (!motion) {
+		// when the player ep value goes down to 0, reset to maxEP 100
+		if (ep == 0) {
+			ep = maxEP;
+		}
+	} else if (motion) {
+		ep = subtractEP(ep);
+	}
+		//playerEP = addEP(playerEP);
+	printf("The player's ep is before moving:");
+	printf("%f", ep);
 	return ep;
 }
-

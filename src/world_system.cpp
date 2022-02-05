@@ -311,7 +311,14 @@ void WorldSystem::spawn_game_entities() {
 		createWall(renderer, { window_width_px - WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
 	}
 	
-	createStats(renderer, { 1400.f, 100.f }); //added for stats
+	float statbarsX = 150.f;
+	float statbarsY = 740.f;
+	createHPFill(renderer, { statbarsX, statbarsY });
+	createHPBar(renderer,  { statbarsX, statbarsY });
+	createMPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createMPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
+	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war(500.f);
 }
 
@@ -519,6 +526,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			float x_component = cos(angle) * player_velocity;
 			float y_component = sin(angle) * player_velocity;
 			motion_struct.velocity = { x_component, y_component};
+			motion_struct.angle = angle + (0.5 * M_PI);
 			motion_struct.destination = { xpos, ypos };
 			motion_struct.in_motion = true;
 			player_right_click = true;

@@ -128,7 +128,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	fprintf(stderr, "Loaded music\n");
 
 	// Set all states to default
-    restart_game();
+	restart_game();
 }
 
 // Update our game world
@@ -137,10 +137,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	std::stringstream title_ss;
 	title_ss << "Points: " << points;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
+	// STAT FOR PLAYER (Kaiti)
+	Entity Stat;
+	// starting EP for player
+	float playerEP = registry.stats.get(Stat).ep = 100.0;
 
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
-	    registry.remove_all_components_of(registry.debugComponents.entities.back());
+		registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
@@ -148,10 +152,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current)
-	for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
-	    Motion& motion = motions_registry.components[i];
+	for (int i = (int)motions_registry.components.size() - 1; i >= 0; --i) {
+		Motion& motion = motions_registry.components[i];
 		if (motion.position.x + abs(motion.scale.x) < 0.f) {
-			if(!registry.players.has(motions_registry.entities[i])) // don't remove the player
+			if (!registry.players.has(motions_registry.entities[i])) // don't remove the player
 				registry.remove_all_components_of(motions_registry.entities[i]);
 		}
 	}
@@ -163,11 +167,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (!player_motion.in_motion) {
 				set_is_player_turn(false);
 				player_right_click = false;
+				printf("The player's ep is :");
+				printf("%f", playerEP);
 			}
 			else {
-				// update the fog of war if the player is moving
+				// update the fog of war if the player is moving & update Player's EP minus 10
 				remove_fog_of_war();
 				create_fog_of_war(500.f);
+				playerEP = subtractEP(playerEP);
+				printf("The player's ep is :");
+				printf("%f", playerEP);
 			}
 		}
 	}
@@ -221,22 +230,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Processing the chicken state
 	assert(registry.screenStates.components.size() <= 1);
-    ScreenState &screen = registry.screenStates.components[0];
+	ScreenState &screen = registry.screenStates.components[0];
 
-    float min_counter_ms = 3000.f;
+	float min_counter_ms = 3000.f;
 	for (Entity entity : registry.deathTimers.entities) {
 		// progress timer
 		DeathTimer& counter = registry.deathTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
-		if(counter.counter_ms < min_counter_ms){
-		    min_counter_ms = counter.counter_ms;
+		if (counter.counter_ms < min_counter_ms) {
+			min_counter_ms = counter.counter_ms;
 		}
 
 		// restart the game once the death timer expired
 		if (counter.counter_ms < 0) {
 			registry.deathTimers.remove(entity);
 			screen.darken_screen_factor = 0;
-            restart_game();
+			restart_game();
 			return true;
 		}
 	}
@@ -260,13 +269,16 @@ void WorldSystem::restart_game() {
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	while (registry.motions.entities.size() > 0)
-	    registry.remove_all_components_of(registry.motions.entities.back());
+		registry.remove_all_components_of(registry.motions.entities.back());
 
+	// set EP to full
+	Entity Stat;
+	registry.stats.get(Stat).ep = 100; 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
 	// Create the map/level/background
-	background = createBackground(renderer, vec2(window_width_px/2,window_height_px/2));
+	background = createBackground(renderer, vec2(window_width_px / 2, window_height_px / 2));
 
 	//// Create a new chicken
 	//player_chicken = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
@@ -280,7 +292,7 @@ void WorldSystem::restart_game() {
 		glfwGetWindowSize(window, &w, &h);
 		float radius = 30 * (uniform_dist(rng) + 0.3f); // range 0.3 .. 1.3
 		Entity egg = createEgg({ uniform_dist(rng) * w, h - uniform_dist(rng) * 20 },
-			         { radius, radius });
+					 { radius, radius });
 		float brightness = uniform_dist(rng) * 0.5 + 0.5;
 		registry.colors.insert(egg, { brightness, brightness, brightness});
 	}
@@ -327,9 +339,9 @@ void WorldSystem::spawn_game_entities() {
 }
 
 // render fog of war around the player past a given radius
-void WorldSystem::create_fog_of_war(float radius) {	
+void WorldSystem::create_fog_of_war(float radius) {
 	// render fog everywhere except in visible circle around the player
-	for (int x = 0; x <= window_width_px; x+=50) {
+	for (int x = 0; x <= window_width_px; x += 50) {
 		for (int y = 0; y <= window_height_px; y += 50) {
 			// if the point is not witin the visible circle, render fog there
 			for (Entity player : registry.players.entities) {
@@ -420,7 +432,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
 
-        restart_game();
+		restart_game();
 	}
 
 	// Debugging
@@ -460,19 +472,18 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			int buttonX = m.position[0];
 			int buttonY = m.position[1];
 			// if mouse is interating with a button
-			if ((xpos <= (buttonX + m.scale[0] / 2) && xpos >= (buttonX - m.scale[0] / 2)) && 
+			if ((xpos <= (buttonX + m.scale[0] / 2) && xpos >= (buttonX - m.scale[0] / 2)) &&
 				(ypos >= (buttonY - m.scale[1] / 2) && ypos <= (buttonY + m.scale[1] / 2))) {
 				// perform action based on button ENUM
 				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
 
 				switch (action_taken) {
-					case BUTTON_ACTION_ID::MENU_START: inMenu = false; spawn_game_entities(); is_player_turn = true; break;
-					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
+				case BUTTON_ACTION_ID::MENU_START: inMenu = false; spawn_game_entities(); is_player_turn = true; break;
+				case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 				}
 			}
 		}
 	}
-
 
 	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_right_click) {
 		for (Entity& player : registry.players.entities) {
@@ -483,7 +494,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			float angle = atan2(ypos - motion_struct.position.y, xpos - motion_struct.position.x);
 			float x_component = cos(angle) * player_velocity;
 			float y_component = sin(angle) * player_velocity;
-			motion_struct.velocity = { x_component, y_component};
+			motion_struct.velocity = { x_component, y_component };
 			motion_struct.destination = { xpos, ypos };
 			motion_struct.in_motion = true;
 			player_right_click = true;
@@ -515,4 +526,10 @@ void WorldSystem::set_is_ai_turn(bool val) {
 
 bool WorldSystem::get_is_ai_turn() {
 	return is_ai_turn;
+}
+
+float WorldSystem:: subtractEP(float ep) {
+
+	ep = ep - 10.0;
+	return ep;
 }

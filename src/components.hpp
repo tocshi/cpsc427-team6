@@ -8,7 +8,9 @@
 struct Player
 {
 	float s; 
-	Stat stats; // hp, ep ,mp 
+	//Entity Stat; // hp, ep ,mp 
+	
+
 	
 
 };
@@ -114,9 +116,10 @@ struct Interactable {
 };
 
 struct Stat {
-	float hp = 0;
-	float mp = 0;
-	float ep = 0;
+	// set intial stats to 100 points
+	float hp = 100;
+	float mp = 100;
+	float ep = 100;
 };
 
 struct Queueable {
@@ -124,6 +127,10 @@ struct Queueable {
 };
 
 struct Test {
+
+};
+
+struct Solid {
 
 };
 
@@ -203,7 +210,8 @@ enum class TEXTURE_ASSET_ID {
 	QUIT = START + 1,
 	TITLE = QUIT + 1,
 	STAT = TITLE +1,
-	TEXTURE_COUNT = STAT + 1
+	WALL = STAT +1,
+	TEXTURE_COUNT = WALL +1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

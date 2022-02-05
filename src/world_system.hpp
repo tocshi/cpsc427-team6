@@ -63,6 +63,12 @@ private:
 	// remove all fog entities
 	void remove_fog_of_war();
 
+	// spawn player in random location
+	void spawn_player_random_location();
+
+	// spawn enemy in random location
+	void spawn_enemy_random_location();
+
 	// OpenGL window handle
 	GLFWwindow* window;
 
@@ -79,7 +85,9 @@ private:
 	bool is_player_turn = true;
 	bool player_right_click = false;
 	bool is_ai_turn = false;
-	
+	// subtract ep function
+	float subtractEP(float e);
+
 
 	// music references
 	Mix_Music* background_music;

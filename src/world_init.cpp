@@ -23,7 +23,7 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
 			EFFECT_ASSET_ID::CHICKEN,
 			GEOMETRY_BUFFER_ID::CHICKEN,
-			RENDER_LAYER_ID::SPRITE});
+			RENDER_LAYER_ID::SPRITE });
 
 	return entity;
 }
@@ -419,6 +419,35 @@ Entity createStair(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+// Wall
+Entity createWall(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ WALL_BB_WIDTH, WALL_BB_HEIGHT });
+
+	// Create and (empty) DOOR component to be able to refer to all doors
+	registry.test.emplace(entity);
+	registry.solid.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::WALL,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 Entity createBackground(RenderSystem* renderer, vec2 position)
 {
 	auto entity = Entity();
@@ -542,7 +571,7 @@ Entity createMenuTitle(RenderSystem* renderer, vec2 pos)
 
 // Kaiti put in create Stat Entity for player 
 Entity createStats(RenderSystem* renderer, vec2 position) {
-	
+
 	auto statEntity = Entity();
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(statEntity, &mesh);
@@ -552,7 +581,7 @@ Entity createStats(RenderSystem* renderer, vec2 position) {
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	motion.position = position;
-	
+
 	// Setting initial values
 	motion.scale = vec2({ STAT_BB_WIDTH, STAT_BB_HEIGHT });
 
@@ -560,7 +589,8 @@ Entity createStats(RenderSystem* renderer, vec2 position) {
 		statEntity,
 		{ TEXTURE_ASSET_ID::STAT,
 		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI
 		});
 
 	return statEntity;
@@ -592,8 +622,7 @@ Entity createFog(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::FOG,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::EFFECT});
+		 RENDER_LAYER_ID::EFFECT });
 
 	return entity;
 }
-

@@ -18,7 +18,6 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 	motion.scale.y *= -1; // point front to the right
 
 	// Create and (empty) Chicken component to be able to refer to all eagles
-	registry.players.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
@@ -146,6 +145,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
+	motion.in_motion = false;
 
 	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 
@@ -160,7 +160,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-// Enemy (split into different enemies for future)
+// Enemy slime (split into different enemies for future)
 Entity createEnemy(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
@@ -174,11 +174,18 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
+	motion.destination = pos;
 
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	// Create and (empty) Enemy component to be able to refer to all enemies
-	registry.test.emplace(entity);
+	// make it a slime enemy for now
+	registry.slimeEnemies.insert(
+		entity,
+		{ 10.f,
+		300,
+		{ window_width_px / 2, 350.f },
+		SLIME_STATE::IDLE_DOWN });
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMY,
@@ -440,6 +447,99 @@ Entity createBackground(RenderSystem* renderer, vec2 position)
 	return entity;
 }
 
+// Menu Start Button
+Entity createMenuStart(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ START_BB_WIDTH, START_BB_HEIGHT });
+
+	// Create and (empty) START component to be able to refer to all start buttons
+	registry.menuItems.emplace(entity);
+	registry.buttons.insert(
+		entity,
+		{ BUTTON_ACTION_ID::MENU_START
+		});
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::START,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+// Menu Quit Button
+Entity createMenuQuit(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ QUIT_BB_WIDTH, QUIT_BB_HEIGHT });
+
+	// Create and (empty) QUIT component to be able to refer to all quit buttons
+	registry.buttons.insert(
+		entity,
+		{ BUTTON_ACTION_ID::MENU_QUIT
+		});
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::QUIT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+// Menu title
+Entity createMenuTitle(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ TITLE_BB_WIDTH, TITLE_BB_HEIGHT });
+
+	// Create and (empty) TITLE component to be able to refer to all title objects
+	registry.menuItems.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TITLE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+
 // Kaiti put in create Stat Entity for player 
 Entity createStats(RenderSystem* renderer, vec2 position) {
 	
@@ -467,3 +567,33 @@ Entity createStats(RenderSystem* renderer, vec2 position) {
 
 
 }
+
+// Fog entity for fog of war
+Entity createFog(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ FOG_BB_WIDTH, FOG_BB_HEIGHT });
+
+	// Create and (empty) FOG component to be able to refer to all fog entities
+	registry.fog.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::FOG,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::EFFECT});
+
+	return entity;
+}
+

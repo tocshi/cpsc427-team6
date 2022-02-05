@@ -30,6 +30,8 @@ struct Motion {
 	float angle = 0;
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { 10, 10 };
+	vec2 destination = { 0, 0 };
+	bool in_motion = false;
 };
 
 // Stucture to store collision information
@@ -124,6 +126,39 @@ struct Test {
 
 };
 
+enum class SLIME_STATE {
+	IDLE_DOWN = 0,
+	IDLE_UP = IDLE_DOWN + 1,
+	CHASING = IDLE_UP + 1,
+	STATE_COUNT = CHASING + 1
+};
+
+struct SlimeEnemy {
+	float hp = 0;
+	float chaseRange = 0;
+	vec2 initialPosition = { 0, 0 };
+	SLIME_STATE state = SLIME_STATE::STATE_COUNT;
+};
+
+enum class BUTTON_ACTION_ID {
+	MENU_QUIT = 0,
+	MENU_START = MENU_QUIT + 1,
+	ACTION_COUNT = MENU_START + 1
+};
+const int button_action_count = (int)BUTTON_ACTION_ID::ACTION_COUNT;
+
+struct Button {
+	BUTTON_ACTION_ID action_taken = BUTTON_ACTION_ID::ACTION_COUNT;
+};
+
+struct MenuItem {
+
+};
+
+struct Fog {
+
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -162,7 +197,11 @@ enum class TEXTURE_ASSET_ID {
 	DOOR = CHEST + 1,
 	SIGN = DOOR + 1,
 	STAIR = SIGN + 1,
-	STAT = STAIR +1, // Kaiti Key STAT pic rendered 
+	FOG = STAIR + 1,
+	START = FOG + 1,
+	QUIT = START + 1,
+	TITLE = QUIT + 1,
+	STAT = TITLE +1,
 	TEXTURE_COUNT = STAT + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
@@ -196,6 +235,7 @@ enum class RENDER_LAYER_ID {
 	LAYER_COUNT = DEBUG + 1
 };
 const int layer_count = (int)RENDER_LAYER_ID::LAYER_COUNT;
+
 
 struct RenderRequest {
 	TEXTURE_ASSET_ID used_texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;

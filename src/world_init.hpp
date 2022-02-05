@@ -31,8 +31,18 @@ const float SIGN_BB_WIDTH = 0.6f * 150.f;
 const float SIGN_BB_HEIGHT = 0.6f * 150.f;
 const float STAIR_BB_WIDTH = 0.6f * 150.f;
 const float STAIR_BB_HEIGHT = 0.6f * 150.f;
+const float START_BB_WIDTH = 0.6f * 900.f;
+const float START_BB_HEIGHT = 0.6f * 150.f;
+const float QUIT_BB_WIDTH = 0.6f * 900.f;
+const float QUIT_BB_HEIGHT = 0.6f * 150.f;
+const float TITLE_BB_WIDTH = 0.6f * 870.f;
+const float TITLE_BB_HEIGHT = 0.6f * 300.f;
 const float STAT_BB_WIDTH = 0.6f * 150.f;
 const float STAT_BB_HEIGHT = 0.6f * 150.f;
+// want to make fog small so it can be rendered a lot TODO: this is a bad implementation and will need to be changed later to use shadows or drawing circles or something better
+const float FOG_BB_WIDTH = 0.6f * 100.f;
+const float FOG_BB_HEIGHT = 0.6f * 100.f;
+
 
 // the player
 Entity createChicken(RenderSystem* renderer, vec2 pos);
@@ -68,6 +78,14 @@ Entity createDoor(RenderSystem* renderer, vec2 pos);
 Entity createSign(RenderSystem* renderer, vec2 pos);
 // Stair
 Entity createStair(RenderSystem* renderer, vec2 pos);
-
-// Stat Kaiti
+// Menu start
+Entity createMenuStart(RenderSystem* renderer, vec2 pos);
+// Menu quit
+Entity createMenuQuit(RenderSystem* renderer, vec2 pos);
+// Menu title
+Entity createMenuTitle(RenderSystem* renderer, vec2 pos);
+// Stat 
 Entity createStats(RenderSystem* renderer, vec2 position);
+// Fog for fog of war
+Entity createFog(RenderSystem* renderer, vec2 pos);
+

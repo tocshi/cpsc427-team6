@@ -37,6 +37,14 @@ public:
 
 	// Should the game be over ?
 	bool is_over()const;
+
+	bool get_is_player_turn();
+
+	void set_is_player_turn(bool val);
+
+	bool get_is_ai_turn();
+
+	void set_is_ai_turn(bool val);
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -45,6 +53,15 @@ private:
 
 	// restart level
 	void restart_game();
+
+	// spawn entities
+	void spawn_game_entities();
+
+	// create fog of war
+	void create_fog_of_war(float radius);
+
+	// remove all fog entities
+	void remove_fog_of_war();
 
 	// OpenGL window handle
 	GLFWwindow* window;
@@ -59,6 +76,10 @@ private:
 	float next_bug_spawn;
 	Entity player_chicken;
 	Entity background;
+	bool is_player_turn = true;
+	bool player_right_click = false;
+	bool is_ai_turn = false;
+	
 
 	// music references
 	Mix_Music* background_music;

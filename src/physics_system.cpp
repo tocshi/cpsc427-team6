@@ -26,18 +26,38 @@ bool collides(const Motion& motion1, const Motion& motion2)
 	return false;
 }
 
+float dist_to(const vec2 position1, const vec2 position2) {
+	return sqrt(pow(position2.x - position1.x, 2) + pow(position2.y - position1.y, 2));
+}
+
 void PhysicsSystem::step(float elapsed_ms)
 {
-	// Move bug based on how much time has passed, this is to (partially) avoid
-	// having entities move at different speed based on the machine.
+	// Resolve entity movement
 	auto& motion_registry = registry.motions;
 	for(uint i = 0; i< motion_registry.size(); i++)
 	{
-		// !!! TODO A1: update motion.position based on step_seconds and motion.velocity
-		//Motion& motion = motion_registry.components[i];
-		//Entity entity = motion_registry.entities[i];
-		//float step_seconds = elapsed_ms / 1000.f;
-		(void)elapsed_ms; // placeholder to silence unused warning until implemented
+		Motion& motion = motion_registry.components[i];
+		Entity entity = motion_registry.entities[i];
+		float step_seconds = elapsed_ms / 1000.f;
+
+		vec2 pos = motion.position;
+		vec2 vel = motion.velocity;
+		float vel_mag = sqrt(pow(vel.x * step_seconds, 2) + pow(vel.y * step_seconds, 2));
+		vec2 dest = motion.destination;
+
+		vec2 pos_final = {pos.x + (vel.x * step_seconds), pos.y + (vel.y * step_seconds)};
+
+		// behaviour if currently moving
+		if (vel.x * step_seconds != 0 || vel.y * step_seconds != 0) {
+			if (dist_to(pos_final, dest) <= vel_mag) {
+				motion.velocity = { 0, 0 };
+				motion.destination = motion.position;
+				motion.in_motion = false;
+			}
+		}
+
+		motion.position = pos_final;
+
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

@@ -199,14 +199,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	for (Entity player : registry.players.entities) {
 		for (Entity entity : registry.motions.entities) {
 			Motion& motion_struct = registry.motions.get(entity);
-			RenderRequest render_struct = registry.renderRequests.get(entity);
+			RenderRequest& render_struct = registry.renderRequests.get(entity);
 			switch (render_struct.used_texture) {
 			case TEXTURE_ASSET_ID::HPFILL:
-				motion_struct.scale = { 50 / 100, 1 };
+				motion_struct.scale = { (50.f / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT};
 			case TEXTURE_ASSET_ID::MPFILL:
-				motion_struct.scale = { (50 / 100) * 500, 105 };
+				motion_struct.scale = { (50.f / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
 			case TEXTURE_ASSET_ID::EPFILL:
-				motion_struct.scale = { (50 / 100) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.scale = { (50.f / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
 			}
 		}
 	}

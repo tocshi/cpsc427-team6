@@ -353,7 +353,21 @@ void WorldSystem::remove_fog_of_war() {
 void WorldSystem::spawn_player_random_location() {
 	printf("%d", rand());
 	int randX = rand() % ((window_width_px - 200 + 1) + 200);
-	int randY = rand() % ((window_height_px - 400 + 1) + 400);
+	int randY = rand() % ((window_height_px - 200 + 1) + 200);
+
+	if (randX < 200) {
+		randX += 200;
+	}
+	else if (randX >= window_width_px - 200) {
+		randX -= 200;
+	}
+
+	if (randY < 200) {
+		randY += 200;
+	}
+	else if (randY >= window_height_px - 200) {
+		randY -= 200;
+	}
 
 	createPlayer(renderer, { (float)randX, (float)randY } );
 }
@@ -362,7 +376,21 @@ void WorldSystem::spawn_player_random_location() {
 void WorldSystem::spawn_enemy_random_location() {
 	printf("%d", rand());
 	int randX = rand()%((window_width_px - 200 + 1) + 200);
-	int randY = rand()%((window_height_px - 400 + 1) + 400);
+	int randY = rand()%((window_height_px - 200 + 1) + 200);
+
+	if (randX < 200) {
+		randX += 200;
+	}
+	else if (randX >= window_width_px - 200) {
+		randX -= 200;
+	}
+
+	if (randY < 200) {
+		randY += 200;
+	}
+	else if (randY >= window_height_px - 200) {
+		randY -= 200;
+	}
 
 	createEnemy(renderer, { (float)randX, (float)randY });
 }

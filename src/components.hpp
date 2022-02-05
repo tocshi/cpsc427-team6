@@ -7,9 +7,6 @@
 // Player component
 struct Player
 {
-	float s; 
-	
-
 };
 
 // Eagles have a hard shell
@@ -31,6 +28,7 @@ struct Motion {
 	vec2 velocity = { 0, 0 };
 	vec2 scale = { 10, 10 };
 	vec2 destination = { 0, 0 };
+	float movement_speed = 0;
 	bool in_motion = false;
 };
 

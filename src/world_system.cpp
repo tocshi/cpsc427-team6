@@ -467,10 +467,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			Motion& motion_struct = registry.motions.get(player);
 
 			// set velocity to the direction of the cursor, at a magnitude of player_velocity
-			float player_velocity = 200;
+			float speed = motion_struct.movement_speed;
 			float angle = atan2(ypos - motion_struct.position.y, xpos - motion_struct.position.x);
-			float x_component = cos(angle) * player_velocity;
-			float y_component = sin(angle) * player_velocity;
+			float x_component = cos(angle) * speed;
+			float y_component = sin(angle) * speed;
 			motion_struct.velocity = { x_component, y_component};
 			motion_struct.destination = { xpos, ypos };
 			motion_struct.in_motion = true;

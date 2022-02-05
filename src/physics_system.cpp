@@ -1,6 +1,7 @@
 // internal
 #include "physics_system.hpp"
 #include "world_init.hpp"
+#include "world_system.hpp"
 
 // Returns the local bounding coordinates scaled by the current size of the entity
 vec2 get_bounding_box(const Motion& motion)
@@ -51,6 +52,7 @@ void PhysicsSystem::step(float elapsed_ms)
 
 		vec2 pos = motion.position;
 		vec2 vel = motion.velocity;
+		vec2 vel_for_step = vel * step_seconds;
 		float vel_mag = sqrt(pow(vel.x * step_seconds, 2) + pow(vel.y * step_seconds, 2));
 		vec2 dest = motion.destination;
 
@@ -63,21 +65,48 @@ void PhysicsSystem::step(float elapsed_ms)
 				motion.destination = motion.position;
 				motion.in_motion = false;
 			}
-		}
+			// perform angle sweep 
+			float original_angle = atan2(vel.y, vel.x) * 180 / M_PI;
+			bool move_success = false;
+			for (int angle = 0; angle <= 80; angle += 10) {
+				for (int sign = -1; sign <= 1; sign += 2) {
+					float modified_angle = original_angle + angle * sign;
+					vec2 modified_velocity = { vel_mag * cos(modified_angle * M_PI/180), vel_mag * sin(modified_angle * M_PI / 180) };
+					vec2 target_position = pos + modified_velocity;
+					motion.position = target_position;
+					bool target_valid = true;
+					for (uint j = 0; j < motion_registry.size(); j++) {
+						if (j != i && registry.solid.has(motion_registry.entities[j])) {
+							if (collides_AABB(motion, motion_registry.components[j])) {
+								target_valid = false;
+								break;
+							}
+						}
+					}
+					if (target_valid) {
+						move_success = true;
 
-		motion.position = pos_final;
-
-		// check to see if entity is now colliding with a wall, and reset it to its previous position
-		if (motion.velocity.x != 0 || motion.velocity.y != 0) {
-			for (uint j = 0; j < motion_registry.size(); j++) {
-				if (j != i && registry.solid.has(motion_registry.entities[j])) {
-					if (collides_AABB(motion, motion_registry.components[j])) {
-						motion.position = pos;
-						motion.destination = motion.position;
-						motion.velocity = { 0,0 };
-						motion.in_motion = false;
+						float speed = motion.movement_speed;
+						float angle_to_dest = atan2(dest.y - motion.position.y, dest.x - motion.position.x) * 180 / M_PI;
+						float angle_diff = abs(modified_angle - angle_to_dest);
+						if (angle_diff > 80.f && angle_diff < 100.f) {
+							motion.position = pos;
+							motion.destination = motion.position;
+							motion.velocity = { 0,0 };
+							motion.in_motion = false;
+						}
+						break;
 					}
 				}
+				if (move_success) {
+					break;
+				}
+			}
+			if (!move_success) {
+				motion.position = pos;
+				motion.destination = motion.position;
+				motion.velocity = { 0,0 };
+				motion.in_motion = false;
 			}
 		}
 	}

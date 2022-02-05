@@ -46,7 +46,7 @@ world_system.cpp | spawn_enemy_random_location() | line 414
 	- UI buttons
     - Start Game Button
     - Quit Button
-    Entry point: world_system.cpp | on_mouse() | line 512
+    Entry point: world_system.cpp | on_mouse() | line 520
 		world_init.cpp | createMenuStart() | line 480
 		world_init.cpp | createMenuQuit() | line 512
 

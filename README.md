@@ -8,8 +8,8 @@ Implemented Features:
     - Player spawns in a random location upon game restart
     - Enemy spawns in a random location upon game restart
     Entry points: 
-world_system.cpp | spawn_player_random_location() | line 376
-world_system.cpp | spawn_enemy_random_location() | line 399
+world_system.cpp | spawn_player_random_location() | line 391
+world_system.cpp | spawn_enemy_random_location() | line 414
 
 - Collision with walls
     - Entities cannot phase through walls
@@ -29,7 +29,7 @@ world_system.cpp | spawn_enemy_random_location() | line 399
 
 - Fog of War
     - Player has a limited field of vision, the rest is obscured by a fog
-    Entry point: world_system.cpp | create_fog_of_war() | line 319
+    Entry point: world_system.cpp | create_fog_of_war() | line 357
 
 - Turn Based Action
     - The player and the enemy moves based on turn
@@ -46,7 +46,7 @@ world_system.cpp | spawn_enemy_random_location() | line 399
 	- UI buttons
     - Start Game Button
     - Quit Button
-    Entry point: world_system.cpp | on_mouse() | line 512
+    Entry point: world_system.cpp | on_mouse() | line 520
 		world_init.cpp | createMenuStart() | line 480
 		world_init.cpp | createMenuQuit() | line 512
 

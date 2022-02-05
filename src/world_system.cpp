@@ -312,8 +312,10 @@ void WorldSystem::spawn_game_entities() {
 	registry.colors.insert(player_chicken, { 1, 0.8f, 0.8f });
 
 	// create all non-menu game objects
-	createPlayer(renderer, { 50.f, 250.f });
-	createEnemy(renderer, { window_width_px / 2, 350.f });
+	// spawn the player and enemy in random locations
+	spawn_player_random_location();
+	spawn_enemy_random_location();
+
 	createBoss(renderer, { 50.f, 450.f });
 	createArtifact(renderer, { 50.f, 550.f });
 	createConsumable(renderer, { 50.f, 650.f });
@@ -358,6 +360,22 @@ void WorldSystem::remove_fog_of_war() {
 		registry.remove_all_components_of(e);
 	}
 
+}
+
+// spawn player entity in random location
+void WorldSystem::spawn_player_random_location() {
+	int randX = (int) rand() % (window_width_px - 200 + 1) + 200;
+	int randY = (int) rand() % (window_height_px - 400 + 1) + 200;
+
+	createPlayer(renderer, { (float)randX, (float)randY } );
+}
+
+// spawn enemy entity in random location
+void WorldSystem::spawn_enemy_random_location() {
+	int randX = rand()%(window_width_px - 200 + 1) + 200;
+	int randY = rand()%(window_height_px - 200 + 1) + 200;
+
+	createEnemy(renderer, { (float)randX, (float)randY });
 }
 
 // Compute collisions between entities

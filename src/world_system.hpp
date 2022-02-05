@@ -63,6 +63,12 @@ private:
 	// remove all fog entities
 	void remove_fog_of_war();
 
+	// spawn player in random location
+	void spawn_player_random_location();
+
+	// spawn enemy in random location
+	void spawn_enemy_random_location();
+
 	// OpenGL window handle
 	GLFWwindow* window;
 

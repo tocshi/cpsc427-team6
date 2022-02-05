@@ -318,12 +318,11 @@ void WorldSystem::spawn_game_entities() {
 // render fog of war around the player past a given radius
 void WorldSystem::create_fog_of_war(float radius) {	
 	// render fog everywhere except in visible circle around the player
-	
-
+	Entity Stat;
+	registry.stats.get(Stat).ep = 100.0; 
 	for (int x = 0; x <= window_width_px; x+=50) {
 		for (int y = 0; y <= window_height_px; y += 50) {
 			// if the point is not witin the visible circle, render fog there
-			
 			for (Entity player : registry.players.entities) {
 				// get player position
 				Motion player_motion = registry.motions.get(player);
@@ -351,7 +350,6 @@ void WorldSystem::remove_fog_of_war() {
 	}
 
 }
-
 
 // spawn player entity in random location
 void WorldSystem::spawn_player_random_location() {

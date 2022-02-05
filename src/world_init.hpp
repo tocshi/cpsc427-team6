@@ -39,8 +39,8 @@ const float QUIT_BB_WIDTH = 0.6f * 900.f;
 const float QUIT_BB_HEIGHT = 0.6f * 150.f;
 const float TITLE_BB_WIDTH = 0.6f * 870.f;
 const float TITLE_BB_HEIGHT = 0.6f * 300.f;
-const float STAT_BB_WIDTH = 0.6f * 150.f;
-const float STAT_BB_HEIGHT = 0.6f * 150.f;
+const float STAT_BB_WIDTH = 0.6f * 500.f;
+const float STAT_BB_HEIGHT = 0.6f * 105.f;
 // want to make fog small so it can be rendered a lot TODO: this is a bad implementation and will need to be changed later to use shadows or drawing circles or something better
 const float FOG_BB_WIDTH = 0.6f * 100.f;
 const float FOG_BB_HEIGHT = 0.6f * 100.f;
@@ -88,8 +88,18 @@ Entity createMenuStart(RenderSystem* renderer, vec2 pos);
 Entity createMenuQuit(RenderSystem* renderer, vec2 pos);
 // Menu title
 Entity createMenuTitle(RenderSystem* renderer, vec2 pos);
-// Stat 
-Entity createStats(RenderSystem* renderer, vec2 position);
+// HP Bar 
+Entity createHPBar(RenderSystem* renderer, vec2 position);
+// MP Bar 
+Entity createMPBar(RenderSystem* renderer, vec2 position);
+// EP Bar 
+Entity createEPBar(RenderSystem* renderer, vec2 position);
+// HP Fill 
+Entity createHPFill(RenderSystem* renderer, vec2 position);
+// MP Fill 
+Entity createMPFill(RenderSystem* renderer, vec2 position);
+// Ep Fill 
+Entity createEPFill(RenderSystem* renderer, vec2 position);
 // Fog for fog of war
 Entity createFog(RenderSystem* renderer, vec2 pos);
 

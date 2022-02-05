@@ -14,9 +14,6 @@ const size_t MAX_BUG = 5;
 const size_t EAGLE_DELAY_MS = 2000 * 3;
 const size_t BUG_DELAY_MS = 5000 * 3;
 
-//  EP states 
-float ep = 100;
-float maxEP = 100; 
 // Create the bug world
 WorldSystem::WorldSystem()
 	: points(0)
@@ -131,7 +128,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	fprintf(stderr, "Loaded music\n");
 
 	// Set all states to default
-	restart_game();
+    restart_game();
 }
 
 // Update our game world
@@ -141,11 +138,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	title_ss << "Points: " << points;
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
-
-
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
-		registry.remove_all_components_of(registry.debugComponents.entities.back());
+	    registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
@@ -153,10 +148,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current)
-	for (int i = (int)motions_registry.components.size() - 1; i >= 0; --i) {
-		Motion& motion = motions_registry.components[i];
+	for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
+	    Motion& motion = motions_registry.components[i];
 		if (motion.position.x + abs(motion.scale.x) < 0.f) {
-			if (!registry.players.has(motions_registry.entities[i])) // don't remove the 
+			if(!registry.players.has(motions_registry.entities[i])) // don't remove the player
 				registry.remove_all_components_of(motions_registry.entities[i]);
 		}
 	}
@@ -165,21 +160,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (get_is_player_turn() && player_right_click) {
 		for (Entity player : registry.players.entities) {
 			Motion player_motion = registry.motions.get(player);
-			// player EP VALUE 
-			//float playerEP = registry.players.get(player).ep; 
-
 			if (!player_motion.in_motion) {
 				set_is_player_turn(false);
 				player_right_click = false;
-				ep = check_in_motion(player_motion.in_motion, ep, maxEP);
-
 			}
 			else {
-				// update the fog of war if the player is moving & update Player's EP minus 10
+				// update the fog of war if the player is moving
 				remove_fog_of_war();
 				create_fog_of_war(500.f);
-				ep = check_in_motion(player_motion.in_motion, ep, maxEP);
-
 			}
 		}
 	}
@@ -196,12 +184,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (all_moved) {
 			set_is_ai_turn(false);
 			set_is_player_turn(true);
-
-			
-
 		}
 	}
-
 
 	// If started, remove menu entities, and spawn game entities
 	if (!inMenu) {
@@ -209,24 +193,27 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		for (Entity e : registry.menuItems.entities) {
 			registry.remove_all_components_of(e);
 		}
+	}
 
-		// create template objects
-		// Spawning new eagles
-		next_eagle_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (registry.deadlys.components.size() <= MAX_EAGLES && next_eagle_spawn < 0.f) {
-			// Reset timer
-			next_eagle_spawn = (EAGLE_DELAY_MS / 2) + uniform_dist(rng) * (EAGLE_DELAY_MS / 2);
-			// Create eagle with random initial position
-			createEagle(renderer, vec2(50.f + uniform_dist(rng) * (window_width_px - 100.f), 100.f));
-		}
-
-		// Spawning new bug
-		next_bug_spawn -= elapsed_ms_since_last_update * current_speed;
-		if (registry.eatables.components.size() <= MAX_BUG && next_bug_spawn < 0.f) {
-			// Reset timer
-			next_eagle_spawn = (BUG_DELAY_MS / 2) + uniform_dist(rng) * (BUG_DELAY_MS / 2);
-			// Create bug with random initial position
-			createBug(renderer, vec2(window_width_px / 2, window_height_px - 200));
+	// Update HP/MP/EP bars
+	for (Entity player : registry.players.entities) {
+		for (Entity entity : registry.motions.entities) {
+			Motion& motion_struct = registry.motions.get(entity);
+			RenderRequest& render_struct = registry.renderRequests.get(entity);
+			switch (render_struct.used_texture) {
+			case TEXTURE_ASSET_ID::HPFILL:
+				motion_struct.scale = { (50.f / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (50.f / 100.f));	// original pos (full bar) - (1-multiplier) (hard coded for now)
+				break;
+			case TEXTURE_ASSET_ID::MPFILL:
+				motion_struct.scale = { (75.f / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (75.f / 100.f));	// original pos (full bar) - (1-multiplier) (hard coded for now)
+				break;
+			case TEXTURE_ASSET_ID::EPFILL:
+				motion_struct.scale = { (25.f / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (25.f / 100.f));	// original pos (full bar) - (1-multiplier) (hard coded for now)
+				break;
+			}
 		}
 	}
 
@@ -237,22 +224,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Processing the chicken state
 	assert(registry.screenStates.components.size() <= 1);
-	ScreenState &screen = registry.screenStates.components[0];
+    ScreenState &screen = registry.screenStates.components[0];
 
-	float min_counter_ms = 3000.f;
+    float min_counter_ms = 3000.f;
 	for (Entity entity : registry.deathTimers.entities) {
 		// progress timer
 		DeathTimer& counter = registry.deathTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
-		if (counter.counter_ms < min_counter_ms) {
-			min_counter_ms = counter.counter_ms;
+		if(counter.counter_ms < min_counter_ms){
+		    min_counter_ms = counter.counter_ms;
 		}
 
 		// restart the game once the death timer expired
 		if (counter.counter_ms < 0) {
 			registry.deathTimers.remove(entity);
 			screen.darken_screen_factor = 0;
-			restart_game();
+            restart_game();
 			return true;
 		}
 	}
@@ -276,15 +263,13 @@ void WorldSystem::restart_game() {
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	while (registry.motions.entities.size() > 0)
-		registry.remove_all_components_of(registry.motions.entities.back());
+	    registry.remove_all_components_of(registry.motions.entities.back());
 
-	// set EP to full
-	//registry.stats.get(Stat).ep = 100; 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 
 	// Create the map/level/background
-	background = createBackground(renderer, vec2(window_width_px / 2, window_height_px / 2));
+	background = createBackground(renderer, vec2(window_width_px/2,window_height_px/2));
 
 	//// Create a new chicken
 	//player_chicken = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
@@ -298,7 +283,7 @@ void WorldSystem::restart_game() {
 		glfwGetWindowSize(window, &w, &h);
 		float radius = 30 * (uniform_dist(rng) + 0.3f); // range 0.3 .. 1.3
 		Entity egg = createEgg({ uniform_dist(rng) * w, h - uniform_dist(rng) * 20 },
-					 { radius, radius });
+			         { radius, radius });
 		float brightness = uniform_dist(rng) * 0.5 + 0.5;
 		registry.colors.insert(egg, { brightness, brightness, brightness});
 	}
@@ -307,6 +292,7 @@ void WorldSystem::restart_game() {
 	// restart the game on the menu screen
 	inMenu = true;
 
+	// For testing textures
 	//createPlayer(renderer, {50.f, 250.f});
 	//createEnemy(renderer, {50.f, 350.f});
 	//createBoss(renderer, {50.f, 450.f});
@@ -324,29 +310,44 @@ void WorldSystem::restart_game() {
 
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
-	// Create a new chicken
-	player_chicken = createChicken(renderer, { window_width_px / 2, window_height_px - 200 });
-	registry.colors.insert(player_chicken, { 1, 0.8f, 0.8f });
 
 	// create all non-menu game objects
-	createPlayer(renderer, { 50.f, 250.f });
-	createEnemy(renderer, { window_width_px / 2, 350.f });
-	createBoss(renderer, { 50.f, 450.f });
-	createArtifact(renderer, { 50.f, 550.f });
-	createConsumable(renderer, { 50.f, 650.f });
-	createEquipable(renderer, { 150.f, 250.f });
-	createChest(renderer, { 150.f, 350.f });
-	createDoor(renderer, { 150.f, 450.f });
-	createSign(renderer, { 150.f, 550.f });
-	createStair(renderer, { 150.f, 650.f });
-	createStats(renderer, { 1400.f, 100.f }); //added for stats
+	// spawn the player and enemy in random locations
+	spawn_player_random_location();
+	spawn_enemy_random_location();
+  
+	createBoss(renderer, { 250.f, 450.f });
+	createArtifact(renderer, { 250.f, 550.f });
+	createConsumable(renderer, { 250.f, 650.f });
+	createEquipable(renderer, { 350.f, 250.f });
+	createChest(renderer, { 350.f, 350.f });
+	createDoor(renderer, { 350.f, 450.f });
+	createSign(renderer, { 350.f, 550.f });
+	createStair(renderer, { 350.f, 650.f });
+	for (uint i = 0; WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i < window_width_px; i++) {
+		createWall(renderer, { WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i, WALL_BB_HEIGHT / 2 });
+		createWall(renderer, { WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i, window_height_px - WALL_BB_HEIGHT / 2 });
+	}
+	for (uint i = 1; WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i < window_width_px - WALL_BB_HEIGHT; i++) {
+		createWall(renderer, { WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
+		createWall(renderer, { window_width_px - WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
+	}
+	
+	float statbarsX = 150.f;
+	float statbarsY = 740.f;
+	createHPFill(renderer, { statbarsX, statbarsY });
+	createHPBar(renderer,  { statbarsX, statbarsY });
+	createMPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createMPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
+	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war(500.f);
 }
 
 // render fog of war around the player past a given radius
-void WorldSystem::create_fog_of_war(float radius) {
+void WorldSystem::create_fog_of_war(float radius) {	
 	// render fog everywhere except in visible circle around the player
-	for (int x = 0; x <= window_width_px; x += 50) {
+	for (int x = 0; x <= window_width_px; x+=50) {
 		for (int y = 0; y <= window_height_px; y += 50) {
 			// if the point is not witin the visible circle, render fog there
 			for (Entity player : registry.players.entities) {
@@ -354,6 +355,7 @@ void WorldSystem::create_fog_of_war(float radius) {
 				Motion player_motion = registry.motions.get(player);
 				float playerX = player_motion.position.x;
 				float playerY = player_motion.position.y;
+
 				// check if position is within the radius of the players position
 				double absX = abs(x - playerX);
 				double absY = abs(y - playerY);
@@ -374,6 +376,52 @@ void WorldSystem::remove_fog_of_war() {
 		registry.remove_all_components_of(e);
 	}
 
+}
+
+// spawn player entity in random location
+void WorldSystem::spawn_player_random_location() {
+	printf("%d", rand());
+	int randX = rand() % ((window_width_px - 200 + 1) + 200);
+	int randY = rand() % ((window_height_px - 200 + 1) + 200);
+
+	if (randX < 200) {
+		randX += 200;
+	}
+	else if (randX >= window_width_px - 200) {
+		randX -= 200;
+	}
+
+	if (randY < 200) {
+		randY += 200;
+	}
+	else if (randY >= window_height_px - 200) {
+		randY -= 200;
+	}
+
+	createPlayer(renderer, { (float)randX, (float)randY } );
+}
+
+// spawn enemy entity in random location
+void WorldSystem::spawn_enemy_random_location() {
+	printf("%d", rand());
+	int randX = rand()%((window_width_px - 200 + 1) + 200);
+	int randY = rand()%((window_height_px - 200 + 1) + 200);
+
+	if (randX < 200) {
+		randX += 200;
+	}
+	else if (randX >= window_width_px - 200) {
+		randX -= 200;
+	}
+
+	if (randY < 200) {
+		randY += 200;
+	}
+	else if (randY >= window_height_px - 200) {
+		randY -= 200;
+	}
+
+	createEnemy(renderer, { (float)randX, (float)randY });
 }
 
 // Compute collisions between entities
@@ -436,7 +484,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
 
-		restart_game();
+        restart_game();
 	}
 
 	// Debugging
@@ -476,56 +524,34 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			int buttonX = m.position[0];
 			int buttonY = m.position[1];
 			// if mouse is interating with a button
-			if ((xpos <= (buttonX + m.scale[0] / 2) && xpos >= (buttonX - m.scale[0] / 2)) &&
+			if ((xpos <= (buttonX + m.scale[0] / 2) && xpos >= (buttonX - m.scale[0] / 2)) && 
 				(ypos >= (buttonY - m.scale[1] / 2) && ypos <= (buttonY + m.scale[1] / 2))) {
 				// perform action based on button ENUM
 				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
 
 				switch (action_taken) {
-				case BUTTON_ACTION_ID::MENU_START: inMenu = false; spawn_game_entities(); is_player_turn = true; break;
-				case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
+					case BUTTON_ACTION_ID::MENU_START: inMenu = false; spawn_game_entities(); is_player_turn = true; break;
+					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 				}
 			}
 		}
 	}
 
-	// click button player, ep decrease while moving, and increase while not moving and once they hit 0 revive and get 100 ep 
+
 	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_right_click) {
 		for (Entity& player : registry.players.entities) {
 			Motion& motion_struct = registry.motions.get(player);
-			//float maxEP = registry.players.get(player).maxEP;
-			//float ep = registry.players.get(player).ep;
-			registry.players.get(player).ep = check_in_motion(motion_struct.in_motion, ep, maxEP);
-			/*if (!motion_struct.in_motion) {
-				// when the player ep value goes down to 0, reset to maxEP 100
-				if (playerEP == 0) {	
-					registry.players.get(player).ep = registry.players.get(player).maxEP; 
-					playerEP = registry.players.get(player).ep; 
-				}
-				//playerEP = addEP(playerEP);
-				printf("The player's ep is before moving:");
-				printf("%f", playerEP);
-			} */
-	
-
 
 			// set velocity to the direction of the cursor, at a magnitude of player_velocity
 			float player_velocity = 200;
 			float angle = atan2(ypos - motion_struct.position.y, xpos - motion_struct.position.x);
 			float x_component = cos(angle) * player_velocity;
 			float y_component = sin(angle) * player_velocity;
-			motion_struct.velocity = { x_component, y_component };
+			motion_struct.velocity = { x_component, y_component};
+			motion_struct.angle = angle + (0.5 * M_PI);
 			motion_struct.destination = { xpos, ypos };
 			motion_struct.in_motion = true;
 			player_right_click = true;
-
-			registry.players.get(player).ep = check_in_motion(motion_struct.in_motion, ep, maxEP);
-			/*if (motion_struct.in_motion) {
-				registry.players.get(player).ep = subtractEP(playerEP);
-				playerEP = registry.players.get(player).ep; 
-				printf("The player's ep is after moving:");
-				printf("%f", playerEP);
-			}*/
 		}
 	}
 }
@@ -554,32 +580,4 @@ void WorldSystem::set_is_ai_turn(bool val) {
 
 bool WorldSystem::get_is_ai_turn() {
 	return is_ai_turn;
-}
-
-float WorldSystem:: subtractEP(float ep) {
-	//float ep = 0.0;
-	ep = ep - 1.0;
-	return ep; 
-}
-
-/*float WorldSystem::addEP(float ep) {
-	//float ep = 0.0;
-	ep = ep +10;
-	return ep;
-}*/
-
-// returns float and check if player is in motion 
-float WorldSystem::check_in_motion( bool motion, float ep, float maxEP) {
-	if (!motion) {
-		// when the player ep value goes down to 0, reset to maxEP 100
-		if (ep == 0) {
-			ep = maxEP;
-		}
-	} else if (motion) {
-		ep = subtractEP(ep);
-	}
-		//playerEP = addEP(playerEP);
-	printf("The player's ep is before moving:");
-	printf("%f", ep);
-	return ep;
 }

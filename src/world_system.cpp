@@ -202,11 +202,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			RenderRequest& render_struct = registry.renderRequests.get(entity);
 			switch (render_struct.used_texture) {
 			case TEXTURE_ASSET_ID::HPFILL:
-				motion_struct.scale = { (50.f / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT};
+				motion_struct.scale = { (50.f / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (50.f / 100.f));	// original pos (full bar) - (1-multiplier) (hard coded for now)
+				break;
 			case TEXTURE_ASSET_ID::MPFILL:
-				motion_struct.scale = { (50.f / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.scale = { (75.f / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (75.f / 100.f));	// original pos (full bar) - (1-multiplier) (hard coded for now)
+				break;
 			case TEXTURE_ASSET_ID::EPFILL:
-				motion_struct.scale = { (50.f / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.scale = { (25.f / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (25.f / 100.f));	// original pos (full bar) - (1-multiplier) (hard coded for now)
+				break;
 			}
 		}
 	}

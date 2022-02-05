@@ -195,6 +195,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// Update HP/MP/EP bars
+	for (Entity player : registry.players.entities) {
+		for (Entity entity : registry.motions.entities) {
+			Motion& motion_struct = registry.motions.get(entity);
+			RenderRequest render_struct = registry.renderRequests.get(entity);
+			switch (render_struct.used_texture) {
+			case TEXTURE_ASSET_ID::HPFILL:
+				motion_struct.scale = { 50 / 100, 1 };
+			case TEXTURE_ASSET_ID::MPFILL:
+				motion_struct.scale = { (50 / 100) * 500, 105 };
+			case TEXTURE_ASSET_ID::EPFILL:
+				motion_struct.scale = { (50 / 100) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+			}
+		}
+	}
+
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A3: HANDLE EGG SPAWN HERE
 	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3

@@ -31,8 +31,8 @@ public:
 	ComponentContainer<Interactable> interactables;
 	ComponentContainer<Stat> stats;
 	ComponentContainer<Queueable> queueables;
-	ComponentContainer<Test> test;
-	ComponentContainer<Solid> solid;	// for testing
+	ComponentContainer<Test> test;	// for testing
+	ComponentContainer<Solid> solid;
 	ComponentContainer<SlimeEnemy> slimeEnemies;
 	ComponentContainer<Button> buttons;
 	ComponentContainer<MenuItem> menuItems;

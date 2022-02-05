@@ -23,7 +23,7 @@ Entity createChicken(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
 			EFFECT_ASSET_ID::CHICKEN,
 			GEOMETRY_BUFFER_ID::CHICKEN,
-			RENDER_LAYER_ID::SPRITE });
+			RENDER_LAYER_ID::SPRITE});
 
 	return entity;
 }
@@ -571,7 +571,7 @@ Entity createMenuTitle(RenderSystem* renderer, vec2 pos)
 
 // Kaiti put in create Stat Entity for player 
 Entity createStats(RenderSystem* renderer, vec2 position) {
-
+	
 	auto statEntity = Entity();
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(statEntity, &mesh);
@@ -581,7 +581,7 @@ Entity createStats(RenderSystem* renderer, vec2 position) {
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	motion.position = position;
-
+	
 	// Setting initial values
 	motion.scale = vec2({ STAT_BB_WIDTH, STAT_BB_HEIGHT });
 
@@ -622,7 +622,8 @@ Entity createFog(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::FOG,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::EFFECT });
+		 RENDER_LAYER_ID::EFFECT});
 
 	return entity;
 }
+

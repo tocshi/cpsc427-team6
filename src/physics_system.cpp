@@ -15,7 +15,7 @@ vec2 get_bounding_box(const Motion& motion)
 bool collides(const Motion& motion1, const Motion& motion2)
 {
 	vec2 dp = motion1.position - motion2.position;
-	float dist_squared = dot(dp, dp);
+	float dist_squared = dot(dp,dp);
 	const vec2 other_bonding_box = get_bounding_box(motion1) / 2.f;
 	const float other_r_squared = dot(other_bonding_box, other_bonding_box);
 	const vec2 my_bonding_box = get_bounding_box(motion2) / 2.f;
@@ -43,7 +43,7 @@ void PhysicsSystem::step(float elapsed_ms)
 {
 	// Resolve entity movement
 	auto& motion_registry = registry.motions;
-	for (uint i = 0; i < motion_registry.size(); i++)
+	for(uint i = 0; i< motion_registry.size(); i++)
 	{
 		Motion& motion = motion_registry.components[i];
 		Entity entity = motion_registry.entities[i];
@@ -54,7 +54,7 @@ void PhysicsSystem::step(float elapsed_ms)
 		float vel_mag = sqrt(pow(vel.x * step_seconds, 2) + pow(vel.y * step_seconds, 2));
 		vec2 dest = motion.destination;
 
-		vec2 pos_final = { pos.x + (vel.x * step_seconds), pos.y + (vel.y * step_seconds) };
+		vec2 pos_final = {pos.x + (vel.x * step_seconds), pos.y + (vel.y * step_seconds)};
 
 		// behaviour if currently moving
 		if (vel.x * step_seconds != 0 || vel.y * step_seconds != 0) {
@@ -88,14 +88,14 @@ void PhysicsSystem::step(float elapsed_ms)
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	// Check for collisions between all moving entities
-	ComponentContainer<Motion> &motion_container = registry.motions;
-	for (uint i = 0; i < motion_container.components.size(); i++)
+    ComponentContainer<Motion> &motion_container = registry.motions;
+	for(uint i = 0; i<motion_container.components.size(); i++)
 	{
 		Motion& motion_i = motion_container.components[i];
 		Entity entity_i = motion_container.entities[i];
-
+		
 		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
-		for (uint j = i + 1; j < motion_container.components.size(); j++)
+		for(uint j = i+1; j<motion_container.components.size(); j++)
 		{
 			Motion& motion_j = motion_container.components[j];
 			if (collides(motion_i, motion_j))
@@ -138,9 +138,9 @@ void PhysicsSystem::step(float elapsed_ms)
 
 			// visualize the radius with two axis-aligned lines
 			const vec2 bonding_box = get_bounding_box(motion_i);
-			float radius = sqrt(dot(bonding_box / 2.f, bonding_box / 2.f));
-			vec2 line_scale1 = { motion_i.scale.x / 10, 2 * radius };
-			vec2 line_scale2 = { 2 * radius, motion_i.scale.x / 10 };
+			float radius = sqrt(dot(bonding_box/2.f, bonding_box/2.f));
+			vec2 line_scale1 = { motion_i.scale.x / 10, 2*radius };
+			vec2 line_scale2 = { 2*radius, motion_i.scale.x / 10};
 			vec2 position = motion_i.position;
 			Entity line1 = createLine(motion_i.position, line_scale1);
 			Entity line2 = createLine(motion_i.position, line_scale2);

@@ -59,7 +59,7 @@ int main()
 			ai.step(0);
 			// add enemy queue for the future where enemies move one by one
 		}
-
+		
 		world.handle_collisions();
 
 		renderer.draw();

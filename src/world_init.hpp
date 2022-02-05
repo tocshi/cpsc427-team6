@@ -92,3 +92,4 @@ Entity createMenuTitle(RenderSystem* renderer, vec2 pos);
 Entity createStats(RenderSystem* renderer, vec2 position);
 // Fog for fog of war
 Entity createFog(RenderSystem* renderer, vec2 pos);
+

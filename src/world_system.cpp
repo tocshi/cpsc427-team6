@@ -290,8 +290,10 @@ void WorldSystem::restart_game() {
 void WorldSystem::spawn_game_entities() {
 
 	// create all non-menu game objects
-	createPlayer(renderer, { 250.f, 250.f });
-	createEnemy(renderer, { window_width_px / 2, 350.f });
+	// spawn the player and enemy in random locations
+	spawn_player_random_location();
+	spawn_enemy_random_location();
+  
 	createBoss(renderer, { 250.f, 450.f });
 	createArtifact(renderer, { 250.f, 550.f });
 	createConsumable(renderer, { 250.f, 650.f });
@@ -309,7 +311,6 @@ void WorldSystem::spawn_game_entities() {
 		createWall(renderer, { window_width_px - WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
 	}
 	
-
 	createStats(renderer, { 1400.f, 100.f }); //added for stats
 	create_fog_of_war(500.f);
 }
@@ -346,6 +347,52 @@ void WorldSystem::remove_fog_of_war() {
 		registry.remove_all_components_of(e);
 	}
 
+}
+
+// spawn player entity in random location
+void WorldSystem::spawn_player_random_location() {
+	printf("%d", rand());
+	int randX = rand() % ((window_width_px - 200 + 1) + 200);
+	int randY = rand() % ((window_height_px - 200 + 1) + 200);
+
+	if (randX < 200) {
+		randX += 200;
+	}
+	else if (randX >= window_width_px - 200) {
+		randX -= 200;
+	}
+
+	if (randY < 200) {
+		randY += 200;
+	}
+	else if (randY >= window_height_px - 200) {
+		randY -= 200;
+	}
+
+	createPlayer(renderer, { (float)randX, (float)randY } );
+}
+
+// spawn enemy entity in random location
+void WorldSystem::spawn_enemy_random_location() {
+	printf("%d", rand());
+	int randX = rand()%((window_width_px - 200 + 1) + 200);
+	int randY = rand()%((window_height_px - 200 + 1) + 200);
+
+	if (randX < 200) {
+		randX += 200;
+	}
+	else if (randX >= window_width_px - 200) {
+		randX -= 200;
+	}
+
+	if (randY < 200) {
+		randY += 200;
+	}
+	else if (randY >= window_height_px - 200) {
+		randY -= 200;
+	}
+
+	createEnemy(renderer, { (float)randX, (float)randY });
 }
 
 // Compute collisions between entities

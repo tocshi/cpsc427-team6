@@ -493,9 +493,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			Motion& motion_struct = registry.motions.get(player);
 			float playerEP = registry.players.get(player).ep;
 			if (!player_right_click) {
-				// when the player ep value goes down to 0 add 100 ep
+				// when the player ep value goes down to 0, reset to maxEP 100
 				if (playerEP == 0) {	
-					registry.players.get(player).ep = 100; 
+					registry.players.get(player).ep = registry.players.get(player).maxEP; 
 					playerEP = registry.players.get(player).ep; 
 				}
 				//playerEP = addEP(playerEP);

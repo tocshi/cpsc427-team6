@@ -12,6 +12,7 @@ struct Player
 	float hp = 100;
 	float mp = 100;
 	float ep = 100; 
+	float maxEP = 100; 
 
 	
 

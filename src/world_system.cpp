@@ -364,16 +364,18 @@ void WorldSystem::remove_fog_of_war() {
 
 // spawn player entity in random location
 void WorldSystem::spawn_player_random_location() {
-	int randX = (int) rand() % (window_width_px - 200 + 1) + 200;
-	int randY = (int) rand() % (window_height_px - 400 + 1) + 200;
+	printf("%d", rand());
+	int randX = rand() % ((window_width_px - 200 + 1) + 200);
+	int randY = rand() % ((window_height_px - 400 + 1) + 400);
 
 	createPlayer(renderer, { (float)randX, (float)randY } );
 }
 
 // spawn enemy entity in random location
 void WorldSystem::spawn_enemy_random_location() {
-	int randX = rand()%(window_width_px - 200 + 1) + 200;
-	int randY = rand()%(window_height_px - 200 + 1) + 200;
+	printf("%d", rand());
+	int randX = rand()%((window_width_px - 200 + 1) + 200);
+	int randY = rand()%((window_height_px - 400 + 1) + 400);
 
 	createEnemy(renderer, { (float)randX, (float)randY });
 }

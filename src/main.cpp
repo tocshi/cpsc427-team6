@@ -33,6 +33,9 @@ int main()
 		return EXIT_FAILURE;
 	}
 
+	// initialize random numbers
+	srand(time(NULL));
+
 	// initialize the main systems
 	renderer.init(window);
 	world.init(&renderer);

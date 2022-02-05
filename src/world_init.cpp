@@ -569,9 +569,9 @@ Entity createMenuTitle(RenderSystem* renderer, vec2 pos)
 }
 
 
-// Kaiti put in create Stat Entity for player 
-Entity createStats(RenderSystem* renderer, vec2 position) {
-	
+// HP Stat Bar 
+Entity createHPBar(RenderSystem* renderer, vec2 position) {
+
 	auto statEntity = Entity();
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(statEntity, &mesh);
@@ -581,13 +581,158 @@ Entity createStats(RenderSystem* renderer, vec2 position) {
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	motion.position = position;
-	
+
 	// Setting initial values
 	motion.scale = vec2({ STAT_BB_WIDTH, STAT_BB_HEIGHT });
 
 	registry.renderRequests.insert(
 		statEntity,
-		{ TEXTURE_ASSET_ID::STAT,
+		{ TEXTURE_ASSET_ID::HPBAR,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI
+		});
+
+	return statEntity;
+
+
+}
+
+// MP Stat Bar 
+Entity createMPBar(RenderSystem* renderer, vec2 position) {
+
+	auto statEntity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(statEntity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(statEntity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+
+	// Setting initial values
+	motion.scale = vec2({ STAT_BB_WIDTH, STAT_BB_HEIGHT });
+
+	registry.renderRequests.insert(
+		statEntity,
+		{ TEXTURE_ASSET_ID::MPBAR,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI
+		});
+
+	return statEntity;
+
+
+}
+
+// EP Stat bar
+Entity createEPBar(RenderSystem* renderer, vec2 position) {
+
+	auto statEntity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(statEntity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(statEntity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+
+	// Setting initial values
+	motion.scale = vec2({ STAT_BB_WIDTH, STAT_BB_HEIGHT });
+
+	registry.renderRequests.insert(
+		statEntity,
+		{ TEXTURE_ASSET_ID::EPBAR,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI
+		});
+
+	return statEntity;
+
+
+}
+
+// HP Bar filled portion
+Entity createHPFill(RenderSystem* renderer, vec2 position) {
+
+	auto statEntity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(statEntity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(statEntity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+
+	// Setting initial values
+	motion.scale = vec2({ STAT_BB_WIDTH, STAT_BB_HEIGHT });
+
+	registry.renderRequests.insert(
+		statEntity,
+		{ TEXTURE_ASSET_ID::HPFILL,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI
+		});
+
+	return statEntity;
+
+
+}
+
+// MP Bar filled portion 
+Entity createMPFill(RenderSystem* renderer, vec2 position) {
+
+	auto statEntity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(statEntity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(statEntity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+
+	// Setting initial values
+	motion.scale = vec2({ STAT_BB_WIDTH, STAT_BB_HEIGHT });
+
+	registry.renderRequests.insert(
+		statEntity,
+		{ TEXTURE_ASSET_ID::MPFILL,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI
+		});
+
+	return statEntity;
+
+
+}
+
+// EP Bar filled portion 
+Entity createEPFill(RenderSystem* renderer, vec2 position) {
+
+	auto statEntity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(statEntity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(statEntity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+
+	// Setting initial values
+	motion.scale = vec2({ STAT_BB_WIDTH, STAT_BB_HEIGHT });
+
+	registry.renderRequests.insert(
+		statEntity,
+		{ TEXTURE_ASSET_ID::EPFILL,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI

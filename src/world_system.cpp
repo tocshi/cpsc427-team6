@@ -195,6 +195,37 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// Update HP/MP/EP bars and movement
+	for (Entity player : registry.players.entities) {
+		for (Entity entity : registry.motions.entities) {
+			Motion& motion_struct = registry.motions.get(entity);
+			RenderRequest& render_struct = registry.renderRequests.get(entity);
+
+			float maxEP = registry.players.get(player).maxEP;
+			float hp = registry.players.get(player).hp;
+			float mp = registry.players.get(player).mp;
+			float ep = registry.players.get(player).ep;
+			
+			switch (render_struct.used_texture) {
+			case TEXTURE_ASSET_ID::HPFILL:
+				motion_struct.scale = { (hp / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (hp / 100.f));	// original pos (full bar) - (1-multiplier)
+				break;
+			case TEXTURE_ASSET_ID::MPFILL:
+				motion_struct.scale = { (mp / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (mp / 100.f));	// original pos (full bar) - (1-multiplier)
+				break;
+			case TEXTURE_ASSET_ID::EPFILL:
+				motion_struct.scale = { (ep / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (ep / 100.f));	// original pos (full bar) - (1-multiplier)
+				break;
+			}
+
+			registry.players.get(player).ep = check_in_motion(motion_struct.in_motion, ep, maxEP);
+		}
+	}
+
+
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A3: HANDLE EGG SPAWN HERE
 	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
@@ -290,8 +321,10 @@ void WorldSystem::restart_game() {
 void WorldSystem::spawn_game_entities() {
 
 	// create all non-menu game objects
-	createPlayer(renderer, { 250.f, 250.f });
-	createEnemy(renderer, { window_width_px / 2, 350.f });
+	// spawn the player and enemy in random locations
+	spawn_player_random_location();
+	spawn_enemy_random_location();
+  
 	createBoss(renderer, { 250.f, 450.f });
 	createArtifact(renderer, { 250.f, 550.f });
 	createConsumable(renderer, { 250.f, 650.f });
@@ -309,8 +342,14 @@ void WorldSystem::spawn_game_entities() {
 		createWall(renderer, { window_width_px - WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
 	}
 	
-
-	createStats(renderer, { 1400.f, 100.f }); //added for stats
+	float statbarsX = 150.f;
+	float statbarsY = 740.f;
+	createHPFill(renderer, { statbarsX, statbarsY });
+	createHPBar(renderer,  { statbarsX, statbarsY });
+	createMPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createMPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
+	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war(500.f);
 }
 
@@ -346,6 +385,52 @@ void WorldSystem::remove_fog_of_war() {
 		registry.remove_all_components_of(e);
 	}
 
+}
+
+// spawn player entity in random location
+void WorldSystem::spawn_player_random_location() {
+	printf("%d", rand());
+	int randX = rand() % ((window_width_px - 200 + 1) + 200);
+	int randY = rand() % ((window_height_px - 200 + 1) + 200);
+
+	if (randX < 200) {
+		randX += 200;
+	}
+	else if (randX >= window_width_px - 200) {
+		randX -= 200;
+	}
+
+	if (randY < 200) {
+		randY += 200;
+	}
+	else if (randY >= window_height_px - 200) {
+		randY -= 200;
+	}
+
+	createPlayer(renderer, { (float)randX, (float)randY } );
+}
+
+// spawn enemy entity in random location
+void WorldSystem::spawn_enemy_random_location() {
+	printf("%d", rand());
+	int randX = rand()%((window_width_px - 200 + 1) + 200);
+	int randY = rand()%((window_height_px - 200 + 1) + 200);
+
+	if (randX < 200) {
+		randX += 200;
+	}
+	else if (randX >= window_width_px - 200) {
+		randX -= 200;
+	}
+
+	if (randY < 200) {
+		randY += 200;
+	}
+	else if (randY >= window_height_px - 200) {
+		randY -= 200;
+	}
+
+	createEnemy(renderer, { (float)randX, (float)randY });
 }
 
 // Compute collisions between entities
@@ -472,9 +557,11 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			float x_component = cos(angle) * speed;
 			float y_component = sin(angle) * speed;
 			motion_struct.velocity = { x_component, y_component};
+			motion_struct.angle = angle + (0.5 * M_PI);
 			motion_struct.destination = { xpos, ypos };
 			motion_struct.in_motion = true;
 			player_right_click = true;
+
 		}
 	}
 }
@@ -503,4 +590,30 @@ void WorldSystem::set_is_ai_turn(bool val) {
 
 bool WorldSystem::get_is_ai_turn() {
 	return is_ai_turn;
+}
+
+float WorldSystem::subtractEP(float ep) {
+	//float ep = 0.0;
+	ep = ep - 1.0;
+	return ep;
+}
+
+/*float WorldSystem::addEP(float ep) {
+	//float ep = 0.0;
+	ep = ep +10;
+	return ep;
+}*/
+
+// returns float and check if player is in motion 
+float WorldSystem::check_in_motion(bool motion, float ep, float maxEP) {
+	if (!motion) {
+		// when the player ep value goes down to 0, reset to maxEP 100
+		if (ep == 0) {
+			ep = maxEP;
+		}
+	}
+	else if (motion) {
+		ep = subtractEP(ep);
+	}
+	return ep;
 }

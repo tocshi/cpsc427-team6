@@ -7,6 +7,15 @@
 // Player component
 struct Player
 {
+	float s; 
+	//Entity Stat; // hp, ep ,mp 
+	float hp = 100;
+	float mp = 100;
+	float ep = 100; 
+	float maxEP = 100; 
+
+	
+
 };
 
 // Eagles have a hard shell
@@ -111,9 +120,10 @@ struct Interactable {
 };
 
 struct Stat {
-	float hp = 0;
-	float mp = 0;
-	float ep = 0;
+	// set intial stats to 100 points
+	float hp = 100;
+	float mp = 100;
+	float ep = 100;
 };
 
 struct Queueable {
@@ -203,9 +213,14 @@ enum class TEXTURE_ASSET_ID {
 	START = FOG + 1,
 	QUIT = START + 1,
 	TITLE = QUIT + 1,
-	STAT = TITLE +1,
-	WALL = STAT + 1,
-	TEXTURE_COUNT = WALL + 1
+	WALL = TITLE + 1,
+	HPBAR = WALL + 1,
+	MPBAR = HPBAR + 1,
+	EPBAR = MPBAR + 1,
+	HPFILL = EPBAR + 1,
+	MPFILL = HPFILL + 1,
+	EPFILL = MPFILL + 1,
+	TEXTURE_COUNT = EPFILL + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

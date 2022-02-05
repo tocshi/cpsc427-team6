@@ -45,6 +45,9 @@ public:
 	bool get_is_ai_turn();
 
 	void set_is_ai_turn(bool val);
+	// check if player is in motion
+	float check_in_motion(bool motion, float ep, float maxEP);
+
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -63,6 +66,12 @@ private:
 	// remove all fog entities
 	void remove_fog_of_war();
 
+	// spawn player in random location
+	void spawn_player_random_location();
+
+	// spawn enemy in random location
+	void spawn_enemy_random_location();
+
 	// OpenGL window handle
 	GLFWwindow* window;
 
@@ -74,12 +83,21 @@ private:
 	float current_speed;
 	float next_eagle_spawn;
 	float next_bug_spawn;
+
 	Entity player_chicken;
 	Entity background;
 	bool is_player_turn = true;
 	bool player_right_click = false;
 	bool is_ai_turn = false;
-	
+
+
+	// for ep step counting
+	bool is_steps = false; 
+	// subtract ep function
+	float subtractEP(float ep);
+	// add ep function
+	//float addEP(float ep);
+	// ep value 
 
 	// music references
 	Mix_Music* background_music;

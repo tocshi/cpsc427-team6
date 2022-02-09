@@ -45,8 +45,11 @@ public:
 	bool get_is_ai_turn();
 
 	void set_is_ai_turn(bool val);
+
 	// check if player is in motion
 	float check_in_motion(bool motion, float ep, float maxEP);
+
+	void start_player_turn();
 
 private:
 	// Input callback functions

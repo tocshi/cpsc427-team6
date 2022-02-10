@@ -46,9 +46,6 @@ public:
 
 	void set_is_ai_turn(bool val);
 
-	// check if player is in motion
-	float check_in_motion(bool motion, float ep, float maxEP);
-
 	void start_player_turn();
 
 private:
@@ -92,15 +89,6 @@ private:
 	bool is_player_turn = true;
 	bool player_right_click = false;
 	bool is_ai_turn = false;
-
-
-	// for ep step counting
-	bool is_steps = false; 
-	// subtract ep function
-	float subtractEP(float ep);
-	// add ep function
-	//float addEP(float ep);
-	// ep value 
 
 	// music references
 	Mix_Music* background_music;

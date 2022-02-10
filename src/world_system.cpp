@@ -156,18 +156,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// end player turn if it has stopped moving
+	// perform in-motion behaviour
 	if (get_is_player_turn() && player_right_click) {
 		for (Entity player : registry.players.entities) {
 			Motion player_motion = registry.motions.get(player);
-			if (!player_motion.in_motion) {
-				set_is_player_turn(false);
-				player_right_click = false;
-			}
-			else {
+			if (player_motion.in_motion) {
 				// update the fog of war if the player is moving
 				remove_fog_of_war();
 				create_fog_of_war(500.f);
+			}
+			else {
+				player_right_click = false;
 			}
 		}
 	}
@@ -213,6 +212,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (ep <= 0) { 
 				player_motion.velocity = { 0.f, 0.f };
 				player_motion.in_motion = false; 
+				set_is_player_turn(false);
+				player_right_click = false;
 			}
 			else { 
 				float ep_rate = 1.f;
@@ -606,32 +607,6 @@ void WorldSystem::set_is_ai_turn(bool val) {
 
 bool WorldSystem::get_is_ai_turn() {
 	return is_ai_turn;
-}
-
-float WorldSystem::subtractEP(float ep) {
-	//float ep = 0.0;
-	ep = ep - 1.0;
-	return ep;
-}
-
-/*float WorldSystem::addEP(float ep) {
-	//float ep = 0.0;
-	ep = ep +10;
-	return ep;
-}*/
-
-// returns float and check if player is in motion 
-float WorldSystem::check_in_motion(bool motion, float ep, float maxEP) {
-	if (!motion) {
-		// when the player ep value goes down to 0, reset to maxEP 100
-		if (ep == 0) {
-			ep = maxEP;
-		}
-	}
-	else if (motion) {
-		ep = subtractEP(ep);
-	}
-	return ep;
 }
 
 void WorldSystem::start_player_turn() {

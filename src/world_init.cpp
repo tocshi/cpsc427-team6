@@ -772,3 +772,15 @@ Entity createFog(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+// Create an entity with a camera and motion component
+Entity createCamera(vec2 pos)
+{
+	auto entity = Entity();
+
+	// Create a Camera component to be able to refer to all cameras
+	auto& camera = registry.cameras.emplace(entity);
+	camera.position = pos;
+	camera.active = true;
+
+	return entity;
+}

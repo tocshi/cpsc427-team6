@@ -156,18 +156,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// end player turn if it has stopped moving
+	// perform in-motion behaviour
 	if (get_is_player_turn() && player_right_click) {
 		for (Entity player : registry.players.entities) {
 			Motion player_motion = registry.motions.get(player);
-			if (!player_motion.in_motion) {
-				set_is_player_turn(false);
-				player_right_click = false;
-			}
-			else {
+			if (player_motion.in_motion) {
 				// update the fog of war if the player is moving
 				remove_fog_of_war();
 				create_fog_of_war(500.f);
+			}
+			else {
+				player_right_click = false;
 			}
 		}
 	}
@@ -184,6 +183,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (all_moved) {
 			set_is_ai_turn(false);
 			set_is_player_turn(true);
+
+			// perform start-of-turn actions for player
+			start_player_turn();
 		}
 	}
 
@@ -197,14 +199,31 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Update HP/MP/EP bars and movement
 	for (Entity player : registry.players.entities) {
+		
+		// get player stats
+		float& maxEP = registry.players.get(player).maxEP;
+		float& hp = registry.players.get(player).hp;
+		float& mp = registry.players.get(player).mp;
+		float& ep = registry.players.get(player).ep;
+
+		// update player motion
+		Motion& player_motion = registry.motions.get(player);
+		if (player_motion.in_motion) {
+			if (ep <= 0) { 
+				player_motion.velocity = { 0.f, 0.f };
+				player_motion.in_motion = false; 
+				set_is_player_turn(false);
+				player_right_click = false;
+			}
+			else { 
+				float ep_rate = 1.f;
+				ep -= 2.f * ep_rate; 
+			}
+		}
+		
 		for (Entity entity : registry.motions.entities) {
 			Motion& motion_struct = registry.motions.get(entity);
 			RenderRequest& render_struct = registry.renderRequests.get(entity);
-
-			float maxEP = registry.players.get(player).maxEP;
-			float hp = registry.players.get(player).hp;
-			float mp = registry.players.get(player).mp;
-			float ep = registry.players.get(player).ep;
 			
 			switch (render_struct.used_texture) {
 			case TEXTURE_ASSET_ID::HPFILL:
@@ -220,8 +239,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				motion_struct.position[0] = 150.f - 150.f*(1.f - (ep / 100.f));	// original pos (full bar) - (1-multiplier)
 				break;
 			}
-
-			registry.players.get(player).ep = check_in_motion(motion_struct.in_motion, ep, maxEP);
 		}
 	}
 
@@ -592,28 +609,15 @@ bool WorldSystem::get_is_ai_turn() {
 	return is_ai_turn;
 }
 
-float WorldSystem::subtractEP(float ep) {
-	//float ep = 0.0;
-	ep = ep - 1.0;
-	return ep;
-}
+void WorldSystem::start_player_turn() {
+	for (Entity player : registry.players.entities) {
 
-/*float WorldSystem::addEP(float ep) {
-	//float ep = 0.0;
-	ep = ep +10;
-	return ep;
-}*/
+		// get player stats
+		float& maxEP = registry.players.get(player).maxEP;
+		float& hp = registry.players.get(player).hp;
+		float& mp = registry.players.get(player).mp;
+		float& ep = registry.players.get(player).ep;
 
-// returns float and check if player is in motion 
-float WorldSystem::check_in_motion(bool motion, float ep, float maxEP) {
-	if (!motion) {
-		// when the player ep value goes down to 0, reset to maxEP 100
-		if (ep == 0) {
-			ep = maxEP;
-		}
+		ep = maxEP;
 	}
-	else if (motion) {
-		ep = subtractEP(ep);
-	}
-	return ep;
 }

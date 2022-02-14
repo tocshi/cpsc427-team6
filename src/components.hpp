@@ -254,7 +254,8 @@ enum class RENDER_LAYER_ID {
 	SPRITE = BG + 1,
 	EFFECT = SPRITE + 1,
 	UI = EFFECT + 1,
-	DEBUG = UI + 1,
+	UI_TOP = UI + 1,
+	DEBUG = UI_TOP + 1,
 	LAYER_COUNT = DEBUG + 1
 };
 const int layer_count = (int)RENDER_LAYER_ID::LAYER_COUNT;

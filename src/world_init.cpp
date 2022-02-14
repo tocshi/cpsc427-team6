@@ -590,7 +590,7 @@ Entity createHPBar(RenderSystem* renderer, vec2 position) {
 		{ TEXTURE_ASSET_ID::HPBAR,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::UI
+		 RENDER_LAYER_ID::UI_TOP
 		});
 
 	return statEntity;
@@ -619,7 +619,7 @@ Entity createMPBar(RenderSystem* renderer, vec2 position) {
 		{ TEXTURE_ASSET_ID::MPBAR,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::UI
+		 RENDER_LAYER_ID::UI_TOP
 		});
 
 	return statEntity;
@@ -648,7 +648,7 @@ Entity createEPBar(RenderSystem* renderer, vec2 position) {
 		{ TEXTURE_ASSET_ID::EPBAR,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::UI
+		 RENDER_LAYER_ID::UI_TOP
 		});
 
 	return statEntity;

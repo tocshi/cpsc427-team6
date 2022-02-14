@@ -241,7 +241,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 		}
 		// Update the camera to follow the player
-		Motion player_motion = registry.motions.get(player);
 		Camera& camera = registry.cameras.get(active_camera_entity);
 		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
 	}

@@ -240,6 +240,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				break;
 			}
 		}
+		// Update the camera to follow the player
+		Motion player_motion = registry.motions.get(player);
+		Camera& camera = registry.cameras.get(active_camera_entity);
+		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
 	}
 
 
@@ -296,6 +300,9 @@ void WorldSystem::restart_game() {
 
 	// Create the map/level/background
 	background = createBackground(renderer, vec2(window_width_px/2,window_height_px/2));
+
+	// Add a camera entity
+	active_camera_entity = createCamera({0, 0});
 
 	//// Create a new chicken
 	//player_chicken = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
@@ -354,7 +361,7 @@ void WorldSystem::spawn_game_entities() {
 		createWall(renderer, { WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i, WALL_BB_HEIGHT / 2 });
 		createWall(renderer, { WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i, window_height_px - WALL_BB_HEIGHT / 2 });
 	}
-	for (uint i = 1; WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i < window_width_px - WALL_BB_HEIGHT; i++) {
+	for (uint i = 1; WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i < window_height_px - WALL_BB_HEIGHT; i++) {
 		createWall(renderer, { WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
 		createWall(renderer, { window_width_px - WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
 	}
@@ -541,6 +548,11 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	glfwGetCursorPos(window, &xpos, &ypos);
 	//printf("Cursor Position at (%f, %f)\n", xpos, ypos);
 
+	// get cursor position relative to world
+	Camera camera = registry.cameras.get(active_camera_entity);
+	vec2 world_pos = {xpos + camera.position.x, ypos + camera.position.y};
+	//printf("World Position at (%f, %f)\n", world_pos.x, world_pos.y);
+
 	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
 		double xpos, ypos;
 		glfwGetCursorPos(window, &xpos, &ypos);
@@ -570,12 +582,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 			// set velocity to the direction of the cursor, at a magnitude of player_velocity
 			float speed = motion_struct.movement_speed;
-			float angle = atan2(ypos - motion_struct.position.y, xpos - motion_struct.position.x);
+			float angle = atan2(world_pos.y - motion_struct.position.y, world_pos.x - motion_struct.position.x);
 			float x_component = cos(angle) * speed;
 			float y_component = sin(angle) * speed;
 			motion_struct.velocity = { x_component, y_component};
 			motion_struct.angle = angle + (0.5 * M_PI);
-			motion_struct.destination = { xpos, ypos };
+			motion_struct.destination = { world_pos.x, world_pos.y };
 			motion_struct.in_motion = true;
 			player_right_click = true;
 

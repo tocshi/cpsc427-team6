@@ -5,19 +5,22 @@
 #include "tiny_ecs_registry.hpp"
 
 void RenderSystem::drawTexturedMesh(Entity entity,
-									const mat3 &projection)
+									const mat3 &projection, Camera camera)
 {
+	assert(registry.renderRequests.has(entity));
+	const RenderRequest& render_request = registry.renderRequests.get(entity);
+
 	Motion &motion = registry.motions.get(entity);
 	// Transformation code, see Rendering and Transformation in the template
 	// specification for more info Incrementally updates transformation matrix,
 	// thus ORDER IS IMPORTANT
 	Transform transform;
+	if (camera.active && render_request.used_layer < RENDER_LAYER_ID::UI) {
+		transform.translate(-camera.position);
+	}
 	transform.translate(motion.position);
 	transform.rotate(motion.angle);
 	transform.scale(motion.scale);
-
-	assert(registry.renderRequests.has(entity));
-	const RenderRequest &render_request = registry.renderRequests.get(entity);
 
 	const GLuint used_effect_enum = (GLuint)render_request.used_effect;
 	assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
@@ -197,7 +200,7 @@ void RenderSystem::draw()
 	// Clearing backbuffer
 	glViewport(0, 0, w, h);
 	glDepthRange(0.00001, 10);
-	glClearColor(0.674, 0.847, 1.0 , 1.0);
+	glClearColor(0, 0, 0 , 1.0);
 	glClearDepth(10.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_BLEND);
@@ -218,13 +221,22 @@ void RenderSystem::draw()
 			}
 			return registry.renderRequests.get(a).used_layer < registry.renderRequests.get(b).used_layer;
 		});
+	// Get the active camera (assumes only one is active)
+	Camera camera;
+	for (Entity entity : registry.cameras.entities) {
+		Camera camera_to_check = registry.cameras.get(entity);
+		if (camera_to_check.active) {
+			camera = camera_to_check;
+			break;
+		}
+	}
 	for (Entity entity : registry.renderRequests.entities)
 	{
 		if (!registry.motions.has(entity))
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
-		drawTexturedMesh(entity, projection_2D);
+		drawTexturedMesh(entity, projection_2D, camera);
 	}
 
 	// Truely render to the screen

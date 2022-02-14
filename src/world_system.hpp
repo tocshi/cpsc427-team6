@@ -84,6 +84,8 @@ private:
 	float next_eagle_spawn;
 	float next_bug_spawn;
 
+	Entity active_camera_entity;
+
 	Entity player_chicken;
 	Entity background;
 	bool is_player_turn = true;

@@ -139,10 +139,9 @@ struct Solid {
 };
 
 enum class SLIME_STATE {
-	IDLE_DOWN = 0,
-	IDLE_UP = IDLE_DOWN + 1,
-	CHASING = IDLE_UP + 1,
-	STATE_COUNT = CHASING + 1
+	IDLE = 0,
+	AGGRO = IDLE + 1,
+	STATE_COUNT = AGGRO + 1
 };
 
 struct SlimeEnemy {

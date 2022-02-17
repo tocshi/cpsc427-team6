@@ -185,7 +185,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 		{ 10.f,
 		300,
 		{ window_width_px / 2, 350.f },
-		SLIME_STATE::IDLE_DOWN });
+		SLIME_STATE::IDLE });
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ENEMY,

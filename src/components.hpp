@@ -235,7 +235,8 @@ enum class EFFECT_ASSET_ID {
 	CHICKEN = EGG + 1,
 	TEXTURED = CHICKEN + 1,
 	WIND = TEXTURED + 1,
-	EFFECT_COUNT = WIND + 1
+	TEXT = WIND + 1,
+	EFFECT_COUNT = TEXT + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 

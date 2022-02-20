@@ -128,6 +128,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 }
 
+void RenderSystem::drawText(Entity entity, const mat3 &projection)
+{
+	// TODO
+}
+
 // draw the intermediate texture to the screen, with some distortion to simulate
 // wind
 void RenderSystem::drawToScreen()

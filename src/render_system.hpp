@@ -2,6 +2,8 @@
 
 #include <array>
 #include <utility>
+#include <map>
+#include <iostream>
 
 #include "common.hpp"
 #include "components.hpp"
@@ -70,6 +72,17 @@ class RenderSystem {
 	std::array<GLuint, geometry_count> index_buffers;
 	std::array<Mesh, geometry_count> meshes;
 
+	/// Holds all state information relevant to a character as loaded using FreeType
+	struct Character {
+		unsigned int TextureID; // ID handle of the glyph texture
+		glm::ivec2   Size;      // Size of glyph
+		glm::ivec2   Bearing;   // Offset from baseline to left/top of glyph
+		unsigned int Advance;   // Horizontal offset to advance to next glyph
+	};
+
+	std::map<GLchar, Character> Characters;
+	unsigned int VAO, VBO;
+
 public:
 	// Initialize the window
 	bool init(GLFWwindow* window);
@@ -85,6 +98,9 @@ public:
 	Mesh& getMesh(GEOMETRY_BUFFER_ID id) { return meshes[(int)id]; };
 
 	void initializeGlGeometryBuffers();
+
+	int initFreeType();
+
 	// Initialize the screen texture used as intermediate render target
 	// The draw loop first renders to this texture, then it is used for the wind
 	// shader
@@ -101,6 +117,7 @@ public:
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, Camera camera);
+	void drawText(Entity entity, const mat3& projection);
 	void drawToScreen();
 
 	// Window handle

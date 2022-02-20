@@ -176,6 +176,13 @@ struct Camera {
 	bool active = false;
 };
 
+struct Text {
+	vec2 position = { 0.f, 0.f };
+	float scale = 1.0f;
+	vec3 textColor = { 0.f, 0.f, 0.f };
+	std::string message = "";
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture

@@ -784,3 +784,31 @@ Entity createCamera(vec2 pos)
 
 	return entity;
 }
+
+// Text entity
+Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale = 1.0f, vec3 textColor = vec3(0.0f))
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the text component
+	auto& text = registry.texts.emplace(entity);
+	text.message = msg;
+	text.position = pos;
+	text.scale = scale;
+	text.textColor = textColor;
+
+	// Create an (empty) Bug component to be able to refer to all bug
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::TEXT,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::UI_TOP });
+
+	return entity;
+}

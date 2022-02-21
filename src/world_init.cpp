@@ -807,7 +807,7 @@ Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 			EFFECT_ASSET_ID::TEXT,
-			GEOMETRY_BUFFER_ID::SPRITE,
+			GEOMETRY_BUFFER_ID::TEXTQUAD,
 			RENDER_LAYER_ID::UI_TOP });
 
 	return entity;

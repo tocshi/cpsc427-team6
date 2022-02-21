@@ -294,6 +294,9 @@ void WorldSystem::restart_game() {
 	while (registry.motions.entities.size() > 0)
 	    registry.remove_all_components_of(registry.motions.entities.back());
 
+	while (registry.cameras.entities.size() > 0)
+		registry.remove_all_components_of(registry.cameras.entities.back());
+
 	// Debugging for memory/component leaks
 	registry.list_all_components();
 

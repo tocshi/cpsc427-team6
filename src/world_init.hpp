@@ -104,3 +104,5 @@ Entity createEPFill(RenderSystem* renderer, vec2 position);
 Entity createFog(RenderSystem* renderer, vec2 pos);
 // Camera
 Entity createCamera(vec2 pos);
+// Tiles
+std::vector<Entity> createTiles(RenderSystem* renderer, const std::string& filepath);

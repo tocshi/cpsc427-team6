@@ -176,6 +176,11 @@ struct Camera {
 	bool active = false;
 };
 
+struct Tile {
+	vec2 uv_start = { 0,0 };
+	vec2 uv_end = { 0,0 };
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -255,8 +260,8 @@ enum class RENDER_LAYER_ID {
 	EFFECT = SPRITE + 1,
 	UI = EFFECT + 1,
 	UI_TOP = UI + 1,
-	DEBUG = UI_TOP + 1,
-	LAYER_COUNT = DEBUG + 1
+	DEBUG_LAYER = UI_TOP + 1,
+	LAYER_COUNT = DEBUG_LAYER + 1
 };
 const int layer_count = (int)RENDER_LAYER_ID::LAYER_COUNT;
 

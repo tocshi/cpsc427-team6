@@ -63,7 +63,8 @@ class RenderSystem {
 		shader_path("egg"),
 		shader_path("chicken"),
 		shader_path("textured"),
-		shader_path("wind") };
+		shader_path("wind"),
+		shader_path("fog") };
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;

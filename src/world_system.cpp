@@ -382,26 +382,38 @@ void WorldSystem::spawn_game_entities() {
 // render fog of war around the player past a given radius
 void WorldSystem::create_fog_of_war(float radius) {	
 	// render fog everywhere except in visible circle around the player
-	for (int x = 0; x <= window_width_px; x+=50) {
-		for (int y = 0; y <= window_height_px; y += 50) {
-			// if the point is not witin the visible circle, render fog there
-			for (Entity player : registry.players.entities) {
-				// get player position
-				Motion player_motion = registry.motions.get(player);
-				float playerX = player_motion.position.x;
-				float playerY = player_motion.position.y;
+	//for (int x = 0; x <= window_width_px; x += 50) {
+	//	for (int y = 0; y <= window_height_px; y += 50) {
+	//		// if the point is not witin the visible circle, render fog there
+	//		for (Entity player : registry.players.entities) {
+	//			// get player position
+	//			Motion player_motion = registry.motions.get(player);
+	//			float playerX = player_motion.position.x;
+	//			float playerY = player_motion.position.y;
 
-				// check if position is within the radius of the players position
-				double absX = abs(x - playerX);
-				double absY = abs(y - playerY);
-				double r = (double)radius;
+	//			// check if position is within the radius of the players position
+	//			double absX = abs(x - playerX);
+	//			double absY = abs(y - playerY);
+	//			double r = (double)radius;
 
-				// only create fog entities if they are not within the circle
-				if ((absX > r || absY > r) || !((absX * absX + absY * absY) <= r * r)) {
-					createFog(renderer, { x, y });
-				}
-			}
-		}
+	//			// only create fog entities if they are not within the circle
+	//			if ((absX > r || absY > r) || !((absX * absX + absY * absY) <= r * r)) {
+	//				Entity fog = createFog({ x, y }, { window_width_px, window_height_px });
+	//				registry.colors.insert(fog, { 1, 1, 1 });
+	//			}
+	//			Entity fog = createFog({ x, y }, { window_width_px, window_height_px });
+	//			registry.colors.insert(fog, { 1, 1, 1 });
+	//		}
+	//	}
+	//}
+	for (Entity player : registry.players.entities) {
+		// get player position
+		Motion player_motion = registry.motions.get(player);
+		float playerX = player_motion.position.x;
+		float playerY = player_motion.position.y;
+
+		Entity fog = createFog({ playerX, playerY }, { window_width_px, window_height_px });
+		registry.colors.insert(fog, { 1, 1, 1 });
 	}
 }
 

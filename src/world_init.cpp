@@ -743,34 +743,55 @@ Entity createEPFill(RenderSystem* renderer, vec2 position) {
 
 }
 
-// Fog entity for fog of war
-Entity createFog(RenderSystem* renderer, vec2 pos)
-{
+Entity createFog(vec2 pos, vec2 size) {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initilaize the position, scale, and physics components (more to be changed/added)
-	auto& motion = registry.motions.emplace(entity);
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.position = pos;
+	motion.scale = size;
 
-	motion.scale = vec2({ FOG_BB_WIDTH, FOG_BB_HEIGHT });
-
-	// Create and (empty) FOG component to be able to refer to all fog entities
 	registry.fog.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::FOG,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::EFFECT});
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::FOG,
+			GEOMETRY_BUFFER_ID::FOG,
+			RENDER_LAYER_ID::EFFECT });
 
 	return entity;
 }
+
+//// Fog entity for fog of war
+//Entity createFog(RenderSystem* renderer, vec2 pos)
+//{
+//	auto entity = Entity();
+//
+//	// Store a reference to the potentially re-used mesh object
+//	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+//	registry.meshPtrs.emplace(entity, &mesh);
+//
+//	// Initilaize the position, scale, and physics components (more to be changed/added)
+//	auto& motion = registry.motions.emplace(entity);
+//	motion.angle = 0.f;
+//	motion.velocity = { 0.f, 0.f };
+//	motion.position = pos;
+//
+//	motion.scale = vec2({ FOG_BB_WIDTH, FOG_BB_HEIGHT });
+//
+//	// Create and (empty) FOG component to be able to refer to all fog entities
+//	registry.fog.emplace(entity);
+//	registry.renderRequests.insert(
+//		entity,
+//		{ TEXTURE_ASSET_ID::FOG,
+//		 EFFECT_ASSET_ID::TEXTURED,
+//		 GEOMETRY_BUFFER_ID::SPRITE,
+//		 RENDER_LAYER_ID::EFFECT});
+//
+//	return entity;
+//}
 
 // Create an entity with a camera and motion component
 Entity createCamera(vec2 pos)

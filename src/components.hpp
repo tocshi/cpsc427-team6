@@ -176,7 +176,7 @@ struct Camera {
 	bool active = false;
 };
 
-struct Tile {
+struct TileUV {
 	vec2 uv_start = { 0,0 };
 	vec2 uv_end = { 0,0 };
 };

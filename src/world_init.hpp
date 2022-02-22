@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "tiny_ecs.hpp"
+#include "tilemap.hpp"
 #include "render_system.hpp"
 
 // These are ahrd coded to the dimensions of the entity texture

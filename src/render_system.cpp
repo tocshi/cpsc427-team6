@@ -263,3 +263,13 @@ mat3 RenderSystem::createProjectionMatrix()
 	float ty = -(top + bottom) / (top - bottom);
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
 }
+
+int RenderSystem::findTextureId(const std::string& filename) {
+	auto it = std::find(texture_paths.begin(), texture_paths.end(), filename);
+	// If element was found
+	if (it != texture_paths.end())
+	{
+		return it - texture_paths.begin();
+	}
+	return -1;
+}

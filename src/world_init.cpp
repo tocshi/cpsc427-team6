@@ -784,3 +784,8 @@ Entity createCamera(vec2 pos)
 
 	return entity;
 }
+
+std::vector<Entity> createTiles(RenderSystem* renderer, const std::string& filepath) {
+	TileMapParser parser = TileMapParser();
+	return parser.Parse(std::string("../data/tilemaps/desert.tmx"), renderer);
+}

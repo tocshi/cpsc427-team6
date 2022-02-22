@@ -97,6 +97,8 @@ public:
 
 	mat3 createProjectionMatrix();
 
+	int findTextureId(const std::string& filename);
+
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, Camera camera);

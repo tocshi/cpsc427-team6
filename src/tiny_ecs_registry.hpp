@@ -38,6 +38,8 @@ public:
 	ComponentContainer<MenuItem> menuItems;
 	ComponentContainer<Fog> fog;
 	ComponentContainer<Camera> cameras;
+	// add door component
+	ComponentContainer<Door>door;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -70,6 +72,8 @@ public:
 		registry_list.push_back(&menuItems);
 		registry_list.push_back(&fog);
 		registry_list.push_back(&cameras);
+		// door in registry list 
+		registry_list.push_back(&door);
 	}
 
 	void clear_all_components() {

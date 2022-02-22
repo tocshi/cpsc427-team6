@@ -5,14 +5,22 @@
 // stlib
 #include <cassert>
 #include <sstream>
+#include <iostream>
+#include<fstream>
 
 #include "physics_system.hpp"
+
+#include <../ext/json/single_include/nlohmann/json.hpp>
 
 // Game configuration
 const size_t MAX_EAGLES = 15;
 const size_t MAX_BUG = 5;
 const size_t EAGLE_DELAY_MS = 2000 * 3;
 const size_t BUG_DELAY_MS = 5000 * 3;
+
+//initilaze the stupid json 
+//using jsonf = nlohmann::json;
+using json = nlohmann::json;
 
 // Create the bug world
 WorldSystem::WorldSystem()
@@ -164,6 +172,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				// update the fog of war if the player is moving
 				remove_fog_of_war();
 				create_fog_of_war(500.f);
+				
 			}
 			else {
 				player_right_click = false;
@@ -186,7 +195,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			// perform start-of-turn actions for player
 			start_player_turn();
+			
 		}
+		// save the data to the json file
 	}
 
 	// If started, remove menu entities, and spawn game entities
@@ -205,6 +216,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		float& hp = registry.players.get(player).hp;
 		float& mp = registry.players.get(player).mp;
 		float& ep = registry.players.get(player).ep;
+		
+
+		// KAITI
 
 		// update player motion
 		Motion& player_motion = registry.motions.get(player);
@@ -218,9 +232,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			else { 
 				float ep_rate = 1.f;
 				ep -= 2.f * ep_rate; 
-			}
+				//printf("%s \n", "we are saving data DOES IT WORK AHH CPSC");
+				//printf("we are saving data DOES IT WORK AHH CPSC ");
+				//printf("%f",ep);
+				// UPDATE playerEP
+				registry.players.get(player).ep = ep;
+				printf("%f", registry.players.get(player).ep);
+			}	
 		}
-		
+		// CALL SAVE DATA
+		save_data();
 		for (Entity entity : registry.motions.entities) {
 			Motion& motion_struct = registry.motions.get(entity);
 			RenderRequest& render_struct = registry.renderRequests.get(entity);
@@ -244,6 +265,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Camera& camera = registry.cameras.get(active_camera_entity);
 		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
 	}
+
 
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -276,7 +298,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
 	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death counter
-
 	return true;
 }
 
@@ -288,6 +309,9 @@ void WorldSystem::restart_game() {
 
 	// Reset the game speed
 	current_speed = 1.f;
+	
+	// SAVE DATA ONE MORE TIME BEFORE EVERYHING WIPES OUT KAITI
+	//save_data();
 
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
@@ -403,6 +427,126 @@ void WorldSystem::create_fog_of_war(float radius) {
 			}
 		}
 	}
+}
+
+// make a function that is passing data from the old room states to the new room like Player EP/ HP/ MP stats 
+// fog or war states are also passed to new room 
+// HP EP MP BAR need to be passed with there current states 
+// Float stat bars, walls 
+// spwan enemy in random location 
+// Door, sign , stair everythin all the placeholders too 
+// 1. generate new room , so check if door is open, player not dead so hp!=0 
+// check if there is a new room
+// goto new room
+// carry same player entity / stat
+
+void WorldSystem::save_data() {
+
+	//float transferEP = 0;
+	//float transferHp = 0;
+	//float transferMP = 0;
+	//json savedData; 
+	
+	/*for (Entity e : registry.players.entities) {
+		printf("\n");
+		printf("%f", registry.players.get(e).ep);
+		//printf("one");
+		// check if player had died & check if player has collided with the door to go to the next level 
+		/*if (registry.players.get(e).hp != 0) {
+			//transferEP = registry.players.get(e).hp;
+			//transferEP = registry.players.get(e).ep;
+			//transferEP = registry.players.get(e).mp;
+			savedData["player"] = json();
+			savedData["player_hp"] = registry.players.get(e).hp;
+			savedData["player_ep"] = registry.players.get(e).mp;
+			savedData["player_Maxep"] = registry.players.get(e).maxEP;
+			savedData["player_mp"] = registry.players.get(e).mp;
+		}
+
+		savedData["player"] = json();
+		savedData["player_hp"] = registry.players.get(e).hp;
+		savedData["player_ep"] = registry.players.get(e).ep;
+		savedData["player_Maxep"] = registry.players.get(e).maxEP;
+		savedData["player_mp"] = registry.players.get(e).mp;
+		std::string s = savedData.dump(); // dump it as a string 
+		// OUTPUT THE DATA
+		//std::cout << savedData.dump(4) << std::endl;
+		//printf(s);
+		//std:: count << std::setw(4)
+		std::cout << savedData.dump() << std::endl;
+		std::ofstream file;
+		std::string filePath = data_path();
+		printf("\n", "The file path is: ");
+		printf("%s", filePath);
+		printf("\n");
+		filePath += "/data/saveData.json";
+		file.open(filePath);
+		file << s;
+		file.close();
+		printf("it has been saved :D");
+	}*/
+
+	for (Entity e : registry.players.entities) {
+		// read the data
+		//std::ifstream i("temp.json");
+		json savedData;
+		//i >> savedData;
+		
+		
+		//o << std::setw(4) << j << std::endl;
+		//std::ifstream file("temp.json", std::ifstream::in);
+		//json savedData; // create unitilized json obj
+		//file >> savedData; // initiliaze obj
+		//std::ofstream o("temp.json");
+
+		//C:\Users\kaiti\Source\Repos\cpsc427-team62V2\src\temp.json
+		//std::cout << savedData << std::endl; // prints json obj to screen
+
+		//savedData["player"] = jsonf();
+		savedData["player_hp"] = registry.players.get(e).hp;
+		savedData["player_ep"] = registry.players.get(e).ep;
+		savedData["player_Maxep"] = registry.players.get(e).maxEP;
+		savedData["player_mp"] = registry.players.get(e).mp;
+		std::string json_content = savedData.dump(4);
+		//std::string s = savedData.dump();
+		//std::ofstream o("../data/saveData.json");
+		//o << std::setw(4) << savedData << std::endl;
+		//std::ofstream file("temp.json");
+		//std::cout<< savedData <<
+		//std::ofstream file;
+		//std::string filePath = data_path();
+		//filePath += "/data/saveData.json";
+		//file.open(filePath);
+		//file << s;
+		//file.close();
+		// write prettified JSON to another file (PLEASE WORK FFFFF)
+		std::cout << savedData << std::endl; // prints json obj to screen
+		std::ofstream myfile;
+		std::string filePath = data_path();
+		filePath += "/data/saveData.json";
+		myfile.open(filePath);
+		myfile << json_content;
+		printf("it has been saved :D");
+		//o << std::setw(4) << savedData << std::endl;
+		//o.close();
+		// WRITE THE DATA INTO THE FILE
+	   // o.write(json_content.data(), json_content.size());
+		//std::cout << "Done" << std::endl;
+		
+		myfile.close();
+		//
+	}
+	//json jsonfile;
+
+	//jsonfile["foo"] = "bar";
+
+	//std::ofstream file("temp.json");
+	//file << jsonfile;
+
+}
+
+void WorldSystem::helperWriteToFile() {
+	// nothing for now
 }
 
 // remove all fog entities
@@ -633,5 +777,6 @@ void WorldSystem::start_player_turn() {
 		float& ep = registry.players.get(player).ep;
 
 		ep = maxEP;
+
 	}
 }

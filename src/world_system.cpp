@@ -338,7 +338,7 @@ void WorldSystem::restart_game() {
 	createMenuStart(renderer, { window_width_px / 2, 500.f });
 	createMenuQuit(renderer, { window_width_px / 2, 850.f });
 	createMenuTitle(renderer, { window_width_px / 2, 200.f });
-	createText(renderer, vec2(500.f), "Pb", 1.f, vec3(50.0f));
+	createText(renderer, vec2(500.f), "Pb", 1.f, vec3(1.0f, 0.0f, 0.0f));
 }
 
 // spawn the game entities

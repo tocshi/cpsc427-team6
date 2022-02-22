@@ -198,36 +198,14 @@ void RenderSystem::initializeGlGeometryBuffers()
 	// radius to remove fog from player position
 	constexpr float radius = 0.1f;
 
-	//for (int i = 0; i < FOG_NUM_TRIANGLES; i++) {
-	//	const float t = float(i) * M_PI * 2.f / float(FOG_NUM_TRIANGLES - 1);
-	//	fog_vertices.push_back({});
-	//	vec3 fog_pos = { 0.5 * cos(t), 0.5 * sin(t), fog_z };
-	//	// check if position is within the radius of the players position
-	//	double absX = abs(fog_pos.x - 0);
-	//	double absY = abs(fog_pos.y - 0);
-	//	double r = (double)radius;
-
-	//	// only create fog if position is not within radius
-	//	if ((absX > r || absY > r) || !((absX * absX + absY * absY) <= r * r)) {
-	//		fog_vertices.back().position = fog_pos;
-	//		fog_vertices.back().color = { 0.8, 0.8, 0.8 };
-	//	}
-	//}
-	//fog_vertices.push_back({});
-	//fog_vertices.back().position = { 0, 0, 0 };
-	//fog_vertices.back().color = { 1, 1, 1 };
-	//for (int i = 0; i < FOG_NUM_TRIANGLES; i++) {
-	//	fog_indices.push_back((uint16_t)i);
-	//	fog_indices.push_back((uint16_t)((i + 1) % FOG_NUM_TRIANGLES));
-	//	fog_indices.push_back((uint16_t)FOG_NUM_TRIANGLES);
-	//}
+	constexpr vec3 fog_color = { 0.3,0.3,0.3 };
 
 	// Corner points
 	fog_vertices = {
-		{{-0.5,-0.5, fog_z}, { 0.3,0.3,0.3 }},
-		{{-0.5, 0.5, fog_z}, { 0.3,0.3,0.3 }},
-		{{ 0.5, 0.5, fog_z}, { 0.3,0.3,0.3 }},
-		{{ 0.5,-0.5, fog_z}, { 0.3,0.3,0.3 }},
+		{{-0.5,-0.5, fog_z}, fog_color},
+		{{-0.5, 0.5, fog_z}, fog_color},
+		{{ 0.5, 0.5, fog_z}, fog_color},
+		{{ 0.5,-0.5, fog_z}, fog_color},
 	};
 
 	// Two triangles

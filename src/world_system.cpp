@@ -163,7 +163,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (player_motion.in_motion) {
 				// update the fog of war if the player is moving
 				remove_fog_of_war();
-				create_fog_of_war(500.f);
+				create_fog_of_war();
 			}
 			else {
 				player_right_click = false;
@@ -376,43 +376,18 @@ void WorldSystem::spawn_game_entities() {
 	createMPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT });
 	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
-	create_fog_of_war(500.f);
+	create_fog_of_war();
 }
 
-// render fog of war around the player past a given radius
-void WorldSystem::create_fog_of_war(float radius) {	
-	// render fog everywhere except in visible circle around the player
-	//for (int x = 0; x <= window_width_px; x += 50) {
-	//	for (int y = 0; y <= window_height_px; y += 50) {
-	//		// if the point is not witin the visible circle, render fog there
-	//		for (Entity player : registry.players.entities) {
-	//			// get player position
-	//			Motion player_motion = registry.motions.get(player);
-	//			float playerX = player_motion.position.x;
-	//			float playerY = player_motion.position.y;
-
-	//			// check if position is within the radius of the players position
-	//			double absX = abs(x - playerX);
-	//			double absY = abs(y - playerY);
-	//			double r = (double)radius;
-
-	//			// only create fog entities if they are not within the circle
-	//			if ((absX > r || absY > r) || !((absX * absX + absY * absY) <= r * r)) {
-	//				Entity fog = createFog({ x, y }, { window_width_px, window_height_px });
-	//				registry.colors.insert(fog, { 1, 1, 1 });
-	//			}
-	//			Entity fog = createFog({ x, y }, { window_width_px, window_height_px });
-	//			registry.colors.insert(fog, { 1, 1, 1 });
-	//		}
-	//	}
-	//}
+// render fog of war around the player
+void WorldSystem::create_fog_of_war() {	
 	for (Entity player : registry.players.entities) {
 		// get player position
 		Motion player_motion = registry.motions.get(player);
 		float playerX = player_motion.position.x;
 		float playerY = player_motion.position.y;
 
-		Entity fog = createFog({ playerX, playerY }, { window_width_px, window_height_px });
+		Entity fog = createFog({ playerX, playerY }, { 2000, 2000 });
 		registry.colors.insert(fog, { 1, 1, 1 });
 	}
 }

@@ -123,6 +123,20 @@ void RenderSystem::bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices
 	gl_has_errors();
 }
 
+template <class T>
+void RenderSystem::dynamicBindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(uint)gid]);
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(vertices[0]) * vertices.size(), vertices.data(), GL_DYNAMIC_DRAW);
+	gl_has_errors();
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffers[(uint)gid]);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+		sizeof(indices[0]) * indices.size(), indices.data(), GL_STATIC_DRAW);
+	gl_has_errors();
+}
+
 void RenderSystem::initializeGlMeshes()
 {
 	for (uint i = 0; i < mesh_paths.size(); i++)
@@ -307,17 +321,44 @@ int RenderSystem::initFreeType()
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
     
+
+	// Initialize sprite
+	// The position corresponds to the center of the texture.
+	// std::vector<vec4> textured_vertices(4);
+	// textured_vertices[0] = { -1.f/2, +1.f/2, 0.f, 1.f };
+	// textured_vertices[1] = { +1.f/2, +1.f/2, 0.f, 1.f };
+	// textured_vertices[2]  = { +1.f/2, -1.f/2, 1.f, 0.f };
+	// textured_vertices[3]  = { -1.f/2, -1.f/2, 0.f, 0.f };
     // configure VAO/VBO for texture quads
     // -----------------------------------
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+	// glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(uint)GEOMETRY_BUFFER_ID::TEXTQUAD]);
+    // glBufferData(GL_ARRAY_BUFFER, sizeof(textured_vertices[0]) * textured_vertices.size(), textured_vertices.data(), GL_DYNAMIC_DRAW);
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
     // glBindBuffer(GL_ARRAY_BUFFER, 0);
     // glBindVertexArray(0);
+	//////////////////////////
+	// Initialize sprite
+	// The position corresponds to the center of the texture.
+	std::vector<TexturedVertex> textured_vertices(4);
+	textured_vertices[0].position = { -1.f/2, +1.f/2, 0.f };
+	textured_vertices[1].position = { +1.f/2, +1.f/2, 0.f };
+	textured_vertices[2].position = { +1.f/2, -1.f/2, 0.f };
+	textured_vertices[3].position = { -1.f/2, -1.f/2, 0.f };
+	textured_vertices[0].texcoord = { 0.f, 1.f };
+	textured_vertices[1].texcoord = { 1.f, 1.f };
+	textured_vertices[2].texcoord = { 1.f, 0.f };
+	textured_vertices[3].texcoord = { 0.f, 0.f };
+
+	// Counterclockwise as it's the default opengl front winding direction.
+	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
+	dynamicBindVBOandIBO(GEOMETRY_BUFFER_ID::TEXTQUAD, textured_vertices, textured_indices);
+	gl_has_errors();
 
 	return 0;
 }

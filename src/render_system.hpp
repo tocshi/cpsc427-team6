@@ -81,7 +81,7 @@ class RenderSystem {
 	};
 
 	std::map<GLchar, Character> Characters;
-	unsigned int VAO, VBO;
+	GLuint VAO, VBO;
 
 public:
 	// Initialize the window
@@ -89,6 +89,9 @@ public:
 
 	template <class T>
 	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
+
+	template <class T>
+	void dynamicBindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
 
 	void initializeGlTextures();
 

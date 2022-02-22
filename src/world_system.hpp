@@ -72,10 +72,6 @@ private:
 	// spawn enemy in random location
 	void spawn_enemy_random_location();
 
-	// next room pass data function 
-	void save_data(); 
-	void helperWriteToFile();
-
 	// OpenGL window handle
 	GLFWwindow* window;
 

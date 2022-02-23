@@ -1,11 +1,7 @@
 #include "save_system.hpp"
 
 void saveToFile(json j) {
-	
-	//auto j = json::parse(R"({"happy": true, "pi": 3.141})");
-	
-
-	std::ofstream o(data_path() + PATH_EXTENSION);
+	std::ofstream o(SAVE_DATA_PATH);
 	o << std::setw(4) << j << std::endl;
 }
 

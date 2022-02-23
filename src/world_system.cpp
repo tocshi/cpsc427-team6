@@ -543,7 +543,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// SAVING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
 		//save_data();
-		SaveSystem.saveGameState();
+		saveSystem.saveGameState();
 		printf("SAVING KEY PRESSED");
 	}
 

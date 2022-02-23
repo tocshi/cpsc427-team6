@@ -317,7 +317,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		    min_counter_ms = counter.counter_ms;
 		}
 
-		// restart the game once the death timer expired
+		// remove text once the text timer has expired
 		if (counter.counter_ms < 0) {
 			registry.remove_all_components_of(entity);
 		}
@@ -752,8 +752,8 @@ void WorldSystem::logText(std::string msg) {
 		text.position[1] -= 50.f;
 	}
 
-	vec2 defaultPos = vec2(window_width_px, window_height_px);
-	// vec2 defaultPos = vec2((2.0f * window_width_px) * (3.f/4.f), (2.0f * window_height_px) * (9.f/10.f));
+	// vec2 defaultPos = vec2(window_width_px, window_height_px);
+	vec2 defaultPos = vec2((2.0f * window_width_px) * (3.f/4.f), (2.0f * window_height_px) * (9.f/10.f));
 	vec3 textColor = vec3(1.0f, 1.0f, 1.0f); // white
 
 	Entity e = createText(renderer, defaultPos, msg, 1.5f, textColor);

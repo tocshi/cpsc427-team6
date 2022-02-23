@@ -32,9 +32,9 @@ std::vector<Entity> TileMapParser::Parse(const std::string& file, RenderSystem *
 			Entity entity = Entity();
 
 			Motion& motion = registry.motions.emplace(entity);
-			motion.position.x = scaleFactor * tile->x * tileSizeX + offset.x;
-			motion.position.y = scaleFactor * tile->y * tileSizeY + offset.y;
 			motion.scale = { tileSizeX * scaleFactor, tileSizeY * scaleFactor };
+			motion.position.x = (scaleFactor * tile->x * tileSizeX) + (0.5f * motion.scale.x) + offset.x;
+			motion.position.y = (scaleFactor * tile->y * tileSizeY) + (0.5f * motion.scale.y) + offset.y;
 
 			TileUV& tileUV = registry.tileUVs.emplace(entity);
 			tileUV.layer = layer.first;
@@ -60,8 +60,9 @@ std::vector<Entity> TileMapParser::Parse(const std::string& file, RenderSystem *
 	for (MapObject& object : objects) {
 		Entity entity = Entity();
 		Motion& motion = registry.motions.emplace(entity);
-		motion.position = { object.objectRect.x * scaleFactor, object.objectRect.y * scaleFactor };
 		motion.scale = { object.objectRect.width * scaleFactor, object.objectRect.height * scaleFactor };
+		motion.position.x = (object.objectRect.x + 0.5*tileSizeX) * scaleFactor + offset.x;
+		motion.position.y = (object.objectRect.y + 1.5*tileSizeY) * scaleFactor + offset.y;
 		registry.solid.emplace(entity);
 		registry.collidables.emplace(entity);
 	}

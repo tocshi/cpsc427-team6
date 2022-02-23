@@ -274,7 +274,7 @@ int RenderSystem::initFreeType()
     }
     else {
         // set size to load glyphs as
-        FT_Set_Pixel_Sizes(face, 0, 32);
+        FT_Set_Pixel_Sizes(face, 0, 36);
 
         // disable byte-alignment restriction
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);

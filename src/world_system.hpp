@@ -12,7 +12,7 @@
 #include <SDL_mixer.h>
 
 #include "render_system.hpp"
-#include "save_system.hpp";
+#include "save_system.hpp"
 #include <../ext/json/single_include/nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -85,6 +85,9 @@ private:
 
 	// load player from data
 	void loadPlayer(json playerData);
+
+	// log text
+	void logText(std::string msg);
 
 	// OpenGL window handle
 	GLFWwindow* window;

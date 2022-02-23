@@ -39,6 +39,7 @@ public:
 	ComponentContainer<Fog> fog;
 	ComponentContainer<Camera> cameras;
 	ComponentContainer<Text> texts;
+	ComponentContainer<TextTimer> textTimers;
 	ComponentContainer<Test> hidden;
 	ComponentContainer<Test> hidables;
 	// add door component
@@ -77,6 +78,7 @@ public:
 		registry_list.push_back(&fog);
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&texts);
+		registry_list.push_back(&textTimers);
 		registry_list.push_back(&hidden);
 		registry_list.push_back(&hidables);
 		// door in registry list 

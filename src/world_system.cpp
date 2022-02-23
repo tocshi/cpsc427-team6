@@ -374,12 +374,12 @@ void WorldSystem::restart_game() {
 	createMenuStart(renderer, { window_width_px / 2, 500.f });
 	createMenuQuit(renderer, { window_width_px / 2, 850.f });
 	createMenuTitle(renderer, { window_width_px / 2, 200.f });
-
-	createTiles(renderer, "");
 }
 
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
+
+	createTiles(renderer, "map1.tmx");
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations

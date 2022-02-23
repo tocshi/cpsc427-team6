@@ -102,6 +102,6 @@ Entity createMPFill(RenderSystem* renderer, vec2 position);
 Entity createEPFill(RenderSystem* renderer, vec2 position);
 // Fog for fog of war
 //Entity createFog(RenderSystem* renderer, vec2 pos);
-Entity createFog(vec2 pos, vec2 size);
+Entity createFog(vec2 pos, float resolution, float radius, vec2 screenResolution);
 // Camera
 Entity createCamera(vec2 pos);

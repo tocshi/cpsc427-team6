@@ -168,7 +168,9 @@ struct MenuItem {
 };
 
 struct Fog {
-
+	float radius = 450.f;
+	float resolution = 2000.f;
+	vec2 screen_resolution = { 1600.f, 900.f };
 };
 
 struct Camera {

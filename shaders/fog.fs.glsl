@@ -2,35 +2,40 @@
 
 // From Vertex Shader
 in vec3 vcolor;
-in vec3 fog_pos;
 
 // Application data
 uniform vec3 fcolor;
+uniform float distance;
+// (just the width because this is a box)
+uniform float resolution;
+// screen resolution
+uniform vec2 screen_resolution;
 
 // Output color
 layout(location = 0) out vec4 color;
 
 void main()
 {
-	float multiplier = 1.0;
-	float circle = 0.0;
-	vec2 st = gl_FragCoord.xy / vec2(2000 * multiplier, 2000 * multiplier);
-    //st.x *= (2000 / 2000);
+	// pixel point
+	vec2 st = gl_FragCoord.xy / vec2(resolution);
 
-	vec2 pos = fog_pos.xy;
+	// player point (div by 2 to get center of screen)
+	vec2 pos = vec2(0.0);
+    pos.x += (screen_resolution.x / 2) / resolution;
+	pos.y += (screen_resolution.y / 2) / resolution;
 
-	// screen resolution / 2
-    pos.x += 800.f / multiplier;
-	pos.y += 450.f / multiplier;
+	// is the current point within the radius
+	float absSum = pow(st.x - pos.x, 2) + pow(st.y - pos.y, 2);
 
-	// calcualte a circle around the given position (the player's position)
-	circle = distance(st, pos / vec2(2000, 2000));
+	if (absSum <= pow(distance, 2)) {
+		// set gradient
+		float gradient = 1.0;
+		gradient = (pow(distance, 2) - absSum) * 50.f;
 
-	// render the color in the locations outside of the circle's area
-	circle = smoothstep(0.18, 0.25, circle);
-
-	vec3 circle_color = fcolor * vcolor;
-	circle_color = circle_color * circle;
-
-	color = vec4(circle_color, 0.7 * circle);
+		// draw the color based on how far the current point is from the radius
+		color = vec4(fcolor * vcolor, 0.7 - gradient);
+	} else {
+		// alpha is higher
+		color = vec4(fcolor * vcolor, 0.7);
+	}
 }

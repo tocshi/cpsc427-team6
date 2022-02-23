@@ -50,6 +50,10 @@ namespace {
 // In start menu
 bool inMenu;
 
+// fog stats
+float fog_radius = 450.f;
+float fog_resolution = 2000.f;
+
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
 GLFWwindow* WorldSystem::create_window() {
@@ -250,8 +254,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				sqrt(pow((motion_struct.position.x - player_motion.position.x), 2) 
 				+ pow((motion_struct.position.y - player_motion.position.y), 2));
 			
-			// TODO: replace with not hard-coded distance
-			if (distance_to_player > 450.f) {
+			if (distance_to_player > fog_radius) {
 				if (!registry.hidden.has(entity)) {
 					registry.hidden.emplace(entity);
 				}
@@ -410,7 +413,7 @@ void WorldSystem::create_fog_of_war() {
 		float playerX = player_motion.position.x;
 		float playerY = player_motion.position.y;
 
-		Entity fog = createFog({ playerX, playerY }, { 2000, 2000 });
+		Entity fog = createFog({ playerX, playerY }, fog_resolution, fog_radius, { window_width_px, window_height_px });
 		registry.colors.insert(fog, { 0.2, 0.2, 0.2 });
 	}
 }

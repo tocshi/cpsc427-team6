@@ -749,7 +749,7 @@ Entity createEPFill(RenderSystem* renderer, vec2 position) {
 
 }
 
-Entity createFog(vec2 pos, vec2 size) {
+Entity createFog(vec2 pos, float resolution, float radius, vec2 screen_resolution) {
 	auto entity = Entity();
 
 	// Setting initial motion values
@@ -757,9 +757,13 @@ Entity createFog(vec2 pos, vec2 size) {
 	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.scale = size;
+	motion.scale = { resolution, resolution };
 
-	registry.fog.emplace(entity);
+	Fog& fog = registry.fog.emplace(entity);
+	fog.resolution = resolution;
+	fog.radius = radius;
+	fog.screen_resolution = screen_resolution;
+	
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed

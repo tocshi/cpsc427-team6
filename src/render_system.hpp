@@ -2,10 +2,16 @@
 
 #include <array>
 #include <utility>
+#include <map>
+#include <iostream>
 
 #include "common.hpp"
 #include "components.hpp"
 #include "tiny_ecs.hpp"
+
+// freetype
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -63,11 +69,23 @@ class RenderSystem {
 		shader_path("chicken"),
 		shader_path("textured"),
 		shader_path("wind"),
+		shader_path("text"),
 		shader_path("fog") };
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
 	std::array<Mesh, geometry_count> meshes;
+
+	/// Holds all state information relevant to a character as loaded using FreeType
+	struct Character {
+		unsigned int TextureID; // ID handle of the glyph texture
+		glm::ivec2   Size;      // Size of glyph
+		glm::ivec2   Bearing;   // Offset from baseline to left/top of glyph
+		unsigned int Advance;   // Horizontal offset to advance to next glyph
+	};
+
+	std::map<GLchar, Character> Characters;
+	GLuint VAO, VBO;
 
 public:
 	// Initialize the window
@@ -75,6 +93,9 @@ public:
 
 	template <class T>
 	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
+
+	template <class T>
+	void dynamicBindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
 
 	void initializeGlTextures();
 
@@ -84,6 +105,9 @@ public:
 	Mesh& getMesh(GEOMETRY_BUFFER_ID id) { return meshes[(int)id]; };
 
 	void initializeGlGeometryBuffers();
+
+	int initFreeType();
+
 	// Initialize the screen texture used as intermediate render target
 	// The draw loop first renders to this texture, then it is used for the wind
 	// shader
@@ -100,6 +124,7 @@ public:
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, Camera camera);
+	void drawText(Entity entity, const mat3& projection);
 	void drawToScreen();
 
 	// Window handle

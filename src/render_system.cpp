@@ -161,6 +161,111 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 }
 
+void RenderSystem::drawText(Entity entity, const mat3 &projection)
+{
+	Text &text = registry.texts.get(entity);
+
+	Transform transform;
+
+	assert(registry.renderRequests.has(entity));
+	const RenderRequest &render_request = registry.renderRequests.get(entity);
+
+	const GLuint used_effect_enum = (GLuint)render_request.used_effect;
+	assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
+	const GLuint program = (GLuint)effects[used_effect_enum];
+
+	const GLuint vbo = vertex_buffers[(GLuint)render_request.used_geometry];
+	const GLuint ibo = index_buffers[(GLuint)render_request.used_geometry];
+
+	// Setting vertex and index buffers
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	gl_has_errors();
+
+	// // Setting shaders
+	glUseProgram(program);
+	gl_has_errors();
+
+	assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
+
+	GLint in_position_loc = glGetAttribLocation(program, "in_position");
+	GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+	gl_has_errors();
+	assert(in_texcoord_loc >= 0);
+
+	glEnableVertexAttribArray(in_position_loc);
+	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+							sizeof(TexturedVertex), (void *)0);
+	gl_has_errors();
+
+	glEnableVertexAttribArray(in_texcoord_loc);
+	glVertexAttribPointer(
+		in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+		(void *)sizeof(
+			vec3)); // note the stride to skip the preceeding vertex position
+
+    // activate corresponding render state
+    glActiveTexture(GL_TEXTURE0);
+    // glBindVertexArray(VAO);
+
+	std::string msg = text.message;
+	float x = text.position[0];
+	float y = text.position[1];
+	float scale = text.scale;
+
+	// Getting uniform locations for glUniform* calls
+	GLint color_uloc = glGetUniformLocation(program, "fcolor");
+	const vec3 color = text.textColor;
+	glUniform3fv(color_uloc, 1, (float *)&color);
+	gl_has_errors();
+
+	GLint currProgram;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
+
+    // iterate through all characters
+    std::string::const_iterator c;
+    for (c = msg.begin(); c != msg.end(); c++)
+    {
+		// Setting uniform values to the currently bound program
+		GLuint transform_loc = glGetUniformLocation(currProgram, "transform");
+		glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float *)&transform.mat);
+		GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
+		glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float *)&projection);
+		gl_has_errors();
+
+        Character ch = Characters[*c];
+
+        float xpos = x + ch.Bearing.x * scale;
+        float ypos = y - ch.Bearing.y * scale;
+
+        float w = ch.Size.x * scale;
+        float h = ch.Size.y * scale;
+        // // update VBO for each character
+		std::vector<TexturedVertex> textured_vertices(4);
+		textured_vertices[0].position = { xpos, ypos + h, 0.f };
+		textured_vertices[1].position = { xpos + w, ypos + h, 0.f };
+		textured_vertices[2].position = { xpos + w, ypos, 0.f };
+		textured_vertices[3].position = { xpos, ypos, 0.f };
+		textured_vertices[0].texcoord = { 0.f, 1.f };
+		textured_vertices[1].texcoord = { 1.f, 1.f };
+		textured_vertices[2].texcoord = { 1.f, 0.f };
+		textured_vertices[3].texcoord = { 0.f, 0.f };
+		const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
+		// update content of VBO memory
+		dynamicBindVBOandIBO(GEOMETRY_BUFFER_ID::TEXTQUAD, textured_vertices, textured_indices);
+		gl_has_errors();
+        // render glyph texture over quad
+        glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+        // render quad
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
+        // // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+        x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
+	}
+    // glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+	gl_has_errors();
+}
+
 // draw the intermediate texture to the screen, with some distortion to simulate
 // wind
 void RenderSystem::drawToScreen()
@@ -265,6 +370,9 @@ void RenderSystem::draw()
 	}
 	for (Entity entity : registry.renderRequests.entities)
 	{
+		if (registry.texts.has(entity)) {
+			drawText(entity, projection_2D);
+		}
 		if (!registry.motions.has(entity) || registry.hidden.has(entity))
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity

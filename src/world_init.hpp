@@ -107,3 +107,5 @@ Entity createEPFill(RenderSystem* renderer, vec2 position);
 Entity createFog(vec2 pos, float resolution, float radius, vec2 screenResolution);
 // Camera
 Entity createCamera(vec2 pos);
+// Text
+Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);

@@ -355,6 +355,7 @@ void WorldSystem::restart_game() {
 	createMenuStart(renderer, { window_width_px / 2, 500.f });
 	createMenuQuit(renderer, { window_width_px / 2, 850.f });
 	createMenuTitle(renderer, { window_width_px / 2, 200.f });
+
 }
 
 // spawn the game entities
@@ -543,6 +544,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
 		saveSystem.saveGameState();
 		printf("SAVING KEY PRESSED");
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_N) {
+		printf("\n");
+		printf("NEW ROOM ENTERING NOW");
+		// TEST TO SEE IF THE SAVE STATES WORK
+		saveSystem.readJsonFile();
 	}
 
 	// Resetting game

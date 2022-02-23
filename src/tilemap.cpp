@@ -32,19 +32,20 @@ std::vector<Entity> TileMapParser::Parse(const std::string& file, RenderSystem *
 			Motion& motion = registry.motions.emplace(entity);
 			motion.position.x = tile->x * tileSizeX + offset.x;
 			motion.position.y = tile->y * tileSizeY + offset.y;
+			motion.scale = { tileSizeX, tileSizeY};
 
 			TileUV& tileUV = registry.tileUVs.emplace(entity);
 			tileUV.uv_start = { 
-				tileInfo->textureRect.x / tileInfo->textureSize.x, 
-				tileInfo->textureRect.y / tileInfo->textureSize.y };
+				tileInfo->textureRect.x / tileInfo->textureSize.x + 1 / 256.f,
+				tileInfo->textureRect.y / tileInfo->textureSize.y + 1 / 256.f };
 			tileUV.uv_end = {
-				(tileInfo->textureRect.x + tileInfo->textureRect.width) / tileInfo->textureSize.x,
-				(tileInfo->textureRect.y + tileInfo->textureRect.height) / tileInfo->textureSize.y };
+				(tileInfo->textureRect.x + tileInfo->textureRect.width) / tileInfo->textureSize.x - 1 / 256.f,
+				(tileInfo->textureRect.y + tileInfo->textureRect.height) / tileInfo->textureSize.y - 1 / 256.f };
 			
 			registry.renderRequests.insert(entity, { 
 				static_cast<TEXTURE_ASSET_ID>(tileInfo->textureID),
 				EFFECT_ASSET_ID::TEXTURED,
-				GEOMETRY_BUFFER_ID::SPRITE,
+				GEOMETRY_BUFFER_ID::TILEMAP,
 				RENDER_LAYER_ID::BG
 			});
 		}
@@ -81,6 +82,9 @@ std::shared_ptr<TileSheetData> TileMapParser::BuildTileSheetData(rapidxml::xml_n
 	// Build the tile set data.
 	tileSheetData.tileSize.x = std::atoi(tilesheetNode->first_attribute("tilewidth")->value());
 	tileSheetData.tileSize.y = std::atoi(tilesheetNode->first_attribute("tileheight")->value());
+	tileSheetData.spacing = std::atoi(tilesheetNode->first_attribute("spacing")->value());
+	tileSheetData.margin = std::atoi(tilesheetNode->first_attribute("margin")->value());
+	tileSheetData.firstId = firstid;
 	int tileCount = std::atoi(tilesheetNode->first_attribute("tilecount")->value());
 
 	tileSheetData.columns = std::atoi(tilesheetNode->first_attribute("columns")->value());
@@ -132,16 +136,22 @@ TileMapParser::BuildLayer(rapidxml::xml_node<>* layerNode,
 			auto itr = tileSet.find(tileId); // 5
 			if (itr == tileSet.end()) // 6
 			{
-				int textureX = tileId % tileSheetData->columns - 1;
-				int textureY = tileId / tileSheetData->columns;
+				if (tileId == 30) {
+					tileId = 30;
+				}
+				if (tileId == 31) {
+					tileId = 31;
+				}
+				int textureX = (tileId - tileSheetData->firstId) % tileSheetData->columns;
+				int textureY = (tileId - tileSheetData->firstId) / tileSheetData->columns;
 				std::shared_ptr<TileInfo> tileInfo =
 					std::make_shared<TileInfo>(
 						tileSheetData->textureId, 
 						tileId,
 						tileSheetData->imageSize,
 						Rect(
-							textureX * tileSheetData->tileSize.x,
-							textureY * tileSheetData->tileSize.y,
+							textureX * (tileSheetData->tileSize.x + tileSheetData->spacing) + tileSheetData->margin,
+							textureY * (tileSheetData->tileSize.y + tileSheetData->spacing) + tileSheetData->margin,
 							tileSheetData->tileSize.x,
 							tileSheetData->tileSize.y)
 						);

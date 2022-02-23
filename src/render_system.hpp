@@ -53,7 +53,8 @@ class RenderSystem {
 			textures_path("statbars/epbar.png"),
 			textures_path("statbars/hpfill.png"),
 			textures_path("statbars/mpfill.png"),
-			textures_path("statbars/epfill.png")
+			textures_path("statbars/epfill.png"),
+			textures_path("tmw_desert_spacing.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -103,6 +104,7 @@ private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, Camera camera);
 	void drawToScreen();
+	void updateTileMapCoords(TileUV tileUV);
 
 	// Window handle
 	GLFWwindow* window;

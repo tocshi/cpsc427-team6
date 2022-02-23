@@ -47,6 +47,9 @@ struct TileSheetData
 	int columns; // How many columns in the tile sheet.
 	int rows; // How many rows in the tile sheet.
 	vec2 tileSize; // The size of an individual tile.
+	int spacing;
+	int margin;
+	int firstId;
 };
 
 using Layer = std::vector<std::shared_ptr<Tile>>;

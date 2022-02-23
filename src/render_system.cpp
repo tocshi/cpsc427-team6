@@ -42,6 +42,12 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	// Input data location as in the vertex buffer
 	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
 	{
+		// update texture coordinates if necessary
+		if (render_request.used_geometry == GEOMETRY_BUFFER_ID::TILEMAP && registry.tileUVs.has(entity)) {
+			TileUV tileUV = registry.tileUVs.get(entity);
+			updateTileMapCoords(tileUV);
+		}
+
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
 		gl_has_errors();
@@ -265,11 +271,30 @@ mat3 RenderSystem::createProjectionMatrix()
 }
 
 int RenderSystem::findTextureId(const std::string& filename) {
-	auto it = std::find(texture_paths.begin(), texture_paths.end(), filename);
+	auto it = std::find(texture_paths.begin(), texture_paths.end(), textures_path(filename));
 	// If element was found
 	if (it != texture_paths.end())
 	{
 		return it - texture_paths.begin();
 	}
 	return -1;
+}
+
+void RenderSystem::updateTileMapCoords(TileUV tileUV) {
+	//////////////////////////
+	// Initialize sprite
+	// The position corresponds to the center of the texture.
+	std::vector<TexturedVertex> textured_vertices(4);
+	textured_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
+	textured_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
+	textured_vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
+	textured_vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
+	textured_vertices[0].texcoord = { tileUV.uv_start.x, tileUV.uv_end.y };
+	textured_vertices[1].texcoord = { tileUV.uv_end.x, tileUV.uv_end.y };
+	textured_vertices[2].texcoord = { tileUV.uv_end.x, tileUV.uv_start.y };
+	textured_vertices[3].texcoord = { tileUV.uv_start.x, tileUV.uv_start.y };
+
+	// Counterclockwise as it's the default opengl front winding direction.
+	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::TILEMAP, textured_vertices, textured_indices);
 }

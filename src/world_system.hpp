@@ -12,6 +12,11 @@
 #include <SDL_mixer.h>
 
 #include "render_system.hpp"
+#include "save_system.hpp";
+#include <../ext/json/single_include/nlohmann/json.hpp>
+
+using json = nlohmann::json;
+
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -72,6 +77,15 @@ private:
 	// spawn enemy in random location
 	void spawn_enemy_random_location();
 
+	// remove entities for loading
+	void removeForLoad();
+
+	// load entities from saved data
+	void loadFromData(json data);
+
+	// load player from data
+	void loadPlayer(json playerData);
+
 	// OpenGL window handle
 	GLFWwindow* window;
 
@@ -96,6 +110,8 @@ private:
 	Mix_Music* background_music;
 	Mix_Chunk* chicken_dead_sound;
 	Mix_Chunk* chicken_eat_sound;
+
+	SaveSystem saveSystem;
 
 	// C++ random number generator
 	std::default_random_engine rng;

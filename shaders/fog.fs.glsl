@@ -21,7 +21,7 @@ void main()
 
 	// player point (div by 2 to get center of screen)
 	vec2 pos = vec2(0.0);
-    pos.x += (screen_resolution.x / 2) / resolution;
+	pos.x += (screen_resolution.x / 2) / resolution;
 	pos.y += (screen_resolution.y / 2) / resolution;
 
 	// is the current point within the radius

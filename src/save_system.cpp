@@ -71,6 +71,13 @@ void SaveSystem::saveGameState() {
 		}
 	}
 
+	for (Entity e : registry.artifacts.entities) {
+		Artifact artifacts = registry.artifacts.get(e);
+		if (artifacts.artifact1) {
+			inventory["artifact_1"] = artifacts.artifact1;
+		}
+	}
+
 	//for (Entity e: registry.)
 	// current invetory of items 
 

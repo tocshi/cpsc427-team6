@@ -1,5 +1,6 @@
 {
     "inventory": {
+        "artifact_1": true,
         "consumables": {
             "hp_potion": true,
             "mp_potion": true

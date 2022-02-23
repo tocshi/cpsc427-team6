@@ -96,6 +96,39 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			gl_has_errors();
 		}
 	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::FOG) {
+		GLint in_position_loc = glGetAttribLocation(program, "in_position");
+		GLint in_color_loc = glGetAttribLocation(program, "in_color");
+		GLint distance_uloc = glGetUniformLocation(program, "distance");
+		GLint resolution_uloc = glGetUniformLocation(program, "resolution");
+		GLint screen_resolution_uloc = glGetUniformLocation(program, "screen_resolution");
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_position_loc);
+		glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(ColoredVertex), (void*)0);
+		gl_has_errors();
+
+		glEnableVertexAttribArray(in_color_loc);
+		glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
+			sizeof(ColoredVertex), (void*)sizeof(vec3));
+		gl_has_errors();
+
+		// set distance
+		Fog fog = registry.fog.get(entity);
+		float dist = (fog.radius / fog.resolution);
+
+		glUniform1f(distance_uloc, dist);
+		gl_has_errors();
+
+		// set fog resolution
+		glUniform1f(resolution_uloc, fog.resolution);
+		gl_has_errors();
+
+		// set sreen resolution
+		glUniform2f(screen_resolution_uloc, fog.screen_resolution.x, fog.screen_resolution.y);
+		gl_has_errors();
+	}
 	else
 	{
 		assert(false && "Type of render request not supported");
@@ -232,7 +265,7 @@ void RenderSystem::draw()
 	}
 	for (Entity entity : registry.renderRequests.entities)
 	{
-		if (!registry.motions.has(entity))
+		if (!registry.motions.has(entity) || registry.hidden.has(entity))
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize

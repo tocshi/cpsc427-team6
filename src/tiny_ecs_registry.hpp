@@ -38,6 +38,8 @@ public:
 	ComponentContainer<MenuItem> menuItems;
 	ComponentContainer<Fog> fog;
 	ComponentContainer<Camera> cameras;
+	ComponentContainer<Test> hidden;
+	ComponentContainer<Test> hidables;
 	// add door component
 	ComponentContainer<Door>door;
 	ComponentContainer<Artifact> artifacts;
@@ -73,6 +75,8 @@ public:
 		registry_list.push_back(&menuItems);
 		registry_list.push_back(&fog);
 		registry_list.push_back(&cameras);
+		registry_list.push_back(&hidden);
+		registry_list.push_back(&hidables);
 		// door in registry list 
 		registry_list.push_back(&door);
 		// add artifact to list

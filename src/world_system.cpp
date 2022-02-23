@@ -750,8 +750,8 @@ void WorldSystem::logText(std::string msg) {
 		text.position[1] -= 50.f;
 	}
 
-	// vec2 defaultPos = vec2(window_width_px, window_height_px);
-	vec2 defaultPos = vec2((2.0f * window_width_px) * (3.f/4.f), (2.0f * window_height_px) * (9.f/10.f));
+	// vec2 defaultPos = vec2((2.0f * window_width_px) * (1.f/20.f), (2.0f * window_height_px) * (7.f/10.f));
+	vec2 defaultPos = vec2(50.f, (2.0f * window_height_px) * (7.f/10.f));
 	vec3 textColor = vec3(1.0f, 1.0f, 1.0f); // white
 
 	Entity e = createText(renderer, defaultPos, msg, 1.5f, textColor);

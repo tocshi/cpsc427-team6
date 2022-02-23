@@ -47,9 +47,15 @@ struct TileSheetData
 	int columns; // How many columns in the tile sheet.
 	int rows; // How many rows in the tile sheet.
 	vec2 tileSize; // The size of an individual tile.
-	int spacing;
-	int margin;
-	int firstId;
+	int spacing = 0;
+	int margin = 0;
+	int firstId = 0;
+};
+
+struct MapObject
+{
+	int objectId;
+	Rect objectRect;
 };
 
 using Layer = std::vector<std::shared_ptr<Tile>>;
@@ -63,6 +69,7 @@ class TileMapParser
 public:
 	std::vector<Entity> Parse(const std::string& file, RenderSystem *renderer, vec2 offset = { 0, 0 });
 private:
+	std::vector<MapObject> BuildObjects(rapidxml::xml_node<>* rootNode);
 	std::shared_ptr<TileSheetData> BuildTileSheetData(rapidxml::xml_node<>* rootNode, RenderSystem *renderer);
 	std::shared_ptr<MapTiles> BuildMapTiles(rapidxml::xml_node<>* rootNode, RenderSystem *renderer);
 	std::pair<std::string, std::shared_ptr<Layer>>

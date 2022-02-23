@@ -17,6 +17,8 @@ std::vector<Entity> TileMapParser::Parse(const std::string& file, RenderSystem *
 	int tileSizeY = std::atoi(rootNode->first_attribute("tileheight")->value());
 	int mapsizeX = std::atoi(rootNode->first_attribute("width")->value());
 	int mapsizeY = std::atoi(rootNode->first_attribute("height")->value());
+
+	int scaleFactor = 2; // TODO: determine based on tileset if we are using different tile sizes
 	// This will contain all of our tiles as objects.
 	std::vector<Entity> tileObjects;
 	// 2
@@ -30,9 +32,9 @@ std::vector<Entity> TileMapParser::Parse(const std::string& file, RenderSystem *
 			Entity entity = Entity();
 
 			Motion& motion = registry.motions.emplace(entity);
-			motion.position.x = tile->x * tileSizeX + offset.x;
-			motion.position.y = tile->y * tileSizeY + offset.y;
-			motion.scale = { tileSizeX, tileSizeY};
+			motion.position.x = scaleFactor * tile->x * tileSizeX + offset.x;
+			motion.position.y = scaleFactor * tile->y * tileSizeY + offset.y;
+			motion.scale = { tileSizeX * scaleFactor, tileSizeY * scaleFactor };
 
 			TileUV& tileUV = registry.tileUVs.emplace(entity);
 			tileUV.layer = layer.first;
@@ -52,6 +54,17 @@ std::vector<Entity> TileMapParser::Parse(const std::string& file, RenderSystem *
 			});
 		}
 	}
+
+	// Parse objects, which will be used for solid walls
+	std::vector<MapObject> objects = BuildObjects(rootNode);
+	for (MapObject& object : objects) {
+		Entity entity = Entity();
+		Motion& motion = registry.motions.emplace(entity);
+		motion.position = { object.objectRect.x * scaleFactor, object.objectRect.y * scaleFactor };
+		motion.scale = { object.objectRect.width * scaleFactor, object.objectRect.height * scaleFactor };
+		registry.solid.emplace(entity);
+		registry.collidables.emplace(entity);
+	}
 	return tileObjects;
 }
 
@@ -62,7 +75,7 @@ std::shared_ptr<MapTiles> TileMapParser::BuildMapTiles(rapidxml::xml_node<>* roo
 	std::shared_ptr<MapTiles> map = std::make_shared<MapTiles>();
 	// We loop through each layer in the XML document.
 	for (rapidxml::xml_node<>* node = rootNode->first_node("layer");
-		node; node = node->next_sibling())
+		node; node = node->next_sibling("layer"))
 	{
 		std::pair<std::string, std::shared_ptr<Layer>> mapLayer =
 			BuildLayer(node, tileSheetData);
@@ -70,7 +83,6 @@ std::shared_ptr<MapTiles> TileMapParser::BuildMapTiles(rapidxml::xml_node<>* roo
 	}
 	return map;
 }
-
 
 std::shared_ptr<TileSheetData> TileMapParser::BuildTileSheetData(rapidxml::xml_node<>* rootNode, RenderSystem* renderer)
 {
@@ -80,12 +92,20 @@ std::shared_ptr<TileSheetData> TileMapParser::BuildTileSheetData(rapidxml::xml_n
 		//TODO: add error checking to ensure these values actually exist.
 		//TODO: add support for multiple tile sets.
 		//TODO: implement this.
-		int firstid = std::atoi(tilesheetNode->first_attribute("firstgid")->value());
+	int firstid = 0;
+	if (tilesheetNode->first_attribute("firstgid") != nullptr) {
+		firstid = std::atoi(tilesheetNode->first_attribute("firstgid")->value());
+	}
 	// Build the tile set data.
 	tileSheetData.tileSize.x = std::atoi(tilesheetNode->first_attribute("tilewidth")->value());
 	tileSheetData.tileSize.y = std::atoi(tilesheetNode->first_attribute("tileheight")->value());
-	tileSheetData.spacing = std::atoi(tilesheetNode->first_attribute("spacing")->value());
-	tileSheetData.margin = std::atoi(tilesheetNode->first_attribute("margin")->value());
+	if (tilesheetNode->first_attribute("spacing") != nullptr) {
+		tileSheetData.spacing = std::atoi(tilesheetNode->first_attribute("spacing")->value());
+	}
+	if (tilesheetNode->first_attribute("margin") != nullptr) {
+		tileSheetData.margin = std::atoi(tilesheetNode->first_attribute("margin")->value());
+	}
+	
 	tileSheetData.firstId = firstid;
 	int tileCount = std::atoi(tilesheetNode->first_attribute("tilecount")->value());
 
@@ -170,4 +190,29 @@ TileMapParser::BuildLayer(rapidxml::xml_node<>* layerNode,
 	}
 	const std::string layerName = layerNode->first_attribute("name")->value();
 	return std::make_pair(layerName, layer);
+}
+
+std::vector<MapObject> TileMapParser::BuildObjects(rapidxml::xml_node<>* rootNode) {
+	std::vector<MapObject> objects = std::vector<MapObject>();
+	// We loop through each layer in the XML document.
+	for (rapidxml::xml_node<>* node = rootNode->first_node("objectgroup");
+		node; node = node->next_sibling("objectgroup"))
+	{
+		if (std::string(node->first_attribute("name")->value()) == "walls") {
+			for (rapidxml::xml_node<>* objectnode = node->first_node("object");
+				objectnode; objectnode = objectnode->next_sibling("object"))
+			{
+				MapObject object;
+				object.objectId = std::atoi(objectnode->first_attribute("id")->value());
+				object.objectRect = Rect(
+					std::atoi(objectnode->first_attribute("x")->value()),
+					std::atoi(objectnode->first_attribute("y")->value()),
+					std::atoi(objectnode->first_attribute("width")->value()),
+					std::atoi(objectnode->first_attribute("height")->value())
+					);
+				objects.push_back(object);
+			}
+		}
+	}
+	return objects;
 }

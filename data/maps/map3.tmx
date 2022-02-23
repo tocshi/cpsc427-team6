@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.2" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="5" nextobjectid="10">
- <tileset firstgid="1" source="roguelikeDungeon_magenta.tsx"/>
+<map version="1.8" tiledversion="1.8.1" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="5" nextobjectid="10">
+ <tileset firstgid="1" name="roguelikeDungeon_transparent" tilewidth="16" tileheight="16" spacing="1" tilecount="522" columns="29">
+  <image source="roguelikeDungeon_transparent.png" trans="ff00ff" width="492" height="305"/>
+ </tileset>
  <layer id="4" name="floor" width="50" height="50">
   <data encoding="csv">
 482,485,483,482,481,485,484,483,485,485,485,483,484,481,481,483,481,483,483,482,484,483,485,483,481,482,484,482,482,483,482,483,482,483,481,481,482,485,484,483,482,481,482,483,484,481,481,483,484,485,

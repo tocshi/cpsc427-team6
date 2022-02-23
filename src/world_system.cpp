@@ -232,6 +232,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		
 		// update Stat Bars and visibility
 		for (Entity entity : registry.motions.entities) {
+			if (!registry.renderRequests.has(entity)) {
+				continue;
+			}
 			Motion& motion_struct = registry.motions.get(entity);
 			RenderRequest& render_struct = registry.renderRequests.get(entity);
 			
@@ -391,6 +394,7 @@ void WorldSystem::spawn_game_entities() {
 	createDoor(renderer, { 350.f, 450.f });
 	createSign(renderer, { 350.f, 550.f });
 	createStair(renderer, { 350.f, 650.f });
+	/*
 	for (uint i = 0; WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i < window_width_px; i++) {
 		createWall(renderer, { WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i, WALL_BB_HEIGHT / 2 });
 		createWall(renderer, { WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i, window_height_px - WALL_BB_HEIGHT / 2 });
@@ -399,6 +403,7 @@ void WorldSystem::spawn_game_entities() {
 		createWall(renderer, { WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
 		createWall(renderer, { window_width_px - WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
 	}
+	*/
 	
 	float statbarsX = 150.f;
 	float statbarsY = 740.f;

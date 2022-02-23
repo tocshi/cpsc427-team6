@@ -53,7 +53,7 @@ class RenderSystem {
 			textures_path("statbars/hpfill.png"),
 			textures_path("statbars/mpfill.png"),
 			textures_path("statbars/epfill.png"),
-			textures_path("tmw_desert_spacing.png")
+			textures_path("roguelikeDungeon_transparent.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

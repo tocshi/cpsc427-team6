@@ -30,10 +30,10 @@ bool collides(const Motion& motion1, const Motion& motion2)
 bool collides_AABB(const Motion& motion1, const Motion& motion2) {
 	vec2 bounding_box_a = get_bounding_box(motion1);
 	vec2 bounding_box_b = get_bounding_box(motion2);
-	return motion1.position.x < motion2.position.x + bounding_box_b.x
-		&& motion1.position.x + bounding_box_a.x > motion2.position.x
-		&& motion1.position.y < motion2.position.y + bounding_box_b.y
-		&& motion1.position.y + bounding_box_a.y > motion2.position.y;
+	return motion1.position.x - bounding_box_a.x/2 < motion2.position.x + bounding_box_b.x/2
+		&& motion1.position.x + bounding_box_a.x/2 > motion2.position.x - bounding_box_b.x/2
+		&& motion1.position.y - bounding_box_a.y/2 < motion2.position.y + bounding_box_b.y/2
+		&& motion1.position.y + bounding_box_a.y/2 > motion2.position.y - bounding_box_b.y/2;
 }
 
 float dist_to(const vec2 position1, const vec2 position2) {

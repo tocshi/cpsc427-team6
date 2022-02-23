@@ -52,7 +52,7 @@ std::vector<Entity> TileMapParser::Parse(const std::string& file, RenderSystem *
 				GEOMETRY_BUFFER_ID::TILEMAP,
 			};
 			std::string layerName = std::string(layer.first);
-			if (layerName == "floor_deco") {
+			if (layerName == "floor deco") {
 				renderRequest.used_layer = RENDER_LAYER_ID::FLOOR_DECO;
 			}
 			else if (layerName == "walls") {

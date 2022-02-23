@@ -248,7 +248,7 @@ void RenderSystem::draw()
 	}
 	for (Entity entity : registry.renderRequests.entities)
 	{
-		if (!registry.motions.has(entity))
+		if (!registry.motions.has(entity) || registry.hidden.has(entity))
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize

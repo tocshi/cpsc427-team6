@@ -217,10 +217,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			else { 
 				float ep_rate = 1.f;
-				ep -= 2.f * ep_rate; 
+				ep -= 1.f * ep_rate; 
 			}
 		}
 		
+		// update Stat Bars and visibility
 		for (Entity entity : registry.motions.entities) {
 			Motion& motion_struct = registry.motions.get(entity);
 			RenderRequest& render_struct = registry.renderRequests.get(entity);
@@ -239,12 +240,34 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				motion_struct.position[0] = 150.f - 150.f*(1.f - (ep / 100.f));	// original pos (full bar) - (1-multiplier)
 				break;
 			}
+
+			// Hide certain entities that are outside of the player's sight range
+			// don't hide walls, signs, stairs, doors
+			if (!registry.hidables.has(entity))
+				continue;
+
+			float distance_to_player = 
+				sqrt(pow((motion_struct.position.x - player_motion.position.x), 2) 
+				+ pow((motion_struct.position.y - player_motion.position.y), 2));
+			
+			// TODO: replace with not hard-coded distance
+			if (distance_to_player > 450.f) {
+				if (!registry.hidden.has(entity)) {
+					registry.hidden.emplace(entity);
+				}
+			}
+			else {
+				if (registry.hidden.has(entity)) {
+					registry.hidden.remove(entity);
+				}
+			}
 		}
+
 		// Update the camera to follow the player
 		Camera& camera = registry.cameras.get(active_camera_entity);
 		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
-	}
 
+	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A3: HANDLE EGG SPAWN HERE
@@ -388,7 +411,7 @@ void WorldSystem::create_fog_of_war() {
 		float playerY = player_motion.position.y;
 
 		Entity fog = createFog({ playerX, playerY }, { 2000, 2000 });
-		registry.colors.insert(fog, { 1, 1, 1 });
+		registry.colors.insert(fog, { 0.2, 0.2, 0.2 });
 	}
 }
 

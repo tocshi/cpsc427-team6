@@ -191,6 +191,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::ENEMY,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
 
 	return entity;
 }
@@ -219,6 +220,7 @@ Entity createBoss(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::BOSS,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
 
 	return entity;
 }
@@ -247,6 +249,7 @@ Entity createArtifact(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::ARTIFACT,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
 
 	return entity;
 }
@@ -275,6 +278,7 @@ Entity createConsumable(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::CONSUMABLE,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
 
 	return entity;
 }
@@ -303,6 +307,7 @@ Entity createEquipable(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::EQUIPABLE,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
 
 	return entity;
 }
@@ -331,6 +336,7 @@ Entity createChest(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::CHEST,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
 
 	return entity;
 }

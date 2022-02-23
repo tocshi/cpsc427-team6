@@ -46,12 +46,22 @@ std::vector<Entity> TileMapParser::Parse(const std::string& file, RenderSystem *
 				(tileInfo->textureRect.x + tileInfo->textureRect.width) / tileInfo->textureSize.x - 1 / 256.f,
 				(tileInfo->textureRect.y + tileInfo->textureRect.height) / tileInfo->textureSize.y - 1 / 256.f };
 			
-			registry.renderRequests.insert(entity, { 
+			RenderRequest renderRequest = {
 				static_cast<TEXTURE_ASSET_ID>(tileInfo->textureID),
 				EFFECT_ASSET_ID::TEXTURED,
 				GEOMETRY_BUFFER_ID::TILEMAP,
-				RENDER_LAYER_ID::BG
-			});
+			};
+			std::string layerName = std::string(layer.first);
+			if (layerName == "floor_deco") {
+				renderRequest.used_layer = RENDER_LAYER_ID::FLOOR_DECO;
+			}
+			else if (layerName == "walls") {
+				renderRequest.used_layer = RENDER_LAYER_ID::WALLS;
+			}
+			else {
+				renderRequest.used_layer = RENDER_LAYER_ID::FLOOR;
+			}
+			registry.renderRequests.insert(entity, renderRequest);
 		}
 	}
 

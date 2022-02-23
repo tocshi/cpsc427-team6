@@ -281,8 +281,11 @@ const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
 enum class RENDER_LAYER_ID {
 	BG = 0,
-	SPRITE = BG + 1,
-	EFFECT = SPRITE + 1,
+	FLOOR = BG + 1,
+	FLOOR_DECO = FLOOR + 1,
+	SPRITE = FLOOR_DECO + 1,
+	WALLS = SPRITE + 1,
+	EFFECT = WALLS + 1,
 	UI = EFFECT + 1,
 	UI_TOP = UI + 1,
 	DEBUG_LAYER = UI_TOP + 1,

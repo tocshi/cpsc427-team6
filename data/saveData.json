@@ -1,6 +1,19 @@
 {
+    "Inventory": {
+        "Consumable": {
+            "hp_potion": true,
+            "mp_potion": true
+        }
+    },
+    "Iventory": {
+        "Equiptment": {
+            "axe": true,
+            "sword": true,
+            "wand": true
+        }
+    },
     "player": {
-        "ep": 94.0,
+        "ep": 54.0,
         "hp": 100.0,
         "maxEP": 100.0,
         "mp": 100.0

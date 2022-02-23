@@ -269,7 +269,8 @@ Entity createConsumable(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ CONSUMABLE_BB_WIDTH, CONSUMABLE_BB_HEIGHT });
 
 	// Create and (empty) CONSUMABLE component to be able to refer to all consumables
-	registry.test.emplace(entity);
+	//registry.test.emplace(entity);
+	registry.consumables.emplace(entity); // Replace to refer to Consuamble stats
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::CONSUMABLE,
@@ -297,7 +298,8 @@ Entity createEquipable(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ EQUIPABLE_BB_WIDTH, EQUIPABLE_BB_HEIGHT });
 
 	// Create and (empty) EQUIPABLE component to be able to refer to all equipables
-	registry.test.emplace(entity);
+	//registry.test.emplace(entity);
+	registry.equipables.emplace(entity); // TRY FOR EQUIPTMENT
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::EQUIPABLE,

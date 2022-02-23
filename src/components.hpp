@@ -104,11 +104,17 @@ struct Damageable {
 };
 
 struct Consumable {
+	// recover mp
+	bool magic_potion = true;
+	// recover hp
+	bool hp_potion = true;
 
 };
 
 struct Equipable {
-
+	bool axe = true;
+	bool sword = true;
+	bool wand = true;
 };
 
 struct Guardable {

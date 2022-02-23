@@ -12,6 +12,8 @@
 #include <SDL_mixer.h>
 
 #include "render_system.hpp"
+#include "save_system.hpp";
+
 
 // Container for all our entities and game logic. Individual rendering / update is
 // deferred to the relative update() methods
@@ -96,6 +98,8 @@ private:
 	Mix_Music* background_music;
 	Mix_Chunk* chicken_dead_sound;
 	Mix_Chunk* chicken_eat_sound;
+
+	SaveSystem saveSystem;
 
 	// C++ random number generator
 	std::default_random_engine rng;

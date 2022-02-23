@@ -16,7 +16,6 @@ const size_t MAX_BUG = 5;
 const size_t EAGLE_DELAY_MS = 2000 * 3;
 const size_t BUG_DELAY_MS = 5000 * 3;
 
-
 // Create the bug world
 WorldSystem::WorldSystem()
 	: points(0)
@@ -430,7 +429,6 @@ void WorldSystem::create_fog_of_war(float radius) {
 // check if there is a new room
 // goto new room
 // carry same player entity / stat
-
 
 // remove all fog entities
 void WorldSystem::remove_fog_of_war() {

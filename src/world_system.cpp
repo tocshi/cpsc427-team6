@@ -204,8 +204,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		for (Entity e : registry.menuItems.entities) {
 			registry.remove_all_components_of(e);
 		}
-		while (registry.texts.entities.size() > 0)
-		registry.remove_all_components_of(registry.texts.entities.back());
 	}
 
 	// Update HP/MP/EP bars and movement

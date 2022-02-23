@@ -241,7 +241,8 @@ Entity createArtifact(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ ARTIFACT_BB_WIDTH, ARTIFACT_BB_HEIGHT });
 
 	// Create and (empty) ARTIFACT component to be able to refer to all artifacts
-	registry.test.emplace(entity);
+	//registry.test.emplace(entity);
+	registry.artifacts.emplace(entity); // grab the artifact entity
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ARTIFACT,

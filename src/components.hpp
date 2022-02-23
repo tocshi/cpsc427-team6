@@ -182,6 +182,10 @@ struct Camera {
 	bool active = false;
 };
 
+// temp struct for artifacts
+struct Artifact {
+	bool artifact1 = true; 
+};
 struct Door {
 	bool collidedWithDoor = false; 
 };

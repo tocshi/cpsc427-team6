@@ -80,3 +80,16 @@ void SaveSystem::saveGameState() {
 	saveToFile(saveState);
 }
 
+bool SaveSystem::saveDataExists() {
+	std::ifstream infile(SAVE_DATA_PATH);
+	return infile.good();
+}
+
+json SaveSystem::getSaveData() {
+	// read from the save data file
+	std::ifstream i(SAVE_DATA_PATH);
+	json j;
+	i >> j;
+	return j;
+}
+

@@ -12,18 +12,18 @@
     },
     "player": {
         "motion": {
-            "angle": -0.7114590406417847,
-            "destination_x": 1094.415283203125,
-            "destination_y": 310.601806640625,
+            "angle": -0.2213144302368164,
+            "destination_x": 778.81103515625,
+            "destination_y": 396.82672119140625,
             "in_motion": false,
             "movement_speed": 200.0,
-            "position_x": 1068.0653076171875,
-            "position_y": 280.0357666015625,
+            "position_x": 774.2274780273438,
+            "position_y": 376.4554138183594,
             "velocity_x": 0.0,
             "velocity_y": 0.0
         },
         "stats": {
-            "ep": 84.0,
+            "ep": 86.0,
             "hp": 100.0,
             "maxEP": 100.0,
             "mp": 100.0

@@ -5,6 +5,7 @@ void saveToFile(json j) {
 	o << std::setw(4) << j << std::endl;
 }
 
+// similar function already written, but keep for now
 void setPlayer(json obj) {
 
 	float hp = obj["player"]["stats"]["hp"].get<float>();
@@ -78,10 +79,11 @@ void SaveSystem::readJsonFile() {
 	//json jf = json::parse(fileToRead);
 	json obj;
 	fileToRead >> obj;
-	float x = obj["player"]["stats"]["hp"].get<float>();
-	printf("%f", x);
+	//float x = obj["player"]["stats"]["hp"].get<float>();
+	//printf("%f", x);
 	printf("start the setting for saved data to new room");
-	setPlayer(obj);
+	// similar function written so use other one for now 
+	//setPlayer(obj);
 	setArtifacts(obj);
 	setInventory(obj);
 

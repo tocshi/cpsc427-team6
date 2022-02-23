@@ -565,7 +565,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("\n");
 		printf("NEW ROOM ENTERING NOW");
 		// TEST TO SEE IF THE SAVE STATES WORK
-		saveSystem.readJsonFile();
+		// remove entities to load in entities
+		removeForLoad(); // remove player 
+		json gameData = saveSystem.getSaveData();
+		loadFromData(gameData);
+		saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc. 
 	}
 
 	// Resetting game
@@ -716,7 +720,6 @@ void WorldSystem::loadPlayer(json playerData) {
 	m.velocity = { motion["velocity_x"], motion["velocity_y"] };
 
 	Entity e = createPlayer(renderer, m);
-
 	// get player stats
 	json stats = playerData["stats"];
 	registry.players.get(e).ep = stats["ep"];

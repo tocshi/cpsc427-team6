@@ -9,6 +9,10 @@
 #include "components.hpp"
 #include "tiny_ecs.hpp"
 
+// freetype
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
 class RenderSystem {

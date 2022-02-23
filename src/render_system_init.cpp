@@ -13,9 +13,9 @@
 #include <iostream>
 #include <sstream>
 
-// freetype
-#include <ft2build.h>
-#include FT_FREETYPE_H
+// // freetype
+// #include <ft2build.h>
+// #include FT_FREETYPE_H
 
 // World initialization
 bool RenderSystem::init(GLFWwindow* window_arg)
@@ -244,6 +244,7 @@ void RenderSystem::initializeGlGeometryBuffers()
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE, screen_vertices, screen_indices);
 }
 
+// tutorial: https://learnopengl.com/In-Practice/Text-Rendering
 int RenderSystem::initFreeType()
 {
 	// FreeType
@@ -257,7 +258,8 @@ int RenderSystem::initFreeType()
     }
 
 	// find path to font
-    std::string font_name = font_path("Kenney_Pixel.ttf");
+    // std::string font_name = font_path("Kenney_Pixel.ttf");
+	std::string font_name = font_path("cour.ttf");
     if (font_name.empty())
     {
         std::cout << "ERROR::FREETYPE: Failed to load font_name" << std::endl;
@@ -272,7 +274,7 @@ int RenderSystem::initFreeType()
     }
     else {
         // set size to load glyphs as
-        FT_Set_Pixel_Sizes(face, 0, 48);
+        FT_Set_Pixel_Sizes(face, 0, 32);
 
         // disable byte-alignment restriction
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -321,25 +323,17 @@ int RenderSystem::initFreeType()
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
     
-
-	// Initialize sprite
-	// The position corresponds to the center of the texture.
-	// std::vector<vec4> textured_vertices(4);
-	// textured_vertices[0] = { -1.f/2, +1.f/2, 0.f, 1.f };
-	// textured_vertices[1] = { +1.f/2, +1.f/2, 0.f, 1.f };
-	// textured_vertices[2]  = { +1.f/2, -1.f/2, 1.f, 0.f };
-	// textured_vertices[3]  = { -1.f/2, -1.f/2, 0.f, 0.f };
     // configure VAO/VBO for texture quads
     // -----------------------------------
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+    // glGenVertexArrays(1, &VAO);
+    // glGenBuffers(1, &VBO);
+    // glBindVertexArray(VAO);
+    // glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
 	// glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(uint)GEOMETRY_BUFFER_ID::TEXTQUAD]);
     // glBufferData(GL_ARRAY_BUFFER, sizeof(textured_vertices[0]) * textured_vertices.size(), textured_vertices.data(), GL_DYNAMIC_DRAW);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+    // glEnableVertexAttribArray(0);
+    // glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
     // glBindBuffer(GL_ARRAY_BUFFER, 0);
     // glBindVertexArray(0);
 	//////////////////////////

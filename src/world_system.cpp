@@ -9,6 +9,7 @@
 #include<fstream>
 
 #include "physics_system.hpp"
+#include "save_system.hpp"
 
 // Game configuration
 const size_t MAX_EAGLES = 15;
@@ -541,7 +542,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// SAVING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
-		save_data();
+		//save_data();
+		SaveSystem.saveGameState();
 		printf("SAVING KEY PRESSED");
 	}
 

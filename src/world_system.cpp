@@ -50,6 +50,10 @@ namespace {
 // In start menu
 bool inMenu;
 
+// fog stats
+float fog_radius = 450.f;
+float fog_resolution = 2000.f;
+
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
 GLFWwindow* WorldSystem::create_window() {
@@ -105,14 +109,15 @@ GLFWwindow* WorldSystem::create_window() {
 		fprintf(stderr, "Failed to open audio device");
 		return nullptr;
 	}
+	Mix_VolumeMusic(10);
 
-	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
+	background_music = Mix_LoadMUS(audio_path("bgm/caves0.wav").c_str());
 	chicken_dead_sound = Mix_LoadWAV(audio_path("chicken_dead.wav").c_str());
 	chicken_eat_sound = Mix_LoadWAV(audio_path("chicken_eat.wav").c_str());
 
 	if (background_music == nullptr || chicken_dead_sound == nullptr || chicken_eat_sound == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
-			audio_path("music.wav").c_str(),
+			audio_path("bgm/caves0.wav").c_str(),
 			audio_path("chicken_dead.wav").c_str(),
 			audio_path("chicken_eat.wav").c_str());
 		return nullptr;
@@ -163,7 +168,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (player_motion.in_motion) {
 				// update the fog of war if the player is moving
 				remove_fog_of_war();
-				create_fog_of_war(500.f);
+				create_fog_of_war();
 			}
 			else {
 				player_right_click = false;
@@ -217,10 +222,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			else { 
 				float ep_rate = 1.f;
-				ep -= 2.f * ep_rate; 
+				ep -= 0.5f * ep_rate; 
 			}
 		}
 		
+		// update Stat Bars and visibility
 		for (Entity entity : registry.motions.entities) {
 			Motion& motion_struct = registry.motions.get(entity);
 			RenderRequest& render_struct = registry.renderRequests.get(entity);
@@ -239,12 +245,33 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				motion_struct.position[0] = 150.f - 150.f*(1.f - (ep / 100.f));	// original pos (full bar) - (1-multiplier)
 				break;
 			}
+
+			// Hide certain entities that are outside of the player's sight range
+			// don't hide walls, signs, stairs, doors
+			if (!registry.hidables.has(entity))
+				continue;
+
+			float distance_to_player = 
+				sqrt(pow((motion_struct.position.x - player_motion.position.x), 2) 
+				+ pow((motion_struct.position.y - player_motion.position.y), 2));
+			
+			if (distance_to_player > fog_radius) {
+				if (!registry.hidden.has(entity)) {
+					registry.hidden.emplace(entity);
+				}
+			}
+			else {
+				if (registry.hidden.has(entity)) {
+					registry.hidden.remove(entity);
+				}
+			}
 		}
+
 		// Update the camera to follow the player
 		Camera& camera = registry.cameras.get(active_camera_entity);
 		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
-	}
 
+	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A3: HANDLE EGG SPAWN HERE
@@ -293,6 +320,9 @@ void WorldSystem::restart_game() {
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	while (registry.motions.entities.size() > 0)
 	    registry.remove_all_components_of(registry.motions.entities.back());
+
+	while (registry.cameras.entities.size() > 0)
+		registry.remove_all_components_of(registry.cameras.entities.back());
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -375,32 +405,19 @@ void WorldSystem::spawn_game_entities() {
 	createMPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT });
 	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
-	create_fog_of_war(500.f);
+	create_fog_of_war();
 }
 
-// render fog of war around the player past a given radius
-void WorldSystem::create_fog_of_war(float radius) {	
-	// render fog everywhere except in visible circle around the player
-	for (int x = 0; x <= window_width_px; x+=50) {
-		for (int y = 0; y <= window_height_px; y += 50) {
-			// if the point is not witin the visible circle, render fog there
-			for (Entity player : registry.players.entities) {
-				// get player position
-				Motion player_motion = registry.motions.get(player);
-				float playerX = player_motion.position.x;
-				float playerY = player_motion.position.y;
+// render fog of war around the player
+void WorldSystem::create_fog_of_war() {	
+	for (Entity player : registry.players.entities) {
+		// get player position
+		Motion player_motion = registry.motions.get(player);
+		float playerX = player_motion.position.x;
+		float playerY = player_motion.position.y;
 
-				// check if position is within the radius of the players position
-				double absX = abs(x - playerX);
-				double absY = abs(y - playerY);
-				double r = (double)radius;
-
-				// only create fog entities if they are not within the circle
-				if ((absX > r || absY > r) || !((absX * absX + absY * absY) <= r * r)) {
-					createFog(renderer, { x, y });
-				}
-			}
-		}
+		Entity fog = createFog({ playerX, playerY }, fog_resolution, fog_radius, { window_width_px, window_height_px });
+		registry.colors.insert(fog, { 0.2, 0.2, 0.2 });
 	}
 }
 

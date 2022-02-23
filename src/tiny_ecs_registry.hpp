@@ -38,6 +38,8 @@ public:
 	ComponentContainer<MenuItem> menuItems;
 	ComponentContainer<Fog> fog;
 	ComponentContainer<Camera> cameras;
+	ComponentContainer<Test> hidden;
+	ComponentContainer<Test> hidables;
 	ComponentContainer<TileUV> tileUVs;
 	ComponentContainer<Collidable> collidables;
 
@@ -72,6 +74,8 @@ public:
 		registry_list.push_back(&menuItems);
 		registry_list.push_back(&fog);
 		registry_list.push_back(&cameras);
+		registry_list.push_back(&hidden);
+		registry_list.push_back(&hidables);
 		registry_list.push_back(&tileUVs);
 		registry_list.push_back(&collidables);
 	}

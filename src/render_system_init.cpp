@@ -285,8 +285,8 @@ int RenderSystem::initFreeType()
     }
 
 	// find path to font
-    // std::string font_name = font_path("Kenney_Pixel.ttf");
-	std::string font_name = font_path("cour.ttf");
+    std::string font_name = font_path("Kenney_Pixel.ttf");
+	// std::string font_name = font_path("cour.ttf");
     if (font_name.empty())
     {
         std::cout << "ERROR::FREETYPE: Failed to load font_name" << std::endl;
@@ -301,7 +301,7 @@ int RenderSystem::initFreeType()
     }
     else {
         // set size to load glyphs as
-        FT_Set_Pixel_Sizes(face, 0, 36);
+        FT_Set_Pixel_Sizes(face, 0, 48);
 
         // disable byte-alignment restriction
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -350,21 +350,8 @@ int RenderSystem::initFreeType()
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
     
-    // configure VAO/VBO for texture quads
-    // -----------------------------------
-    // glGenVertexArrays(1, &VAO);
-    // glGenBuffers(1, &VBO);
-    // glBindVertexArray(VAO);
-    // glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	// glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-	// glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(uint)GEOMETRY_BUFFER_ID::TEXTQUAD]);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(textured_vertices[0]) * textured_vertices.size(), textured_vertices.data(), GL_DYNAMIC_DRAW);
-    // glEnableVertexAttribArray(0);
-    // glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-    // glBindBuffer(GL_ARRAY_BUFFER, 0);
-    // glBindVertexArray(0);
 	//////////////////////////
-	// Initialize sprite
+	// Initialize textquad
 	// The position corresponds to the center of the texture.
 	std::vector<TexturedVertex> textured_vertices(4);
 	textured_vertices[0].position = { -1.f/2, +1.f/2, 0.f };

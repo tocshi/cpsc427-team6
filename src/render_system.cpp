@@ -166,9 +166,6 @@ void RenderSystem::drawText(Entity entity, const mat3 &projection)
 	Text &text = registry.texts.get(entity);
 
 	Transform transform;
-	transform.translate(text.position);
-	// transform.scale(vec2(30.f));
-	transform.scale(vec2(text.scale));
 
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest &render_request = registry.renderRequests.get(entity);
@@ -238,35 +235,31 @@ void RenderSystem::drawText(Entity entity, const mat3 &projection)
 
         Character ch = Characters[*c];
 
-        // float xpos = x + ch.Bearing.x * scale;
-        // float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+        float xpos = x + ch.Bearing.x * scale;
+        float ypos = y - ch.Bearing.y * scale;
 
-        // float w = ch.Size.x * scale;
-        // float h = ch.Size.y * scale;
+        float w = ch.Size.x * scale;
+        float h = ch.Size.y * scale;
         // // update VBO for each character
-        // float vertices[6][4] = {
-        //     { xpos,     ypos + h,   0.0f, 0.0f },            
-        //     { xpos,     ypos,       0.0f, 1.0f },
-        //     { xpos + w, ypos,       1.0f, 1.0f },
-
-        //     { xpos,     ypos + h,   0.0f, 0.0f },
-        //     { xpos + w, ypos,       1.0f, 1.0f },
-        //     { xpos + w, ypos + h,   1.0f, 0.0f }           
-        // };
-        // // // render glyph texture over quad
+		std::vector<TexturedVertex> textured_vertices(4);
+		textured_vertices[0].position = { xpos, ypos + h, 0.f };
+		textured_vertices[1].position = { xpos + w, ypos + h, 0.f };
+		textured_vertices[2].position = { xpos + w, ypos, 0.f };
+		textured_vertices[3].position = { xpos, ypos, 0.f };
+		textured_vertices[0].texcoord = { 0.f, 1.f };
+		textured_vertices[1].texcoord = { 1.f, 1.f };
+		textured_vertices[2].texcoord = { 1.f, 0.f };
+		textured_vertices[3].texcoord = { 0.f, 0.f };
+		const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
+		// update content of VBO memory
+		dynamicBindVBOandIBO(GEOMETRY_BUFFER_ID::TEXTQUAD, textured_vertices, textured_indices);
+		gl_has_errors();
+        // render glyph texture over quad
         glBindTexture(GL_TEXTURE_2D, ch.TextureID);
-        // // // update content of VBO memory
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        // glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); 
-        // // glBindBuffer(GL_ARRAY_BUFFER, 0);
-        // // render quad
+        // render quad
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
         // // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-        // x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
-		
-		transform.scale(vec2(1.0f/scale));
-		transform.translate(vec2(scale/1.5, 0.f));
-		transform.scale(vec2(scale));
+        x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
 	}
     // glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);

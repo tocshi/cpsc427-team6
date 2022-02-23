@@ -109,11 +109,17 @@ struct Damageable {
 };
 
 struct Consumable {
+	// recover mp
+	bool magic_potion = true;
+	// recover hp
+	bool hp_potion = true;
 
 };
 
 struct Equipable {
-
+	bool axe = true;
+	bool sword = true;
+	bool wand = true;
 };
 
 struct Guardable {
@@ -183,6 +189,13 @@ struct Camera {
 	bool active = false;
 };
 
+// temp struct for artifacts
+struct Artifact {
+	bool artifact1 = true; 
+};
+struct Door {
+	bool collidedWithDoor = false; 
+};
 struct TileUV {
 	std::string layer;
 	int tileID = 0;

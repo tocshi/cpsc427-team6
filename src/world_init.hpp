@@ -63,6 +63,8 @@ Entity createBackground(RenderSystem* renderer, vec2 position);
 // ================================
 // Player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
+// Player with motion component as input
+Entity createPlayer(RenderSystem* renderer, Motion m);
 // Enemy (split into different enemies for future)
 Entity createEnemy(RenderSystem* renderer, vec2 pos);
 // Boss

@@ -5,6 +5,8 @@
 // stlib
 #include <cassert>
 #include <sstream>
+#include <iostream>
+#include<fstream>
 
 #include "physics_system.hpp"
 
@@ -191,7 +193,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			// perform start-of-turn actions for player
 			start_player_turn();
+			
 		}
+		// save the data to the json file
 	}
 
 	// If started, remove menu entities, and spawn game entities
@@ -303,7 +307,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
 	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death counter
-
 	return true;
 }
 
@@ -315,7 +318,7 @@ void WorldSystem::restart_game() {
 
 	// Reset the game speed
 	current_speed = 1.f;
-
+	
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	while (registry.motions.entities.size() > 0)
@@ -530,6 +533,28 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// action can be GLFW_PRESS GLFW_RELEASE GLFW_REPEAT
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+	// SAVING THE GAME
+	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
+		saveSystem.saveGameState();
+		printf("SAVING KEY PRESSED");
+	}
+
+	// LOADING THE GAME
+	if (action == GLFW_RELEASE && key == GLFW_KEY_L && get_is_player_turn() ) {
+		// if save data exists reset the game
+		if (saveSystem.saveDataExists()) {
+			// remove entities to load in entities
+			removeForLoad();
+			// get saved game data
+			json gameData = saveSystem.getSaveData();
+			// load the entities in
+			loadFromData(gameData);
+			saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc.
+		}
+
+		printf("LOADING KEY PRESSED");
+	}
+
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
@@ -649,5 +674,39 @@ void WorldSystem::start_player_turn() {
 		float& ep = registry.players.get(player).ep;
 
 		ep = maxEP;
+
 	}
+}
+
+void WorldSystem::removeForLoad() {
+	// remove player for loading
+	for (Entity player : registry.players.entities) {
+		registry.remove_all_components_of(player);
+	}
+}
+
+void WorldSystem::loadFromData(json data) {
+	// load player
+	loadPlayer(data["player"]);
+}
+
+void WorldSystem::loadPlayer(json playerData) {
+	// create a player from the save data
+	// get player motion
+	Motion m;
+	json motion = playerData["motion"];
+	m.angle = motion["angle"];
+	m.destination = { motion["destination_x"], motion["destination_y"] };
+	m.in_motion = motion["in_motion"];
+	m.movement_speed = motion["movement_speed"];
+	m.position = { motion["position_x"], motion["position_y"] };
+	m.velocity = { motion["velocity_x"], motion["velocity_y"] };
+
+	Entity e = createPlayer(renderer, m);
+	// get player stats
+	json stats = playerData["stats"];
+	registry.players.get(e).ep = stats["ep"];
+	registry.players.get(e).hp = stats["hp"];
+	registry.players.get(e).maxEP = stats["maxEP"];
+	registry.players.get(e).mp = stats["mp"];
 }

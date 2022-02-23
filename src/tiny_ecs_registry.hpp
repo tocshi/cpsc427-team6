@@ -42,6 +42,9 @@ public:
 	ComponentContainer<Test> hidables;
 	ComponentContainer<TileUV> tileUVs;
 	ComponentContainer<Collidable> collidables;
+	// add door component
+	ComponentContainer<Door>door;
+	ComponentContainer<Artifact> artifacts;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -76,6 +79,10 @@ public:
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&hidden);
 		registry_list.push_back(&hidables);
+		// door in registry list 
+		registry_list.push_back(&door);
+		// add artifact to list
+		registry_list.push_back(&artifacts);
 		registry_list.push_back(&tileUVs);
 		registry_list.push_back(&collidables);
 	}

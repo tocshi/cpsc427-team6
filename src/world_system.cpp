@@ -308,6 +308,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// reduce window brightness if any of the present chickens is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
+	// Text Timers
+	for (Entity entity : registry.textTimers.entities) {
+		// progress timer
+		TextTimer& counter = registry.textTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if(counter.counter_ms < min_counter_ms){
+		    min_counter_ms = counter.counter_ms;
+		}
+
+		// restart the game once the death timer expired
+		if (counter.counter_ms < 0) {
+			registry.remove_all_components_of(entity);
+		}
+	}
+
 	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death counter
 	return true;
 }
@@ -544,6 +559,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// action can be GLFW_PRESS GLFW_RELEASE GLFW_REPEAT
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+	// LOGGING TEXT TEST
+	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
+		logText("this is a test");
+		printf("this is a test\n");
+	}
+
 	// SAVING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
 		saveSystem.saveGameState();
@@ -720,4 +741,21 @@ void WorldSystem::loadPlayer(json playerData) {
 	registry.players.get(e).hp = stats["hp"];
 	registry.players.get(e).maxEP = stats["maxEP"];
 	registry.players.get(e).mp = stats["mp"];
+}
+
+void WorldSystem::logText(std::string msg) {
+	// (note: if we want to use createText in other applications, we can create a logged text entity)
+	// shift existing logged text upwards
+
+	for (Entity e : registry.textTimers.entities) {
+		Text& text = registry.texts.get(e);
+		text.position[1] -= 50.f;
+	}
+
+	vec2 defaultPos = vec2(window_width_px, window_height_px);
+	// vec2 defaultPos = vec2((2.0f * window_width_px) * (3.f/4.f), (2.0f * window_height_px) * (9.f/10.f));
+	vec3 textColor = vec3(1.0f, 1.0f, 1.0f); // white
+
+	Entity e = createText(renderer, defaultPos, msg, 1.5f, textColor);
+	registry.textTimers.emplace(e);
 }

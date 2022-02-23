@@ -110,3 +110,5 @@ Entity createFog(vec2 pos, float resolution, float radius, vec2 screenResolution
 Entity createCamera(vec2 pos);
 // Tiles
 std::vector<Entity> createTiles(RenderSystem* renderer, const std::string& filepath);
+// Text
+Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);

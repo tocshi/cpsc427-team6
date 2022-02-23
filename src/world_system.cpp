@@ -204,6 +204,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		for (Entity e : registry.menuItems.entities) {
 			registry.remove_all_components_of(e);
 		}
+		while (registry.texts.entities.size() > 0)
+		registry.remove_all_components_of(registry.texts.entities.back());
 	}
 
 	// Update HP/MP/EP bars and movement
@@ -326,6 +328,9 @@ void WorldSystem::restart_game() {
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	while (registry.motions.entities.size() > 0)
 	    registry.remove_all_components_of(registry.motions.entities.back());
+	
+	while (registry.texts.entities.size() > 0)
+		registry.remove_all_components_of(registry.texts.entities.back());
 
 	while (registry.cameras.entities.size() > 0)
 		registry.remove_all_components_of(registry.cameras.entities.back());
@@ -374,6 +379,14 @@ void WorldSystem::restart_game() {
 	createMenuStart(renderer, { window_width_px / 2, 500.f });
 	createMenuQuit(renderer, { window_width_px / 2, 850.f });
 	createMenuTitle(renderer, { window_width_px / 2, 200.f });
+
+	// testing text
+	// createText(renderer, vec2(200.f, 200.f), "abcdefghijklmnopqrstuvwxyz", 1.5f, vec3(1.0f, 0.0f, 0.0f));
+	// createText(renderer, vec2(200.f, 300.f), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1.5f, vec3(1.0f, 0.0f, 0.0f));
+	// createText(renderer, vec2(200.f, 400.f), "0123456789", 1.5f, vec3(1.0f, 0.0f, 0.0f));
+	// createText(renderer, vec2(200.f, 500.f), ",./:;'()[]", 1.5f, vec3(1.0f, 0.0f, 0.0f));
+	// createText(renderer, vec2(0.f, 50.f), "test,. '123", 1.5f, vec3(1.0f));
+	// createText(renderer, vec2(200.f, 500.f), ".'", 2.f, vec3(1.0f));
 }
 
 // spawn the game entities

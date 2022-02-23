@@ -189,6 +189,13 @@ struct Camera {
 	bool active = false;
 };
 
+struct Text {
+	vec2 position = { 0.f, 0.f };
+	float scale = 1.0f;
+	vec3 textColor = { 0.f, 0.f, 0.f };
+	std::string message = "";
+};
+
 // temp struct for artifacts
 struct Artifact {
 	bool artifact1 = true; 
@@ -262,7 +269,8 @@ enum class EFFECT_ASSET_ID {
 	CHICKEN = EGG + 1,
 	TEXTURED = CHICKEN + 1,
 	WIND = TEXTURED + 1,
-	FOG = WIND + 1,
+	TEXT = WIND + 1,
+	FOG = TEXT + 1,
 	EFFECT_COUNT = FOG + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
@@ -275,7 +283,8 @@ enum class GEOMETRY_BUFFER_ID {
 	FOG = EGG + 1,
 	DEBUG_LINE = FOG + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
-	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
+	TEXTQUAD = SCREEN_TRIANGLE + 1,
+	GEOMETRY_COUNT = TEXTQUAD + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 

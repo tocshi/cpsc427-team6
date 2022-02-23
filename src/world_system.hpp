@@ -61,7 +61,7 @@ private:
 	void spawn_game_entities();
 
 	// create fog of war
-	void create_fog_of_war(float radius);
+	void create_fog_of_war();
 
 	// remove all fog entities
 	void remove_fog_of_war();

@@ -439,6 +439,7 @@ Entity createWall(RenderSystem* renderer, vec2 pos)
 	// Create and (empty) DOOR component to be able to refer to all doors
 	registry.test.emplace(entity);
 	registry.solid.emplace(entity);
+	registry.collidables.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::WALL,

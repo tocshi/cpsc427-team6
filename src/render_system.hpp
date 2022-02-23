@@ -106,6 +106,8 @@ private:
 	void drawToScreen();
 	void updateTileMapCoords(TileUV tileUV);
 
+	TileUV prev_tileUV = TileUV();
+
 	// Window handle
 	GLFWwindow* window;
 

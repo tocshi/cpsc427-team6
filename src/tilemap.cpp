@@ -35,6 +35,8 @@ std::vector<Entity> TileMapParser::Parse(const std::string& file, RenderSystem *
 			motion.scale = { tileSizeX, tileSizeY};
 
 			TileUV& tileUV = registry.tileUVs.emplace(entity);
+			tileUV.layer = layer.first;
+			tileUV.tileID = tileInfo->tileID;
 			tileUV.uv_start = { 
 				tileInfo->textureRect.x / tileInfo->textureSize.x + 1 / 256.f,
 				tileInfo->textureRect.y / tileInfo->textureSize.y + 1 / 256.f };

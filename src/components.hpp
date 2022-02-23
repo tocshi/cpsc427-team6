@@ -41,6 +41,11 @@ struct Motion {
 	bool in_motion = false;
 };
 
+struct Collidable 
+{
+
+};
+
 // Stucture to store collision information
 struct Collision
 {
@@ -177,6 +182,8 @@ struct Camera {
 };
 
 struct TileUV {
+	std::string layer;
+	int tileID = 0;
 	vec2 uv_start = { 0,0 };
 	vec2 uv_end = { 0,0 };
 };

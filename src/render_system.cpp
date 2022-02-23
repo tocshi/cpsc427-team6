@@ -44,8 +44,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	{
 		// update texture coordinates if necessary
 		if (render_request.used_geometry == GEOMETRY_BUFFER_ID::TILEMAP && registry.tileUVs.has(entity)) {
-			TileUV tileUV = registry.tileUVs.get(entity);
-			updateTileMapCoords(tileUV);
+			TileUV& tileUV = registry.tileUVs.get(entity);
+			if (tileUV.layer != prev_tileUV.layer || tileUV.tileID != prev_tileUV.tileID) {
+				updateTileMapCoords(tileUV);
+				prev_tileUV = tileUV;
+			}
 		}
 
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");

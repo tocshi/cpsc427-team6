@@ -39,6 +39,7 @@ public:
 	ComponentContainer<Fog> fog;
 	ComponentContainer<Camera> cameras;
 	ComponentContainer<TileUV> tileUVs;
+	ComponentContainer<Collidable> collidables;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -72,6 +73,7 @@ public:
 		registry_list.push_back(&fog);
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&tileUVs);
+		registry_list.push_back(&collidables);
 	}
 
 	void clear_all_components() {

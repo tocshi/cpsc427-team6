@@ -208,6 +208,33 @@ void RenderSystem::initializeGlGeometryBuffers()
 	meshes[geom_index].vertex_indices = egg_indices;
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::EGG, meshes[geom_index].vertices, meshes[geom_index].vertex_indices);
 
+	////////////////////////
+	// Initialize fog
+	std::vector<ColoredVertex> fog_vertices;
+	std::vector<uint16_t> fog_indices;
+	constexpr float fog_z = 0.5f;
+	constexpr int FOG_NUM_TRIANGLES = 93;
+	// radius to remove fog from player position
+	constexpr float radius = 0.1f;
+
+	constexpr vec3 fog_color = { 0.3,0.3,0.3 };
+
+	// Corner points
+	fog_vertices = {
+		{{-0.5,-0.5, fog_z}, fog_color},
+		{{-0.5, 0.5, fog_z}, fog_color},
+		{{ 0.5, 0.5, fog_z}, fog_color},
+		{{ 0.5,-0.5, fog_z}, fog_color},
+	};
+
+	// Two triangles
+	fog_indices = { 0, 1, 3, 1, 2, 3 };
+
+	int fog_geom_index = (int)GEOMETRY_BUFFER_ID::FOG;
+	meshes[fog_geom_index].vertices = fog_vertices;
+	meshes[fog_geom_index].vertex_indices = fog_indices;
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::FOG, meshes[fog_geom_index].vertices, meshes[fog_geom_index].vertex_indices);
+
 	//////////////////////////////////
 	// Initialize debug line
 	std::vector<ColoredVertex> line_vertices;

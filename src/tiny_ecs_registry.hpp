@@ -39,6 +39,8 @@ public:
 	ComponentContainer<Fog> fog;
 	ComponentContainer<Camera> cameras;
 	ComponentContainer<Text> texts;
+	ComponentContainer<Test> hidden;
+	ComponentContainer<Test> hidables;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -72,6 +74,8 @@ public:
 		registry_list.push_back(&fog);
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&texts);
+		registry_list.push_back(&hidden);
+		registry_list.push_back(&hidables);
 	}
 
 	void clear_all_components() {

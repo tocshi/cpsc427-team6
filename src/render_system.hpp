@@ -49,7 +49,6 @@ class RenderSystem {
 			textures_path("door.png"),
 			textures_path("sign.png"),
 			textures_path("stair.png"),
-			textures_path("fog.png"),
 			textures_path("start.png"),
 			textures_path("quit.png"),
 			textures_path("title.png"),
@@ -70,7 +69,8 @@ class RenderSystem {
 		shader_path("chicken"),
 		shader_path("textured"),
 		shader_path("wind"),
-		shader_path("text") };
+		shader_path("text"),
+		shader_path("fog") };
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;

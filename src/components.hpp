@@ -168,7 +168,9 @@ struct MenuItem {
 };
 
 struct Fog {
-
+	float radius = 450.f;
+	float resolution = 2000.f;
+	vec2 screen_resolution = { 1600.f, 900.f };
 };
 
 struct Camera {
@@ -221,8 +223,7 @@ enum class TEXTURE_ASSET_ID {
 	DOOR = CHEST + 1,
 	SIGN = DOOR + 1,
 	STAIR = SIGN + 1,
-	FOG = STAIR + 1,
-	START = FOG + 1,
+	START = STAIR + 1,
 	QUIT = START + 1,
 	TITLE = QUIT + 1,
 	WALL = TITLE + 1,
@@ -243,7 +244,8 @@ enum class EFFECT_ASSET_ID {
 	TEXTURED = CHICKEN + 1,
 	WIND = TEXTURED + 1,
 	TEXT = WIND + 1,
-	EFFECT_COUNT = TEXT + 1
+	FOG = TEXT + 1,
+	EFFECT_COUNT = FOG + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -251,7 +253,8 @@ enum class GEOMETRY_BUFFER_ID {
 	CHICKEN = 0,
 	SPRITE = CHICKEN + 1,
 	EGG = SPRITE + 1,
-	DEBUG_LINE = EGG + 1,
+	FOG = EGG + 1,
+	DEBUG_LINE = FOG + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
 	TEXTQUAD = SCREEN_TRIANGLE + 1,
 	GEOMETRY_COUNT = TEXTQUAD + 1

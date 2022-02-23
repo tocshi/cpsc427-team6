@@ -548,20 +548,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			json gameData = saveSystem.getSaveData();
 			// load the entities in
 			loadFromData(gameData);
+			saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc.
 		}
 
 		printf("LOADING KEY PRESSED");
-	}
-
-	if (action == GLFW_RELEASE && key == GLFW_KEY_N) {
-		printf("\n");
-		printf("NEW ROOM ENTERING NOW");
-		// TEST TO SEE IF THE SAVE STATES WORK
-		// remove entities to load in entities
-		removeForLoad(); // remove player 
-		json gameData = saveSystem.getSaveData();
-		loadFromData(gameData);
-		saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc. 
 	}
 
 	// Resetting game

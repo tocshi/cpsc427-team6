@@ -104,11 +104,17 @@ struct Damageable {
 };
 
 struct Consumable {
+	// recover mp
+	bool magic_potion = true;
+	// recover hp
+	bool hp_potion = true;
 
 };
 
 struct Equipable {
-
+	bool axe = true;
+	bool sword = true;
+	bool wand = true;
 };
 
 struct Guardable {
@@ -185,6 +191,13 @@ struct Text {
 	std::string message = "";
 };
 
+// temp struct for artifacts
+struct Artifact {
+	bool artifact1 = true; 
+};
+struct Door {
+	bool collidedWithDoor = false; 
+};
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture

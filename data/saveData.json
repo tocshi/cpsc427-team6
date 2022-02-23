@@ -1,21 +1,32 @@
 {
-    "Inventory": {
-        "Consumable": {
+    "inventory": {
+        "consumables": {
             "hp_potion": true,
             "mp_potion": true
-        }
-    },
-    "Iventory": {
-        "Equiptment": {
+        },
+        "equiptment": {
             "axe": true,
             "sword": true,
             "wand": true
         }
     },
     "player": {
-        "ep": 54.0,
-        "hp": 100.0,
-        "maxEP": 100.0,
-        "mp": 100.0
+        "motion": {
+            "angle": -0.7114590406417847,
+            "destination_x": 1094.415283203125,
+            "destination_y": 310.601806640625,
+            "in_motion": false,
+            "movement_speed": 200.0,
+            "position_x": 1068.0653076171875,
+            "position_y": 280.0357666015625,
+            "velocity_x": 0.0,
+            "velocity_y": 0.0
+        },
+        "stats": {
+            "ep": 84.0,
+            "hp": 100.0,
+            "maxEP": 100.0,
+            "mp": 100.0
+        }
     }
 }

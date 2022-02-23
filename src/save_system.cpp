@@ -5,26 +5,41 @@ void saveToFile(json j) {
 	o << std::setw(4) << j << std::endl;
 }
 
+void SaveSystem::readJsonFile(json j) {
+
+}
 void SaveSystem::saveGameState() {
 	json saveState;
 	json playerData;
 
+	
 	// equipped items
-	json equipData;
-
-	//item iventory 
-	json consumeData;
+	json inventory;
 
 
 	for (Entity e : registry.players.entities) {
 		Player player = registry.players.get(e);
-		playerData["hp"] = player.hp;
-		playerData["ep"] = player.ep;
-		playerData["maxEP"] = player.maxEP;
-		playerData["mp"] = player.mp;
+		playerData["stats"]["hp"] = player.hp;
+		playerData["stats"]["ep"] = player.ep;
+		playerData["stats"]["maxEP"] = player.maxEP;
+		playerData["stats"]["mp"] = player.mp;
+		
+		Motion player_motion = registry.motions.get(e);
+
+		playerData["motion"]["position_x"] = player_motion.position.x;
+		playerData["motion"]["position_y"] = player_motion.position.y;
+		playerData["motion"]["angle"] = player_motion.angle;
+		playerData["motion"]["velocity_x"] = player_motion.velocity.x;
+		playerData["motion"]["velocity_y"] = player_motion.velocity.y;
+		playerData["motion"]["destination_x"] = player_motion.destination.x;
+		playerData["motion"]["destination_y"] = player_motion.destination.y;
+		playerData["motion"]["movement_speed"] = player_motion.movement_speed;
+		playerData["motion"]["in_motion"] = player_motion.in_motion;
+			// get player position
+	 
 		
 	}
-	// Equipe items
+	// Equipment items
 	printf("LEFT PLAYER LOOP");
 	for (Entity e : registry.equipables.entities) {
 		Equipable equipItem = registry.equipables.get(e);
@@ -32,26 +47,27 @@ void SaveSystem::saveGameState() {
 
 		// item axe avilable add to stat
 		if (equipItem.axe) {
-			printf("true has axe");
-			equipData["axe"] = true;
+			//printf("true has axe");
+			inventory["equiptment"]["axe"] = true;
 		}
 		if (equipItem.sword) {
-			equipData["sword"]= true;
+			inventory["equiptment"]["sword"]= true;
 
 		}
 		if (equipItem.wand) {
-			equipData["wand"] = true;
+			inventory["equiptment"]["wand"] = true;
 		}
 	}
 
 	for (Entity e : registry.consumables.entities) {
 		Consumable consumableItem = registry.consumables.get(e);
 
+		// available items in inventory
 		if (consumableItem.hp_potion) {
-			consumeData["hp_potion"] = true;
+			inventory["consumables"]["hp_potion"] = true;
 		}
 		if (consumableItem.magic_potion) {
-			consumeData["mp_potion"] = true;
+			inventory["consumables"]["mp_potion"] = true;
 		}
 	}
 
@@ -59,8 +75,7 @@ void SaveSystem::saveGameState() {
 	// current invetory of items 
 
 	saveState["player"] = playerData;
-	saveState["Iventory"]["Equiptment"] = equipData;
-	saveState["Inventory"]["Consumable"] = consumeData;
+	saveState["inventory"] = inventory;
 
 	saveToFile(saveState);
 }

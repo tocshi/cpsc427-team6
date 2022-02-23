@@ -160,6 +160,36 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+// Player created with given motion component
+Entity createPlayer(RenderSystem* renderer, Motion m)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = m.angle;
+	motion.velocity = m.velocity;
+	motion.position = m.position;
+	motion.in_motion = m.in_motion;
+	motion.movement_speed = m.movement_speed;
+	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
+	motion.destination = m.destination;
+
+	// Create and (empty) Player component to be able to refer to all players
+	registry.players.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::PLAYER,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 // Enemy slime (split into different enemies for future)
 Entity createEnemy(RenderSystem* renderer, vec2 pos)
 {

@@ -14,4 +14,6 @@ class SaveSystem
 public:
 	void saveGameState();
 	void readJsonFile();
+	bool saveDataExists();
+	json getSaveData();
 };

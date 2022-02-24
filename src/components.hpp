@@ -196,6 +196,12 @@ struct Text {
 	std::string message = "";
 };
 
+// A timer that will be associated will text logging
+struct TextTimer
+{
+	float counter_ms = 4000;
+};
+
 // temp struct for artifacts
 struct Artifact {
 	bool artifact1 = true; 

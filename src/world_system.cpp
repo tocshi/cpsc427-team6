@@ -208,19 +208,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Update HP/MP/EP bars and movement
 	for (Entity player : registry.players.entities) {
+		Player& p = registry.players.get(player);
 		
 		// get player stats
-		float& maxEP = registry.players.get(player).maxEP;
-		float& hp = registry.players.get(player).hp;
-		float& mp = registry.players.get(player).mp;
-		float& ep = registry.players.get(player).ep;
+		float& maxEP = p.maxEP;
+		float& hp = p.hp;
+		float& mp = p.mp;
+		float& ep = p.ep;
 
 		// update player motion
 		Motion& player_motion = registry.motions.get(player);
 		if (player_motion.in_motion) {
 			if (ep <= 0) { 
 				player_motion.velocity = { 0.f, 0.f };
-				player_motion.in_motion = false; 
+				player_motion.in_motion = false;
+				p.attacked = false;
 				set_is_player_turn(false);
 				player_move_click = false;
 			}
@@ -671,7 +673,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							printf("attacking");
 						}
 						break;
-					case BUTTON_ACTION_ID::ACTIONS_MOVE: 
+					case BUTTON_ACTION_ID::ACTIONS_MOVE:
 						// set player action to move
 						for (Entity p : registry.players.entities) {
 							Player& player = registry.players.get(p);
@@ -695,18 +697,27 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				PLAYER_ACTION action = player.action;
 				switch (action) {
 				case PLAYER_ACTION::ATTACKING:
-					// ensure player has clicked on an enemy
-					for (Entity en : registry.enemies.entities) {
-						// super simple bounding box for now
-						Motion m = registry.motions.get(en);
-						int enemyX = m.position[0];
-						int enemyY = m.position[1];
+					// only attack if the player hasn't attacked that turn
+					if (!player.attacked) {
+						// ensure player has clicked on an enemy
+						for (Entity en : registry.enemies.entities) {
+							// super simple bounding box for now
+							Motion m = registry.motions.get(en);
+							int enemyX = m.position[0];
+							int enemyY = m.position[1];
 
-						if ((world_pos.x <= (enemyX + m.scale[0] / 2) && world_pos.x >= (enemyX - m.scale[0] / 2)) &&
-							(world_pos.y >= (enemyY - m.scale[1] / 2) && world_pos.y <= (enemyY + m.scale[1] / 2))) {
-							// todo: add explosion animiation and dealDamage call
-							printf("hit enemy");
+							if ((world_pos.x <= (enemyX + m.scale[0] / 2) && world_pos.x >= (enemyX - m.scale[0] / 2)) &&
+								(world_pos.y >= (enemyY - m.scale[1] / 2) && world_pos.y <= (enemyY + m.scale[1] / 2))) {
+								// todo: add explosion animiation and dealDamage call
+								printf("hit enemy");
+								// lower ep
+								player.ep -= 0.33 * player.maxEP;
+								player.attacked = true;
+							}
 						}
+					}
+					else {
+						printf("already attacked this turn");
 					}
 					break;
 				case PLAYER_ACTION::MOVING:

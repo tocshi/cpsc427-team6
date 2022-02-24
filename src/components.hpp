@@ -22,6 +22,9 @@ struct Player
 
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
+
+	// true if the player has already attacked that turn
+	bool attacked = false;
 };
 
 // Eagles have a hard shell

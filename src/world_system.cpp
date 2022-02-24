@@ -670,7 +670,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							Player& player = registry.players.get(p);
 							player.action = PLAYER_ACTION::ATTACKING;
 							// todo: add some sort of visual queue to show the player what action state they are in
-							printf("attacking");
+							logText("attacking");
 						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_MOVE:
@@ -679,7 +679,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							Player& player = registry.players.get(p);
 							player.action = PLAYER_ACTION::MOVING;
 							// todo: add some sort of visual queue to show the player what action state they are in
-							printf("moving");
+							logText("moving");
 						}
 						break;
 				}
@@ -711,19 +711,19 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								// only attack if have enough ep
 								if (player.ep >= 0.33 * player.maxEP) {
 									// todo: add explosion animiation and dealDamage call
-									printf("hit enemy");
+									logText("hit enemy!");
 									// lower ep
 									player.ep -= 0.33 * player.maxEP;
 									player.attacked = true;
 								}
 								else {
-									printf("not enough ep to attack");
+									logText("not enough ep to attack!");
 								}
 							}
 						}
 					}
 					else {
-						printf("already attacked this turn");
+						logText("already attacked this turn");
 					}
 					break;
 				case PLAYER_ACTION::MOVING:

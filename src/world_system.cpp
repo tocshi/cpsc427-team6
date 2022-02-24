@@ -9,6 +9,7 @@
 #include<fstream>
 
 #include "physics_system.hpp"
+#include "combat_system.hpp"
 
 // Game configuration
 const size_t MAX_EAGLES = 15;
@@ -566,14 +567,21 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// LOGGING TEXT TEST
 	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
-		logText("this is a test");
-		printf("this is a test\n");
+		for (Entity& player : registry.players.entities) {
+			for (Entity& enemy : registry.slimeEnemies.entities) {
+				int test = irandRange(100,200);
+				std::string log_message = deal_damage(enemy, player, test);
+
+				logText(log_message);
+				printf("testing combat with 10 ATK and %d multiplier\n", test);
+			}
+		}
 	}
 
 	// SAVING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
 		saveSystem.saveGameState();
-		printf("SAVING KEY PRESSED");
+		printf("SAVING KEY PRESSED\n");
 	}
 
 	// LOADING THE GAME
@@ -589,7 +597,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc.
 		}
 
-		printf("LOADING KEY PRESSED");
+		printf("LOADING KEY PRESSED\n");
 	}
 
 	// Resetting game

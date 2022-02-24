@@ -126,6 +126,7 @@ struct Interactable {
 struct Stats {
 	// Name goes here too
 	std::string name = "Placeholder Name";
+	std::string prefix = "";
 	// set intial stats to 100 points
 	float hp    = 100.f;
 	float maxhp = 100.f;

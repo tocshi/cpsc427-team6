@@ -135,6 +135,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	// Create slime stats
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Slime";
+	stats.prefix = "the ";
+	stats.atk = 10;
 
 	// Create and (empty) Enemy component to be able to refer to all enemies
 	// make it a slime enemy for now

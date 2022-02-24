@@ -4,7 +4,6 @@
 #include "tiny_ecs.hpp"
 #include "components.hpp"
 #include "tiny_ecs_registry.hpp"
-#include  <cmath>
 
 // A simple physics system that moves rigid bodies and checks for collision
 class PhysicsSystem

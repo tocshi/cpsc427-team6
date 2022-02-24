@@ -327,11 +327,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// update animations 
-	for (AnimationData& anim : registry.animations.components) {
+	for (int i = 0; i < registry.animations.size(); i++) {
+		Entity e = registry.animations.entities[i];
+		AnimationData& anim = registry.animations.get(e);
 		anim.animation_time_ms += elapsed_ms_since_last_update;
 		if (anim.animation_time_ms > anim.frametime_ms * anim.frame_indices.size() - 1) {
 			if (!anim.loop) {
 				anim.animation_time_ms = anim.frametime_ms * anim.frame_indices.size() - 1;
+				if (anim.delete_on_finish) {
+					registry.remove_all_components_of(e);
+				}
 				continue;
 			}
 			anim.animation_time_ms -= anim.frametime_ms * anim.frame_indices.size() - 1;
@@ -724,7 +729,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								(world_pos.y >= (enemyY - m.scale[1] / 2) && world_pos.y <= (enemyY + m.scale[1] / 2))) {
 								// only attack if have enough ep
 								if (player.ep >= 0.33 * player.maxEP) {
-									// todo: add explosion animiation and dealDamage call
+									// todo: add dealDamage call
+
+									// show explosion animation
+									createExplosion(renderer, { enemyX, enemyY });
 									logText("hit enemy!");
 									// lower ep
 									player.ep -= 0.33 * player.maxEP;

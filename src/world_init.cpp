@@ -865,7 +865,7 @@ Entity createExplosion(RenderSystem* renderer, vec2 pos) {
 	Entity entity = Entity();
 	AnimationData& anim = registry.animations.emplace(entity);
 	anim.spritesheet_texture = TEXTURE_ASSET_ID::EXPLOSION_SPRITESHEET;
-	anim.frametime_ms = 200;
+	anim.frametime_ms = 80;
 	anim.loop = false;
 	anim.delete_on_finish = true;
 	anim.frame_indices = { 0, 1, 2, 3, 4, 5, 6, 7 };

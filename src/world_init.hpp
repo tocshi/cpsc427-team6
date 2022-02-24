@@ -112,3 +112,5 @@ Entity createCamera(vec2 pos);
 std::vector<Entity> createTiles(RenderSystem* renderer, const std::string& filepath);
 // Text
 Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);
+// Animated campfire
+Entity createCampfire(RenderSystem* renderer, vec2 pos);

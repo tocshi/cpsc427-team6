@@ -324,6 +324,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// update animations 
+	for (AnimationData& anim : registry.animations.components) {
+		anim.animation_time_ms += elapsed_ms_since_last_update;
+		if (anim.animation_time_ms > anim.frametime_ms * anim.frame_indices.size() - 1) {
+			if (!anim.loop) {
+				anim.animation_time_ms = anim.frametime_ms * anim.frame_indices.size() - 1;
+				continue;
+			}
+			anim.animation_time_ms -= anim.frametime_ms * anim.frame_indices.size() - 1;
+		}
+		anim.current_frame = anim.animation_time_ms / anim.frametime_ms;
+	}
+
 	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death counter
 	return true;
 }
@@ -440,6 +453,7 @@ void WorldSystem::spawn_game_entities() {
 	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war();
+	createCampfire(renderer, { 200, 200 });
 }
 
 // render fog of war around the player

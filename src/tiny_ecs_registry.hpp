@@ -47,6 +47,7 @@ public:
 	// add door component
 	ComponentContainer<Door>door;
 	ComponentContainer<Artifact> artifacts;
+	ComponentContainer<AnimationData> animations;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -89,6 +90,7 @@ public:
 		registry_list.push_back(&artifacts);
 		registry_list.push_back(&tileUVs);
 		registry_list.push_back(&collidables);
+		registry_list.push_back(&animations);
 	}
 
 	void clear_all_components() {

@@ -57,6 +57,9 @@ class RenderSystem {
 			textures_path("statbars/hpfill.png"),
 			textures_path("statbars/mpfill.png"),
 			textures_path("statbars/epfill.png"),
+			textures_path("move.png"),
+			textures_path("attack.png"),
+			textures_path("actions_bar.png"),
 			textures_path("roguelikeDungeon_transparent.png")
 	};
 

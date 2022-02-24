@@ -104,11 +104,17 @@ struct Damageable {
 };
 
 struct Consumable {
+	// recover mp
+	bool magic_potion = true;
+	// recover hp
+	bool hp_potion = true;
 
 };
 
 struct Equipable {
-
+	bool axe = true;
+	bool sword = true;
+	bool wand = true;
 };
 
 struct Guardable {
@@ -168,7 +174,9 @@ struct MenuItem {
 };
 
 struct Fog {
-
+	float radius = 450.f;
+	float resolution = 2000.f;
+	vec2 screen_resolution = { 1600.f, 900.f };
 };
 
 struct Camera {
@@ -176,6 +184,26 @@ struct Camera {
 	bool active = false;
 };
 
+struct Text {
+	vec2 position = { 0.f, 0.f };
+	float scale = 1.0f;
+	vec3 textColor = { 0.f, 0.f, 0.f };
+	std::string message = "";
+};
+
+// A timer that will be associated will text logging
+struct TextTimer
+{
+	float counter_ms = 4000;
+};
+
+// temp struct for artifacts
+struct Artifact {
+	bool artifact1 = true; 
+};
+struct Door {
+	bool collidedWithDoor = false; 
+};
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -212,8 +240,7 @@ enum class TEXTURE_ASSET_ID {
 	DOOR = CHEST + 1,
 	SIGN = DOOR + 1,
 	STAIR = SIGN + 1,
-	FOG = STAIR + 1,
-	START = FOG + 1,
+	START = STAIR + 1,
 	QUIT = START + 1,
 	TITLE = QUIT + 1,
 	WALL = TITLE + 1,
@@ -233,7 +260,9 @@ enum class EFFECT_ASSET_ID {
 	CHICKEN = EGG + 1,
 	TEXTURED = CHICKEN + 1,
 	WIND = TEXTURED + 1,
-	EFFECT_COUNT = WIND + 1
+	TEXT = WIND + 1,
+	FOG = TEXT + 1,
+	EFFECT_COUNT = FOG + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -241,9 +270,11 @@ enum class GEOMETRY_BUFFER_ID {
 	CHICKEN = 0,
 	SPRITE = CHICKEN + 1,
 	EGG = SPRITE + 1,
-	DEBUG_LINE = EGG + 1,
+	FOG = EGG + 1,
+	DEBUG_LINE = FOG + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
-	GEOMETRY_COUNT = SCREEN_TRIANGLE + 1
+	TEXTQUAD = SCREEN_TRIANGLE + 1,
+	GEOMETRY_COUNT = TEXTQUAD + 1
 };
 const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 

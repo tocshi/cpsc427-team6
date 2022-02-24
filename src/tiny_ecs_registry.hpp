@@ -38,6 +38,13 @@ public:
 	ComponentContainer<MenuItem> menuItems;
 	ComponentContainer<Fog> fog;
 	ComponentContainer<Camera> cameras;
+	ComponentContainer<Text> texts;
+	ComponentContainer<TextTimer> textTimers;
+	ComponentContainer<Test> hidden;
+	ComponentContainer<Test> hidables;
+	// add door component
+	ComponentContainer<Door>door;
+	ComponentContainer<Artifact> artifacts;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -70,6 +77,14 @@ public:
 		registry_list.push_back(&menuItems);
 		registry_list.push_back(&fog);
 		registry_list.push_back(&cameras);
+		registry_list.push_back(&texts);
+		registry_list.push_back(&textTimers);
+		registry_list.push_back(&hidden);
+		registry_list.push_back(&hidables);
+		// door in registry list 
+		registry_list.push_back(&door);
+		// add artifact to list
+		registry_list.push_back(&artifacts);
 	}
 
 	void clear_all_components() {

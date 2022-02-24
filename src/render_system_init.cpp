@@ -13,6 +13,10 @@
 #include <iostream>
 #include <sstream>
 
+// // freetype
+// #include <ft2build.h>
+// #include FT_FREETYPE_H
+
 // World initialization
 bool RenderSystem::init(GLFWwindow* window_arg)
 {
@@ -59,6 +63,7 @@ bool RenderSystem::init(GLFWwindow* window_arg)
     initializeGlTextures();
 	initializeGlEffects();
 	initializeGlGeometryBuffers();
+	initFreeType();
 
 	return true;
 }
@@ -110,6 +115,20 @@ void RenderSystem::bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices
 	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(uint)gid]);
 	glBufferData(GL_ARRAY_BUFFER,
 		sizeof(vertices[0]) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+	gl_has_errors();
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffers[(uint)gid]);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+		sizeof(indices[0]) * indices.size(), indices.data(), GL_STATIC_DRAW);
+	gl_has_errors();
+}
+
+template <class T>
+void RenderSystem::dynamicBindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, vertex_buffers[(uint)gid]);
+	glBufferData(GL_ARRAY_BUFFER,
+		sizeof(vertices[0]) * vertices.size(), vertices.data(), GL_DYNAMIC_DRAW);
 	gl_has_errors();
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffers[(uint)gid]);
@@ -189,6 +208,33 @@ void RenderSystem::initializeGlGeometryBuffers()
 	meshes[geom_index].vertex_indices = egg_indices;
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::EGG, meshes[geom_index].vertices, meshes[geom_index].vertex_indices);
 
+	////////////////////////
+	// Initialize fog
+	std::vector<ColoredVertex> fog_vertices;
+	std::vector<uint16_t> fog_indices;
+	constexpr float fog_z = 0.5f;
+	constexpr int FOG_NUM_TRIANGLES = 93;
+	// radius to remove fog from player position
+	constexpr float radius = 0.1f;
+
+	constexpr vec3 fog_color = { 0.3,0.3,0.3 };
+
+	// Corner points
+	fog_vertices = {
+		{{-0.5,-0.5, fog_z}, fog_color},
+		{{-0.5, 0.5, fog_z}, fog_color},
+		{{ 0.5, 0.5, fog_z}, fog_color},
+		{{ 0.5,-0.5, fog_z}, fog_color},
+	};
+
+	// Two triangles
+	fog_indices = { 0, 1, 3, 1, 2, 3 };
+
+	int fog_geom_index = (int)GEOMETRY_BUFFER_ID::FOG;
+	meshes[fog_geom_index].vertices = fog_vertices;
+	meshes[fog_geom_index].vertex_indices = fog_indices;
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::FOG, meshes[fog_geom_index].vertices, meshes[fog_geom_index].vertex_indices);
+
 	//////////////////////////////////
 	// Initialize debug line
 	std::vector<ColoredVertex> line_vertices;
@@ -223,6 +269,106 @@ void RenderSystem::initializeGlGeometryBuffers()
 	// Counterclockwise as it's the default opengl front winding direction.
 	const std::vector<uint16_t> screen_indices = { 0, 1, 2 };
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::SCREEN_TRIANGLE, screen_vertices, screen_indices);
+}
+
+// tutorial: https://learnopengl.com/In-Practice/Text-Rendering
+int RenderSystem::initFreeType()
+{
+	// FreeType
+    // --------
+    FT_Library ft;
+    // All functions return a value different than 0 whenever an error occurred
+    if (FT_Init_FreeType(&ft))
+    {
+        std::cout << "ERROR::FREETYPE: Could not init FreeType Library" << std::endl;
+        return -1;
+    }
+
+	// find path to font
+    std::string font_name = font_path("Kenney_Pixel.ttf");
+	// std::string font_name = font_path("cour.ttf");
+    if (font_name.empty())
+    {
+        std::cout << "ERROR::FREETYPE: Failed to load font_name" << std::endl;
+        return -1;
+    }
+	
+	// load font as face
+    FT_Face face;
+    if (FT_New_Face(ft, font_name.c_str(), 0, &face)) {
+        std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
+        return -1;
+    }
+    else {
+        // set size to load glyphs as
+        FT_Set_Pixel_Sizes(face, 0, 48);
+
+        // disable byte-alignment restriction
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+        // load first 128 characters of ASCII set
+        for (unsigned char c = 0; c < 128; c++)
+        {
+            // Load character glyph 
+            if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+            {
+                std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+                continue;
+            }
+            // generate texture
+            unsigned int texture;
+            glGenTextures(1, &texture);
+            glBindTexture(GL_TEXTURE_2D, texture);
+            glTexImage2D(
+                GL_TEXTURE_2D,
+                0,
+                GL_RED,
+                face->glyph->bitmap.width,
+                face->glyph->bitmap.rows,
+                0,
+                GL_RED,
+                GL_UNSIGNED_BYTE,
+                face->glyph->bitmap.buffer
+            );
+            // set texture options
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            // now store character for later use
+            Character character = {
+                texture,
+                glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
+                glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
+                static_cast<unsigned int>(face->glyph->advance.x)
+            };
+            Characters.insert(std::pair<char, Character>(c, character));
+        }
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+    // destroy FreeType once we're finished
+    FT_Done_Face(face);
+    FT_Done_FreeType(ft);
+    
+	//////////////////////////
+	// Initialize textquad
+	// The position corresponds to the center of the texture.
+	std::vector<TexturedVertex> textured_vertices(4);
+	textured_vertices[0].position = { -1.f/2, +1.f/2, 0.f };
+	textured_vertices[1].position = { +1.f/2, +1.f/2, 0.f };
+	textured_vertices[2].position = { +1.f/2, -1.f/2, 0.f };
+	textured_vertices[3].position = { -1.f/2, -1.f/2, 0.f };
+	textured_vertices[0].texcoord = { 0.f, 1.f };
+	textured_vertices[1].texcoord = { 1.f, 1.f };
+	textured_vertices[2].texcoord = { 1.f, 0.f };
+	textured_vertices[3].texcoord = { 0.f, 0.f };
+
+	// Counterclockwise as it's the default opengl front winding direction.
+	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
+	dynamicBindVBOandIBO(GEOMETRY_BUFFER_ID::TEXTQUAD, textured_vertices, textured_indices);
+	gl_has_errors();
+
+	return 0;
 }
 
 RenderSystem::~RenderSystem()

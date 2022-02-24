@@ -113,6 +113,8 @@ private:
 	Mix_Music* background_music;
 	Mix_Chunk* chicken_dead_sound;
 	Mix_Chunk* chicken_eat_sound;
+	Mix_Chunk* fire_explosion_sound;
+	Mix_Chunk* error_sound;
 
 	SaveSystem saveSystem;
 

@@ -33,6 +33,10 @@ WorldSystem::~WorldSystem() {
 		Mix_FreeChunk(chicken_dead_sound);
 	if (chicken_eat_sound != nullptr)
 		Mix_FreeChunk(chicken_eat_sound);
+	if (fire_explosion_sound != nullptr)
+		Mix_FreeChunk(fire_explosion_sound);
+	if (error_sound != nullptr)
+		Mix_FreeChunk(error_sound);
 	Mix_CloseAudio();
 
 	// Destroy all created components
@@ -116,12 +120,17 @@ GLFWwindow* WorldSystem::create_window() {
 	background_music = Mix_LoadMUS(audio_path("bgm/caves0.wav").c_str());
 	chicken_dead_sound = Mix_LoadWAV(audio_path("chicken_dead.wav").c_str());
 	chicken_eat_sound = Mix_LoadWAV(audio_path("chicken_eat.wav").c_str());
+	fire_explosion_sound = Mix_LoadWAV(audio_path("feedback/fire_explosion.wav").c_str());
+	error_sound = Mix_LoadWAV(audio_path("feedback/error.wav").c_str());
 
-	if (background_music == nullptr || chicken_dead_sound == nullptr || chicken_eat_sound == nullptr) {
+	if (background_music == nullptr || chicken_dead_sound == nullptr || chicken_eat_sound == nullptr 
+		|| fire_explosion_sound == nullptr || error_sound == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
 			audio_path("bgm/caves0.wav").c_str(),
 			audio_path("chicken_dead.wav").c_str(),
-			audio_path("chicken_eat.wav").c_str());
+			audio_path("chicken_eat.wav").c_str(),
+			audio_path("feedback/fire_explosion.wav").c_str(),
+			audio_path("feedback/error.wav").c_str());
 		return nullptr;
 	}
 
@@ -733,6 +742,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 									// show explosion animation
 									createExplosion(renderer, { enemyX, enemyY });
+
+									// play attack sound
+									Mix_PlayChannel(-1, fire_explosion_sound, 0);
+
 									logText("hit enemy!");
 									// lower ep
 									player.ep -= 0.33 * player.maxEP;
@@ -740,12 +753,16 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								}
 								else {
 									logText("not enough ep to attack!");
+									// play error sound
+									Mix_PlayChannel(-1, error_sound, 0);
 								}
 							}
 						}
 					}
 					else {
 						logText("already attacked this turn");
+						// play error sound
+						Mix_PlayChannel(-1, error_sound, 0);
 					}
 					break;
 				case PLAYER_ACTION::MOVING:

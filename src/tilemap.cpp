@@ -19,6 +19,7 @@ std::vector<Entity> TileMapParser::Parse(const std::string& file, RenderSystem *
 	int mapsizeY = std::atoi(rootNode->first_attribute("height")->value());
 
 	int scaleFactor = 4; // TODO: determine based on tileset if we are using different tile sizes
+	float uv_padding = 0.0016;
 	// This will contain all of our tiles as objects.
 	std::vector<Entity> tileObjects;
 	// 2
@@ -40,11 +41,11 @@ std::vector<Entity> TileMapParser::Parse(const std::string& file, RenderSystem *
 			tileUV.layer = layer.first;
 			tileUV.tileID = tileInfo->tileID;
 			tileUV.uv_start = { 
-				tileInfo->textureRect.x / tileInfo->textureSize.x + 1 / 256.f,
-				tileInfo->textureRect.y / tileInfo->textureSize.y + 1 / 256.f };
+				tileInfo->textureRect.x / tileInfo->textureSize.x + uv_padding,
+				tileInfo->textureRect.y / tileInfo->textureSize.y + uv_padding };
 			tileUV.uv_end = {
-				(tileInfo->textureRect.x + tileInfo->textureRect.width) / tileInfo->textureSize.x - 1 / 256.f,
-				(tileInfo->textureRect.y + tileInfo->textureRect.height) / tileInfo->textureSize.y - 1 / 256.f };
+				(tileInfo->textureRect.x + tileInfo->textureRect.width) / tileInfo->textureSize.x - uv_padding,
+				(tileInfo->textureRect.y + tileInfo->textureRect.height) / tileInfo->textureSize.y - uv_padding };
 			
 			RenderRequest renderRequest = {
 				static_cast<TEXTURE_ASSET_ID>(tileInfo->textureID),

@@ -631,18 +631,34 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		glfwGetCursorPos(window, &xpos, &ypos);
 		// Clicking the start button on the menu screen
 		for (Entity e : registry.buttons.entities) {
+			if (!registry.motions.has(e)) {
+				continue;
+			}
 			Motion m = registry.motions.get(e);
 			int buttonX = m.position[0];
 			int buttonY = m.position[1];
 			// if mouse is interating with a button
 			if ((xpos <= (buttonX + m.scale[0] / 2) && xpos >= (buttonX - m.scale[0] / 2)) && 
 				(ypos >= (buttonY - m.scale[1] / 2) && ypos <= (buttonY + m.scale[1] / 2))) {
+				if (!registry.buttons.has(e)) {
+					continue;
+				}
 				// perform action based on button ENUM
 				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
 
 				switch (action_taken) {
-					case BUTTON_ACTION_ID::MENU_START: inMenu = false; spawn_game_entities(); is_player_turn = true; break;
+					case BUTTON_ACTION_ID::MENU_START: 
+						inMenu = false;
+						// spawn the actions bar
+						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
+						createAttackButton(renderer, { window_width_px - 200.f, window_height_px - 150.f });
+						createMoveButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
+						spawn_game_entities(); 
+						is_player_turn = true; 
+						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
+					case BUTTON_ACTION_ID::ACTIONS_ATTACK: printf("attack"); break;
+					case BUTTON_ACTION_ID::ACTIONS_MOVE: printf("move"); break;
 				}
 			}
 		}

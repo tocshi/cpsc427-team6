@@ -164,7 +164,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// perform in-motion behaviour
-	if (get_is_player_turn() && player_right_click) {
+	if (get_is_player_turn() && player_move_click) {
 		for (Entity player : registry.players.entities) {
 			Motion player_motion = registry.motions.get(player);
 			if (player_motion.in_motion) {
@@ -173,7 +173,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				create_fog_of_war();
 			}
 			else {
-				player_right_click = false;
+				player_move_click = false;
 			}
 		}
 	}
@@ -208,21 +208,23 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Update HP/MP/EP bars and movement
 	for (Entity player : registry.players.entities) {
+		Player& p = registry.players.get(player);
 		
 		// get player stats
-		float& maxEP = registry.players.get(player).maxEP;
-		float& hp = registry.players.get(player).hp;
-		float& mp = registry.players.get(player).mp;
-		float& ep = registry.players.get(player).ep;
+		float& maxEP = p.maxEP;
+		float& hp = p.hp;
+		float& mp = p.mp;
+		float& ep = p.ep;
 
 		// update player motion
 		Motion& player_motion = registry.motions.get(player);
 		if (player_motion.in_motion) {
 			if (ep <= 0) { 
 				player_motion.velocity = { 0.f, 0.f };
-				player_motion.in_motion = false; 
+				player_motion.in_motion = false;
+				p.attacked = false;
 				set_is_player_turn(false);
-				player_right_click = false;
+				player_move_click = false;
 			}
 			else { 
 				float ep_rate = 1.f;
@@ -648,29 +650,120 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	//printf("World Position at (%f, %f)\n", world_pos.x, world_pos.y);
 
 	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
-		double xpos, ypos;
-		glfwGetCursorPos(window, &xpos, &ypos);
 		// Clicking the start button on the menu screen
 		for (Entity e : registry.buttons.entities) {
+			if (!registry.motions.has(e)) {
+				continue;
+			}
 			Motion m = registry.motions.get(e);
 			int buttonX = m.position[0];
 			int buttonY = m.position[1];
 			// if mouse is interating with a button
-			if ((xpos <= (buttonX + m.scale[0] / 2) && xpos >= (buttonX - m.scale[0] / 2)) && 
+			if ((xpos <= (buttonX + m.scale[0] / 2) && xpos >= (buttonX - m.scale[0] / 2)) &&
 				(ypos >= (buttonY - m.scale[1] / 2) && ypos <= (buttonY + m.scale[1] / 2))) {
+				if (!registry.buttons.has(e)) {
+					continue;
+				}
 				// perform action based on button ENUM
 				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
 
 				switch (action_taken) {
-					case BUTTON_ACTION_ID::MENU_START: inMenu = false; spawn_game_entities(); is_player_turn = true; break;
+					case BUTTON_ACTION_ID::MENU_START: 
+						inMenu = false;
+						// spawn the actions bar
+						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
+						createAttackButton(renderer, { window_width_px - 200.f, window_height_px - 150.f });
+						createMoveButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
+						spawn_game_entities(); 
+						is_player_turn = true; 
+						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
+					case BUTTON_ACTION_ID::ACTIONS_ATTACK: 
+						// set player action to attack
+						for (Entity p : registry.players.entities) {
+							Player& player = registry.players.get(p);
+							player.action = PLAYER_ACTION::ATTACKING;
+							// todo: add some sort of visual queue to show the player what action state they are in
+							logText("attacking");
+						}
+						break;
+					case BUTTON_ACTION_ID::ACTIONS_MOVE:
+						// set player action to move
+						for (Entity p : registry.players.entities) {
+							Player& player = registry.players.get(p);
+							player.action = PLAYER_ACTION::MOVING;
+							// todo: add some sort of visual queue to show the player what action state they are in
+							logText("moving");
+						}
+						break;
+				}
+			}
+		}
+
+		// logic for player actions
+		///////////////////////////
+
+		// ensure it is the player's turn and they are not currently moving
+		if (get_is_player_turn() && !player_move_click && ypos < window_height_px - 200.f) {
+			for (Entity e : registry.players.entities) {
+				Player& player = registry.players.get(e);
+
+				PLAYER_ACTION action = player.action;
+				switch (action) {
+				case PLAYER_ACTION::ATTACKING:
+					// only attack if the player hasn't attacked that turn
+					if (!player.attacked) {
+						// ensure player has clicked on an enemy
+						for (Entity en : registry.enemies.entities) {
+							// super simple bounding box for now
+							Motion m = registry.motions.get(en);
+							int enemyX = m.position[0];
+							int enemyY = m.position[1];
+
+							if ((world_pos.x <= (enemyX + m.scale[0] / 2) && world_pos.x >= (enemyX - m.scale[0] / 2)) &&
+								(world_pos.y >= (enemyY - m.scale[1] / 2) && world_pos.y <= (enemyY + m.scale[1] / 2))) {
+								// only attack if have enough ep
+								if (player.ep >= 0.33 * player.maxEP) {
+									// todo: add explosion animiation and dealDamage call
+									logText("hit enemy!");
+									// lower ep
+									player.ep -= 0.33 * player.maxEP;
+									player.attacked = true;
+								}
+								else {
+									logText("not enough ep to attack!");
+								}
+							}
+						}
+					}
+					else {
+						logText("already attacked this turn");
+					}
+					break;
+				case PLAYER_ACTION::MOVING:
+					for (Entity& player : registry.players.entities) {
+						Motion& motion_struct = registry.motions.get(player);
+
+						// set velocity to the direction of the cursor, at a magnitude of player_velocity
+						float speed = motion_struct.movement_speed;
+						float angle = atan2(world_pos.y - motion_struct.position.y, world_pos.x - motion_struct.position.x);
+						float x_component = cos(angle) * speed;
+						float y_component = sin(angle) * speed;
+						motion_struct.velocity = { x_component, y_component };
+						//motion_struct.angle = angle + (0.5 * M_PI);
+						motion_struct.destination = { world_pos.x, world_pos.y };
+						motion_struct.in_motion = true;
+						player_move_click = true;
+
+					}
+					break;
 				}
 			}
 		}
 	}
 
 
-	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_right_click) {
+	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_move_click) {
 		for (Entity& player : registry.players.entities) {
 			Motion& motion_struct = registry.motions.get(player);
 
@@ -683,7 +776,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			//motion_struct.angle = angle + (0.5 * M_PI);
 			motion_struct.destination = { world_pos.x, world_pos.y };
 			motion_struct.in_motion = true;
-			player_right_click = true;
+			player_move_click = true;
 
 		}
 	}

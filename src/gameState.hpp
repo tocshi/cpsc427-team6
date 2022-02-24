@@ -22,8 +22,34 @@ enum class gameLogic {
 	MOVEMENT_MENU,
 	ATTCK_MENU,
 	ITEM_MENU,
-	
-	ENEMY_TURN,
+
+	ENEMY_TURN,1		`1	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	CUTSCENE // CURRENTLY NOT IMPLEMENETED
 

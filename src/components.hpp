@@ -41,6 +41,11 @@ struct Motion {
 	bool in_motion = false;
 };
 
+struct Collidable 
+{
+
+};
+
 // Stucture to store collision information
 struct Collision
 {
@@ -206,6 +211,13 @@ struct Artifact {
 struct Door {
 	bool collidedWithDoor = false; 
 };
+struct TileUV {
+	std::string layer;
+	int tileID = 0;
+	vec2 uv_start = { 0,0 };
+	vec2 uv_end = { 0,0 };
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -232,11 +244,9 @@ struct Door {
 
 enum class TEXTURE_ASSET_ID {
 	BG = 0,
-	BUG = BG + 1,
-	EAGLE = BUG + 1,
-	PLAYER = EAGLE + 1,
-	ENEMY = PLAYER + 1,
-	BOSS = ENEMY + 1,
+	PLAYER = BG + 1,
+	SLIME = PLAYER + 1,
+	BOSS = SLIME + 1,
 	ARTIFACT = BOSS + 1,
 	CONSUMABLE = ARTIFACT + 1,
 	EQUIPABLE = CONSUMABLE + 1,
@@ -254,10 +264,7 @@ enum class TEXTURE_ASSET_ID {
 	HPFILL = EPBAR + 1,
 	MPFILL = HPFILL + 1,
 	EPFILL = MPFILL + 1,
-	ACTIONS_MOVE = EPFILL + 1,
-	ACTIONS_ATTACK = ACTIONS_MOVE + 1,
-	ACTIONS_BAR = ACTIONS_ATTACK + 1,
-	TEXTURE_COUNT = ACTIONS_BAR + 1
+	TEXTURE_COUNT = EPFILL + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -276,7 +283,8 @@ const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 enum class GEOMETRY_BUFFER_ID {
 	CHICKEN = 0,
 	SPRITE = CHICKEN + 1,
-	EGG = SPRITE + 1,
+	TILEMAP = SPRITE + 1,
+	EGG = TILEMAP + 1,
 	FOG = EGG + 1,
 	DEBUG_LINE = FOG + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
@@ -287,12 +295,15 @@ const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
 enum class RENDER_LAYER_ID {
 	BG = 0,
-	SPRITE = BG + 1,
-	EFFECT = SPRITE + 1,
+	FLOOR = BG + 1,
+	FLOOR_DECO = FLOOR + 1,
+	SPRITE = FLOOR_DECO + 1,
+	WALLS = SPRITE + 1,
+	EFFECT = WALLS + 1,
 	UI = EFFECT + 1,
 	UI_TOP = UI + 1,
-	DEBUG = UI_TOP + 1,
-	LAYER_COUNT = DEBUG + 1
+	DEBUG_LAYER = UI_TOP + 1,
+	LAYER_COUNT = DEBUG_LAYER + 1
 };
 const int layer_count = (int)RENDER_LAYER_ID::LAYER_COUNT;
 

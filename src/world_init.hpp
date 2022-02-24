@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "tiny_ecs.hpp"
+#include "tilemap.hpp"
 #include "render_system.hpp"
 
 // These are ahrd coded to the dimensions of the entity texture
@@ -11,10 +12,10 @@ const float EAGLE_BB_WIDTH = 0.6f * 300.f;
 const float EAGLE_BB_HEIGHT = 0.6f * 202.f;
 
 // Some are placeholder
-const float PLAYER_BB_WIDTH = 0.6f * 150.f;
-const float PLAYER_BB_HEIGHT = 0.6f * 150.f;
-const float ENEMY_BB_WIDTH = 0.6f * 150.f;
-const float ENEMY_BB_HEIGHT = 0.6f * 150.f;
+const float PLAYER_BB_WIDTH = 64.f;
+const float PLAYER_BB_HEIGHT = 64.f;
+const float ENEMY_BB_WIDTH = 64.f;
+const float ENEMY_BB_HEIGHT = 64.f;
 const float BOSS_BB_WIDTH = 0.6f * 150.f;
 const float BOSS_BB_HEIGHT = 0.6f * 150.f;
 const float ARTIFACT_BB_WIDTH = 0.6f * 150.f;
@@ -117,5 +118,7 @@ Entity createEPFill(RenderSystem* renderer, vec2 position);
 Entity createFog(vec2 pos, float resolution, float radius, vec2 screenResolution);
 // Camera
 Entity createCamera(vec2 pos);
+// Tiles
+std::vector<Entity> createTiles(RenderSystem* renderer, const std::string& filepath);
 // Text
 Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);

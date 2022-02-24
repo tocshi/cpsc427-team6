@@ -37,10 +37,8 @@ class RenderSystem {
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, texture_count> texture_paths = {
 			textures_path("dungeonbg.png"),
-			textures_path("bug.png"),
-			textures_path("eagle.png"),
-			textures_path("player.png"),
-			textures_path("enemy.png"),
+			textures_path("char/shou.png"),
+			textures_path("enemy/slime.png"),
 			textures_path("boss.png"),
 			textures_path("artifact.png"),
 			textures_path("consumable.png"),
@@ -59,9 +57,7 @@ class RenderSystem {
 			textures_path("statbars/hpfill.png"),
 			textures_path("statbars/mpfill.png"),
 			textures_path("statbars/epfill.png"),
-			textures_path("move.png"),
-			textures_path("attack.png"),
-			textures_path("actions_bar.png")
+			textures_path("roguelikeDungeon_transparent.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -124,11 +120,17 @@ public:
 
 	mat3 createProjectionMatrix();
 
+	int findTextureId(const std::string& filename);
+
 private:
 	// Internal drawing functions for each entity type
-	void drawTexturedMesh(Entity entity, const mat3& projection, Camera camera);
+	void drawTexturedMesh(Entity entity, const mat3& projection, Camera& camera);
 	void drawText(Entity entity, const mat3& projection);
 	void drawToScreen();
+	void updateTileMapCoords(TileUV tileUV);
+	bool isOnScreen(Motion& motion, Camera& camera, int window_width, int window_height);
+
+	TileUV prev_tileUV = TileUV();
 
 	// Window handle
 	GLFWwindow* window;

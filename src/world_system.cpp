@@ -226,7 +226,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			else { 
 				float ep_rate = 1.f;
-				ep -= 0.5f * ep_rate; 
+				ep -= 0.03f * ep_rate * elapsed_ms_since_last_update; 
 			}
 		}
 		

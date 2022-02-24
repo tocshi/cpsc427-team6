@@ -64,6 +64,7 @@ void PhysicsSystem::step(float elapsed_ms)
 				motion.velocity = { 0, 0 };
 				motion.destination = motion.position;
 				motion.in_motion = false;
+				break;
 			}
 			// perform angle sweep 
 			float original_angle = atan2(vel.y, vel.x) * 180 / M_PI;
@@ -99,6 +100,11 @@ void PhysicsSystem::step(float elapsed_ms)
 					}
 				}
 				if (move_success) {
+					float speed = motion.movement_speed;
+					float angle = atan2(dest.y - pos.y, dest.x - pos.x);
+					float x_component = cos(angle) * speed;
+					float y_component = sin(angle) * speed;
+					motion.velocity = { x_component, y_component };
 					break;
 				}
 			}

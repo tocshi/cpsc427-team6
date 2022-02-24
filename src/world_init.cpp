@@ -205,6 +205,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
 	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 200;
 
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 

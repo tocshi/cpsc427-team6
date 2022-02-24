@@ -242,11 +242,9 @@ struct TileUV {
 
 enum class TEXTURE_ASSET_ID {
 	BG = 0,
-	BUG = BG + 1,
-	EAGLE = BUG + 1,
-	PLAYER = EAGLE + 1,
-	ENEMY = PLAYER + 1,
-	BOSS = ENEMY + 1,
+	PLAYER = BG + 1,
+	SLIME = PLAYER + 1,
+	BOSS = SLIME + 1,
 	ARTIFACT = BOSS + 1,
 	CONSUMABLE = ARTIFACT + 1,
 	EQUIPABLE = CONSUMABLE + 1,

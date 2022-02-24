@@ -666,7 +666,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			float x_component = cos(angle) * speed;
 			float y_component = sin(angle) * speed;
 			motion_struct.velocity = { x_component, y_component};
-			motion_struct.angle = angle + (0.5 * M_PI);
+			//motion_struct.angle = angle + (0.5 * M_PI);
 			motion_struct.destination = { world_pos.x, world_pos.y };
 			motion_struct.in_motion = true;
 			player_right_click = true;

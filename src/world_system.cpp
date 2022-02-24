@@ -690,7 +690,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		///////////////////////////
 
 		// ensure it is the player's turn and they are not currently moving
-		if (get_is_player_turn() && !player_move_click) {
+		if (get_is_player_turn() && !player_move_click && ypos < window_height_px - 200.f) {
 			for (Entity e : registry.players.entities) {
 				Player& player = registry.players.get(e);
 
@@ -727,26 +727,20 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					break;
 				case PLAYER_ACTION::MOVING:
-					// ensure move is above action bar
-					if (ypos < window_height_px - 200.f) {
-						for (Entity& player : registry.players.entities) {
-							Motion& motion_struct = registry.motions.get(player);
+					for (Entity& player : registry.players.entities) {
+						Motion& motion_struct = registry.motions.get(player);
 
-							// set velocity to the direction of the cursor, at a magnitude of player_velocity
-							float speed = motion_struct.movement_speed;
-							float angle = atan2(world_pos.y - motion_struct.position.y, world_pos.x - motion_struct.position.x);
-							float x_component = cos(angle) * speed;
-							float y_component = sin(angle) * speed;
-							motion_struct.velocity = { x_component, y_component };
-							//motion_struct.angle = angle + (0.5 * M_PI);
-							motion_struct.destination = { world_pos.x, world_pos.y };
-							motion_struct.in_motion = true;
-							player_move_click = true;
+						// set velocity to the direction of the cursor, at a magnitude of player_velocity
+						float speed = motion_struct.movement_speed;
+						float angle = atan2(world_pos.y - motion_struct.position.y, world_pos.x - motion_struct.position.x);
+						float x_component = cos(angle) * speed;
+						float y_component = sin(angle) * speed;
+						motion_struct.velocity = { x_component, y_component };
+						//motion_struct.angle = angle + (0.5 * M_PI);
+						motion_struct.destination = { world_pos.x, world_pos.y };
+						motion_struct.in_motion = true;
+						player_move_click = true;
 
-						}
-					}
-					else {
-						printf("error - trying to move into actions bar");
 					}
 					break;
 				}

@@ -18,9 +18,9 @@ void setPlayer(json obj) {
 	//angle
 	float angle = obj["player"]["motion"]["angle"].get<float>();
 	// veloicty 
-	float velx = obj["player"]["motion"]["velocity_x"].get<float>();
+	float velx= obj["player"]["motion"]["velocity_x"].get<float>();
 	float vely = obj["player"]["motion"]["velocity_y"].get<float>();
-
+	
 	// dest
 	float destx = obj["player"]["motion"]["destination_x"].get<float>();
 	float desty = obj["player"]["motion"]["destination_y"].get<float>();
@@ -29,7 +29,7 @@ void setPlayer(json obj) {
 
 	// scale i
 
-	for (Entity e : registry.players.entities) {
+	for (Entity e: registry.players.entities) {
 		// we are heading to a new room so EP is max
 		registry.players.get(e).ep = registry.players.get(e).maxEP;
 		registry.players.get(e).hp = hp;
@@ -60,7 +60,7 @@ void setInventory(json obj) {
 
 	// consume 
 	bool hp_potion = obj["inventory"]["consumables"]["hp_potion"].get<bool>();
-	bool mp_potion = obj["inventory"]["consumables"]["mp_potion"].get<bool>();
+	bool mp_potion= obj["inventory"]["consumables"]["mp_potion"].get<bool>();
 
 	for (Entity e : registry.equipables.entities) {
 		registry.equipables.get(e).axe = axe;
@@ -97,7 +97,7 @@ void SaveSystem::saveGameState() {
 	json saveState;
 	json playerData;
 
-
+	
 	// equipped items
 	json inventory;
 
@@ -108,7 +108,7 @@ void SaveSystem::saveGameState() {
 		playerData["stats"]["ep"] = player.ep;
 		playerData["stats"]["maxEP"] = player.maxEP;
 		playerData["stats"]["mp"] = player.mp;
-
+		
 		Motion player_motion = registry.motions.get(e);
 
 		playerData["motion"]["position_x"] = player_motion.position.x;
@@ -120,9 +120,9 @@ void SaveSystem::saveGameState() {
 		playerData["motion"]["destination_y"] = player_motion.destination.y;
 		playerData["motion"]["movement_speed"] = player_motion.movement_speed;
 		playerData["motion"]["in_motion"] = player_motion.in_motion;
-		// get player position
-
-
+			// get player position
+	 
+		
 	}
 	// Equipment items
 	printf("LEFT PLAYER LOOP");
@@ -136,7 +136,7 @@ void SaveSystem::saveGameState() {
 			inventory["equiptment"]["axe"] = true;
 		}
 		if (equipItem.sword) {
-			inventory["equiptment"]["sword"] = true;
+			inventory["equiptment"]["sword"]= true;
 
 		}
 		if (equipItem.wand) {
@@ -184,3 +184,4 @@ json SaveSystem::getSaveData() {
 	i >> j;
 	return j;
 }
+

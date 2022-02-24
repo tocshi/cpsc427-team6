@@ -19,7 +19,7 @@ std::vector<Entity> TileMapParser::Parse(const std::string& file, RenderSystem *
 	int mapsizeY = std::atoi(rootNode->first_attribute("height")->value());
 
 	int scaleFactor = 4; // TODO: determine based on tileset if we are using different tile sizes
-	float uv_padding = 0.0;
+	float uv_padding = 0.0001;
 	// This will contain all of our tiles as objects.
 	std::vector<Entity> tileObjects;
 	// 2

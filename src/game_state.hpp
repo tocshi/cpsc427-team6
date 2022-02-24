@@ -1,9 +1,11 @@
-#include <isostrema>
+#include <iostream>
 #include <cstdint>
+#include <fstream>
+#include<string>
 
 
-
-enum class gameLogic {
+// strong type to prevent any errors
+enum class GameStates {
 	SPLASH_SCREEN,  //TRUE GO TO MAIN MENU STATE
 	INTRO_SCENE,   ////TRUE GO TO MAIN MENU STATE
 
@@ -23,34 +25,7 @@ enum class gameLogic {
 	ATTCK_MENU,
 	ITEM_MENU,
 
-	ENEMY_TURN,1		`1	
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	ENEMY_TURN, 
 	CUTSCENE // CURRENTLY NOT IMPLEMENETED
 
 };

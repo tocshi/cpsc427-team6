@@ -1,7 +1,7 @@
 // Header
 #include "world_system.hpp"
 #include "world_init.hpp"
-
+#include "game_state.hpp"
 // stlib
 #include <cassert>
 #include <sstream>
@@ -15,6 +15,8 @@ const size_t MAX_EAGLES = 15;
 const size_t MAX_BUG = 5;
 const size_t EAGLE_DELAY_MS = 2000 * 3;
 const size_t BUG_DELAY_MS = 5000 * 3;
+// decalre gamestates
+GameStates game_state = GameStates::CUTSCENE;
 
 // Create the bug world
 WorldSystem::WorldSystem()

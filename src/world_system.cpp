@@ -5,6 +5,8 @@
 // stlib
 #include <cassert>
 #include <sstream>
+#include <iostream>
+#include<fstream>
 
 #include "physics_system.hpp"
 
@@ -133,7 +135,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	fprintf(stderr, "Loaded music\n");
 
 	// Set all states to default
-    restart_game();
+	restart_game();
 }
 
 // Update our game world
@@ -145,7 +147,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
-	    registry.remove_all_components_of(registry.debugComponents.entities.back());
+		registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
@@ -153,10 +155,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current)
-	for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
-	    Motion& motion = motions_registry.components[i];
+	for (int i = (int)motions_registry.components.size() - 1; i >= 0; --i) {
+		Motion& motion = motions_registry.components[i];
 		if (motion.position.x + abs(motion.scale.x) < 0.f) {
-			if(!registry.players.has(motions_registry.entities[i])) // don't remove the player
+			if (!registry.players.has(motions_registry.entities[i])) // don't remove the player
 				registry.remove_all_components_of(motions_registry.entities[i]);
 		}
 	}
@@ -191,7 +193,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			// perform start-of-turn actions for player
 			start_player_turn();
+
 		}
+		// save the data to the json file
 	}
 
 	// If started, remove menu entities, and spawn game entities
@@ -204,7 +208,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Update HP/MP/EP bars and movement
 	for (Entity player : registry.players.entities) {
-		
+
 		// get player stats
 		float& maxEP = registry.players.get(player).maxEP;
 		float& hp = registry.players.get(player).hp;
@@ -214,23 +218,26 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// update player motion
 		Motion& player_motion = registry.motions.get(player);
 		if (player_motion.in_motion) {
-			if (ep <= 0) { 
+			if (ep <= 0) {
 				player_motion.velocity = { 0.f, 0.f };
-				player_motion.in_motion = false; 
+				player_motion.in_motion = false;
 				set_is_player_turn(false);
 				player_right_click = false;
 			}
-			else { 
+			else {
 				float ep_rate = 1.f;
-				ep -= 0.5f * ep_rate; 
+				ep -= 0.03f * ep_rate * elapsed_ms_since_last_update;
 			}
 		}
-		
+
 		// update Stat Bars and visibility
 		for (Entity entity : registry.motions.entities) {
+			if (!registry.renderRequests.has(entity)) {
+				continue;
+			}
 			Motion& motion_struct = registry.motions.get(entity);
 			RenderRequest& render_struct = registry.renderRequests.get(entity);
-			
+
 			switch (render_struct.used_texture) {
 			case TEXTURE_ASSET_ID::HPFILL:
 				motion_struct.scale = { (hp / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
@@ -251,10 +258,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (!registry.hidables.has(entity))
 				continue;
 
-			float distance_to_player = 
-				sqrt(pow((motion_struct.position.x - player_motion.position.x), 2) 
-				+ pow((motion_struct.position.y - player_motion.position.y), 2));
-			
+			float distance_to_player =
+				sqrt(pow((motion_struct.position.x - player_motion.position.x), 2)
+					+ pow((motion_struct.position.y - player_motion.position.y), 2));
+
 			if (distance_to_player > fog_radius) {
 				if (!registry.hidden.has(entity)) {
 					registry.hidden.emplace(entity);
@@ -269,7 +276,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// Update the camera to follow the player
 		Camera& camera = registry.cameras.get(active_camera_entity);
-		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
+		camera.position = player_motion.position - vec2(window_width_px / 2, window_height_px / 2);
 
 	}
 
@@ -280,30 +287,44 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Processing the chicken state
 	assert(registry.screenStates.components.size() <= 1);
-    ScreenState &screen = registry.screenStates.components[0];
+	ScreenState &screen = registry.screenStates.components[0];
 
-    float min_counter_ms = 3000.f;
+	float min_counter_ms = 3000.f;
 	for (Entity entity : registry.deathTimers.entities) {
 		// progress timer
 		DeathTimer& counter = registry.deathTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
-		if(counter.counter_ms < min_counter_ms){
-		    min_counter_ms = counter.counter_ms;
+		if (counter.counter_ms < min_counter_ms) {
+			min_counter_ms = counter.counter_ms;
 		}
 
 		// restart the game once the death timer expired
 		if (counter.counter_ms < 0) {
 			registry.deathTimers.remove(entity);
 			screen.darken_screen_factor = 0;
-            restart_game();
+			restart_game();
 			return true;
 		}
 	}
 	// reduce window brightness if any of the present chickens is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
-	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death counter
+	// Text Timers
+	for (Entity entity : registry.textTimers.entities) {
+		// progress timer
+		TextTimer& counter = registry.textTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if (counter.counter_ms < min_counter_ms) {
+			min_counter_ms = counter.counter_ms;
+		}
 
+		// remove text once the text timer has expired
+		if (counter.counter_ms < 0) {
+			registry.remove_all_components_of(entity);
+		}
+	}
+
+	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death counter
 	return true;
 }
 
@@ -319,7 +340,10 @@ void WorldSystem::restart_game() {
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	while (registry.motions.entities.size() > 0)
-	    registry.remove_all_components_of(registry.motions.entities.back());
+		registry.remove_all_components_of(registry.motions.entities.back());
+
+	while (registry.texts.entities.size() > 0)
+		registry.remove_all_components_of(registry.texts.entities.back());
 
 	while (registry.cameras.entities.size() > 0)
 		registry.remove_all_components_of(registry.cameras.entities.back());
@@ -328,10 +352,10 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Create the map/level/background
-	background = createBackground(renderer, vec2(window_width_px/2,window_height_px/2));
+	background = createBackground(renderer, vec2(window_width_px / 2, window_height_px / 2));
 
 	// Add a camera entity
-	active_camera_entity = createCamera({0, 0});
+	active_camera_entity = createCamera({ 0, 0 });
 
 	//// Create a new chicken
 	//player_chicken = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
@@ -345,7 +369,7 @@ void WorldSystem::restart_game() {
 		glfwGetWindowSize(window, &w, &h);
 		float radius = 30 * (uniform_dist(rng) + 0.3f); // range 0.3 .. 1.3
 		Entity egg = createEgg({ uniform_dist(rng) * w, h - uniform_dist(rng) * 20 },
-			         { radius, radius });
+					 { radius, radius });
 		float brightness = uniform_dist(rng) * 0.5 + 0.5;
 		registry.colors.insert(egg, { brightness, brightness, brightness});
 	}
@@ -368,16 +392,26 @@ void WorldSystem::restart_game() {
 	createMenuStart(renderer, { window_width_px / 2, 500.f });
 	createMenuQuit(renderer, { window_width_px / 2, 850.f });
 	createMenuTitle(renderer, { window_width_px / 2, 200.f });
+
+	// testing text
+	// createText(renderer, vec2(200.f, 200.f), "abcdefghijklmnopqrstuvwxyz", 1.5f, vec3(1.0f, 0.0f, 0.0f));
+	// createText(renderer, vec2(200.f, 300.f), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1.5f, vec3(1.0f, 0.0f, 0.0f));
+	// createText(renderer, vec2(200.f, 400.f), "0123456789", 1.5f, vec3(1.0f, 0.0f, 0.0f));
+	// createText(renderer, vec2(200.f, 500.f), ",./:;'()[]", 1.5f, vec3(1.0f, 0.0f, 0.0f));
+	// createText(renderer, vec2(0.f, 50.f), "test,. '123", 1.5f, vec3(1.0f));
+	// createText(renderer, vec2(200.f, 500.f), ".'", 2.f, vec3(1.0f));
 }
 
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
 
+	createTiles(renderer, "map1.tmx");
+
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
 	spawn_player_random_location();
 	spawn_enemy_random_location();
-  
+
 	createBoss(renderer, { 250.f, 450.f });
 	createArtifact(renderer, { 250.f, 550.f });
 	createConsumable(renderer, { 250.f, 650.f });
@@ -386,6 +420,7 @@ void WorldSystem::spawn_game_entities() {
 	createDoor(renderer, { 350.f, 450.f });
 	createSign(renderer, { 350.f, 550.f });
 	createStair(renderer, { 350.f, 650.f });
+	/*
 	for (uint i = 0; WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i < window_width_px; i++) {
 		createWall(renderer, { WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i, WALL_BB_HEIGHT / 2 });
 		createWall(renderer, { WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i, window_height_px - WALL_BB_HEIGHT / 2 });
@@ -394,20 +429,21 @@ void WorldSystem::spawn_game_entities() {
 		createWall(renderer, { WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
 		createWall(renderer, { window_width_px - WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
 	}
-	
+	*/
+
 	float statbarsX = 150.f;
 	float statbarsY = 740.f;
 	createHPFill(renderer, { statbarsX, statbarsY });
-	createHPBar(renderer,  { statbarsX, statbarsY });
+	createHPBar(renderer, { statbarsX, statbarsY });
 	createMPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
-	createMPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createMPBar(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
 	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
-	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
+	createEPBar(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war();
 }
 
 // render fog of war around the player
-void WorldSystem::create_fog_of_war() {	
+void WorldSystem::create_fog_of_war() {
 	for (Entity player : registry.players.entities) {
 		// get player position
 		Motion player_motion = registry.motions.get(player);
@@ -447,14 +483,14 @@ void WorldSystem::spawn_player_random_location() {
 		randY -= 200;
 	}
 
-	createPlayer(renderer, { (float)randX, (float)randY } );
+	createPlayer(renderer, { (float)randX, (float)randY });
 }
 
 // spawn enemy entity in random location
 void WorldSystem::spawn_enemy_random_location() {
 	printf("%d", rand());
-	int randX = rand()%((window_width_px - 200 + 1) + 200);
-	int randY = rand()%((window_height_px - 200 + 1) + 200);
+	int randX = rand() % ((window_width_px - 200 + 1) + 200);
+	int randY = rand() % ((window_height_px - 200 + 1) + 200);
 
 	if (randX < 200) {
 		randX += 200;
@@ -528,12 +564,40 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// action can be GLFW_PRESS GLFW_RELEASE GLFW_REPEAT
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+	// LOGGING TEXT TEST
+	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
+		logText("this is a test");
+		printf("this is a test\n");
+	}
+
+	// SAVING THE GAME
+	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
+		saveSystem.saveGameState();
+		printf("SAVING KEY PRESSED");
+	}
+
+	// LOADING THE GAME
+	if (action == GLFW_RELEASE && key == GLFW_KEY_L && get_is_player_turn()) {
+		// if save data exists reset the game
+		if (saveSystem.saveDataExists()) {
+			// remove entities to load in entities
+			removeForLoad();
+			// get saved game data
+			json gameData = saveSystem.getSaveData();
+			// load the entities in
+			loadFromData(gameData);
+			saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc.
+		}
+
+		printf("LOADING KEY PRESSED");
+	}
+
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
 
-        restart_game();
+		restart_game();
 	}
 
 	// Debugging
@@ -566,7 +630,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 	// get cursor position relative to world
 	Camera camera = registry.cameras.get(active_camera_entity);
-	vec2 world_pos = {xpos + camera.position.x, ypos + camera.position.y};
+	vec2 world_pos = { xpos + camera.position.x, ypos + camera.position.y };
 	//printf("World Position at (%f, %f)\n", world_pos.x, world_pos.y);
 
 	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
@@ -578,14 +642,14 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			int buttonX = m.position[0];
 			int buttonY = m.position[1];
 			// if mouse is interating with a button
-			if ((xpos <= (buttonX + m.scale[0] / 2) && xpos >= (buttonX - m.scale[0] / 2)) && 
+			if ((xpos <= (buttonX + m.scale[0] / 2) && xpos >= (buttonX - m.scale[0] / 2)) &&
 				(ypos >= (buttonY - m.scale[1] / 2) && ypos <= (buttonY + m.scale[1] / 2))) {
 				// perform action based on button ENUM
 				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
 
 				switch (action_taken) {
-					case BUTTON_ACTION_ID::MENU_START: inMenu = false; spawn_game_entities(); is_player_turn = true; break;
-					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
+				case BUTTON_ACTION_ID::MENU_START: inMenu = false; spawn_game_entities(); is_player_turn = true; break;
+				case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 				}
 			}
 		}
@@ -601,8 +665,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			float angle = atan2(world_pos.y - motion_struct.position.y, world_pos.x - motion_struct.position.x);
 			float x_component = cos(angle) * speed;
 			float y_component = sin(angle) * speed;
-			motion_struct.velocity = { x_component, y_component};
-			motion_struct.angle = angle + (0.5 * M_PI);
+			motion_struct.velocity = { x_component, y_component };
+			//motion_struct.angle = angle + (0.5 * M_PI);
 			motion_struct.destination = { world_pos.x, world_pos.y };
 			motion_struct.in_motion = true;
 			player_right_click = true;
@@ -647,5 +711,56 @@ void WorldSystem::start_player_turn() {
 		float& ep = registry.players.get(player).ep;
 
 		ep = maxEP;
+
 	}
+}
+
+void WorldSystem::removeForLoad() {
+	// remove player for loading
+	for (Entity player : registry.players.entities) {
+		registry.remove_all_components_of(player);
+	}
+}
+
+void WorldSystem::loadFromData(json data) {
+	// load player
+	loadPlayer(data["player"]);
+}
+
+void WorldSystem::loadPlayer(json playerData) {
+	// create a player from the save data
+	// get player motion
+	Motion m;
+	json motion = playerData["motion"];
+	m.angle = motion["angle"];
+	m.destination = { motion["destination_x"], motion["destination_y"] };
+	m.in_motion = motion["in_motion"];
+	m.movement_speed = motion["movement_speed"];
+	m.position = { motion["position_x"], motion["position_y"] };
+	m.velocity = { motion["velocity_x"], motion["velocity_y"] };
+
+	Entity e = createPlayer(renderer, m);
+	// get player stats
+	json stats = playerData["stats"];
+	registry.players.get(e).ep = stats["ep"];
+	registry.players.get(e).hp = stats["hp"];
+	registry.players.get(e).maxEP = stats["maxEP"];
+	registry.players.get(e).mp = stats["mp"];
+}
+
+void WorldSystem::logText(std::string msg) {
+	// (note: if we want to use createText in other applications, we can create a logged text entity)
+	// shift existing logged text upwards
+
+	for (Entity e : registry.textTimers.entities) {
+		Text& text = registry.texts.get(e);
+		text.position[1] -= 50.f;
+	}
+
+	// vec2 defaultPos = vec2((2.0f * window_width_px) * (1.f/20.f), (2.0f * window_height_px) * (7.f/10.f));
+	vec2 defaultPos = vec2(50.f, (2.0f * window_height_px) * (7.f / 10.f));
+	vec3 textColor = vec3(1.0f, 1.0f, 1.0f); // white
+
+	Entity e = createText(renderer, defaultPos, msg, 1.5f, textColor);
+	registry.textTimers.emplace(e);
 }

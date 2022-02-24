@@ -5,7 +5,7 @@
 #include "tiny_ecs_registry.hpp"
 
 void RenderSystem::drawTexturedMesh(Entity entity,
-									const mat3 &projection, Camera camera)
+									const mat3 &projection, Camera& camera)
 {
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest& render_request = registry.renderRequests.get(entity);
@@ -384,6 +384,9 @@ void RenderSystem::draw()
 		}
 		if (!registry.motions.has(entity) || registry.hidden.has(entity))
 			continue;
+		if (registry.renderRequests.get(entity).used_layer < RENDER_LAYER_ID::UI &&
+			!isOnScreen(registry.motions.get(entity), camera, w, h))
+			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
 		drawTexturedMesh(entity, projection_2D, camera);
@@ -441,4 +444,12 @@ void RenderSystem::updateTileMapCoords(TileUV tileUV) {
 	// Counterclockwise as it's the default opengl front winding direction.
 	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::TILEMAP, textured_vertices, textured_indices);
+}
+
+bool RenderSystem::isOnScreen(Motion& motion, Camera& camera, int window_width, int window_height) {
+	return !(motion.position.x - camera.position.x + abs(motion.scale.x) / 2 < 0 ||
+		motion.position.x - camera.position.x - abs(motion.scale.x) / 2 > window_width ||
+		motion.position.y - camera.position.y + abs(motion.scale.y) / 2 < 0 ||
+		motion.position.y - camera.position.y - abs(motion.scale.y) / 2 > window_height
+		);
 }

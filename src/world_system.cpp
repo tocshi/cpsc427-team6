@@ -708,11 +708,17 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 							if ((world_pos.x <= (enemyX + m.scale[0] / 2) && world_pos.x >= (enemyX - m.scale[0] / 2)) &&
 								(world_pos.y >= (enemyY - m.scale[1] / 2) && world_pos.y <= (enemyY + m.scale[1] / 2))) {
-								// todo: add explosion animiation and dealDamage call
-								printf("hit enemy");
-								// lower ep
-								player.ep -= 0.33 * player.maxEP;
-								player.attacked = true;
+								// only attack if have enough ep
+								if (player.ep >= 0.33 * player.maxEP) {
+									// todo: add explosion animiation and dealDamage call
+									printf("hit enemy");
+									// lower ep
+									player.ep -= 0.33 * player.maxEP;
+									player.attacked = true;
+								}
+								else {
+									printf("not enough ep to attack");
+								}
 							}
 						}
 					}

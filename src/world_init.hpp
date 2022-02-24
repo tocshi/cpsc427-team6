@@ -62,6 +62,8 @@ Entity createBackground(RenderSystem* renderer, vec2 position);
 // ================================
 // Player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
+// Player with motion component as input
+Entity createPlayer(RenderSystem* renderer, Motion m);
 // Enemy (split into different enemies for future)
 Entity createEnemy(RenderSystem* renderer, vec2 pos);
 // Boss
@@ -101,6 +103,9 @@ Entity createMPFill(RenderSystem* renderer, vec2 position);
 // Ep Fill 
 Entity createEPFill(RenderSystem* renderer, vec2 position);
 // Fog for fog of war
-Entity createFog(RenderSystem* renderer, vec2 pos);
+//Entity createFog(RenderSystem* renderer, vec2 pos);
+Entity createFog(vec2 pos, float resolution, float radius, vec2 screenResolution);
 // Camera
 Entity createCamera(vec2 pos);
+// Text
+Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);

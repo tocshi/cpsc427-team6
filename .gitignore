@@ -11,3 +11,5 @@ out/
 build/
 ext/project_path.hpp
 ext/project_path.hpp.*
+
+data/saveData.json

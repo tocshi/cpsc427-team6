@@ -5,6 +5,8 @@
 // stlib
 #include <cassert>
 #include <sstream>
+#include <iostream>
+#include<fstream>
 
 #include "physics_system.hpp"
 
@@ -49,6 +51,10 @@ namespace {
 
 // In start menu
 bool inMenu;
+
+// fog stats
+float fog_radius = 450.f;
+float fog_resolution = 2000.f;
 
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
@@ -105,14 +111,15 @@ GLFWwindow* WorldSystem::create_window() {
 		fprintf(stderr, "Failed to open audio device");
 		return nullptr;
 	}
+	Mix_VolumeMusic(10);
 
-	background_music = Mix_LoadMUS(audio_path("music.wav").c_str());
+	background_music = Mix_LoadMUS(audio_path("bgm/caves0.wav").c_str());
 	chicken_dead_sound = Mix_LoadWAV(audio_path("chicken_dead.wav").c_str());
 	chicken_eat_sound = Mix_LoadWAV(audio_path("chicken_eat.wav").c_str());
 
 	if (background_music == nullptr || chicken_dead_sound == nullptr || chicken_eat_sound == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
-			audio_path("music.wav").c_str(),
+			audio_path("bgm/caves0.wav").c_str(),
 			audio_path("chicken_dead.wav").c_str(),
 			audio_path("chicken_eat.wav").c_str());
 		return nullptr;
@@ -163,7 +170,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (player_motion.in_motion) {
 				// update the fog of war if the player is moving
 				remove_fog_of_war();
-				create_fog_of_war(500.f);
+				create_fog_of_war();
 			}
 			else {
 				player_right_click = false;
@@ -186,7 +193,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			// perform start-of-turn actions for player
 			start_player_turn();
+			
 		}
+		// save the data to the json file
 	}
 
 	// If started, remove menu entities, and spawn game entities
@@ -217,10 +226,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			else { 
 				float ep_rate = 1.f;
-				ep -= 2.f * ep_rate; 
+				ep -= 0.5f * ep_rate; 
 			}
 		}
 		
+		// update Stat Bars and visibility
 		for (Entity entity : registry.motions.entities) {
 			Motion& motion_struct = registry.motions.get(entity);
 			RenderRequest& render_struct = registry.renderRequests.get(entity);
@@ -239,12 +249,33 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				motion_struct.position[0] = 150.f - 150.f*(1.f - (ep / 100.f));	// original pos (full bar) - (1-multiplier)
 				break;
 			}
+
+			// Hide certain entities that are outside of the player's sight range
+			// don't hide walls, signs, stairs, doors
+			if (!registry.hidables.has(entity))
+				continue;
+
+			float distance_to_player = 
+				sqrt(pow((motion_struct.position.x - player_motion.position.x), 2) 
+				+ pow((motion_struct.position.y - player_motion.position.y), 2));
+			
+			if (distance_to_player > fog_radius) {
+				if (!registry.hidden.has(entity)) {
+					registry.hidden.emplace(entity);
+				}
+			}
+			else {
+				if (registry.hidden.has(entity)) {
+					registry.hidden.remove(entity);
+				}
+			}
 		}
+
 		// Update the camera to follow the player
 		Camera& camera = registry.cameras.get(active_camera_entity);
 		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
-	}
 
+	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A3: HANDLE EGG SPAWN HERE
@@ -275,8 +306,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// reduce window brightness if any of the present chickens is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
-	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death counter
+	// Text Timers
+	for (Entity entity : registry.textTimers.entities) {
+		// progress timer
+		TextTimer& counter = registry.textTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if(counter.counter_ms < min_counter_ms){
+		    min_counter_ms = counter.counter_ms;
+		}
 
+		// remove text once the text timer has expired
+		if (counter.counter_ms < 0) {
+			registry.remove_all_components_of(entity);
+		}
+	}
+
+	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death counter
 	return true;
 }
 
@@ -288,11 +333,17 @@ void WorldSystem::restart_game() {
 
 	// Reset the game speed
 	current_speed = 1.f;
-
+	
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	while (registry.motions.entities.size() > 0)
 	    registry.remove_all_components_of(registry.motions.entities.back());
+	
+	while (registry.texts.entities.size() > 0)
+		registry.remove_all_components_of(registry.texts.entities.back());
+
+	while (registry.cameras.entities.size() > 0)
+		registry.remove_all_components_of(registry.cameras.entities.back());
 
 	// Debugging for memory/component leaks
 	registry.list_all_components();
@@ -338,6 +389,14 @@ void WorldSystem::restart_game() {
 	createMenuStart(renderer, { window_width_px / 2, 500.f });
 	createMenuQuit(renderer, { window_width_px / 2, 850.f });
 	createMenuTitle(renderer, { window_width_px / 2, 200.f });
+
+	// testing text
+	// createText(renderer, vec2(200.f, 200.f), "abcdefghijklmnopqrstuvwxyz", 1.5f, vec3(1.0f, 0.0f, 0.0f));
+	// createText(renderer, vec2(200.f, 300.f), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1.5f, vec3(1.0f, 0.0f, 0.0f));
+	// createText(renderer, vec2(200.f, 400.f), "0123456789", 1.5f, vec3(1.0f, 0.0f, 0.0f));
+	// createText(renderer, vec2(200.f, 500.f), ",./:;'()[]", 1.5f, vec3(1.0f, 0.0f, 0.0f));
+	// createText(renderer, vec2(0.f, 50.f), "test,. '123", 1.5f, vec3(1.0f));
+	// createText(renderer, vec2(200.f, 500.f), ".'", 2.f, vec3(1.0f));
 }
 
 // spawn the game entities
@@ -373,32 +432,19 @@ void WorldSystem::spawn_game_entities() {
 	createMPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT });
 	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
-	create_fog_of_war(500.f);
+	create_fog_of_war();
 }
 
-// render fog of war around the player past a given radius
-void WorldSystem::create_fog_of_war(float radius) {	
-	// render fog everywhere except in visible circle around the player
-	for (int x = 0; x <= window_width_px; x+=50) {
-		for (int y = 0; y <= window_height_px; y += 50) {
-			// if the point is not witin the visible circle, render fog there
-			for (Entity player : registry.players.entities) {
-				// get player position
-				Motion player_motion = registry.motions.get(player);
-				float playerX = player_motion.position.x;
-				float playerY = player_motion.position.y;
+// render fog of war around the player
+void WorldSystem::create_fog_of_war() {	
+	for (Entity player : registry.players.entities) {
+		// get player position
+		Motion player_motion = registry.motions.get(player);
+		float playerX = player_motion.position.x;
+		float playerY = player_motion.position.y;
 
-				// check if position is within the radius of the players position
-				double absX = abs(x - playerX);
-				double absY = abs(y - playerY);
-				double r = (double)radius;
-
-				// only create fog entities if they are not within the circle
-				if ((absX > r || absY > r) || !((absX * absX + absY * absY) <= r * r)) {
-					createFog(renderer, { x, y });
-				}
-			}
-		}
+		Entity fog = createFog({ playerX, playerY }, fog_resolution, fog_radius, { window_width_px, window_height_px });
+		registry.colors.insert(fog, { 0.2, 0.2, 0.2 });
 	}
 }
 
@@ -510,6 +556,34 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// key is of 'type' GLFW_KEY_
 	// action can be GLFW_PRESS GLFW_RELEASE GLFW_REPEAT
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+	// LOGGING TEXT TEST
+	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
+		logText("this is a test");
+		printf("this is a test\n");
+	}
+
+	// SAVING THE GAME
+	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
+		saveSystem.saveGameState();
+		printf("SAVING KEY PRESSED");
+	}
+
+	// LOADING THE GAME
+	if (action == GLFW_RELEASE && key == GLFW_KEY_L && get_is_player_turn() ) {
+		// if save data exists reset the game
+		if (saveSystem.saveDataExists()) {
+			// remove entities to load in entities
+			removeForLoad();
+			// get saved game data
+			json gameData = saveSystem.getSaveData();
+			// load the entities in
+			loadFromData(gameData);
+			saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc.
+		}
+
+		printf("LOADING KEY PRESSED");
+	}
 
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
@@ -630,5 +704,56 @@ void WorldSystem::start_player_turn() {
 		float& ep = registry.players.get(player).ep;
 
 		ep = maxEP;
+
 	}
+}
+
+void WorldSystem::removeForLoad() {
+	// remove player for loading
+	for (Entity player : registry.players.entities) {
+		registry.remove_all_components_of(player);
+	}
+}
+
+void WorldSystem::loadFromData(json data) {
+	// load player
+	loadPlayer(data["player"]);
+}
+
+void WorldSystem::loadPlayer(json playerData) {
+	// create a player from the save data
+	// get player motion
+	Motion m;
+	json motion = playerData["motion"];
+	m.angle = motion["angle"];
+	m.destination = { motion["destination_x"], motion["destination_y"] };
+	m.in_motion = motion["in_motion"];
+	m.movement_speed = motion["movement_speed"];
+	m.position = { motion["position_x"], motion["position_y"] };
+	m.velocity = { motion["velocity_x"], motion["velocity_y"] };
+
+	Entity e = createPlayer(renderer, m);
+	// get player stats
+	json stats = playerData["stats"];
+	registry.players.get(e).ep = stats["ep"];
+	registry.players.get(e).hp = stats["hp"];
+	registry.players.get(e).maxEP = stats["maxEP"];
+	registry.players.get(e).mp = stats["mp"];
+}
+
+void WorldSystem::logText(std::string msg) {
+	// (note: if we want to use createText in other applications, we can create a logged text entity)
+	// shift existing logged text upwards
+
+	for (Entity e : registry.textTimers.entities) {
+		Text& text = registry.texts.get(e);
+		text.position[1] -= 50.f;
+	}
+
+	// vec2 defaultPos = vec2((2.0f * window_width_px) * (1.f/20.f), (2.0f * window_height_px) * (7.f/10.f));
+	vec2 defaultPos = vec2(50.f, (2.0f * window_height_px) * (7.f/10.f));
+	vec3 textColor = vec3(1.0f, 1.0f, 1.0f); // white
+
+	Entity e = createText(renderer, defaultPos, msg, 1.5f, textColor);
+	registry.textTimers.emplace(e);
 }

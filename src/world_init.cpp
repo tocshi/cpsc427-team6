@@ -160,6 +160,36 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+// Player created with given motion component
+Entity createPlayer(RenderSystem* renderer, Motion m)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = m.angle;
+	motion.velocity = m.velocity;
+	motion.position = m.position;
+	motion.in_motion = m.in_motion;
+	motion.movement_speed = m.movement_speed;
+	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
+	motion.destination = m.destination;
+
+	// Create and (empty) Player component to be able to refer to all players
+	registry.players.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::PLAYER,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 // Enemy slime (split into different enemies for future)
 Entity createEnemy(RenderSystem* renderer, vec2 pos)
 {
@@ -191,6 +221,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::ENEMY,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
 
 	return entity;
 }
@@ -219,6 +250,7 @@ Entity createBoss(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::BOSS,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
 
 	return entity;
 }
@@ -241,12 +273,14 @@ Entity createArtifact(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ ARTIFACT_BB_WIDTH, ARTIFACT_BB_HEIGHT });
 
 	// Create and (empty) ARTIFACT component to be able to refer to all artifacts
-	registry.test.emplace(entity);
+	//registry.test.emplace(entity);
+	registry.artifacts.emplace(entity); // grab the artifact entity
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ARTIFACT,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
 
 	return entity;
 }
@@ -269,12 +303,14 @@ Entity createConsumable(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ CONSUMABLE_BB_WIDTH, CONSUMABLE_BB_HEIGHT });
 
 	// Create and (empty) CONSUMABLE component to be able to refer to all consumables
-	registry.test.emplace(entity);
+	//registry.test.emplace(entity);
+	registry.consumables.emplace(entity); // Replace to refer to Consuamble stats
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::CONSUMABLE,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
 
 	return entity;
 }
@@ -297,12 +333,14 @@ Entity createEquipable(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ EQUIPABLE_BB_WIDTH, EQUIPABLE_BB_HEIGHT });
 
 	// Create and (empty) EQUIPABLE component to be able to refer to all equipables
-	registry.test.emplace(entity);
+	//registry.test.emplace(entity);
+	registry.equipables.emplace(entity); // TRY FOR EQUIPTMENT
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::EQUIPABLE,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
 
 	return entity;
 }
@@ -331,6 +369,7 @@ Entity createChest(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::CHEST,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
 
 	return entity;
 }
@@ -743,31 +782,27 @@ Entity createEPFill(RenderSystem* renderer, vec2 position) {
 
 }
 
-// Fog entity for fog of war
-Entity createFog(RenderSystem* renderer, vec2 pos)
-{
+Entity createFog(vec2 pos, float resolution, float radius, vec2 screen_resolution) {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initilaize the position, scale, and physics components (more to be changed/added)
-	auto& motion = registry.motions.emplace(entity);
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.position = pos;
+	motion.scale = { resolution, resolution };
 
-	motion.scale = vec2({ FOG_BB_WIDTH, FOG_BB_HEIGHT });
-
-	// Create and (empty) FOG component to be able to refer to all fog entities
-	registry.fog.emplace(entity);
+	Fog& fog = registry.fog.emplace(entity);
+	fog.resolution = resolution;
+	fog.radius = radius;
+	fog.screen_resolution = screen_resolution;
+	
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::FOG,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::EFFECT});
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::FOG,
+			GEOMETRY_BUFFER_ID::FOG,
+			RENDER_LAYER_ID::EFFECT });
 
 	return entity;
 }
@@ -781,6 +816,34 @@ Entity createCamera(vec2 pos)
 	auto& camera = registry.cameras.emplace(entity);
 	camera.position = pos;
 	camera.active = true;
+
+	return entity;
+}
+
+// Text entity
+Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale = 1.0f, vec3 textColor = vec3(0.0f))
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the text component
+	auto& text = registry.texts.emplace(entity);
+	text.message = msg;
+	text.position = pos;
+	text.scale = scale;
+	text.textColor = textColor;
+
+	// Create an (empty) Bug component to be able to refer to all bug
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::TEXT,
+			GEOMETRY_BUFFER_ID::TEXTQUAD,
+			RENDER_LAYER_ID::UI_TOP });
 
 	return entity;
 }

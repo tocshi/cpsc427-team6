@@ -4,6 +4,12 @@
 #include <unordered_map>
 #include "../ext/stb_image/stb_image.h"
 
+enum class PLAYER_ACTION {
+	MOVING = 0,
+	ATTACKING = MOVING + 1,
+	ACTION_COUNT = ATTACKING + 1
+};
+
 // Player component
 struct Player
 {
@@ -14,8 +20,8 @@ struct Player
 	float ep = 100; 
 	float maxEP = 100; 
 
-	
-
+	// current action taking (count acts as no current action being taken)
+	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
 };
 
 // Eagles have a hard shell
@@ -149,6 +155,11 @@ struct Solid {
 
 };
 
+// simple component for all enemies
+struct Enemy {
+
+};
+
 enum class SLIME_STATE {
 	IDLE_DOWN = 0,
 	IDLE_UP = IDLE_DOWN + 1,
@@ -264,7 +275,11 @@ enum class TEXTURE_ASSET_ID {
 	HPFILL = EPBAR + 1,
 	MPFILL = HPFILL + 1,
 	EPFILL = MPFILL + 1,
-	TEXTURE_COUNT = EPFILL + 1
+	ACTIONS_MOVE = EPFILL + 1,
+	ACTIONS_ATTACK = ACTIONS_MOVE + 1,
+	ACTIONS_BAR = ACTIONS_ATTACK + 1,
+	TRANSPARENT_ROUGE_LIKE = ACTIONS_BAR + 1,
+	TEXTURE_COUNT = TRANSPARENT_ROUGE_LIKE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

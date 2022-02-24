@@ -127,6 +127,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	// Create and (empty) Enemy component to be able to refer to all enemies
+	registry.enemies.emplace(entity);
 	// make it a slime enemy for now
 	registry.slimeEnemies.insert(
 		entity,

@@ -106,7 +106,7 @@ private:
 	Entity player_chicken;
 	Entity background;
 	bool is_player_turn = true;
-	bool player_right_click = false;
+	bool player_move_click = false;
 	bool is_ai_turn = false;
 
 	// music references

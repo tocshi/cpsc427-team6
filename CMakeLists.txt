@@ -67,6 +67,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES ENABLE_EXPORTS 0)
 # External header-only libraries in the ext/
 target_include_directories(${PROJECT_NAME} PUBLIC ext/stb_image/)
 target_include_directories(${PROJECT_NAME} PUBLIC ext/gl3w)
+target_include_directories(${PROJECT_NAME} PUBLIC ext/rapidxml/)
 
 # Find OpenGL
 find_package(OpenGL REQUIRED)
@@ -163,6 +164,8 @@ elseif (IS_OS_WINDOWS)
         # non-const references, yay microsoft) into an error
         "/we4239"
     )
+
+    target_link_options(${PROJECT_NAME} PUBLIC "/PROFILE")
 endif()
 
 # Can't find the include and lib. Quit.

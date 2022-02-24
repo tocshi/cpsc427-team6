@@ -58,7 +58,8 @@ class RenderSystem {
 			textures_path("statbars/epbar.png"),
 			textures_path("statbars/hpfill.png"),
 			textures_path("statbars/mpfill.png"),
-			textures_path("statbars/epfill.png")
+			textures_path("statbars/epfill.png"),
+			textures_path("roguelikeDungeon_transparent.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -121,11 +122,17 @@ public:
 
 	mat3 createProjectionMatrix();
 
+	int findTextureId(const std::string& filename);
+
 private:
 	// Internal drawing functions for each entity type
-	void drawTexturedMesh(Entity entity, const mat3& projection, Camera camera);
+	void drawTexturedMesh(Entity entity, const mat3& projection, Camera& camera);
 	void drawText(Entity entity, const mat3& projection);
 	void drawToScreen();
+	void updateTileMapCoords(TileUV tileUV);
+	bool isOnScreen(Motion& motion, Camera& camera, int window_width, int window_height);
+
+	TileUV prev_tileUV = TileUV();
 
 	// Window handle
 	GLFWwindow* window;

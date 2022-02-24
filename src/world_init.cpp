@@ -211,6 +211,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
 	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 200;
 
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
@@ -487,6 +489,7 @@ Entity createWall(RenderSystem* renderer, vec2 pos)
 	// Create and (empty) DOOR component to be able to refer to all doors
 	registry.test.emplace(entity);
 	registry.solid.emplace(entity);
+	registry.collidables.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::WALL,
@@ -855,4 +858,9 @@ Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale
 			RENDER_LAYER_ID::UI_TOP });
 
 	return entity;
+}
+
+std::vector<Entity> createTiles(RenderSystem* renderer, const std::string& filepath) {
+	TileMapParser parser = TileMapParser();
+	return parser.Parse(tilemaps_path(filepath), renderer);
 }

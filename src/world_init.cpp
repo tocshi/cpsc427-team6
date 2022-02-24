@@ -149,6 +149,9 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	motion.movement_speed = 200;
 	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 
+	// Create player stats
+	auto& stats = registry.stats.emplace(entity);
+
 	// Create and (empty) Player component to be able to refer to all players
 	registry.players.emplace(entity);
 	registry.renderRequests.insert(
@@ -179,6 +182,9 @@ Entity createPlayer(RenderSystem* renderer, Motion m)
 	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 	motion.destination = m.destination;
 
+	// Create player stats
+	auto& stats = registry.stats.emplace(entity);
+
 	// Create and (empty) Player component to be able to refer to all players
 	registry.players.emplace(entity);
 	registry.renderRequests.insert(
@@ -208,12 +214,15 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
+	// Create slime stats
+	auto& stats = registry.stats.emplace(entity);
+	stats.name = "Slime";
+
 	// Create and (empty) Enemy component to be able to refer to all enemies
 	// make it a slime enemy for now
 	registry.slimeEnemies.insert(
 		entity,
-		{ 10.f,
-		300,
+		{ 300,
 		{ window_width_px / 2, 350.f },
 		SLIME_STATE::IDLE });
 	registry.renderRequests.insert(

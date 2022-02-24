@@ -7,14 +7,7 @@
 // Player component
 struct Player
 {
-	float s; 
-	//Entity Stat; // hp, ep ,mp 
-	float hp = 100;
-	float mp = 100;
-	float ep = 100; 
-	float maxEP = 100; 
-
-	
+	float s;
 
 };
 
@@ -125,11 +118,20 @@ struct Interactable {
 	
 };
 
-struct Stat {
+struct Stats {
+	// Name goes here too
+	std::string name = "Placeholder Name";
 	// set intial stats to 100 points
-	float hp = 100;
-	float mp = 100;
-	float ep = 100;
+	float hp    = 100.f;
+	float maxhp = 100.f;
+	float mp    = 100.f;
+	float maxmp = 100.f;
+	float ep    = 100.f;
+	float maxep = 100.f;
+	float atk   = 10.f;
+	float def   = 10.f;
+	float range = 450.f;
+	float chase = 450.f;
 };
 
 struct Queueable {
@@ -151,7 +153,6 @@ enum class SLIME_STATE {
 };
 
 struct SlimeEnemy {
-	float hp = 0;
 	float chaseRange = 0;
 	vec2 initialPosition = { 0, 0 };
 	SLIME_STATE state = SLIME_STATE::STATE_COUNT;

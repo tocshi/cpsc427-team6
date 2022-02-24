@@ -29,7 +29,7 @@ public:
 	ComponentContainer<Equipable> equipables;
 	ComponentContainer<Guardable> guardables;
 	ComponentContainer<Interactable> interactables;
-	ComponentContainer<Stat> stats;
+	ComponentContainer<Stats> stats;
 	ComponentContainer<Queueable> queueables;
 	ComponentContainer<Test> test;	// for testing
 	ComponentContainer<Solid> solid;

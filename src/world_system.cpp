@@ -210,10 +210,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	for (Entity player : registry.players.entities) {
 		
 		// get player stats
-		float& maxEP = registry.players.get(player).maxEP;
-		float& hp = registry.players.get(player).hp;
-		float& mp = registry.players.get(player).mp;
-		float& ep = registry.players.get(player).ep;
+		float& maxep = registry.stats.get(player).maxep;
+		float& hp = registry.stats.get(player).hp;
+		float& mp = registry.stats.get(player).mp;
+		float& ep = registry.stats.get(player).ep;
 
 		// update player motion
 		Motion& player_motion = registry.motions.get(player);
@@ -698,12 +698,12 @@ void WorldSystem::start_player_turn() {
 	for (Entity player : registry.players.entities) {
 
 		// get player stats
-		float& maxEP = registry.players.get(player).maxEP;
-		float& hp = registry.players.get(player).hp;
-		float& mp = registry.players.get(player).mp;
-		float& ep = registry.players.get(player).ep;
+		float& maxep = registry.stats.get(player).maxep;
+		float& hp = registry.stats.get(player).hp;
+		float& mp = registry.stats.get(player).mp;
+		float& ep = registry.stats.get(player).ep;
 
-		ep = maxEP;
+		ep = maxep;
 
 	}
 }
@@ -735,10 +735,10 @@ void WorldSystem::loadPlayer(json playerData) {
 	Entity e = createPlayer(renderer, m);
 	// get player stats
 	json stats = playerData["stats"];
-	registry.players.get(e).ep = stats["ep"];
-	registry.players.get(e).hp = stats["hp"];
-	registry.players.get(e).maxEP = stats["maxEP"];
-	registry.players.get(e).mp = stats["mp"];
+	registry.stats.get(e).ep = stats["ep"];
+	registry.stats.get(e).hp = stats["hp"];
+	registry.stats.get(e).maxep = stats["maxep"];
+	registry.stats.get(e).mp = stats["mp"];
 }
 
 void WorldSystem::logText(std::string msg) {

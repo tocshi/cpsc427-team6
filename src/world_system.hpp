@@ -115,6 +115,7 @@ private:
 	Mix_Chunk* chicken_eat_sound;
 	Mix_Chunk* fire_explosion_sound;
 	Mix_Chunk* error_sound;
+	Mix_Chunk* footstep_sound;
 
 	SaveSystem saveSystem;
 

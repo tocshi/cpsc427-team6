@@ -37,6 +37,8 @@ WorldSystem::~WorldSystem() {
 		Mix_FreeChunk(fire_explosion_sound);
 	if (error_sound != nullptr)
 		Mix_FreeChunk(error_sound);
+	if (footstep_sound != nullptr)
+		Mix_FreeChunk(footstep_sound);
 	Mix_CloseAudio();
 
 	// Destroy all created components
@@ -59,6 +61,9 @@ bool inMenu;
 // fog stats
 float fog_radius = 450.f;
 float fog_resolution = 2000.f;
+
+// move audio timer
+float move_audio_timer_ms = 200.f;
 
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
@@ -122,15 +127,17 @@ GLFWwindow* WorldSystem::create_window() {
 	chicken_eat_sound = Mix_LoadWAV(audio_path("chicken_eat.wav").c_str());
 	fire_explosion_sound = Mix_LoadWAV(audio_path("feedback/fire_explosion.wav").c_str());
 	error_sound = Mix_LoadWAV(audio_path("feedback/error.wav").c_str());
+	footstep_sound = Mix_LoadWAV(audio_path("feedback/footstep.wav").c_str());
 
 	if (background_music == nullptr || chicken_dead_sound == nullptr || chicken_eat_sound == nullptr 
-		|| fire_explosion_sound == nullptr || error_sound == nullptr) {
+		|| fire_explosion_sound == nullptr || error_sound == nullptr || footstep_sound == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
 			audio_path("bgm/caves0.wav").c_str(),
 			audio_path("chicken_dead.wav").c_str(),
 			audio_path("chicken_eat.wav").c_str(),
 			audio_path("feedback/fire_explosion.wav").c_str(),
-			audio_path("feedback/error.wav").c_str());
+			audio_path("feedback/error.wav").c_str(),
+			audio_path("feedback/footstep.wav").c_str());
 		return nullptr;
 	}
 
@@ -177,6 +184,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		for (Entity player : registry.players.entities) {
 			Motion player_motion = registry.motions.get(player);
 			if (player_motion.in_motion) {
+				// handle footstep sound
+				if (move_audio_timer_ms <= 0) {
+					// play the footstep sound
+					Mix_VolumeChunk(footstep_sound, 9);
+					Mix_PlayChannel(-1, footstep_sound, 0);
+					move_audio_timer_ms = 200.f;
+				}
+				else {
+					move_audio_timer_ms -= 50.f;
+				}
 				// update the fog of war if the player is moving
 				remove_fog_of_war();
 				create_fog_of_war();

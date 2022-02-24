@@ -23,28 +23,6 @@ Entity createLine(vec2 position, vec2 scale)
 	return entity;
 }
 
-Entity createEgg(vec2 pos, vec2 size)
-{
-	auto entity = Entity();
-
-	// Setting initial motion values
-	Motion& motion = registry.motions.emplace(entity);
-	motion.position = pos;
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.scale = size;
-
-	// Create and (empty) Chicken component to be able to refer to all eagles
-	registry.deadlys.emplace(entity);
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
-			EFFECT_ASSET_ID::EGG,
-			GEOMETRY_BUFFER_ID::EGG });
-
-	return entity;
-}
-
 // =================================================
 // ================================
 // Player
@@ -855,4 +833,30 @@ Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale
 std::vector<Entity> createTiles(RenderSystem* renderer, const std::string& filepath) {
 	TileMapParser parser = TileMapParser();
 	return parser.Parse(tilemaps_path(filepath), renderer);
+}
+
+Entity createCampfire(RenderSystem* renderer, vec2 pos) {
+	Entity entity = Entity();
+	AnimationData& anim = registry.animations.emplace(entity);
+	anim.spritesheet_texture = TEXTURE_ASSET_ID::CAMPFIRE_SPRITESHEET;
+	anim.frametime_ms = 200;
+	anim.frame_indices = { 0, 1, 2, 3, 4 };
+	anim.spritesheet_columns = 5;
+	anim.spritesheet_rows = 1;
+	anim.spritesheet_width = 320;
+	anim.spritesheet_height = 64;
+	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 64, 64 };
+	
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::CAMPFIRE_SPRITESHEET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::ANIMATION,
+			RENDER_LAYER_ID::WALLS });
+
+	return entity;
 }

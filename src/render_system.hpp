@@ -60,7 +60,8 @@ class RenderSystem {
 			textures_path("move.png"),
 			textures_path("attack.png"),
 			textures_path("actions_bar.png"),
-			textures_path("roguelikeDungeon_transparent.png")
+			textures_path("roguelikeDungeon_transparent.png"),
+			textures_path("campfire.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -130,10 +131,12 @@ private:
 	void drawTexturedMesh(Entity entity, const mat3& projection, Camera& camera);
 	void drawText(Entity entity, const mat3& projection);
 	void drawToScreen();
-	void updateTileMapCoords(TileUV tileUV);
+	void updateTileMapCoords(TileUV& tileUV);
+	void updateAnimTexCoords(AnimationData& anim);
 	bool isOnScreen(Motion& motion, Camera& camera, int window_width, int window_height);
 
 	TileUV prev_tileUV = TileUV();
+	AnimationData prev_animdata = AnimationData();
 
 	// Window handle
 	GLFWwindow* window;

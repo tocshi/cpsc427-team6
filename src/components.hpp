@@ -281,8 +281,9 @@ enum class TEXTURE_ASSET_ID {
 	ACTIONS_MOVE = EPFILL + 1,
 	ACTIONS_ATTACK = ACTIONS_MOVE + 1,
 	ACTIONS_BAR = ACTIONS_ATTACK + 1,
-	TRANSPARENT_ROUGE_LIKE = ACTIONS_BAR + 1,
-	TEXTURE_COUNT = TRANSPARENT_ROUGE_LIKE + 1
+	DUNGEON_TILESHEET = ACTIONS_BAR + 1,
+	CAMPFIRE_SPRITESHEET = DUNGEON_TILESHEET + 1,
+	TEXTURE_COUNT = CAMPFIRE_SPRITESHEET + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -303,7 +304,8 @@ enum class GEOMETRY_BUFFER_ID {
 	SPRITE = CHICKEN + 1,
 	TILEMAP = SPRITE + 1,
 	EGG = TILEMAP + 1,
-	FOG = EGG + 1,
+	ANIMATION = EGG + 1,
+	FOG = ANIMATION + 1,
 	DEBUG_LINE = FOG + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
 	TEXTQUAD = SCREEN_TRIANGLE + 1,
@@ -333,3 +335,20 @@ struct RenderRequest {
 	RENDER_LAYER_ID used_layer = RENDER_LAYER_ID::SPRITE;
 };
 
+struct AnimationData {
+	// spritesheet data required for animation (maybe split into another component later)
+	TEXTURE_ASSET_ID spritesheet_texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
+	int spritesheet_width; // width of the source image
+	int spritesheet_height; // height of the source image
+	int spritesheet_columns; // number of columns the spritesheet image is split into
+	int spritesheet_rows; // number of columns the spritesheet image is split into
+	vec2 frame_size; // width and height of a "tile" in the spritesheet
+
+	// animation data
+	int current_frame = 0; // the current frame of the animation. Gets updated and used to access frame_indices
+	int animation_time_ms = 0; // elapsed time in animation. Reset to 0 when animation reaches end and animation is looping
+	int frametime_ms; // how long it should take before switching frames
+	std::vector<int> frame_indices; // indices refer to a "tile" within the sheet. List the indices as frames in an animation
+
+	bool loop = true;
+};

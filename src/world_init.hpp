@@ -12,10 +12,10 @@ const float EAGLE_BB_WIDTH = 0.6f * 300.f;
 const float EAGLE_BB_HEIGHT = 0.6f * 202.f;
 
 // Some are placeholder
-const float PLAYER_BB_WIDTH = 0.6f * 150.f;
-const float PLAYER_BB_HEIGHT = 0.6f * 150.f;
-const float ENEMY_BB_WIDTH = 0.6f * 150.f;
-const float ENEMY_BB_HEIGHT = 0.6f * 150.f;
+const float PLAYER_BB_WIDTH = 64.f;
+const float PLAYER_BB_HEIGHT = 64.f;
+const float ENEMY_BB_WIDTH = 64.f;
+const float ENEMY_BB_HEIGHT = 64.f;
 const float BOSS_BB_WIDTH = 0.6f * 150.f;
 const float BOSS_BB_HEIGHT = 0.6f * 150.f;
 const float ARTIFACT_BB_WIDTH = 0.6f * 150.f;

@@ -42,6 +42,8 @@ public:
 	ComponentContainer<TextTimer> textTimers;
 	ComponentContainer<Test> hidden;
 	ComponentContainer<Test> hidables;
+	ComponentContainer<TileUV> tileUVs;
+	ComponentContainer<Collidable> collidables;
 	// add door component
 	ComponentContainer<Door>door;
 	ComponentContainer<Artifact> artifacts;
@@ -85,6 +87,8 @@ public:
 		registry_list.push_back(&door);
 		// add artifact to list
 		registry_list.push_back(&artifacts);
+		registry_list.push_back(&tileUVs);
+		registry_list.push_back(&collidables);
 	}
 
 	void clear_all_components() {

@@ -30,10 +30,10 @@ bool collides(const Motion& motion1, const Motion& motion2)
 bool collides_AABB(const Motion& motion1, const Motion& motion2) {
 	vec2 bounding_box_a = get_bounding_box(motion1);
 	vec2 bounding_box_b = get_bounding_box(motion2);
-	return motion1.position.x < motion2.position.x + bounding_box_b.x
-		&& motion1.position.x + bounding_box_a.x > motion2.position.x
-		&& motion1.position.y < motion2.position.y + bounding_box_b.y
-		&& motion1.position.y + bounding_box_a.y > motion2.position.y;
+	return motion1.position.x - bounding_box_a.x/2 < motion2.position.x + bounding_box_b.x/2
+		&& motion1.position.x + bounding_box_a.x/2 > motion2.position.x - bounding_box_b.x/2
+		&& motion1.position.y - bounding_box_a.y/2 < motion2.position.y + bounding_box_b.y/2
+		&& motion1.position.y + bounding_box_a.y/2 > motion2.position.y - bounding_box_b.y/2;
 }
 
 float dist_to(const vec2 position1, const vec2 position2) {
@@ -64,6 +64,7 @@ void PhysicsSystem::step(float elapsed_ms)
 				motion.velocity = { 0, 0 };
 				motion.destination = motion.position;
 				motion.in_motion = false;
+				break;
 			}
 			// perform angle sweep 
 			float original_angle = atan2(vel.y, vel.x) * 180 / M_PI;
@@ -99,6 +100,11 @@ void PhysicsSystem::step(float elapsed_ms)
 					}
 				}
 				if (move_success) {
+					float speed = motion.movement_speed;
+					float angle = atan2(dest.y - pos.y, dest.x - pos.x);
+					float x_component = cos(angle) * speed;
+					float y_component = sin(angle) * speed;
+					motion.velocity = { x_component, y_component };
 					break;
 				}
 			}
@@ -120,12 +126,18 @@ void PhysicsSystem::step(float elapsed_ms)
     ComponentContainer<Motion> &motion_container = registry.motions;
 	for(uint i = 0; i<motion_container.components.size(); i++)
 	{
+		if (!registry.collidables.has(motion_container.entities[i])) {
+			continue;
+		}
 		Motion& motion_i = motion_container.components[i];
 		Entity entity_i = motion_container.entities[i];
 		
 		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
 		for(uint j = i+1; j<motion_container.components.size(); j++)
 		{
+			if (!registry.collidables.has(motion_container.entities[j])) {
+				continue;
+			}
 			Motion& motion_j = motion_container.components[j];
 			if (collides(motion_i, motion_j))
 			{

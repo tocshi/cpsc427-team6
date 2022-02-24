@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "tiny_ecs.hpp"
+#include "tilemap.hpp"
 #include "render_system.hpp"
 
 // These are ahrd coded to the dimensions of the entity texture
@@ -107,5 +108,7 @@ Entity createEPFill(RenderSystem* renderer, vec2 position);
 Entity createFog(vec2 pos, float resolution, float radius, vec2 screenResolution);
 // Camera
 Entity createCamera(vec2 pos);
+// Tiles
+std::vector<Entity> createTiles(RenderSystem* renderer, const std::string& filepath);
 // Text
 Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);

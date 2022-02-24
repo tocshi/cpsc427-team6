@@ -5,7 +5,7 @@
 #include "tiny_ecs_registry.hpp"
 
 void RenderSystem::drawTexturedMesh(Entity entity,
-									const mat3 &projection, Camera camera)
+									const mat3 &projection, Camera& camera)
 {
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest& render_request = registry.renderRequests.get(entity);
@@ -42,6 +42,15 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	// Input data location as in the vertex buffer
 	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
 	{
+		// update texture coordinates if necessary
+		if (render_request.used_geometry == GEOMETRY_BUFFER_ID::TILEMAP && registry.tileUVs.has(entity)) {
+			TileUV& tileUV = registry.tileUVs.get(entity);
+			if (tileUV.layer != prev_tileUV.layer || tileUV.tileID != prev_tileUV.tileID) {
+				updateTileMapCoords(tileUV);
+				prev_tileUV = tileUV;
+			}
+		}
+
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
 		gl_has_errors();
@@ -375,6 +384,9 @@ void RenderSystem::draw()
 		}
 		if (!registry.motions.has(entity) || registry.hidden.has(entity))
 			continue;
+		if (registry.renderRequests.get(entity).used_layer < RENDER_LAYER_ID::UI &&
+			!isOnScreen(registry.motions.get(entity), camera, w, h))
+			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
 		drawTexturedMesh(entity, projection_2D, camera);
@@ -403,4 +415,41 @@ mat3 RenderSystem::createProjectionMatrix()
 	float tx = -(right + left) / (right - left);
 	float ty = -(top + bottom) / (top - bottom);
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
+}
+
+int RenderSystem::findTextureId(const std::string& filename) {
+	auto it = std::find(texture_paths.begin(), texture_paths.end(), textures_path(filename));
+	// If element was found
+	if (it != texture_paths.end())
+	{
+		return it - texture_paths.begin();
+	}
+	return -1;
+}
+
+void RenderSystem::updateTileMapCoords(TileUV tileUV) {
+	//////////////////////////
+	// Initialize sprite
+	// The position corresponds to the center of the texture.
+	std::vector<TexturedVertex> textured_vertices(4);
+	textured_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
+	textured_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
+	textured_vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
+	textured_vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
+	textured_vertices[0].texcoord = { tileUV.uv_start.x, tileUV.uv_end.y };
+	textured_vertices[1].texcoord = { tileUV.uv_end.x, tileUV.uv_end.y };
+	textured_vertices[2].texcoord = { tileUV.uv_end.x, tileUV.uv_start.y };
+	textured_vertices[3].texcoord = { tileUV.uv_start.x, tileUV.uv_start.y };
+
+	// Counterclockwise as it's the default opengl front winding direction.
+	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::TILEMAP, textured_vertices, textured_indices);
+}
+
+bool RenderSystem::isOnScreen(Motion& motion, Camera& camera, int window_width, int window_height) {
+	return !(motion.position.x - camera.position.x + abs(motion.scale.x) / 2 < 0 ||
+		motion.position.x - camera.position.x - abs(motion.scale.x) / 2 > window_width ||
+		motion.position.y - camera.position.y + abs(motion.scale.y) / 2 < 0 ||
+		motion.position.y - camera.position.y - abs(motion.scale.y) / 2 > window_height
+		);
 }

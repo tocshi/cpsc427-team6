@@ -143,7 +143,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	registry.slimeEnemies.insert(
 		entity,
 		{ { window_width_px / 2, 350.f },
-		SLIME_STATE::IDLE });
+		ENEMY_STATE::IDLE });
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SLIME,
@@ -182,7 +182,7 @@ Entity createEnemy(RenderSystem* renderer, Motion m)
 	registry.slimeEnemies.insert(
 		entity,
 		{ { window_width_px / 2, 350.f },
-		SLIME_STATE::IDLE });
+		ENEMY_STATE::IDLE });
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SLIME,

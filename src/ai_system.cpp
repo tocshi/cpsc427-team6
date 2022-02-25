@@ -21,37 +21,37 @@ void AISystem::slime_logic(Entity slime, Entity& player, WorldSystem* world, Ren
 	Motion& motion_struct = registry.motions.get(slime);
 
 	// Perform melee attack if close enough
-	if (registry.slimeEnemies.get(slime).state == SLIME_STATE::ATTACK) {
+	if (registry.slimeEnemies.get(slime).state == ENEMY_STATE::ATTACK) {
 		if (player_in_range(motion_struct.position, meleeRange)) {
 			createExplosion(renderer, player_motion.position);
 			Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
 			world->logText(deal_damage(slime, player, 100));
 		}
-		registry.slimeEnemies.get(slime).state = SLIME_STATE::AGGRO;
+		registry.slimeEnemies.get(slime).state = ENEMY_STATE::AGGRO;
 		return;
 	}
 
 	// Determine slime state
 	// check if player is in range first
 	if (player_in_range(motion_struct.position, chaseRange)) {
-		registry.slimeEnemies.get(slime).state = SLIME_STATE::AGGRO;
+		registry.slimeEnemies.get(slime).state = ENEMY_STATE::AGGRO;
 	}
 	else {
-		registry.slimeEnemies.get(slime).state = SLIME_STATE::IDLE;
+		registry.slimeEnemies.get(slime).state = ENEMY_STATE::IDLE;
 	}
 
-	SLIME_STATE state = registry.slimeEnemies.get(slime).state;
+	ENEMY_STATE state = registry.slimeEnemies.get(slime).state;
 	// perform action based on state
 	int dx = ichoose(irandRange(-75, -25), irandRange(25, 75));
 	int dy = ichoose(irandRange(-75, -25), irandRange(25, 75));
 
 	switch (state) {
-	case SLIME_STATE::IDLE:
+	case ENEMY_STATE::IDLE:
 		motion_struct.destination = { motion_struct.position.x + dx, motion_struct.position.y + dy };
 		motion_struct.velocity = 180.f * normalize(motion_struct.destination - motion_struct.position);
 		motion_struct.in_motion = true;
 		break;
-	case SLIME_STATE::AGGRO:
+	case ENEMY_STATE::AGGRO:
 		// move towards player
 		for (Entity player : registry.players.entities) {
 			// get player position

@@ -1064,6 +1064,6 @@ void WorldSystem::doTurnOrderLogic() {
 // Set attack state for enemies who attack after moving
 void set_enemy_state_attack(Entity enemy) {
 	if (registry.slimeEnemies.has(enemy)) {
-		registry.slimeEnemies.get(enemy).state = SLIME_STATE::ATTACK;
+		registry.slimeEnemies.get(enemy).state = ENEMY_STATE::ATTACK;
 	}
 }

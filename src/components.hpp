@@ -183,7 +183,7 @@ struct Enemy {
 
 };
 
-enum class SLIME_STATE {
+enum class ENEMY_STATE {
 	IDLE = 0,
 	AGGRO = IDLE + 1,
 	ATTACK = AGGRO + 1,
@@ -192,7 +192,7 @@ enum class SLIME_STATE {
 
 struct SlimeEnemy {
 	vec2 initialPosition = { 0, 0 };
-	SLIME_STATE state = SLIME_STATE::STATE_COUNT;
+	ENEMY_STATE state = ENEMY_STATE::STATE_COUNT;
 };
 
 enum class BUTTON_ACTION_ID {

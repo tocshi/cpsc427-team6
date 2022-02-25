@@ -113,9 +113,9 @@ SpawnData TileMapParser::Parse(const std::string& file, RenderSystem *renderer, 
 
 	// load and store player/enemy/item spawnpoints
 	SpawnData spawnData = SpawnData();
-	spawnData.playerSpawns = BuildSpawns(rootNode, "player");
-	spawnData.enemySpawns = BuildSpawns(rootNode, "enemy");
-	spawnData.itemSpawns = BuildSpawns(rootNode, "item");
+	spawnData.playerSpawns = BuildSpawns(rootNode, "player", scaleFactor, offset);
+	spawnData.enemySpawns = BuildSpawns(rootNode, "enemy", scaleFactor, offset);
+	spawnData.itemSpawns = BuildSpawns(rootNode, "item", scaleFactor, offset);
 
 	return spawnData;
 }
@@ -313,8 +313,8 @@ Entity TileMapParser::createTileFromData(std::shared_ptr<Tile> tile, int tileSiz
 	return entity;
 }
 
-std::vector<vec2> TileMapParser::BuildSpawns(rapidxml::xml_node<>* rootNode, std::string layerName) {
-	std::vector<vec2> objects = std::vector<vec2>();
+std::vector<std::shared_ptr<vec2>> TileMapParser::BuildSpawns(rapidxml::xml_node<>* rootNode, std::string layerName, int scaleFactor, vec2 offset) {
+	std::vector<std::shared_ptr<vec2>> objects = std::vector<std::shared_ptr<vec2>>();
 	// We loop through each layer in the XML document.
 	for (rapidxml::xml_node<>* node = rootNode->first_node("objectgroup");
 		node; node = node->next_sibling("objectgroup"))
@@ -323,7 +323,10 @@ std::vector<vec2> TileMapParser::BuildSpawns(rapidxml::xml_node<>* rootNode, std
 			for (rapidxml::xml_node<>* objectnode = node->first_node("object");
 				objectnode; objectnode = objectnode->next_sibling("object"))
 			{
-				objects.push_back({ std::atof(objectnode->first_attribute("x")->value()), std::atof(objectnode->first_attribute("y")->value())});
+				objects.push_back(std::make_shared<vec2>(vec2( 
+					std::atof(objectnode->first_attribute("x")->value())* scaleFactor + offset.x, 
+					std::atof(objectnode->first_attribute("y")->value())* scaleFactor + offset.y 
+				)));
 			}
 		}
 	}

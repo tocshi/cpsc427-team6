@@ -455,12 +455,12 @@ void WorldSystem::restart_game() {
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
 
-	createTiles(renderer, "map1_random.tmx");
+	SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
-	spawn_player_random_location();
-	spawn_enemy_random_location();
+	spawn_player_random_location(spawnData.playerSpawns);
+	spawn_enemy_random_location(spawnData.enemySpawns);
   
 	createBoss(renderer, { 250.f, 450.f });
 	createArtifact(renderer, { 250.f, 550.f });
@@ -515,31 +515,19 @@ void WorldSystem::remove_fog_of_war() {
 }
 
 // spawn player entity in random location
-void WorldSystem::spawn_player_random_location() {
-	printf("%d", rand());
-	int randX = rand() % ((window_width_px - 200 + 1) + 200);
-	int randY = rand() % ((window_height_px - 200 + 1) + 200);
+void WorldSystem::spawn_player_random_location(std::vector<std::shared_ptr<vec2>>& playerSpawns) {
+	std::random_shuffle(playerSpawns.begin(), playerSpawns.end());
+	if (playerSpawns.size() > 0) {
+		createPlayer(renderer, { playerSpawns[0]->x, playerSpawns[0]->y});
+		return;
+	}
+	// default spawn location in case we don't have player spawns
+	createPlayer(renderer, { 0, 0 });
 
-	if (randX < 200) {
-		randX += 200;
-	}
-	else if (randX >= window_width_px - 200) {
-		randX -= 200;
-	}
-
-	if (randY < 200) {
-		randY += 200;
-	}
-	else if (randY >= window_height_px - 200) {
-		randY -= 200;
-	}
-
-	//createPlayer(renderer, { (float)randX, (float)randY } );
-	createPlayer(renderer, { 400, 400 });
 }
 
 // spawn enemy entity in random location
-void WorldSystem::spawn_enemy_random_location() {
+void WorldSystem::spawn_enemy_random_location(std::vector<std::shared_ptr<vec2>>& enemySpawns) {
 	printf("%d", rand());
 	int randX = rand()%((window_width_px - 200 + 1) + 200);
 	int randY = rand()%((window_height_px - 200 + 1) + 200);

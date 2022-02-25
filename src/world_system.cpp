@@ -16,7 +16,7 @@ const size_t MAX_BUG = 5;
 const size_t EAGLE_DELAY_MS = 2000 * 3;
 const size_t BUG_DELAY_MS = 5000 * 3;
 // decalre gamestates
-GameStates game_state = GameStates::CUTSCENE;
+//GameStates game_state = GameStates::CUTSCENE;
 
 // Create the bug world
 WorldSystem::WorldSystem()
@@ -51,8 +51,12 @@ namespace {
 	}
 }
 
-// In start menu
-bool inMenu;
+// bool inMenu; (previious)
+// In start menu (CHANGE TO INT TO SEE IF IT WORKS)
+// CUTSCENE IS null
+GameStates inMenu;
+GameStates previousGameState = inMenu;
+
 
 // fog stats
 float fog_radius = 450.f;
@@ -101,7 +105,15 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
 
 	// Set the game to start on the menu screen
-	inMenu = true;
+	previousGameState = inMenu;
+	//printf("Previous Game State : Game state = MAIN_MENU");
+	//printf()
+	inMenu = GameStates::MAIN_MENU;
+
+	// set previousgamestate to inMenu
+	previousGameState = inMenu;
+	printf("ACTION: SET THE GAME TO START : Game state = MAIN_MENU");
+	
 
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
@@ -201,15 +213,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// If started, remove menu entities, and spawn game entities
-	if (!inMenu) {
+	//if(!inMenu) (
+	//inMenu > GameStates::CUTSCENE || inMenu <GameStates::SPLASH_SCREEN
+	if (inMenu == GameStates::GAME_START) {
 		// remove all menu entities
 		for (Entity e : registry.menuItems.entities) {
 			registry.remove_all_components_of(e);
 		}
 	}
-
 	// Update HP/MP/EP bars and movement
-	for (Entity player : registry.players.entities) {
+	for (Entity player : registry.players.entities) { 
 		
 		// get player stats
 		float& maxEP = registry.players.get(player).maxEP;
@@ -276,7 +289,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Update the camera to follow the player
 		Camera& camera = registry.cameras.get(active_camera_entity);
 		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
-
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -357,7 +369,17 @@ void WorldSystem::restart_game() {
 	*/
 
 	// restart the game on the menu screen
-	inMenu = true;
+	//inMenu = true;
+	inMenu = GameStates::MAIN_MENU;
+	previousGameState = inMenu;
+	std::cout << "ACTION: Loading initial game world or Pressed Restart button, Go to MENU SCREEN : Game state = MAIN_MENU" << std::endl;
+	/*if (inMenu != GameStates::MAIN_MENU) {
+		//inMenu = GameStates::MAIN_MENU;
+		std::cout << "ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU" << std::endl;
+		//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
+	}*/
+	//inMenu = GameStates::MAIN_MENU;
+	//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
 
 	// For testing textures
 	//createPlayer(renderer, {50.f, 250.f});
@@ -612,9 +634,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
 
 				switch (action_taken) {
-					case BUTTON_ACTION_ID::MENU_START: inMenu = false; spawn_game_entities(); is_player_turn = true; break;
+					//case BUTTON_ACTION_ID::MENU_START: inMenu = false; spawn_game_entities(); is_player_turn = true; break;
+					case BUTTON_ACTION_ID::MENU_START: inMenu = GameStates::GAME_START; previousGameState = inMenu; printf("\n set previous game state to current games state for inMenu \n"); printf("BUTTON PRESS ACTION START : Game state = GAME_START : We are playing a Game \n"); spawn_game_entities(); is_player_turn = true; break;
+						
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 				}
+
 			}
 		}
 	}

@@ -61,7 +61,8 @@ class RenderSystem {
 			textures_path("attack.png"),
 			textures_path("actions_bar.png"),
 			textures_path("roguelikeDungeon_transparent.png"),
-			textures_path("campfire.png")
+			textures_path("campfire.png"),
+			textures_path("explosion.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

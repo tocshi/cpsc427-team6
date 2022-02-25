@@ -860,3 +860,31 @@ Entity createCampfire(RenderSystem* renderer, vec2 pos) {
 
 	return entity;
 }
+
+Entity createExplosion(RenderSystem* renderer, vec2 pos) {
+	Entity entity = Entity();
+	AnimationData& anim = registry.animations.emplace(entity);
+	anim.spritesheet_texture = TEXTURE_ASSET_ID::EXPLOSION_SPRITESHEET;
+	anim.frametime_ms = 80;
+	anim.loop = false;
+	anim.delete_on_finish = true;
+	anim.frame_indices = { 0, 1, 2, 3, 4, 5, 6, 7 };
+	anim.spritesheet_columns = 2;
+	anim.spritesheet_rows = 4;
+	anim.spritesheet_width = 367;
+	anim.spritesheet_height = 185;
+	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 128 , 128 };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::EXPLOSION_SPRITESHEET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::ANIMATION,
+			RENDER_LAYER_ID::WALLS });
+
+	return entity;
+}

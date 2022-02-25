@@ -91,6 +91,9 @@ private:
 	// log text
 	void logText(std::string msg);
 
+	// do turn order logic
+	void doTurnOrderLogic();
+
 	// OpenGL window handle
 	GLFWwindow* window;
 

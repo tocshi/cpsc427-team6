@@ -4,7 +4,6 @@
 #include "tiny_ecs_registry.hpp"
 #include <iostream>
 #include <queue>
-using namespace std;
 
 class TurnOrderSystem {
 public:
@@ -14,5 +13,5 @@ public:
 
 private:
 	Entity currentEntity;
-	queue<Entity> turnQueue;
+	std::queue<Entity> turnQueue;
 };

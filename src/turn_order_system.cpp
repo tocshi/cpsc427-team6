@@ -23,10 +23,7 @@ Entity TurnOrderSystem::getCurrentTurnEntity() {
 
 // get the next turn, put the entity that just did a turn to back of the queue
 Entity TurnOrderSystem::getNextTurn() {
-	// if currentEntity is not done turn, just return current entity
-	if (registry.queueables.get(currentEntity).doing_turn) {
-		return currentEntity;
-	}
+	
 	Entity next;
 	// check to see if the next thing is still alive(should still be in queueables)
 	while (!registry.queueables.has(next)) {

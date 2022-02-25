@@ -163,32 +163,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	Entity currentTurnEntity = turnOrderSystem.getCurrentTurnEntity;
-
-	// if current entity is not doing turn and stopped moving, get the next turn entity
-	if (!registry.queueables.get(currentTurnEntity).doing_turn && !registry.motions.get(currentTurnEntity).in_motion) {
-		// if player just finished their turn, set is player turn to false
-		if (registry.players.has(currentTurnEntity)) {
-			set_is_player_turn(false);
-		}
-
-		// get next turn
-		currentTurnEntity = turnOrderSystem.getNextTurn();
-
-		// if the current entity is the player, call start_player_turn()
-		if (registry.players.has(currentTurnEntity)) {
-			set_is_player_turn(true);
-			start_player_turn();
-		}
+	// if not in menu do turn order logic
+	if (!inMenu) {
+		doTurnOrderLogic();
 	}
 
-	// if current turn entity is enemy and is still doing_turn call ai.step();
-	if (!registry.players.has(currentTurnEntity) && registry.queueables.get(currentTurnEntity).doing_turn) {
-		aiSystem.step(currentTurnEntity);
-
-		// now that ai did its step, set doing turn to false
-		registry.queueables.get(currentTurnEntity).doing_turn = false;
-	}
+	
 
 	// perform in-motion behaviour
 	if (get_is_player_turn() && player_move_click) {
@@ -885,4 +865,33 @@ void WorldSystem::logText(std::string msg) {
 
 	Entity e = createText(renderer, defaultPos, msg, 1.5f, textColor);
 	registry.textTimers.emplace(e);
+}
+
+void WorldSystem::doTurnOrderLogic() {
+	Entity currentTurnEntity = turnOrderSystem.getCurrentTurnEntity();
+
+	// if current entity is not doing turn and stopped moving, get the next turn entity
+	if (!registry.queueables.get(currentTurnEntity).doing_turn && !registry.motions.get(currentTurnEntity).in_motion) {
+		// if player just finished their turn, set is player turn to false
+		if (registry.players.has(currentTurnEntity)) {
+			set_is_player_turn(false);
+		}
+
+		// get next turn
+		currentTurnEntity = turnOrderSystem.getNextTurn();
+
+		// if the current entity is the player, call start_player_turn()
+		if (registry.players.has(currentTurnEntity)) {
+			set_is_player_turn(true);
+			start_player_turn();
+		}
+	}
+
+	// if current turn entity is enemy and is still doing_turn call ai.step();
+	if (!registry.players.has(currentTurnEntity) && registry.queueables.get(currentTurnEntity).doing_turn) {
+		aiSystem.step(currentTurnEntity);
+
+		// now that ai did its step, set doing turn to false
+		registry.queueables.get(currentTurnEntity).doing_turn = false;
+	}
 }

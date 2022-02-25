@@ -1,9 +1,9 @@
 // internal
 #include "ai_system.hpp"
 #include "combat_system.hpp"
-#include "world_init.hpp"
+#include "world_system.hpp"
 
-void AISystem::step(Entity e, WorldSystem world, RenderSystem* renderer)
+void AISystem::step(Entity e, WorldSystem* world, RenderSystem* renderer)
 {
 	for (Entity& player : registry.players.entities) {
 		if (registry.slimeEnemies.has(e)) {
@@ -12,7 +12,7 @@ void AISystem::step(Entity e, WorldSystem world, RenderSystem* renderer)
 	}
 }
 
-void AISystem::slime_logic(Entity slime, Entity& player, WorldSystem world, RenderSystem* renderer) {
+void AISystem::slime_logic(Entity slime, Entity& player, WorldSystem* world, RenderSystem* renderer) {
 	for (Entity& slime : registry.slimeEnemies.entities) {
 		Motion& player_motion = registry.motions.get(player);
 		Stats& stats = registry.stats.get(slime);
@@ -25,8 +25,8 @@ void AISystem::slime_logic(Entity slime, Entity& player, WorldSystem world, Rend
 		if (registry.slimeEnemies.get(slime).state == SLIME_STATE::ATTACK) {
 			if (player_in_range(motion_struct.position, meleeRange)) {
 				createExplosion(renderer, player_motion.position);
-				Mix_PlayChannel(-1, world.fire_explosion_sound, 0);
-				world.logText(deal_damage(slime, player, 100));
+				Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
+				world->logText(deal_damage(slime, player, 100));
 			}
 			registry.slimeEnemies.get(slime).state = SLIME_STATE::AGGRO;
 			break;

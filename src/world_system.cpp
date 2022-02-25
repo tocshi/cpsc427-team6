@@ -461,6 +461,8 @@ void WorldSystem::spawn_game_entities() {
 	// spawn the player and enemy in random locations
 	spawn_player_random_location();
 	spawn_enemy_random_location();
+	spawn_enemy_random_location();
+	spawn_enemy_random_location();
   
 	createBoss(renderer, { 250.f, 450.f });
 	createArtifact(renderer, { 250.f, 550.f });

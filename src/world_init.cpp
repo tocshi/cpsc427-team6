@@ -161,6 +161,86 @@ Entity createEnemy(RenderSystem* renderer, Motion m)
 	return entity;
 }
 
+Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 0;
+
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+
+	// Initilalize stats
+	// hp = 20, atk = 8, queue = 7, def = 2, range = 400
+	auto& stat = registry.stats.emplace(entity);
+	stat.maxhp = 20.f;
+	stat.hp = stat.maxhp;
+	stat.atk = 8.f;
+	stat.def = 2.f;
+	stat.speed = 7.f;
+	stat.range = 400.f;
+	stat.chase = 0.f;
+
+	// Create and (empty) Enemy component to be able to refer to all enemies
+	registry.enemies.emplace(entity);
+	// registry.queueables.emplace(entity);
+	// registry.damageables.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::PLANT_SHOOTER,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
+
+	return entity;
+}
+
+Entity createPlantProjectile(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 0;
+
+	motion.scale = vec2({ PLANT_PROJECTILE_BB_WIDTH, PLANT_PROJECTILE_BB_HEIGHT });
+
+	// Initilalize stats
+	// hp = 20, atk = 8, queue = 7, def = 2, range = 400
+	auto& stat = registry.stats.emplace(entity);
+	stat.atk = 8.f;
+
+	// Create and (empty) Enemy component to be able to refer to all enemies
+	registry.enemies.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::PLANT_PROJECTILE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
+
+	return entity;
+}
+
 // Boss
 Entity createBoss(RenderSystem* renderer, vec2 pos)
 {

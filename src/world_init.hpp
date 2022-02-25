@@ -16,6 +16,8 @@ const float PLAYER_BB_WIDTH = 64.f;
 const float PLAYER_BB_HEIGHT = 64.f;
 const float ENEMY_BB_WIDTH = 64.f;
 const float ENEMY_BB_HEIGHT = 64.f;
+const float PLANT_PROJECTILE_BB_WIDTH = 16.f;
+const float PLANT_PROJECTILE_BB_HEIGHT = 16.f;
 const float BOSS_BB_WIDTH = 0.6f * 150.f;
 const float BOSS_BB_HEIGHT = 0.6f * 150.f;
 const float ARTIFACT_BB_WIDTH = 0.6f * 150.f;
@@ -73,6 +75,10 @@ Entity createPlayer(RenderSystem* renderer, Motion m);
 Entity createEnemy(RenderSystem* renderer, vec2 pos);
 // Enemy with motion component as input
 Entity createEnemy(RenderSystem* renderer, Motion m);
+// Plant Shooter
+Entity createPlantShooter(RenderSystem* renderer, vec2 pos);
+// Plant Projectile
+Entity createPlantProjectile(RenderSystem* renderer, vec2 pos);
 // Boss
 Entity createBoss(RenderSystem* renderer, vec2 pos);
 // Artifact

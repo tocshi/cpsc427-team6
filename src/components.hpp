@@ -139,11 +139,22 @@ struct Interactable {
 	
 };
 
-struct Stat {
+struct Stats {
+	// Name goes here too
+	std::string name = "Placeholder Name";
+	std::string prefix = "";
 	// set intial stats to 100 points
-	float hp = 100;
-	float mp = 100;
-	float ep = 100;
+	float hp    = 100.f;
+	float maxhp = 100.f;
+	float mp    = 100.f;
+	float maxmp = 100.f;
+	float ep    = 100.f;
+	float maxep = 100.f;
+	float atk   = 10.f;
+	float def   = 10.f;
+	float speed = 10.f;
+	float range = 450.f;
+	float chase = 450.f;
 };
 
 struct Queueable {
@@ -260,7 +271,9 @@ enum class TEXTURE_ASSET_ID {
 	BG = 0,
 	PLAYER = BG + 1,
 	SLIME = PLAYER + 1,
-	BOSS = SLIME + 1,
+	PLANT_SHOOTER = SLIME + 1,
+	PLANT_PROJECTILE = PLANT_SHOOTER + 1,
+	BOSS = PLANT_PROJECTILE + 1,
 	ARTIFACT = BOSS + 1,
 	CONSUMABLE = ARTIFACT + 1,
 	EQUIPABLE = CONSUMABLE + 1,

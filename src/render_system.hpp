@@ -39,6 +39,8 @@ class RenderSystem {
 			textures_path("dungeonbg.png"),
 			textures_path("char/shou.png"),
 			textures_path("enemy/slime.png"),
+			textures_path("enemy/plant_shooter/plant_shooter.png"),
+			textures_path("enemy/plant_shooter/projectile.png"),
 			textures_path("boss.png"),
 			textures_path("artifact.png"),
 			textures_path("consumable.png"),

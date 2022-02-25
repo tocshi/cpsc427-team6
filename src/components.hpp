@@ -13,12 +13,7 @@ enum class PLAYER_ACTION {
 // Player component
 struct Player
 {
-	float s; 
-	//Entity Stat; // hp, ep ,mp 
-	float hp = 100;
-	float mp = 100;
-	float ep = 100; 
-	float maxEP = 100; 
+	float s;
 
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
@@ -82,10 +77,24 @@ struct DebugComponent
 	// Note, an empty struct has size 1
 };
 
-// A timer that will be associated to dying chicken
+// A timer that will be associated to dying player
 struct DeathTimer
 {
 	float counter_ms = 3000;
+};
+
+// Squishing effect timer
+struct SquishTimer
+{
+	float counter_ms = 3000;
+	vec2 orig_scale = { 0, 0 };
+};
+
+// Wobble effect timer
+struct WobbleTimer
+{
+	float counter_ms = 3000;
+	vec2 orig_scale = { 0, 0 };
 };
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & chicken.vs.glsl)
@@ -158,7 +167,7 @@ struct Stats {
 };
 
 struct Queueable {
-
+	bool doing_turn = false;
 };
 
 struct Test {
@@ -174,18 +183,16 @@ struct Enemy {
 
 };
 
-enum class SLIME_STATE {
-	IDLE_DOWN = 0,
-	IDLE_UP = IDLE_DOWN + 1,
-	CHASING = IDLE_UP + 1,
-	STATE_COUNT = CHASING + 1
+enum class ENEMY_STATE {
+	IDLE = 0,
+	AGGRO = IDLE + 1,
+	ATTACK = AGGRO + 1,
+	STATE_COUNT = ATTACK + 1
 };
 
 struct SlimeEnemy {
-	float hp = 0;
-	float chaseRange = 0;
 	vec2 initialPosition = { 0, 0 };
-	SLIME_STATE state = SLIME_STATE::STATE_COUNT;
+	ENEMY_STATE state = ENEMY_STATE::STATE_COUNT;
 };
 
 enum class BUTTON_ACTION_ID {

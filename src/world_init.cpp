@@ -43,6 +43,19 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	motion.movement_speed = 200;
 	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 
+	// Create player stats
+	auto& stats = registry.stats.emplace(entity);
+	stats.hp = 100;
+	stats.maxhp = 100;
+	stats.mp = 100;
+	stats.maxmp = 100;
+	stats.ep = 100;
+	stats.maxep = 100;
+	stats.atk = 10;
+	stats.def = 2;
+	stats.speed = 10;
+	stats.range = 450;
+
 	// Create and (empty) Player component to be able to refer to all players
 	registry.players.emplace(entity);
 	registry.renderRequests.insert(
@@ -50,6 +63,9 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::PLAYER,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	// add player to queuables
+	registry.queueables.emplace(entity);
 
 	return entity;
 }
@@ -73,6 +89,9 @@ Entity createPlayer(RenderSystem* renderer, Motion m)
 	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 	motion.destination = m.destination;
 
+	// Create player stats
+	auto& stats = registry.stats.emplace(entity);
+
 	// Create and (empty) Player component to be able to refer to all players
 	registry.players.emplace(entity);
 	registry.renderRequests.insert(
@@ -80,6 +99,9 @@ Entity createPlayer(RenderSystem* renderer, Motion m)
 		{ TEXTURE_ASSET_ID::PLAYER,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	// add player to queuables
+	registry.queueables.emplace(entity);
 
 	return entity;
 }
@@ -104,21 +126,33 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
+	// Create slime stats
+	auto& stats = registry.stats.emplace(entity);
+	stats.name = "Slime";
+	stats.prefix = "the";
+	stats.hp = 25;
+	stats.maxhp = 25;
+	stats.atk = 10;
+	stats.def = 3;
+	stats.speed = 8;
+	stats.range = 250;
+
 	// Create and (empty) Enemy component to be able to refer to all enemies
 	registry.enemies.emplace(entity);
 	// make it a slime enemy for now
 	registry.slimeEnemies.insert(
 		entity,
-		{ 10.f,
-		300,
-		{ window_width_px / 2, 350.f },
-		SLIME_STATE::IDLE_DOWN });
+		{ { window_width_px / 2, 350.f },
+		ENEMY_STATE::IDLE });
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SLIME,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
+
+	// add enemy to queuables
+	registry.queueables.emplace(entity);
 
 	return entity;
 }
@@ -147,10 +181,8 @@ Entity createEnemy(RenderSystem* renderer, Motion m)
 	// make it a slime enemy for now
 	registry.slimeEnemies.insert(
 		entity,
-		{ 10.f,
-		300,
-		{ window_width_px / 2, 350.f },
-		SLIME_STATE::IDLE_DOWN });
+		{ { window_width_px / 2, 350.f },
+		ENEMY_STATE::IDLE });
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SLIME,
@@ -186,6 +218,9 @@ Entity createBoss(RenderSystem* renderer, vec2 pos)
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
+
+	// add boss to queuables
+	registry.queueables.emplace(entity);
 
 	return entity;
 }

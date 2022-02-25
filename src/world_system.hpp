@@ -13,6 +13,8 @@
 
 #include "render_system.hpp"
 #include "save_system.hpp"
+#include "turn_order_system.hpp"
+#include "ai_system.hpp"
 #include <../ext/json/single_include/nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -53,6 +55,17 @@ public:
 
 	void start_player_turn();
 
+	// music references
+	Mix_Music* background_music;
+	Mix_Chunk* chicken_dead_sound;
+	Mix_Chunk* chicken_eat_sound;
+	Mix_Chunk* fire_explosion_sound;
+	Mix_Chunk* error_sound;
+	Mix_Chunk* footstep_sound;
+
+	// log text
+	void logText(std::string msg);
+
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -85,7 +98,7 @@ private:
 
 	// load player from data
 	void loadPlayer(json playerData);
-
+  
 	// load enemies from data
 	void loadEnemies(json enemyData);
 
@@ -94,9 +107,9 @@ private:
 
 	// load motion data
 	Motion loadMotion(json motionData);
-
-	// log text
-	void logText(std::string msg);
+  
+  // do turn order logic
+	void doTurnOrderLogic();
 
 	// OpenGL window handle
 	GLFWwindow* window;
@@ -118,17 +131,14 @@ private:
 	bool player_move_click = false;
 	bool is_ai_turn = false;
 
-	// music references
-	Mix_Music* background_music;
-	Mix_Chunk* chicken_dead_sound;
-	Mix_Chunk* chicken_eat_sound;
-	Mix_Chunk* fire_explosion_sound;
-	Mix_Chunk* error_sound;
-	Mix_Chunk* footstep_sound;
-
 	SaveSystem saveSystem;
+	TurnOrderSystem turnOrderSystem;
+	AISystem aiSystem;
 
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 };
+
+// Set attack state for enemies that attack after moving
+void set_enemy_state_attack(Entity enemy);

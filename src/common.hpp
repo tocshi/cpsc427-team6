@@ -5,6 +5,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <cmath>
 
 // glfw (OpenGL)
 #define NOMINMAX
@@ -50,3 +51,6 @@ struct Transform {
 };
 
 bool gl_has_errors();
+int irand(int i);
+int irandRange(int i, int j);
+int ichoose(int i, int j);

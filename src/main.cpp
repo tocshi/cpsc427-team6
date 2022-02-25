@@ -56,7 +56,7 @@ int main()
 		world.step(elapsed_ms);
 		if (!world.get_is_player_turn() && !world.get_is_ai_turn()) {
 			world.set_is_ai_turn(true);
-			ai.step(0);
+			ai.step(&world, &renderer, 0);
 			// add enemy queue for the future where enemies move one by one
 		}
 		

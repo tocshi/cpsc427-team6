@@ -17,3 +17,5 @@ public:
 };
 
 float dist_to(const vec2 position1, const vec2 position2);
+
+void set_enemy_state_attack(Entity& enemy);

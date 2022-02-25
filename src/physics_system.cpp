@@ -64,6 +64,7 @@ void PhysicsSystem::step(float elapsed_ms)
 				motion.velocity = { 0, 0 };
 				motion.destination = motion.position;
 				motion.in_motion = false;
+				set_enemy_state_attack(entity);
 				break;
 			}
 			// perform angle sweep 
@@ -95,6 +96,7 @@ void PhysicsSystem::step(float elapsed_ms)
 							motion.destination = motion.position;
 							motion.velocity = { 0,0 };
 							motion.in_motion = false;
+							set_enemy_state_attack(entity);
 						}
 						break;
 					}
@@ -113,6 +115,7 @@ void PhysicsSystem::step(float elapsed_ms)
 				motion.destination = motion.position;
 				motion.velocity = { 0,0 };
 				motion.in_motion = false;
+				set_enemy_state_attack(entity);
 			}
 		}
 	}
@@ -194,4 +197,11 @@ void PhysicsSystem::step(float elapsed_ms)
 	// TODO A3: HANDLE EGG collisions HERE
 	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+}
+
+void set_enemy_state_attack(Entity& enemy) {
+	if (registry.slimeEnemies.has(enemy)) {
+		registry.slimeEnemies.get(enemy).state = SLIME_STATE::ATTACK;
+		printf("ATTACK MODE!!!!\n");
+	}
 }

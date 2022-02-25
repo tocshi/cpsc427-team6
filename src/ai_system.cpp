@@ -1,36 +1,50 @@
 // internal
 #include "ai_system.hpp"
+#include "combat_system.hpp"
+#include "world_init.hpp"
 
-void AISystem::step(float elapsed_ms)
+void AISystem::step(WorldSystem* world, RenderSystem* renderer, float elapsed_ms)
 {
-
-	slime_logic();
-
+	for (Entity& player : registry.players.entities) {
+		slime_logic(player, world, renderer);
+	}
 	(void)elapsed_ms; // placeholder to silence unused warning until implemented
 }
 
-void AISystem::slime_logic() {
+void AISystem::slime_logic(Entity& player, WorldSystem* world, RenderSystem* renderer) {
 	for (Entity& slime : registry.slimeEnemies.entities) {
+		Motion& player_motion = registry.motions.get(player);
 		Stats& stats = registry.stats.get(slime);
 		float chaseRange = stats.range;
-		int dx = ichoose(irandRange(-75, -25), irandRange(25, 75));
-		int dy = ichoose(irandRange(-75, -25), irandRange(25, 75));
+		float meleeRange = 100.f;
 
 		Motion& motion_struct = registry.motions.get(slime);
+
+		// Perform melee attack if close enough
+		if (registry.slimeEnemies.get(slime).state == SLIME_STATE::ATTACK) {
+			if (player_in_range(motion_struct.position, meleeRange)) {
+				createExplosion(renderer, player_motion.position);
+				Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
+				world->logText(deal_damage(slime, player, 100));
+			}
+			registry.slimeEnemies.get(slime).state = SLIME_STATE::AGGRO;
+			break;
+		}
 
 		// Determine slime state
 		// check if player is in range first
 		if (player_in_range(motion_struct.position, chaseRange)) {
-			printf("BECOME AGGRO \n");
 			registry.slimeEnemies.get(slime).state = SLIME_STATE::AGGRO;
 		}
 		else {
-			printf("BECOME IDLE \n");
 			registry.slimeEnemies.get(slime).state = SLIME_STATE::IDLE;
 		}
 
 		SLIME_STATE state = registry.slimeEnemies.get(slime).state;
 		// perform action based on state
+		int dx = ichoose(irandRange(-75, -25), irandRange(25, 75));
+		int dy = ichoose(irandRange(-75, -25), irandRange(25, 75));
+
 		switch (state) {
 		case SLIME_STATE::IDLE:
 			motion_struct.destination = { motion_struct.position.x + dx, motion_struct.position.y + dy };
@@ -51,7 +65,6 @@ void AISystem::slime_logic() {
 				float angle = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
 				float x_component = cos(angle) * slime_velocity;
 				float y_component = sin(angle) * slime_velocity;
-
 
 				motion_struct.velocity = { x_component, y_component };
 				motion_struct.destination = motion_struct.position + (direction * 150.f);

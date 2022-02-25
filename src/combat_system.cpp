@@ -25,10 +25,10 @@ std::string deal_damage(Entity& attacker, Entity& defender, float multiplier)
 	std::string attacker_name = "";
 	std::string defender_name = "";
 	
-	attacker_name = attacker_stats.prefix + attacker_stats.name;
+	attacker_name = attacker_stats.prefix + " " + attacker_stats.name;
 	attacker_name[0] = toupper(attacker_name[0]);
 
-	defender_name = defender_stats.prefix + defender_stats.name;
+	defender_name = defender_stats.prefix + " " + defender_stats.name;
 
 	if (registry.players.has(attacker)) { attacker_name = "You"; }
 	else if (registry.players.has(defender)) { defender_name = "you"; }

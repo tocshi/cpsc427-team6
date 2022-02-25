@@ -738,7 +738,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							Player& player = registry.players.get(p);
 							player.action = PLAYER_ACTION::ATTACKING;
 							// todo: add some sort of visual queue to show the player what action state they are in
-							logText("attacking");
+							logText("You are in Attack Mode!");
 						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_MOVE:
@@ -747,7 +747,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							Player& player = registry.players.get(p);
 							player.action = PLAYER_ACTION::MOVING;
 							// todo: add some sort of visual queue to show the player what action state they are in
-							logText("moving");
+							logText("You are in Movement Mode!");
 						}
 						break;
 				}

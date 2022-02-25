@@ -53,6 +53,17 @@ public:
 
 	void start_player_turn();
 
+	// music references
+	Mix_Music* background_music;
+	Mix_Chunk* chicken_dead_sound;
+	Mix_Chunk* chicken_eat_sound;
+	Mix_Chunk* fire_explosion_sound;
+	Mix_Chunk* error_sound;
+	Mix_Chunk* footstep_sound;
+
+	// log text
+	void logText(std::string msg);
+
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
@@ -86,9 +97,6 @@ private:
 	// load player from data
 	void loadPlayer(json playerData);
 
-	// log text
-	void logText(std::string msg);
-
 	// OpenGL window handle
 	GLFWwindow* window;
 
@@ -108,14 +116,6 @@ private:
 	bool is_player_turn = true;
 	bool player_move_click = false;
 	bool is_ai_turn = false;
-
-	// music references
-	Mix_Music* background_music;
-	Mix_Chunk* chicken_dead_sound;
-	Mix_Chunk* chicken_eat_sound;
-	Mix_Chunk* fire_explosion_sound;
-	Mix_Chunk* error_sound;
-	Mix_Chunk* footstep_sound;
 
 	SaveSystem saveSystem;
 

@@ -45,6 +45,16 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	// Create player stats
 	auto& stats = registry.stats.emplace(entity);
+	stats.hp = 100;
+	stats.maxhp = 100;
+	stats.mp = 100;
+	stats.maxmp = 100;
+	stats.ep = 100;
+	stats.maxep = 100;
+	stats.atk = 10;
+	stats.def = 2;
+	stats.speed = 10;
+	stats.range = 450;
 
 	// Create and (empty) Player component to be able to refer to all players
 	registry.players.emplace(entity);
@@ -113,8 +123,12 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	// Create slime stats
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Slime";
-	stats.prefix = "the ";
+	stats.prefix = "the";
+	stats.hp = 25;
+	stats.maxhp = 25;
 	stats.atk = 10;
+	stats.def = 3;
+	stats.speed = 8;
 	stats.range = 250;
 
 	// Create and (empty) Enemy component to be able to refer to all enemies
@@ -122,8 +136,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	// make it a slime enemy for now
 	registry.slimeEnemies.insert(
 		entity,
-		{ 300,
-		{ window_width_px / 2, 350.f },
+		{ { window_width_px / 2, 350.f },
 		SLIME_STATE::IDLE });
 	registry.renderRequests.insert(
 		entity,

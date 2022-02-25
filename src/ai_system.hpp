@@ -13,7 +13,7 @@
 class AISystem
 {
 public:
-	void step(WorldSystem* world, RenderSystem* renderer, float elapsed_ms);
-	void slime_logic(Entity& player, WorldSystem* world, RenderSystem* renderer);
+	void step(Entity e, WorldSystem world, RenderSystem* renderer);
+	void slime_logic(Entity slime, Entity& player, WorldSystem world, RenderSystem* renderer);
 	bool player_in_range(vec2 position, float radius);
 };

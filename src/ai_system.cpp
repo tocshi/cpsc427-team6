@@ -3,29 +3,30 @@
 #include "combat_system.hpp"
 #include "world_init.hpp"
 
-void AISystem::step(WorldSystem* world, RenderSystem* renderer, float elapsed_ms)
+void AISystem::step(Entity e, WorldSystem world, RenderSystem* renderer)
 {
 	for (Entity& player : registry.players.entities) {
-		slime_logic(player, world, renderer);
+		if (registry.slimeEnemies.has(e)) {
+			slime_logic(e, player, world, renderer);
+		}
 	}
-	(void)elapsed_ms; // placeholder to silence unused warning until implemented
 }
 
-void AISystem::slime_logic(Entity& player, WorldSystem* world, RenderSystem* renderer) {
+void AISystem::slime_logic(Entity slime, Entity& player, WorldSystem world, RenderSystem* renderer) {
 	for (Entity& slime : registry.slimeEnemies.entities) {
 		Motion& player_motion = registry.motions.get(player);
 		Stats& stats = registry.stats.get(slime);
 		float chaseRange = stats.range;
 		float meleeRange = 100.f;
 
-		Motion& motion_struct = registry.motions.get(slime);
+	Motion& motion_struct = registry.motions.get(slime);
 
 		// Perform melee attack if close enough
 		if (registry.slimeEnemies.get(slime).state == SLIME_STATE::ATTACK) {
 			if (player_in_range(motion_struct.position, meleeRange)) {
 				createExplosion(renderer, player_motion.position);
-				Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
-				world->logText(deal_damage(slime, player, 100));
+				Mix_PlayChannel(-1, world.fire_explosion_sound, 0);
+				world.logText(deal_damage(slime, player, 100));
 			}
 			registry.slimeEnemies.get(slime).state = SLIME_STATE::AGGRO;
 			break;
@@ -61,7 +62,6 @@ void AISystem::slime_logic(Entity& player, WorldSystem* world, RenderSystem* ren
 				float dist = distance(motion_struct.position, player_motion.position);
 				vec2 direction = normalize(player_motion.position - motion_struct.position);
 				float slime_velocity = 180.f;
-
 				float angle = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
 				float x_component = cos(angle) * slime_velocity;
 				float y_component = sin(angle) * slime_velocity;

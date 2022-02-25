@@ -6,11 +6,9 @@
 #include <chrono>
 
 // internal
-#include "ai_system.hpp"
 #include "physics_system.hpp"
 #include "render_system.hpp"
 #include "world_system.hpp"
-#include "turn_order_system.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
 
@@ -21,8 +19,6 @@ int main()
 	WorldSystem world;
 	RenderSystem renderer;
 	PhysicsSystem physics;
-	AISystem ai;
-	TurnOrderSystem turnOrder;
 
 	// Initializing window
 	GLFWwindow* window = world.create_window();
@@ -54,17 +50,10 @@ int main()
 
 		physics.step(elapsed_ms);
 		world.step(elapsed_ms);
-		if (!world.get_is_player_turn() && !world.get_is_ai_turn()) {
-			world.set_is_ai_turn(true);
-			ai.step(&world, &renderer, 0);
-			// add enemy queue for the future where enemies move one by one
-		}
 		
 		world.handle_collisions();
 
 		renderer.draw();
-
-		// TODO A2: you can implement the debug freeze here but other places are possible too.
 	}
 
 	return EXIT_SUCCESS;

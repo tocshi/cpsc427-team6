@@ -50,6 +50,13 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 				prev_tileUV = tileUV;
 			}
 		}
+		else if (render_request.used_geometry == GEOMETRY_BUFFER_ID::ANIMATION && registry.animations.has(entity)) {
+			AnimationData& anim = registry.animations.get(entity);
+			if (anim.spritesheet_texture != prev_animdata.spritesheet_texture || anim.current_frame != prev_animdata.current_frame) {
+				updateAnimTexCoords(anim);
+				prev_animdata = anim;
+			}
+		}
 
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
@@ -427,7 +434,7 @@ int RenderSystem::findTextureId(const std::string& filename) {
 	return -1;
 }
 
-void RenderSystem::updateTileMapCoords(TileUV tileUV) {
+void RenderSystem::updateTileMapCoords(TileUV& tileUV) {
 	//////////////////////////
 	// Initialize sprite
 	// The position corresponds to the center of the texture.
@@ -452,4 +459,29 @@ bool RenderSystem::isOnScreen(Motion& motion, Camera& camera, int window_width, 
 		motion.position.y - camera.position.y + abs(motion.scale.y) / 2 < 0 ||
 		motion.position.y - camera.position.y - abs(motion.scale.y) / 2 > window_height
 		);
+}
+
+void RenderSystem::updateAnimTexCoords(AnimationData& anim) {
+	//////////////////////////
+	// Initialize sprite
+	// The position corresponds to the center of the texture.
+	int index = anim.frame_indices[anim.current_frame];
+	float start_x = (anim.frame_size.x * (index % anim.spritesheet_columns)) / anim.spritesheet_width;
+	float start_y = (anim.frame_size.y * (index / anim.spritesheet_columns)) / anim.spritesheet_height;
+	float end_x = start_x + (anim.frame_size.x / anim.spritesheet_width);
+	float end_y = start_y + (anim.frame_size.y / anim.spritesheet_height);
+
+	std::vector<TexturedVertex> textured_vertices(4);
+	textured_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
+	textured_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
+	textured_vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
+	textured_vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
+	textured_vertices[0].texcoord = { start_x, end_y };
+	textured_vertices[1].texcoord = { end_x, end_y };
+	textured_vertices[2].texcoord = { end_x, start_y };
+	textured_vertices[3].texcoord = { start_x, start_y };
+
+	// Counterclockwise as it's the default opengl front winding direction.
+	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::ANIMATION, textured_vertices, textured_indices);
 }

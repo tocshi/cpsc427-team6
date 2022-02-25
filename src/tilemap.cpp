@@ -170,12 +170,6 @@ TileMapParser::BuildLayer(rapidxml::xml_node<>* layerNode,
 			auto itr = tileSet.find(tileId); // 5
 			if (itr == tileSet.end()) // 6
 			{
-				if (tileId == 30) {
-					tileId = 30;
-				}
-				if (tileId == 31) {
-					tileId = 31;
-				}
 				int textureX = (tileId - tileSheetData->firstId) % tileSheetData->columns;
 				int textureY = (tileId - tileSheetData->firstId) / tileSheetData->columns;
 				std::shared_ptr<TileInfo> tileInfo =

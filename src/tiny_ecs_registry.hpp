@@ -33,6 +33,7 @@ public:
 	ComponentContainer<Queueable> queueables;
 	ComponentContainer<Test> test;	// for testing
 	ComponentContainer<Solid> solid;
+	ComponentContainer<Enemy> enemies;
 	ComponentContainer<SlimeEnemy> slimeEnemies;
 	ComponentContainer<Button> buttons;
 	ComponentContainer<MenuItem> menuItems;
@@ -47,6 +48,7 @@ public:
 	// add door component
 	ComponentContainer<Door>door;
 	ComponentContainer<Artifact> artifacts;
+	ComponentContainer<AnimationData> animations;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -74,6 +76,7 @@ public:
 		registry_list.push_back(&queueables);
 		registry_list.push_back(&test);
 		registry_list.push_back(&solid);
+		registry_list.push_back(&enemies);
 		registry_list.push_back(&slimeEnemies);
 		registry_list.push_back(&buttons);
 		registry_list.push_back(&menuItems);
@@ -89,6 +92,7 @@ public:
 		registry_list.push_back(&artifacts);
 		registry_list.push_back(&tileUVs);
 		registry_list.push_back(&collidables);
+		registry_list.push_back(&animations);
 	}
 
 	void clear_all_components() {

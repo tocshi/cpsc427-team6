@@ -77,10 +77,24 @@ struct DebugComponent
 	// Note, an empty struct has size 1
 };
 
-// A timer that will be associated to dying chicken
+// A timer that will be associated to dying player
 struct DeathTimer
 {
 	float counter_ms = 3000;
+};
+
+// Squishing effect timer
+struct SquishTimer
+{
+	float counter_ms = 3000;
+	vec2 orig_scale = { 0, 0 };
+};
+
+// Wobble effect timer
+struct WobbleTimer
+{
+	float counter_ms = 3000;
+	vec2 orig_scale = { 0, 0 };
 };
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & chicken.vs.glsl)

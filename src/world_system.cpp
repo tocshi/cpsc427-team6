@@ -312,6 +312,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	}
 
+	// Check for enemy death
+	for (Entity& enemy : registry.enemies.entities) {
+		if (registry.stats.get(enemy).hp <= 0 && !registry.squishTimers.has(enemy)) {
+			std::string log_text = "The enemy ";
+			log_text = log_text.append(registry.stats.get(enemy).name.append(" is defeated!"));
+			logText(log_text);
+			SquishTimer& squish = registry.squishTimers.emplace(enemy);
+			squish.orig_scale = registry.motions.get(enemy).scale;
+		}
+	}
+
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A3: HANDLE EGG SPAWN HERE
 	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
@@ -356,6 +367,43 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// Wobble Timers
+	for (Entity entity : registry.wobbleTimers.entities) {
+		// prioritize squish over wobble
+		if (registry.squishTimers.has(entity)) { break; }
+		// progress timer
+		WobbleTimer& counter = registry.wobbleTimers.get(entity);
+		//float x_scale = (counter.orig_scale.x / 4) * sin(counter.counter_ms/100) + counter.orig_scale.x;
+		//float y_scale = (counter.orig_scale.x / 4) * sin(counter.counter_ms/100 + M_PI) + counter.orig_scale.x;
+		float x_scale = (pow(counter.counter_ms, 2) / 800000) * cos(counter.counter_ms / 50) + counter.orig_scale.x;
+		float y_scale = (pow(counter.counter_ms, 2) / 800000) * cos(counter.counter_ms / 50 + M_PI) + counter.orig_scale.x;
+		registry.motions.get(entity).scale = {x_scale, y_scale};
+		counter.counter_ms -= elapsed_ms_since_last_update;
+
+		// remove entity once the timer has expired
+		if (counter.counter_ms < 0) {
+			registry.motions.get(entity).scale = counter.orig_scale;
+			registry.wobbleTimers.remove(entity);
+		}
+	}
+
+	// Squish Timers
+	for (Entity entity : registry.squishTimers.entities) {
+		// progress timer
+		SquishTimer& counter = registry.squishTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+
+		float x_scale = registry.motions.get(entity).scale.x;
+		float y_scale = registry.motions.get(entity).scale.y / 1.04f;
+		registry.motions.get(entity).scale = { x_scale, y_scale };
+		registry.motions.get(entity).position.y += (y_scale * 1.04 - y_scale)/2;
+
+		// remove entity once the timer has expired
+		if (counter.counter_ms < 0) {
+			registry.remove_all_components_of(entity);
+		}
+	}
+
 	// update animations 
 	for (int i = 0; i < registry.animations.size(); i++) {
 		Entity e = registry.animations.entities[i];
@@ -374,7 +422,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		anim.current_frame = anim.animation_time_ms / anim.frametime_ms;
 	}
 
-	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death counter
 	return true;
 }
 
@@ -786,6 +833,13 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									Mix_PlayChannel(-1, fire_explosion_sound, 0);
 
 									logText(deal_damage(e, en, 100.f));
+
+									// wobble the enemy lol
+									if (!registry.wobbleTimers.has(en)){
+										WobbleTimer& wobble = registry.wobbleTimers.emplace(en);
+										wobble.orig_scale = m.scale;
+									}
+						
 									// lower ep
 									player_stats.ep -= 0.5 * player_stats.maxep;
 									player.attacked = true;
@@ -802,7 +856,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								}
 							}
 							else {
-								logText("already attacked this turn");
+								logText("You already attacked this turn!");
 								// play error sound
 								Mix_PlayChannel(-1, error_sound, 0);
 							}

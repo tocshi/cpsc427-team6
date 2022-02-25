@@ -41,6 +41,8 @@ public:
 	ComponentContainer<Camera> cameras;
 	ComponentContainer<Text> texts;
 	ComponentContainer<TextTimer> textTimers;
+	ComponentContainer<SquishTimer> squishTimers;
+	ComponentContainer<WobbleTimer> wobbleTimers;
 	ComponentContainer<Test> hidden;
 	ComponentContainer<Test> hidables;
 	ComponentContainer<TileUV> tileUVs;
@@ -84,6 +86,8 @@ public:
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&texts);
 		registry_list.push_back(&textTimers);
+		registry_list.push_back(&squishTimers);
+		registry_list.push_back(&wobbleTimers);
 		registry_list.push_back(&hidden);
 		registry_list.push_back(&hidables);
 		// door in registry list 

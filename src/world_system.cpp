@@ -371,7 +371,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			anim.animation_time_ms -= anim.frametime_ms * anim.frame_indices.size() - 1;
 		}
-		anim.current_frame = anim.animation_time_ms / anim.frametime_ms;
+		anim.current_frame = std::min(anim.animation_time_ms / anim.frametime_ms, int(anim.frame_indices.size()) - 1);
 	}
 
 	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death counter
@@ -461,6 +461,7 @@ void WorldSystem::spawn_game_entities() {
 	// spawn the player and enemy in random locations
 	spawn_player_random_location(spawnData.playerSpawns);
 	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
+	spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
   
 	//createBoss(renderer, { 250.f, 450.f });
 	//createArtifact(renderer, { 250.f, 550.f });
@@ -490,7 +491,6 @@ void WorldSystem::spawn_game_entities() {
 	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war();
-	createCampfire(renderer, { 200, 200 });
 }
 
 // render fog of war around the player
@@ -526,13 +526,25 @@ void WorldSystem::spawn_player_random_location(std::vector<vec2>& playerSpawns) 
 
 }
 
-// spawn enemy entity in random location
+// spawn enemy entities in random locations
 void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, int min, int max) {
 	std::random_shuffle(enemySpawns.begin(), enemySpawns.end());
 	if (enemySpawns.size() > 0) {
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
 			createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+		}
+	}
+}
+
+// spawn item entities in random locations
+void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int min, int max) {
+	std::random_shuffle(itemSpawns.begin(), itemSpawns.end());
+	if (itemSpawns.size() > 0) {
+		int numberToSpawn = std::min(irandRange(min, max + 1), int(itemSpawns.size()));
+		for (int i = 0; i < numberToSpawn; i++) {
+			// temporary, later we can also randomize the item types
+			createCampfire(renderer, { itemSpawns[i].x, itemSpawns[i].y });
 		}
 	}
 }
@@ -686,6 +698,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
 						createAttackButton(renderer, { window_width_px - 200.f, window_height_px - 150.f });
 						createMoveButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
+						for (int i = registry.renderRequests.size() - 1; i >= 0; i--) {
+							if (registry.renderRequests.components[i].used_layer == RENDER_LAYER_ID::BG) {
+								registry.remove_all_components_of(registry.renderRequests.entities[i]);
+							}
+						}
+
 						spawn_game_entities(); 
 						is_player_turn = true; 
 						break;

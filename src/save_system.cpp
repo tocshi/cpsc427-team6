@@ -166,8 +166,43 @@ void SaveSystem::saveGameState() {
 	//for (Entity e: registry.)
 	// current invetory of items 
 
+
+	// array of json objects for enemies
+	auto enemies = json::array();
+	for (Entity e : registry.enemies.entities) {
+		json enemyData;
+		
+		// if it is a slime enemy
+		if (registry.slimeEnemies.has(e)) {
+			enemyData["type"] = "slime";
+			json data;
+			SlimeEnemy se = registry.slimeEnemies.get(e);		
+			data["hp"] = se.hp;
+			data["chaseRange"] = se.chaseRange;
+			data["state"] = se.state;
+			enemyData["data"] = data;
+		}
+		
+		// set motion stuff
+		Motion m = registry.motions.get(e);
+		json motionData;
+		motionData["position_x"] = m.position.x;
+		motionData["position_y"] = m.position.y;
+		motionData["angle"] = m.angle;
+		motionData["velocity_x"] = m.velocity.x;
+		motionData["velocity_y"] = m.velocity.y;
+		motionData["destination_x"] = m.destination.x;
+		motionData["destination_y"] = m.destination.y;
+		motionData["movement_speed"] = m.movement_speed;
+		motionData["in_motion"] = m.in_motion;
+
+		enemyData["motion"] = motionData;
+		enemies.push_back(enemyData);
+	}
+
 	saveState["player"] = playerData;
 	saveState["inventory"] = inventory;
+	saveState["enemies"] = enemies;
 
 	saveToFile(saveState);
 }

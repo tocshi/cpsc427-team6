@@ -164,8 +164,6 @@ elseif (IS_OS_WINDOWS)
         # non-const references, yay microsoft) into an error
         "/we4239"
     )
-
-    target_link_options(${PROJECT_NAME} PUBLIC "/PROFILE")
 endif()
 
 # Can't find the include and lib. Quit.

@@ -12,7 +12,7 @@
 class AISystem
 {
 public:
-	void step(float elapsed_ms);
-	void slime_logic();
+	void step(Entity e);
+	void slime_logic(Entity slime);
 	bool player_in_range(vec2 position, float radius);
 };

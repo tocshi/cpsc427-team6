@@ -147,7 +147,7 @@ struct Stat {
 };
 
 struct Queueable {
-
+	bool doing_turn = false;
 };
 
 struct Test {

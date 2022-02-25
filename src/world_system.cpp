@@ -163,6 +163,33 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	Entity currentTurnEntity = turnOrderSystem.getCurrentTurnEntity;
+
+	// if current entity is not doing turn and stopped moving, get the next turn entity
+	if (!registry.queueables.get(currentTurnEntity).doing_turn && !registry.motions.get(currentTurnEntity).in_motion) {
+		// if player just finished their turn, set is player turn to false
+		if (registry.players.has(currentTurnEntity)) {
+			set_is_player_turn(false);
+		}
+
+		// get next turn
+		currentTurnEntity = turnOrderSystem.getNextTurn();
+
+		// if the current entity is the player, call start_player_turn()
+		if (registry.players.has(currentTurnEntity)) {
+			set_is_player_turn(true);
+			start_player_turn();
+		}
+	}
+
+	// if current turn entity is enemy and is still doing_turn call ai.step();
+	if (!registry.players.has(currentTurnEntity) && registry.queueables.get(currentTurnEntity).doing_turn) {
+		aiSystem.step(currentTurnEntity);
+
+		// now that ai did its step, set doing turn to false
+		registry.queueables.get(currentTurnEntity).doing_turn = false;
+	}
+
 	// perform in-motion behaviour
 	if (get_is_player_turn() && player_move_click) {
 		for (Entity player : registry.players.entities) {
@@ -176,26 +203,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				player_move_click = false;
 			}
 		}
-	}
-
-	// if all ai have moved, start player turn
-	if (!get_is_player_turn() && get_is_ai_turn()) {
-		bool all_moved = true;
-		for (Entity ai : registry.slimeEnemies.entities) {
-			Motion ai_motion = registry.motions.get(ai);
-			if (ai_motion.in_motion) {
-				all_moved = false;
-			}
-		}
-		if (all_moved) {
-			set_is_ai_turn(false);
-			set_is_player_turn(true);
-
-			// perform start-of-turn actions for player
-			start_player_turn();
-			
-		}
-		// save the data to the json file
 	}
 
 	// If started, remove menu entities, and spawn game entities
@@ -225,6 +232,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				p.attacked = false;
 				set_is_player_turn(false);
 				player_move_click = false;
+				// set player's doing_turn to false
+				registry.queueables.get(player).doing_turn = false;
 			}
 			else { 
 				float ep_rate = 1.f;
@@ -435,6 +444,12 @@ void WorldSystem::spawn_game_entities() {
 	createDoor(renderer, { 350.f, 450.f });
 	createSign(renderer, { 350.f, 550.f });
 	createStair(renderer, { 350.f, 650.f });
+
+
+	// setup turn order system
+	turnOrderSystem.setUpTurnOrder();
+	// start first turn
+	turnOrderSystem.getNextTurn();
 	/*
 	for (uint i = 0; WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i < window_width_px; i++) {
 		createWall(renderer, { WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i, WALL_BB_HEIGHT / 2 });

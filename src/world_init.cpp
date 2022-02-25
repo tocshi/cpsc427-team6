@@ -51,6 +51,9 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
+	// add player to queuables
+	registry.queueables.emplace(entity);
+
 	return entity;
 }
 
@@ -80,6 +83,9 @@ Entity createPlayer(RenderSystem* renderer, Motion m)
 		{ TEXTURE_ASSET_ID::PLAYER,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	// add player to queuables
+	registry.queueables.emplace(entity);
 
 	return entity;
 }
@@ -120,6 +126,9 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
 
+	// add enemy to queuables
+	registry.queueables.emplace(entity);
+
 	return entity;
 }
 
@@ -148,6 +157,9 @@ Entity createBoss(RenderSystem* renderer, vec2 pos)
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
+
+	// add boss to queuables
+	registry.queueables.emplace(entity);
 
 	return entity;
 }

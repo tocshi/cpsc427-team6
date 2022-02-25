@@ -13,6 +13,8 @@
 
 #include "render_system.hpp"
 #include "save_system.hpp"
+#include "turn_order_system.hpp"
+#include "ai_system.hpp"
 #include <../ext/json/single_include/nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -115,6 +117,8 @@ private:
 	Mix_Chunk* chicken_eat_sound;
 
 	SaveSystem saveSystem;
+	TurnOrderSystem turnOrderSystem;
+	AISystem aiSystem;
 
 	// C++ random number generator
 	std::default_random_engine rng;

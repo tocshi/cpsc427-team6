@@ -32,13 +32,13 @@ SpawnData TileMapParser::Parse(const std::string& file, RenderSystem *renderer, 
 	}
 
 	// Parse objects, which will be used for solid walls
-	std::vector<MapObject> objects = BuildObjects(rootNode);
-	for (MapObject& object : objects) {
+	std::vector<std::shared_ptr<MapObject>> objects = BuildObjects(rootNode);
+	for (auto& object : objects) {
 		Entity entity = Entity();
 		Motion& motion = registry.motions.emplace(entity);
-		motion.scale = { object.objectRect.width * scaleFactor, object.objectRect.height * scaleFactor };
-		motion.position.x = (object.objectRect.x + object.objectRect.width/2 - tileSizeX) * scaleFactor + offset.x;
-		motion.position.y = (object.objectRect.y + object.objectRect.height/2) * scaleFactor + offset.y;
+		motion.scale = { object->objectRect.width * scaleFactor, object->objectRect.height * scaleFactor };
+		motion.position.x = (object->objectRect.x + object->objectRect.width/2 - tileSizeX) * scaleFactor + offset.x;
+		motion.position.y = (object->objectRect.y + object->objectRect.height/2) * scaleFactor + offset.y;
 		registry.solid.emplace(entity);
 		registry.collidables.emplace(entity);
 	}
@@ -96,13 +96,13 @@ SpawnData TileMapParser::Parse(const std::string& file, RenderSystem *renderer, 
 							}
 						}
 					}
-					std::vector<MapObject> rand_objects = BuildObjects(wallgroups[i]);
-					for (MapObject& object : rand_objects) {
+					std::vector<std::shared_ptr<MapObject>> rand_objects = BuildObjects(wallgroups[i]);
+					for (auto& object : rand_objects) {
 						Entity entity = Entity();
 						Motion& motion = registry.motions.emplace(entity);
-						motion.scale = { object.objectRect.width * scaleFactor, object.objectRect.height * scaleFactor };
-						motion.position.x = (object.objectRect.x + object.objectRect.width / 2 - tileSizeX) * scaleFactor + offset.x;
-						motion.position.y = (object.objectRect.y + object.objectRect.height / 2) * scaleFactor + offset.y;
+						motion.scale = { object->objectRect.width * scaleFactor, object->objectRect.height * scaleFactor };
+						motion.position.x = (object->objectRect.x + object->objectRect.width / 2 - tileSizeX) * scaleFactor + offset.x;
+						motion.position.y = (object->objectRect.y + object->objectRect.height / 2) * scaleFactor + offset.y;
 						registry.solid.emplace(entity);
 						registry.collidables.emplace(entity);
 					}
@@ -116,8 +116,6 @@ SpawnData TileMapParser::Parse(const std::string& file, RenderSystem *renderer, 
 	spawnData.playerSpawns = BuildSpawns(rootNode, "player");
 	spawnData.enemySpawns = BuildSpawns(rootNode, "enemy");
 	spawnData.itemSpawns = BuildSpawns(rootNode, "item");
-
-	// TODO: reset memory for things we don't need to keep after parsing
 
 	return spawnData;
 }
@@ -248,8 +246,8 @@ TileMapParser::BuildLayer(rapidxml::xml_node<>* layerNode,
 	return std::make_pair(layerName, layer);
 }
 
-std::vector<MapObject> TileMapParser::BuildObjects(rapidxml::xml_node<>* rootNode) {
-	std::vector<MapObject> objects = std::vector<MapObject>();
+std::vector<std::shared_ptr<MapObject>> TileMapParser::BuildObjects(rapidxml::xml_node<>* rootNode) {
+	std::vector<std::shared_ptr<MapObject>> objects = std::vector<std::shared_ptr<MapObject>>();
 	// We loop through each layer in the XML document.
 	for (rapidxml::xml_node<>* node = rootNode->first_node("objectgroup");
 		node; node = node->next_sibling("objectgroup"))
@@ -259,9 +257,9 @@ std::vector<MapObject> TileMapParser::BuildObjects(rapidxml::xml_node<>* rootNod
 			for (rapidxml::xml_node<>* objectnode = node->first_node("object");
 				objectnode; objectnode = objectnode->next_sibling("object"))
 			{
-				MapObject object;
-				object.objectId = std::atoi(objectnode->first_attribute("id")->value());
-				object.objectRect = Rect(
+				std::shared_ptr<MapObject> object = std::make_shared<MapObject>();
+				object->objectId = std::atoi(objectnode->first_attribute("id")->value());
+				object->objectRect = Rect(
 					std::atoi(objectnode->first_attribute("x")->value()),
 					std::atoi(objectnode->first_attribute("y")->value()),
 					std::atoi(objectnode->first_attribute("width")->value()),

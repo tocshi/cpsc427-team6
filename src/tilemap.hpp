@@ -78,7 +78,7 @@ class TileMapParser
 public:
 	SpawnData Parse(const std::string& file, RenderSystem *renderer, vec2 offset = { 0, 0 });
 private:
-	std::vector<MapObject> BuildObjects(rapidxml::xml_node<>* rootNode);
+	std::vector<std::shared_ptr<MapObject>> BuildObjects(rapidxml::xml_node<>* rootNode);
 	std::vector<vec2> BuildSpawns(rapidxml::xml_node<>* rootNode, std::string layerName);
 	std::shared_ptr<TileSheetData> BuildTileSheetData(rapidxml::xml_node<>* rootNode, RenderSystem *renderer);
 	std::shared_ptr<MapTiles> BuildMapTiles(rapidxml::xml_node<>* rootNode, RenderSystem *renderer);

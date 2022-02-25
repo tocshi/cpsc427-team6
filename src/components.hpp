@@ -286,7 +286,8 @@ enum class TEXTURE_ASSET_ID {
 	ACTIONS_BAR = ACTIONS_ATTACK + 1,
 	DUNGEON_TILESHEET = ACTIONS_BAR + 1,
 	CAMPFIRE_SPRITESHEET = DUNGEON_TILESHEET + 1,
-	TEXTURE_COUNT = CAMPFIRE_SPRITESHEET + 1
+	EXPLOSION_SPRITESHEET = CAMPFIRE_SPRITESHEET + 1,
+	TEXTURE_COUNT = EXPLOSION_SPRITESHEET + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -354,4 +355,5 @@ struct AnimationData {
 	std::vector<int> frame_indices; // indices refer to a "tile" within the sheet. List the indices as frames in an animation
 
 	bool loop = true;
+	bool delete_on_finish = false; // if the entitiy should be deleted when the loop is finished
 };

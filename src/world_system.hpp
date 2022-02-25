@@ -130,3 +130,6 @@ private:
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 };
+
+// Set attack state for enemies that attack after moving
+void set_enemy_state_attack(Entity enemy);

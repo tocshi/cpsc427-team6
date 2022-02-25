@@ -164,7 +164,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Updating window title with points
 	std::stringstream title_ss;
-	title_ss << "Points: " << points;
+	title_ss << "Adrift In Somnium: Alpha Build";
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
@@ -763,20 +763,21 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				PLAYER_ACTION action = player.action;
 				switch (action) {
 				case PLAYER_ACTION::ATTACKING:
-					// only attack if the player hasn't attacked that turn
-					if (!player.attacked) {
-						// ensure player has clicked on an enemy
-						for (Entity en : registry.enemies.entities) {
-							// super simple bounding box for now
-							Motion m = registry.motions.get(en);
-							int enemyX = m.position[0];
-							int enemyY = m.position[1];
+					// ensure player has clicked on an enemy
+					for (Entity en : registry.enemies.entities) {
+						// super simple bounding box for now
+						Motion m = registry.motions.get(en);
+						int enemyX = m.position[0];
+						int enemyY = m.position[1];
+						
+						if ((world_pos.x <= (enemyX + m.scale[0] / 2) && world_pos.x >= (enemyX - m.scale[0] / 2)) &&
+							(world_pos.y >= (enemyY - m.scale[1] / 2) && world_pos.y <= (enemyY + m.scale[1] / 2))) {
+								
+							// only attack if the player hasn't attacked that turn
+							if (!player.attacked) {
 
-							if ((world_pos.x <= (enemyX + m.scale[0] / 2) && world_pos.x >= (enemyX - m.scale[0] / 2)) &&
-								(world_pos.y >= (enemyY - m.scale[1] / 2) && world_pos.y <= (enemyY + m.scale[1] / 2))) {
 								// only attack if have enough ep and is close enough
-								if (player_stats.ep >= 0.5 * player_stats.maxep && dist_to(player_motion.position,m.position) <= 100.f) {
-									// todo: add dealDamage call
+								if (player_stats.ep >= 0.5 * player_stats.maxep && dist_to(player_motion.position, m.position) <= 100.f) {
 
 									// show explosion animation
 									createExplosion(renderer, { enemyX, enemyY });
@@ -800,12 +801,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									Mix_PlayChannel(-1, error_sound, 0);
 								}
 							}
+							else {
+								logText("already attacked this turn");
+								// play error sound
+								Mix_PlayChannel(-1, error_sound, 0);
+							}
 						}
-					}
-					else {
-						logText("already attacked this turn");
-						// play error sound
-						Mix_PlayChannel(-1, error_sound, 0);
 					}
 					break;
 				case PLAYER_ACTION::MOVING:
@@ -949,6 +950,11 @@ void WorldSystem::doTurnOrderLogic() {
 		if (registry.players.has(currentTurnEntity)) {
 			set_is_player_turn(false);
 		}
+		// perform end-of-movement attacks for enemies
+		else {
+			set_enemy_state_attack(currentTurnEntity);
+			aiSystem.step(currentTurnEntity, this, renderer);
+		}
 
 		// get next turn
 		currentTurnEntity = turnOrderSystem.getNextTurn();
@@ -967,5 +973,12 @@ void WorldSystem::doTurnOrderLogic() {
 
 		// now that ai did its step, set doing turn to false
 		registry.queueables.get(currentTurnEntity).doing_turn = false;
+	}
+}
+
+// Set attack state for enemies who attack after moving
+void set_enemy_state_attack(Entity enemy) {
+	if (registry.slimeEnemies.has(enemy)) {
+		registry.slimeEnemies.get(enemy).state = SLIME_STATE::ATTACK;
 	}
 }

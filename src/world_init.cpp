@@ -123,6 +123,44 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+// Enemy slime with motion component as input
+Entity createEnemy(RenderSystem* renderer, Motion m)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = m.angle;
+	motion.velocity = m.velocity;
+	motion.position = m.position;
+	motion.in_motion = m.in_motion;
+	motion.movement_speed = m.movement_speed;
+	motion.destination = m.destination;
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+
+	// Create and (empty) Enemy component to be able to refer to all enemies
+	registry.enemies.emplace(entity);
+	// make it a slime enemy for now
+	registry.slimeEnemies.insert(
+		entity,
+		{ 10.f,
+		300,
+		{ window_width_px / 2, 350.f },
+		SLIME_STATE::IDLE_DOWN });
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SLIME,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
+
+	return entity;
+}
+
 // Boss
 Entity createBoss(RenderSystem* renderer, vec2 pos)
 {

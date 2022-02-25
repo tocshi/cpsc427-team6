@@ -86,6 +86,15 @@ private:
 	// load player from data
 	void loadPlayer(json playerData);
 
+	// load enemies from data
+	void loadEnemies(json enemyData);
+
+	// load a slime from data
+	void loadSlime(json slimeData);
+
+	// load motion data
+	Motion loadMotion(json motionData);
+
 	// log text
 	void logText(std::string msg);
 

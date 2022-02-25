@@ -31,9 +31,9 @@ void setPlayer(json obj) {
 
 	for (Entity e: registry.players.entities) {
 		// we are heading to a new room so EP is max
-		registry.players.get(e).ep = registry.players.get(e).maxEP;
-		registry.players.get(e).hp = hp;
-		registry.players.get(e).mp = mp;
+		registry.stats.get(e).ep = registry.stats.get(e).maxep;
+		registry.stats.get(e).hp = hp;
+		registry.stats.get(e).mp = mp;
 
 		// setting the motion of the player 
 		registry.motions.get(e).angle = angle;
@@ -103,11 +103,11 @@ void SaveSystem::saveGameState() {
 
 
 	for (Entity e : registry.players.entities) {
-		Player player = registry.players.get(e);
-		playerData["stats"]["hp"] = player.hp;
-		playerData["stats"]["ep"] = player.ep;
-		playerData["stats"]["maxEP"] = player.maxEP;
-		playerData["stats"]["mp"] = player.mp;
+		Stats player_stats = registry.stats.get(e);
+		playerData["stats"]["hp"] = player_stats.hp;
+		playerData["stats"]["ep"] = player_stats.ep;
+		playerData["stats"]["maxEP"] = player_stats.maxep;
+		playerData["stats"]["mp"] = player_stats.mp;
 		
 		Motion player_motion = registry.motions.get(e);
 
@@ -176,9 +176,8 @@ void SaveSystem::saveGameState() {
 		if (registry.slimeEnemies.has(e)) {
 			enemyData["type"] = "slime";
 			json data;
-			SlimeEnemy se = registry.slimeEnemies.get(e);		
-			data["hp"] = se.hp;
-			data["chaseRange"] = se.chaseRange;
+			SlimeEnemy se = registry.slimeEnemies.get(e);	
+			Stats slime_stats = registry.stats.get(e);
 			data["state"] = se.state;
 			enemyData["data"] = data;
 		}

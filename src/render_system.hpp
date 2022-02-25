@@ -2,10 +2,16 @@
 
 #include <array>
 #include <utility>
+#include <map>
+#include <iostream>
 
 #include "common.hpp"
 #include "components.hpp"
 #include "tiny_ecs.hpp"
+
+// freetype
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
 // System responsible for setting up OpenGL and for rendering all the
 // visual entities in the game
@@ -31,10 +37,8 @@ class RenderSystem {
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, texture_count> texture_paths = {
 			textures_path("dungeonbg.png"),
-			textures_path("bug.png"),
-			textures_path("eagle.png"),
-			textures_path("player.png"),
-			textures_path("enemy.png"),
+			textures_path("char/shou.png"),
+			textures_path("enemy/slime.png"),
 			textures_path("boss.png"),
 			textures_path("artifact.png"),
 			textures_path("consumable.png"),
@@ -52,7 +56,13 @@ class RenderSystem {
 			textures_path("statbars/epbar.png"),
 			textures_path("statbars/hpfill.png"),
 			textures_path("statbars/mpfill.png"),
-			textures_path("statbars/epfill.png")
+			textures_path("statbars/epfill.png"),
+			textures_path("move.png"),
+			textures_path("attack.png"),
+			textures_path("actions_bar.png"),
+			textures_path("roguelikeDungeon_transparent.png"),
+			textures_path("campfire.png"),
+			textures_path("explosion.png")
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -63,11 +73,23 @@ class RenderSystem {
 		shader_path("chicken"),
 		shader_path("textured"),
 		shader_path("wind"),
+		shader_path("text"),
 		shader_path("fog") };
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;
 	std::array<Mesh, geometry_count> meshes;
+
+	/// Holds all state information relevant to a character as loaded using FreeType
+	struct Character {
+		unsigned int TextureID; // ID handle of the glyph texture
+		glm::ivec2   Size;      // Size of glyph
+		glm::ivec2   Bearing;   // Offset from baseline to left/top of glyph
+		unsigned int Advance;   // Horizontal offset to advance to next glyph
+	};
+
+	std::map<GLchar, Character> Characters;
+	GLuint VAO, VBO;
 
 public:
 	// Initialize the window
@@ -75,6 +97,9 @@ public:
 
 	template <class T>
 	void bindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
+
+	template <class T>
+	void dynamicBindVBOandIBO(GEOMETRY_BUFFER_ID gid, std::vector<T> vertices, std::vector<uint16_t> indices);
 
 	void initializeGlTextures();
 
@@ -84,6 +109,9 @@ public:
 	Mesh& getMesh(GEOMETRY_BUFFER_ID id) { return meshes[(int)id]; };
 
 	void initializeGlGeometryBuffers();
+
+	int initFreeType();
+
 	// Initialize the screen texture used as intermediate render target
 	// The draw loop first renders to this texture, then it is used for the wind
 	// shader
@@ -97,10 +125,19 @@ public:
 
 	mat3 createProjectionMatrix();
 
+	int findTextureId(const std::string& filename);
+
 private:
 	// Internal drawing functions for each entity type
-	void drawTexturedMesh(Entity entity, const mat3& projection, Camera camera);
+	void drawTexturedMesh(Entity entity, const mat3& projection, Camera& camera);
+	void drawText(Entity entity, const mat3& projection);
 	void drawToScreen();
+	void updateTileMapCoords(TileUV& tileUV);
+	void updateAnimTexCoords(AnimationData& anim);
+	bool isOnScreen(Motion& motion, Camera& camera, int window_width, int window_height);
+
+	TileUV prev_tileUV = TileUV();
+	AnimationData prev_animdata = AnimationData();
 
 	// Window handle
 	GLFWwindow* window;

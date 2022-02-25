@@ -2,6 +2,7 @@
 
 #include "common.hpp"
 #include "tiny_ecs.hpp"
+#include "tilemap.hpp"
 #include "render_system.hpp"
 
 // These are ahrd coded to the dimensions of the entity texture
@@ -11,10 +12,10 @@ const float EAGLE_BB_WIDTH = 0.6f * 300.f;
 const float EAGLE_BB_HEIGHT = 0.6f * 202.f;
 
 // Some are placeholder
-const float PLAYER_BB_WIDTH = 0.6f * 150.f;
-const float PLAYER_BB_HEIGHT = 0.6f * 150.f;
-const float ENEMY_BB_WIDTH = 0.6f * 150.f;
-const float ENEMY_BB_HEIGHT = 0.6f * 150.f;
+const float PLAYER_BB_WIDTH = 64.f;
+const float PLAYER_BB_HEIGHT = 64.f;
+const float ENEMY_BB_WIDTH = 64.f;
+const float ENEMY_BB_HEIGHT = 64.f;
 const float BOSS_BB_WIDTH = 0.6f * 150.f;
 const float BOSS_BB_HEIGHT = 0.6f * 150.f;
 const float ARTIFACT_BB_WIDTH = 0.6f * 150.f;
@@ -41,6 +42,10 @@ const float TITLE_BB_WIDTH = 0.6f * 870.f;
 const float TITLE_BB_HEIGHT = 0.6f * 300.f;
 const float STAT_BB_WIDTH = 0.6f * 500.f;
 const float STAT_BB_HEIGHT = 0.6f * 105.f;
+const float ACTIONS_BAR_BB_HEIGHT = 200.f;
+const float ACTIONS_BAR_BB_WIDTH = 1800.f;
+const float ACTIONS_BUTTON_BB_HEIGHT = 75.f;
+const float ACTIONS_BUTTON_BB_WIDTH = 300.f;
 // want to make fog small so it can be rendered a lot TODO: this is a bad implementation and will need to be changed later to use shadows or drawing circles or something better
 const float FOG_BB_WIDTH = 0.6f * 100.f;
 const float FOG_BB_HEIGHT = 0.6f * 100.f;
@@ -66,6 +71,8 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos);
 Entity createPlayer(RenderSystem* renderer, Motion m);
 // Enemy (split into different enemies for future)
 Entity createEnemy(RenderSystem* renderer, vec2 pos);
+// Enemy with motion component as input
+Entity createEnemy(RenderSystem* renderer, Motion m);
 // Boss
 Entity createBoss(RenderSystem* renderer, vec2 pos);
 // Artifact
@@ -90,6 +97,12 @@ Entity createMenuStart(RenderSystem* renderer, vec2 pos);
 Entity createMenuQuit(RenderSystem* renderer, vec2 pos);
 // Menu title
 Entity createMenuTitle(RenderSystem* renderer, vec2 pos);
+// Actions bar
+Entity createActionsBar(RenderSystem* renderer, vec2 pos);
+// Attack button
+Entity createAttackButton(RenderSystem* renderer, vec2 pos);
+// Move button
+Entity createMoveButton(RenderSystem* renderer, vec2 pos);
 // HP Bar 
 Entity createHPBar(RenderSystem* renderer, vec2 position);
 // MP Bar 
@@ -107,3 +120,11 @@ Entity createEPFill(RenderSystem* renderer, vec2 position);
 Entity createFog(vec2 pos, float resolution, float radius, vec2 screenResolution);
 // Camera
 Entity createCamera(vec2 pos);
+// Tiles
+std::vector<Entity> createTiles(RenderSystem* renderer, const std::string& filepath);
+// Text
+Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);
+// Animated campfire
+Entity createCampfire(RenderSystem* renderer, vec2 pos);
+// Animated explosion
+Entity createExplosion(RenderSystem* renderer, vec2 pos);

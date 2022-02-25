@@ -12,7 +12,7 @@
 #include <SDL_mixer.h>
 
 #include "render_system.hpp"
-#include "save_system.hpp";
+#include "save_system.hpp"
 #include <../ext/json/single_include/nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -86,6 +86,18 @@ private:
 	// load player from data
 	void loadPlayer(json playerData);
 
+	// load enemies from data
+	void loadEnemies(json enemyData);
+
+	// load a slime from data
+	void loadSlime(json slimeData);
+
+	// load motion data
+	Motion loadMotion(json motionData);
+
+	// log text
+	void logText(std::string msg);
+
 	// OpenGL window handle
 	GLFWwindow* window;
 
@@ -103,13 +115,16 @@ private:
 	Entity player_chicken;
 	Entity background;
 	bool is_player_turn = true;
-	bool player_right_click = false;
+	bool player_move_click = false;
 	bool is_ai_turn = false;
 
 	// music references
 	Mix_Music* background_music;
 	Mix_Chunk* chicken_dead_sound;
 	Mix_Chunk* chicken_eat_sound;
+	Mix_Chunk* fire_explosion_sound;
+	Mix_Chunk* error_sound;
+	Mix_Chunk* footstep_sound;
 
 	SaveSystem saveSystem;
 

@@ -5,7 +5,7 @@
 #include "tiny_ecs_registry.hpp"
 
 void RenderSystem::drawTexturedMesh(Entity entity,
-									const mat3 &projection, Camera camera)
+									const mat3 &projection, Camera& camera)
 {
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest& render_request = registry.renderRequests.get(entity);
@@ -42,6 +42,22 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	// Input data location as in the vertex buffer
 	if (render_request.used_effect == EFFECT_ASSET_ID::TEXTURED)
 	{
+		// update texture coordinates if necessary
+		if (render_request.used_geometry == GEOMETRY_BUFFER_ID::TILEMAP && registry.tileUVs.has(entity)) {
+			TileUV& tileUV = registry.tileUVs.get(entity);
+			if (tileUV.layer != prev_tileUV.layer || tileUV.tileID != prev_tileUV.tileID) {
+				updateTileMapCoords(tileUV);
+				prev_tileUV = tileUV;
+			}
+		}
+		else if (render_request.used_geometry == GEOMETRY_BUFFER_ID::ANIMATION && registry.animations.has(entity)) {
+			AnimationData& anim = registry.animations.get(entity);
+			if (anim.spritesheet_texture != prev_animdata.spritesheet_texture || anim.current_frame != prev_animdata.current_frame) {
+				updateAnimTexCoords(anim);
+				prev_animdata = anim;
+			}
+		}
+
 		GLint in_position_loc = glGetAttribLocation(program, "in_position");
 		GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
 		gl_has_errors();
@@ -161,6 +177,111 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 }
 
+void RenderSystem::drawText(Entity entity, const mat3 &projection)
+{
+	Text &text = registry.texts.get(entity);
+
+	Transform transform;
+
+	assert(registry.renderRequests.has(entity));
+	const RenderRequest &render_request = registry.renderRequests.get(entity);
+
+	const GLuint used_effect_enum = (GLuint)render_request.used_effect;
+	assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
+	const GLuint program = (GLuint)effects[used_effect_enum];
+
+	const GLuint vbo = vertex_buffers[(GLuint)render_request.used_geometry];
+	const GLuint ibo = index_buffers[(GLuint)render_request.used_geometry];
+
+	// Setting vertex and index buffers
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	gl_has_errors();
+
+	// // Setting shaders
+	glUseProgram(program);
+	gl_has_errors();
+
+	assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
+
+	GLint in_position_loc = glGetAttribLocation(program, "in_position");
+	GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+	gl_has_errors();
+	assert(in_texcoord_loc >= 0);
+
+	glEnableVertexAttribArray(in_position_loc);
+	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+							sizeof(TexturedVertex), (void *)0);
+	gl_has_errors();
+
+	glEnableVertexAttribArray(in_texcoord_loc);
+	glVertexAttribPointer(
+		in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+		(void *)sizeof(
+			vec3)); // note the stride to skip the preceeding vertex position
+
+    // activate corresponding render state
+    glActiveTexture(GL_TEXTURE0);
+    // glBindVertexArray(VAO);
+
+	std::string msg = text.message;
+	float x = text.position[0];
+	float y = text.position[1];
+	float scale = text.scale;
+
+	// Getting uniform locations for glUniform* calls
+	GLint color_uloc = glGetUniformLocation(program, "fcolor");
+	const vec3 color = text.textColor;
+	glUniform3fv(color_uloc, 1, (float *)&color);
+	gl_has_errors();
+
+	GLint currProgram;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
+
+    // iterate through all characters
+    std::string::const_iterator c;
+    for (c = msg.begin(); c != msg.end(); c++)
+    {
+		// Setting uniform values to the currently bound program
+		GLuint transform_loc = glGetUniformLocation(currProgram, "transform");
+		glUniformMatrix3fv(transform_loc, 1, GL_FALSE, (float *)&transform.mat);
+		GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
+		glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float *)&projection);
+		gl_has_errors();
+
+        Character ch = Characters[*c];
+
+        float xpos = x + ch.Bearing.x * scale;
+        float ypos = y - ch.Bearing.y * scale;
+
+        float w = ch.Size.x * scale;
+        float h = ch.Size.y * scale;
+        // // update VBO for each character
+		std::vector<TexturedVertex> textured_vertices(4);
+		textured_vertices[0].position = { xpos, ypos + h, 0.f };
+		textured_vertices[1].position = { xpos + w, ypos + h, 0.f };
+		textured_vertices[2].position = { xpos + w, ypos, 0.f };
+		textured_vertices[3].position = { xpos, ypos, 0.f };
+		textured_vertices[0].texcoord = { 0.f, 1.f };
+		textured_vertices[1].texcoord = { 1.f, 1.f };
+		textured_vertices[2].texcoord = { 1.f, 0.f };
+		textured_vertices[3].texcoord = { 0.f, 0.f };
+		const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
+		// update content of VBO memory
+		dynamicBindVBOandIBO(GEOMETRY_BUFFER_ID::TEXTQUAD, textured_vertices, textured_indices);
+		gl_has_errors();
+        // render glyph texture over quad
+        glBindTexture(GL_TEXTURE_2D, ch.TextureID);
+        // render quad
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, nullptr);
+        // // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+        x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64)
+	}
+    // glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+	gl_has_errors();
+}
+
 // draw the intermediate texture to the screen, with some distortion to simulate
 // wind
 void RenderSystem::drawToScreen()
@@ -265,7 +386,13 @@ void RenderSystem::draw()
 	}
 	for (Entity entity : registry.renderRequests.entities)
 	{
+		if (registry.texts.has(entity)) {
+			drawText(entity, projection_2D);
+		}
 		if (!registry.motions.has(entity) || registry.hidden.has(entity))
+			continue;
+		if (registry.renderRequests.get(entity).used_layer < RENDER_LAYER_ID::UI &&
+			!isOnScreen(registry.motions.get(entity), camera, w, h))
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
@@ -295,4 +422,66 @@ mat3 RenderSystem::createProjectionMatrix()
 	float tx = -(right + left) / (right - left);
 	float ty = -(top + bottom) / (top - bottom);
 	return {{sx, 0.f, 0.f}, {0.f, sy, 0.f}, {tx, ty, 1.f}};
+}
+
+int RenderSystem::findTextureId(const std::string& filename) {
+	auto it = std::find(texture_paths.begin(), texture_paths.end(), textures_path(filename));
+	// If element was found
+	if (it != texture_paths.end())
+	{
+		return it - texture_paths.begin();
+	}
+	return -1;
+}
+
+void RenderSystem::updateTileMapCoords(TileUV& tileUV) {
+	//////////////////////////
+	// Initialize sprite
+	// The position corresponds to the center of the texture.
+	std::vector<TexturedVertex> textured_vertices(4);
+	textured_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
+	textured_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
+	textured_vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
+	textured_vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
+	textured_vertices[0].texcoord = { tileUV.uv_start.x, tileUV.uv_end.y };
+	textured_vertices[1].texcoord = { tileUV.uv_end.x, tileUV.uv_end.y };
+	textured_vertices[2].texcoord = { tileUV.uv_end.x, tileUV.uv_start.y };
+	textured_vertices[3].texcoord = { tileUV.uv_start.x, tileUV.uv_start.y };
+
+	// Counterclockwise as it's the default opengl front winding direction.
+	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::TILEMAP, textured_vertices, textured_indices);
+}
+
+bool RenderSystem::isOnScreen(Motion& motion, Camera& camera, int window_width, int window_height) {
+	return !(motion.position.x - camera.position.x + abs(motion.scale.x) / 2 < 0 ||
+		motion.position.x - camera.position.x - abs(motion.scale.x) / 2 > window_width ||
+		motion.position.y - camera.position.y + abs(motion.scale.y) / 2 < 0 ||
+		motion.position.y - camera.position.y - abs(motion.scale.y) / 2 > window_height
+		);
+}
+
+void RenderSystem::updateAnimTexCoords(AnimationData& anim) {
+	//////////////////////////
+	// Initialize sprite
+	// The position corresponds to the center of the texture.
+	int index = anim.frame_indices[anim.current_frame];
+	float start_x = (anim.frame_size.x * (index % anim.spritesheet_columns)) / anim.spritesheet_width;
+	float start_y = (anim.frame_size.y * (index / anim.spritesheet_columns)) / anim.spritesheet_height;
+	float end_x = start_x + (anim.frame_size.x / anim.spritesheet_width);
+	float end_y = start_y + (anim.frame_size.y / anim.spritesheet_height);
+
+	std::vector<TexturedVertex> textured_vertices(4);
+	textured_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
+	textured_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
+	textured_vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
+	textured_vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
+	textured_vertices[0].texcoord = { start_x, end_y };
+	textured_vertices[1].texcoord = { end_x, end_y };
+	textured_vertices[2].texcoord = { end_x, start_y };
+	textured_vertices[3].texcoord = { start_x, start_y };
+
+	// Counterclockwise as it's the default opengl front winding direction.
+	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::ANIMATION, textured_vertices, textured_indices);
 }

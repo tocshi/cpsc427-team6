@@ -1,90 +1,6 @@
 #include "world_init.hpp"
 #include "tiny_ecs_registry.hpp"
 
-Entity createChicken(RenderSystem* renderer, vec2 pos)
-{
-	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::CHICKEN);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Setting initial motion values
-	Motion& motion = registry.motions.emplace(entity);
-	motion.position = pos;
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.scale = mesh.original_size * 300.f;
-	motion.scale.y *= -1; // point front to the right
-
-	// Create and (empty) Chicken component to be able to refer to all eagles
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
-			EFFECT_ASSET_ID::CHICKEN,
-			GEOMETRY_BUFFER_ID::CHICKEN,
-			RENDER_LAYER_ID::SPRITE});
-
-	return entity;
-}
-
-Entity createBug(RenderSystem* renderer, vec2 position)
-{
-	// Reserve en entity
-	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initialize the position, scale, and physics components
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0, 50 };
-	motion.position = position;
-
-	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -BUG_BB_WIDTH, BUG_BB_HEIGHT });
-
-	// Create an (empty) Bug component to be able to refer to all bug
-	registry.eatables.emplace(entity);
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::BUG,
-			EFFECT_ASSET_ID::TEXTURED,
-			GEOMETRY_BUFFER_ID::SPRITE });
-
-	return entity;
-}
-
-Entity createEagle(RenderSystem* renderer, vec2 position)
-{
-	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initialize the motion
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0, 100.f };
-	motion.position = position;
-
-	// Setting initial values, scale is negative to make it face the opposite way
-	motion.scale = vec2({ -EAGLE_BB_WIDTH, EAGLE_BB_HEIGHT });
-
-	// Create and (empty) Eagle component to be able to refer to all eagles
-	registry.deadlys.emplace(entity);
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::EAGLE,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
-
-	return entity;
-}
-
 Entity createLine(vec2 position, vec2 scale)
 {
 	Entity entity = Entity();
@@ -104,28 +20,6 @@ Entity createLine(vec2 position, vec2 scale)
 	motion.scale = scale;
 
 	registry.debugComponents.emplace(entity);
-	return entity;
-}
-
-Entity createEgg(vec2 pos, vec2 size)
-{
-	auto entity = Entity();
-
-	// Setting initial motion values
-	Motion& motion = registry.motions.emplace(entity);
-	motion.position = pos;
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.scale = size;
-
-	// Create and (empty) Chicken component to be able to refer to all eagles
-	registry.deadlys.emplace(entity);
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
-			EFFECT_ASSET_ID::EGG,
-			GEOMETRY_BUFFER_ID::EGG });
-
 	return entity;
 }
 
@@ -205,10 +99,13 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
 	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 200;
 
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	// Create and (empty) Enemy component to be able to refer to all enemies
+	registry.enemies.emplace(entity);
 	// make it a slime enemy for now
 	registry.slimeEnemies.insert(
 		entity,
@@ -218,7 +115,45 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 		SLIME_STATE::IDLE_DOWN });
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::ENEMY,
+		{ TEXTURE_ASSET_ID::SLIME,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
+
+	return entity;
+}
+
+// Enemy slime with motion component as input
+Entity createEnemy(RenderSystem* renderer, Motion m)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = m.angle;
+	motion.velocity = m.velocity;
+	motion.position = m.position;
+	motion.in_motion = m.in_motion;
+	motion.movement_speed = m.movement_speed;
+	motion.destination = m.destination;
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+
+	// Create and (empty) Enemy component to be able to refer to all enemies
+	registry.enemies.emplace(entity);
+	// make it a slime enemy for now
+	registry.slimeEnemies.insert(
+		entity,
+		{ 10.f,
+		300,
+		{ window_width_px / 2, 350.f },
+		SLIME_STATE::IDLE_DOWN });
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SLIME,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
@@ -478,6 +413,7 @@ Entity createWall(RenderSystem* renderer, vec2 pos)
 	// Create and (empty) DOOR component to be able to refer to all doors
 	registry.test.emplace(entity);
 	registry.solid.emplace(entity);
+	registry.collidables.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::WALL,
@@ -572,6 +508,90 @@ Entity createMenuQuit(RenderSystem* renderer, vec2 pos)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::QUIT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+// Actions bar
+Entity createActionsBar(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ ACTIONS_BAR_BB_WIDTH, ACTIONS_BAR_BB_HEIGHT });
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ACTIONS_BAR,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+// Attack button
+Entity createAttackButton(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ ACTIONS_BUTTON_BB_WIDTH, ACTIONS_BUTTON_BB_HEIGHT });
+
+	// Create and (empty) ACTIONS_ATTACK component to be able to refer to all attack buttons
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::ACTIONS_ATTACK;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ACTIONS_ATTACK,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+// Move button
+Entity createMoveButton(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ ACTIONS_BUTTON_BB_WIDTH, ACTIONS_BUTTON_BB_HEIGHT });
+
+	// Create and (empty) ACTIONS_MOVE component to be able to refer to all move buttons
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::ACTIONS_MOVE;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ACTIONS_MOVE,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI });
@@ -816,6 +836,93 @@ Entity createCamera(vec2 pos)
 	auto& camera = registry.cameras.emplace(entity);
 	camera.position = pos;
 	camera.active = true;
+
+	return entity;
+}
+
+// Text entity
+Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale = 1.0f, vec3 textColor = vec3(0.0f))
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the text component
+	auto& text = registry.texts.emplace(entity);
+	text.message = msg;
+	text.position = pos;
+	text.scale = scale;
+	text.textColor = textColor;
+
+	// Create an (empty) Bug component to be able to refer to all bug
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::TEXT,
+			GEOMETRY_BUFFER_ID::TEXTQUAD,
+			RENDER_LAYER_ID::UI_TOP });
+
+	return entity;
+}
+
+std::vector<Entity> createTiles(RenderSystem* renderer, const std::string& filepath) {
+	TileMapParser parser = TileMapParser();
+	return parser.Parse(tilemaps_path(filepath), renderer);
+}
+
+Entity createCampfire(RenderSystem* renderer, vec2 pos) {
+	Entity entity = Entity();
+	AnimationData& anim = registry.animations.emplace(entity);
+	anim.spritesheet_texture = TEXTURE_ASSET_ID::CAMPFIRE_SPRITESHEET;
+	anim.frametime_ms = 200;
+	anim.frame_indices = { 0, 1, 2, 3, 4 };
+	anim.spritesheet_columns = 5;
+	anim.spritesheet_rows = 1;
+	anim.spritesheet_width = 320;
+	anim.spritesheet_height = 64;
+	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 64, 64 };
+	
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::CAMPFIRE_SPRITESHEET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::ANIMATION,
+			RENDER_LAYER_ID::WALLS });
+
+	return entity;
+}
+
+Entity createExplosion(RenderSystem* renderer, vec2 pos) {
+	Entity entity = Entity();
+	AnimationData& anim = registry.animations.emplace(entity);
+	anim.spritesheet_texture = TEXTURE_ASSET_ID::EXPLOSION_SPRITESHEET;
+	anim.frametime_ms = 80;
+	anim.loop = false;
+	anim.delete_on_finish = true;
+	anim.frame_indices = { 0, 1, 2, 3, 4, 5, 6, 7 };
+	anim.spritesheet_columns = 2;
+	anim.spritesheet_rows = 4;
+	anim.spritesheet_width = 367;
+	anim.spritesheet_height = 185;
+	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 128 , 128 };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::EXPLOSION_SPRITESHEET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::ANIMATION,
+			RENDER_LAYER_ID::WALLS });
 
 	return entity;
 }

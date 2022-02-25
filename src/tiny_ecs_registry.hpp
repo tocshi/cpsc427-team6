@@ -33,16 +33,22 @@ public:
 	ComponentContainer<Queueable> queueables;
 	ComponentContainer<Test> test;	// for testing
 	ComponentContainer<Solid> solid;
+	ComponentContainer<Enemy> enemies;
 	ComponentContainer<SlimeEnemy> slimeEnemies;
 	ComponentContainer<Button> buttons;
 	ComponentContainer<MenuItem> menuItems;
 	ComponentContainer<Fog> fog;
 	ComponentContainer<Camera> cameras;
+	ComponentContainer<Text> texts;
+	ComponentContainer<TextTimer> textTimers;
 	ComponentContainer<Test> hidden;
 	ComponentContainer<Test> hidables;
+	ComponentContainer<TileUV> tileUVs;
+	ComponentContainer<Collidable> collidables;
 	// add door component
 	ComponentContainer<Door>door;
 	ComponentContainer<Artifact> artifacts;
+	ComponentContainer<AnimationData> animations;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -70,17 +76,23 @@ public:
 		registry_list.push_back(&queueables);
 		registry_list.push_back(&test);
 		registry_list.push_back(&solid);
+		registry_list.push_back(&enemies);
 		registry_list.push_back(&slimeEnemies);
 		registry_list.push_back(&buttons);
 		registry_list.push_back(&menuItems);
 		registry_list.push_back(&fog);
 		registry_list.push_back(&cameras);
+		registry_list.push_back(&texts);
+		registry_list.push_back(&textTimers);
 		registry_list.push_back(&hidden);
 		registry_list.push_back(&hidables);
 		// door in registry list 
 		registry_list.push_back(&door);
 		// add artifact to list
 		registry_list.push_back(&artifacts);
+		registry_list.push_back(&tileUVs);
+		registry_list.push_back(&collidables);
+		registry_list.push_back(&animations);
 	}
 
 	void clear_all_components() {

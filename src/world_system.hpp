@@ -98,8 +98,17 @@ private:
 
 	// load player from data
 	void loadPlayer(json playerData);
+  
+	// load enemies from data
+	void loadEnemies(json enemyData);
 
-	// do turn order logic
+	// load a slime from data
+	void loadSlime(json slimeData);
+
+	// load motion data
+	Motion loadMotion(json motionData);
+  
+  // do turn order logic
 	void doTurnOrderLogic();
 
 	// OpenGL window handle

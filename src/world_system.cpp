@@ -950,32 +950,65 @@ void WorldSystem::removeForLoad() {
 	for (Entity player : registry.players.entities) {
 		registry.remove_all_components_of(player);
 	}
+
+	// remove enemies
+	for (Entity enemy : registry.enemies.entities) {
+		registry.remove_all_components_of(enemy);
+	}
 }
 
 void WorldSystem::loadFromData(json data) {
 	// load player
 	loadPlayer(data["player"]);
+	loadEnemies(data["enemies"]);
 }
 
 void WorldSystem::loadPlayer(json playerData) {
 	// create a player from the save data
 	// get player motion
-	Motion m;
-	json motion = playerData["motion"];
-	m.angle = motion["angle"];
-	m.destination = { motion["destination_x"], motion["destination_y"] };
-	m.in_motion = motion["in_motion"];
-	m.movement_speed = motion["movement_speed"];
-	m.position = { motion["position_x"], motion["position_y"] };
-	m.velocity = { motion["velocity_x"], motion["velocity_y"] };
-
-	Entity e = createPlayer(renderer, m);
+	Motion motion = loadMotion(playerData["motion"]);
+	
+	// create player
+	Entity e = createPlayer(renderer, motion);
 	// get player stats
 	json stats = playerData["stats"];
 	registry.stats.get(e).ep = stats["ep"];
 	registry.stats.get(e).hp = stats["hp"];
 	registry.stats.get(e).maxep = stats["maxep"];
 	registry.stats.get(e).mp = stats["mp"];
+}
+
+void WorldSystem::loadEnemies(json enemyData) {
+	for (auto enemy : enemyData) {
+		if (enemy["type"] == "slime") {
+			loadSlime(enemy);
+		}
+	}
+}
+
+void WorldSystem::loadSlime(json slimeData) {
+	// get slime's motion
+	Motion motion = loadMotion(slimeData["motion"]);
+
+	// create slime
+	Entity e = createEnemy(renderer, motion);
+
+	// set slimeEnemy data
+	json data = slimeData["data"];
+	registry.slimeEnemies.get(e).hp = data["hp"];
+	registry.slimeEnemies.get(e).chaseRange = data["chaseRange"];
+	registry.slimeEnemies.get(e).state = data["state"];
+}
+
+Motion WorldSystem::loadMotion(json motionData) {
+	Motion m;
+	m.angle = motionData["angle"];
+	m.destination = { motionData["destination_x"], motionData["destination_y"] };
+	m.in_motion = motionData["in_motion"];
+	m.movement_speed = motionData["movement_speed"];
+	m.position = { motionData["position_x"], motionData["position_y"] };
+	m.velocity = { motionData["velocity_x"], motionData["velocity_y"] };
+	return m;
 }
 
 void WorldSystem::logText(std::string msg) {

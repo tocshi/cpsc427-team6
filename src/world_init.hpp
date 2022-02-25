@@ -71,6 +71,8 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos);
 Entity createPlayer(RenderSystem* renderer, Motion m);
 // Enemy (split into different enemies for future)
 Entity createEnemy(RenderSystem* renderer, vec2 pos);
+// Enemy with motion component as input
+Entity createEnemy(RenderSystem* renderer, Motion m);
 // Boss
 Entity createBoss(RenderSystem* renderer, vec2 pos);
 // Artifact

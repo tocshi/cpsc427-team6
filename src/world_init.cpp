@@ -894,7 +894,7 @@ Entity createCampfire(RenderSystem* renderer, vec2 pos) {
 		{ TEXTURE_ASSET_ID::CAMPFIRE_SPRITESHEET,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::ANIMATION,
-			RENDER_LAYER_ID::WALLS });
+			RENDER_LAYER_ID::FLOOR_DECO });
 
 	return entity;
 }

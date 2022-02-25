@@ -176,9 +176,8 @@ void SaveSystem::saveGameState() {
 		if (registry.slimeEnemies.has(e)) {
 			enemyData["type"] = "slime";
 			json data;
-			SlimeEnemy se = registry.slimeEnemies.get(e);		
-			data["hp"] = se.hp;
-			data["chaseRange"] = se.chaseRange;
+			SlimeEnemy se = registry.slimeEnemies.get(e);	
+			Stats slime_stats = registry.stats.get(e);
 			data["state"] = se.state;
 			enemyData["data"] = data;
 		}

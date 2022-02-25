@@ -995,8 +995,6 @@ void WorldSystem::loadSlime(json slimeData) {
 
 	// set slimeEnemy data
 	json data = slimeData["data"];
-	registry.slimeEnemies.get(e).hp = data["hp"];
-	registry.slimeEnemies.get(e).chaseRange = data["chaseRange"];
 	registry.slimeEnemies.get(e).state = data["state"];
 }
 

@@ -181,10 +181,8 @@ Entity createEnemy(RenderSystem* renderer, Motion m)
 	// make it a slime enemy for now
 	registry.slimeEnemies.insert(
 		entity,
-		{ 10.f,
-		300,
-		{ window_width_px / 2, 350.f },
-		SLIME_STATE::IDLE_DOWN });
+		{ { window_width_px / 2, 350.f },
+		SLIME_STATE::IDLE });
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SLIME,

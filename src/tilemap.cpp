@@ -57,7 +57,7 @@ SpawnData TileMapParser::Parse(const std::string& file, RenderSystem *renderer, 
 				if (properties == nullptr)
 					continue;
 				int min = 0;
-				int max = 1;
+				int max = 0;
 				for (rapidxml::xml_node<>* property = properties->first_node("property");
 					property; property = property->next_sibling("property"))
 				{
@@ -67,7 +67,7 @@ SpawnData TileMapParser::Parse(const std::string& file, RenderSystem *renderer, 
 					}
 					else if (property->first_attribute("name") != nullptr &&
 						std::string(property->first_attribute("name")->value()) == "max") {
-						max = std::atoi(property->first_attribute("value")->value()) + 1;
+						max = std::atoi(property->first_attribute("value")->value());
 					}
 				}
 
@@ -79,7 +79,7 @@ SpawnData TileMapParser::Parse(const std::string& file, RenderSystem *renderer, 
 					wallgroups.push_back(wallgroup);
 				}
 
-				int select_count = std::min(irandRange(min, max), int(wallgroups.size()));
+				int select_count = std::min(irandRange(min, max+1), int(wallgroups.size()));
 				// randomize the order, then pick select_count of them to spawn
 				std::random_shuffle(wallgroups.begin(), wallgroups.end());
 				for (int i = 0; i < select_count; i++) {
@@ -113,9 +113,18 @@ SpawnData TileMapParser::Parse(const std::string& file, RenderSystem *renderer, 
 
 	// load and store player/enemy/item spawnpoints
 	SpawnData spawnData = SpawnData();
-	spawnData.playerSpawns = BuildSpawns(rootNode, "player", scaleFactor, offset);
-	spawnData.enemySpawns = BuildSpawns(rootNode, "enemy", scaleFactor, offset);
-	spawnData.itemSpawns = BuildSpawns(rootNode, "item", scaleFactor, offset);
+	std::tuple<std::vector<vec2>, int, int> playerSpawnInfo = BuildSpawns(rootNode, "player", scaleFactor, offset);
+	spawnData.playerSpawns = std::get<0>(playerSpawnInfo);
+
+	std::tuple<std::vector<vec2>, int, int> enemySpawnInfo = BuildSpawns(rootNode, "enemy", scaleFactor, offset);
+	spawnData.enemySpawns = std::get<0>(enemySpawnInfo);
+	spawnData.minEnemies = std::get<1>(enemySpawnInfo);
+	spawnData.maxEnemies = std::get<2>(enemySpawnInfo);
+
+	std::tuple<std::vector<vec2>, int, int> itemSpawnInfo = BuildSpawns(rootNode, "item", scaleFactor, offset);
+	spawnData.itemSpawns = std::get<0>(itemSpawnInfo);
+	spawnData.minItems = std::get<1>(itemSpawnInfo);
+	spawnData.maxItems = std::get<2>(itemSpawnInfo);
 
 	return spawnData;
 }
@@ -313,8 +322,10 @@ Entity TileMapParser::createTileFromData(std::shared_ptr<Tile> tile, int tileSiz
 	return entity;
 }
 
-std::vector<std::shared_ptr<vec2>> TileMapParser::BuildSpawns(rapidxml::xml_node<>* rootNode, std::string layerName, int scaleFactor, vec2 offset) {
-	std::vector<std::shared_ptr<vec2>> objects = std::vector<std::shared_ptr<vec2>>();
+std::tuple<std::vector<vec2>, int, int> TileMapParser::BuildSpawns(rapidxml::xml_node<>* rootNode, std::string layerName, int scaleFactor, vec2 offset) {
+	std::vector<vec2> objects = std::vector<vec2>();
+	int min = 0;
+	int max = 0;
 	// We loop through each layer in the XML document.
 	for (rapidxml::xml_node<>* node = rootNode->first_node("objectgroup");
 		node; node = node->next_sibling("objectgroup"))
@@ -323,12 +334,30 @@ std::vector<std::shared_ptr<vec2>> TileMapParser::BuildSpawns(rapidxml::xml_node
 			for (rapidxml::xml_node<>* objectnode = node->first_node("object");
 				objectnode; objectnode = objectnode->next_sibling("object"))
 			{
-				objects.push_back(std::make_shared<vec2>(vec2( 
-					std::atof(objectnode->first_attribute("x")->value())* scaleFactor + offset.x, 
-					std::atof(objectnode->first_attribute("y")->value())* scaleFactor + offset.y 
-				)));
+				objects.push_back({
+					std::atof(objectnode->first_attribute("x")->value()) * scaleFactor + offset.x,
+					std::atof(objectnode->first_attribute("y")->value()) * scaleFactor + offset.y
+				});
+			}
+		}
+
+		// use property of current group to determine how many of this group to spawn
+		rapidxml::xml_node<>* properties = node->first_node("properties");
+		if (properties == nullptr)
+			continue;
+			
+		for (rapidxml::xml_node<>* property = properties->first_node("property");
+			property; property = property->next_sibling("property"))
+		{
+			if (property->first_attribute("name") != nullptr &&
+				std::string(property->first_attribute("name")->value()) == "min") {
+				min = std::atoi(property->first_attribute("value")->value());
+			}
+			else if (property->first_attribute("name") != nullptr &&
+				std::string(property->first_attribute("name")->value()) == "max") {
+				max = std::atoi(property->first_attribute("value")->value());
 			}
 		}
 	}
-	return objects;
+	return std::make_tuple(objects, min, max);
 }

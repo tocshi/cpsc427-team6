@@ -974,6 +974,10 @@
   </object>
  </objectgroup>
  <objectgroup id="10" name="enemy">
+  <properties>
+   <property name="max" type="int" value="16"/>
+   <property name="min" type="int" value="10"/>
+  </properties>
   <object id="74" name="E" x="391" y="677">
    <properties>
     <property name="max" type="int" value="16"/>

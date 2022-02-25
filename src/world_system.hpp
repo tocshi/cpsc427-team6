@@ -72,10 +72,10 @@ private:
 	void remove_fog_of_war();
 
 	// spawn player in random location
-	void spawn_player_random_location(std::vector<std::shared_ptr<vec2>>& playerSpawns);
+	void spawn_player_random_location(std::vector<vec2>& playerSpawns);
 
 	// spawn enemy in random location
-	void spawn_enemy_random_location(std::vector<std::shared_ptr<vec2>>& enemySpawns);
+	void spawn_enemies_random_location(std::vector<vec2>& enemySpawns, int min, int max);
 
 	// remove entities for loading
 	void removeForLoad();

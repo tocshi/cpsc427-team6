@@ -460,7 +460,7 @@ void WorldSystem::spawn_game_entities() {
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
 	spawn_player_random_location(spawnData.playerSpawns);
-	spawn_enemy_random_location(spawnData.enemySpawns);
+	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
   
 	//createBoss(renderer, { 250.f, 450.f });
 	//createArtifact(renderer, { 250.f, 550.f });
@@ -515,10 +515,10 @@ void WorldSystem::remove_fog_of_war() {
 }
 
 // spawn player entity in random location
-void WorldSystem::spawn_player_random_location(std::vector<std::shared_ptr<vec2>>& playerSpawns) {
+void WorldSystem::spawn_player_random_location(std::vector<vec2>& playerSpawns) {
 	std::random_shuffle(playerSpawns.begin(), playerSpawns.end());
 	if (playerSpawns.size() > 0) {
-		createPlayer(renderer, { playerSpawns[0]->x, playerSpawns[0]->y});
+		createPlayer(renderer, { playerSpawns[0].x, playerSpawns[0].y});
 		return;
 	}
 	// default spawn location in case we don't have player spawns
@@ -527,26 +527,14 @@ void WorldSystem::spawn_player_random_location(std::vector<std::shared_ptr<vec2>
 }
 
 // spawn enemy entity in random location
-void WorldSystem::spawn_enemy_random_location(std::vector<std::shared_ptr<vec2>>& enemySpawns) {
-	printf("%d", rand());
-	int randX = rand()%((window_width_px - 200 + 1) + 200);
-	int randY = rand()%((window_height_px - 200 + 1) + 200);
-
-	if (randX < 200) {
-		randX += 200;
+void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, int min, int max) {
+	std::random_shuffle(enemySpawns.begin(), enemySpawns.end());
+	if (enemySpawns.size() > 0) {
+		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
+		for (int i = 0; i < numberToSpawn; i++) {
+			createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+		}
 	}
-	else if (randX >= window_width_px - 200) {
-		randX -= 200;
-	}
-
-	if (randY < 200) {
-		randY += 200;
-	}
-	else if (randY >= window_height_px - 200) {
-		randY -= 200;
-	}
-
-	createEnemy(renderer, { (float)randX, (float)randY });
 }
 
 // Compute collisions between entities

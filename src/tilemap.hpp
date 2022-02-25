@@ -62,9 +62,13 @@ struct MapObject
 
 struct SpawnData
 {
-	std::vector<std::shared_ptr<vec2>> playerSpawns;
-	std::vector<std::shared_ptr<vec2>> enemySpawns;
-	std::vector<std::shared_ptr<vec2>> itemSpawns;
+	std::vector<vec2> playerSpawns;
+	std::vector<vec2> enemySpawns;
+	std::vector<vec2> itemSpawns;
+	int minEnemies = 0;
+	int maxEnemies = 0;
+	int minItems = 0;
+	int maxItems = 0;
 };
 
 using Layer = std::vector<std::shared_ptr<Tile>>;
@@ -79,7 +83,7 @@ public:
 	SpawnData Parse(const std::string& file, RenderSystem *renderer, vec2 offset = { 0, 0 });
 private:
 	std::vector<std::shared_ptr<MapObject>> BuildObjects(rapidxml::xml_node<>* rootNode);
-	std::vector<std::shared_ptr<vec2>> BuildSpawns(rapidxml::xml_node<>* rootNode, std::string layerName, int scaleFactor, vec2 offset);
+	std::tuple<std::vector<vec2>, int, int> BuildSpawns(rapidxml::xml_node<>* rootNode, std::string layerName, int scaleFactor, vec2 offset);
 	std::shared_ptr<TileSheetData> BuildTileSheetData(rapidxml::xml_node<>* rootNode, RenderSystem *renderer);
 	std::shared_ptr<MapTiles> BuildMapTiles(rapidxml::xml_node<>* rootNode, RenderSystem *renderer);
 	std::pair<std::string, std::shared_ptr<Layer>>

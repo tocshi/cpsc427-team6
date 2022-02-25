@@ -109,10 +109,13 @@ GLFWwindow* WorldSystem::create_window() {
 	//printf("Previous Game State : Game state = MAIN_MENU");
 	//printf()
 	inMenu = GameStates::MAIN_MENU;
+	printf("previous state in Now %d \n", static_cast<int>(previousGameState));
 
 	// set previousgamestate to inMenu
 	previousGameState = inMenu;
-	printf("ACTION: SET THE GAME TO START : Game state = MAIN_MENU");
+	printf("ACTION: SET THE GAME TO START : Game state = MAIN_MENU\n");
+	printf("Current inMenu Game state %d \n", static_cast<int>(inMenu));
+	printf("previous state in Now %d \n", static_cast<int>(previousGameState));
 	
 
 	//////////////////////////////////////
@@ -370,9 +373,14 @@ void WorldSystem::restart_game() {
 
 	// restart the game on the menu screen
 	//inMenu = true;
+	printf("previous state in %d: \n", static_cast<int>(previousGameState));
 	inMenu = GameStates::MAIN_MENU;
 	previousGameState = inMenu;
-	std::cout << "ACTION: Loading initial game world or Pressed Restart button, Go to MENU SCREEN : Game state = MAIN_MENU" << std::endl;
+	printf("previous state in Now:  %d \n", static_cast<int>(previousGameState));
+	std::cout << "ACTION: Loading initial game world or Pressed Restart button, Go to MENU SCREEN : Game state = MAIN_MENU \n" << std::endl;
+	printf("Game State inMenu value is: %d \n", static_cast<int>(previousGameState));
+	printf("%d", static_cast<int>(inMenu));
+
 	/*if (inMenu != GameStates::MAIN_MENU) {
 		//inMenu = GameStates::MAIN_MENU;
 		std::cout << "ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU" << std::endl;
@@ -635,7 +643,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 				switch (action_taken) {
 					//case BUTTON_ACTION_ID::MENU_START: inMenu = false; spawn_game_entities(); is_player_turn = true; break;
-					case BUTTON_ACTION_ID::MENU_START: inMenu = GameStates::GAME_START; previousGameState = inMenu; printf("\n set previous game state to current games state for inMenu \n"); printf("BUTTON PRESS ACTION START : Game state = GAME_START : We are playing a Game \n"); spawn_game_entities(); is_player_turn = true; break;
+					case BUTTON_ACTION_ID::MENU_START: inMenu = GameStates::GAME_START; previousGameState = inMenu; printf("\n set previous game state to current games state for inMenu: %d\n", static_cast<int>(previousGameState)); printf("\n BUTTON PRESS ACTION START : Game state = GAME_START : We are playing a Game: %d\n",static_cast<int>(inMenu)); spawn_game_entities(); is_player_turn = true; break;
 						
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 				}

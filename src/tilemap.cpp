@@ -1,7 +1,7 @@
 #include "tilemap.hpp"
 #include "tiny_ecs_registry.hpp"
 
-std::vector<Entity> TileMapParser::Parse(const std::string& file, RenderSystem *renderer, vec2 offset)
+SpawnData TileMapParser::Parse(const std::string& file, RenderSystem *renderer, vec2 offset)
 {
 	char* fileLoc = new char[file.size() + 1]; // 1
 	strcpy_s(fileLoc, file.size() + 1, file.c_str());
@@ -20,8 +20,6 @@ std::vector<Entity> TileMapParser::Parse(const std::string& file, RenderSystem *
 
 	int scaleFactor = 4; // TODO: determine based on tileset if we are using different tile sizes
 	float uv_padding = 0.0001;
-	// This will contain all of our tiles as objects.
-	std::vector<Entity> tileObjects;
 	// 2
 	// We iterate through each layer in the tile map
 	for (const auto& layer : *tiles)
@@ -113,9 +111,15 @@ std::vector<Entity> TileMapParser::Parse(const std::string& file, RenderSystem *
 		}
 	}
 
-	// TODO: reset memory
+	// load and store player/enemy/item spawnpoints
+	SpawnData spawnData = SpawnData();
+	spawnData.playerSpawns = BuildSpawns(rootNode, "player");
+	spawnData.enemySpawns = BuildSpawns(rootNode, "enemy");
+	spawnData.itemSpawns = BuildSpawns(rootNode, "item");
 
-	return tileObjects;
+	// TODO: reset memory for things we don't need to keep after parsing
+
+	return spawnData;
 }
 
 
@@ -309,4 +313,21 @@ Entity TileMapParser::createTileFromData(std::shared_ptr<Tile> tile, int tileSiz
 	}
 	registry.renderRequests.insert(entity, renderRequest);
 	return entity;
+}
+
+std::vector<vec2> TileMapParser::BuildSpawns(rapidxml::xml_node<>* rootNode, std::string layerName) {
+	std::vector<vec2> objects = std::vector<vec2>();
+	// We loop through each layer in the XML document.
+	for (rapidxml::xml_node<>* node = rootNode->first_node("objectgroup");
+		node; node = node->next_sibling("objectgroup"))
+	{
+		if (std::string(node->first_attribute("name")->value()) == layerName) {
+			for (rapidxml::xml_node<>* objectnode = node->first_node("object");
+				objectnode; objectnode = objectnode->next_sibling("object"))
+			{
+				objects.push_back({ std::atof(objectnode->first_attribute("x")->value()), std::atof(objectnode->first_attribute("y")->value())});
+			}
+		}
+	}
+	return objects;
 }

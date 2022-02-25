@@ -60,6 +60,13 @@ struct MapObject
 	Rect objectRect;
 };
 
+struct SpawnData
+{
+	std::vector<vec2> playerSpawns;
+	std::vector<vec2> enemySpawns;
+	std::vector<vec2> itemSpawns;
+};
+
 using Layer = std::vector<std::shared_ptr<Tile>>;
 // Stores layer names with layer.
 using MapTiles = std::map<std::string, std::shared_ptr<Layer>>;
@@ -69,9 +76,10 @@ using TileSet = std::unordered_map<unsigned int, std::shared_ptr<TileInfo>>;
 class TileMapParser
 {
 public:
-	std::vector<Entity> Parse(const std::string& file, RenderSystem *renderer, vec2 offset = { 0, 0 });
+	SpawnData Parse(const std::string& file, RenderSystem *renderer, vec2 offset = { 0, 0 });
 private:
 	std::vector<MapObject> BuildObjects(rapidxml::xml_node<>* rootNode);
+	std::vector<vec2> BuildSpawns(rapidxml::xml_node<>* rootNode, std::string layerName);
 	std::shared_ptr<TileSheetData> BuildTileSheetData(rapidxml::xml_node<>* rootNode, RenderSystem *renderer);
 	std::shared_ptr<MapTiles> BuildMapTiles(rapidxml::xml_node<>* rootNode, RenderSystem *renderer);
 	std::pair<std::string, std::shared_ptr<Layer>>

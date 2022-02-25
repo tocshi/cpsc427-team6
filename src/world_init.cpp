@@ -868,7 +868,7 @@ Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale
 	return entity;
 }
 
-std::vector<Entity> createTiles(RenderSystem* renderer, const std::string& filepath) {
+SpawnData createTiles(RenderSystem* renderer, const std::string& filepath) {
 	TileMapParser parser = TileMapParser();
 	return parser.Parse(tilemaps_path(filepath), renderer);
 }

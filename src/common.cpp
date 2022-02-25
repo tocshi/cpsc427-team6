@@ -1,4 +1,6 @@
 #include "common.hpp"
+#include <stdlib.h>
+#include <time.h>
 
 // Note, we could also use the functions from GLM but we write the transformations here to show the uderlying math
 void Transform::scale(vec2 scale)
@@ -55,4 +57,28 @@ bool gl_has_errors()
 	}
 
 	return true;
+}
+
+int irand(int i) {
+	if (i == 0) {
+		return 0;
+	}
+	return rand() % i;
+}
+
+int irandRange(int i, int j) {
+	if (j - i == 0) {
+		return i;
+	}
+	return rand() % (j - i) + i;
+}
+
+int ichoose(int i, int j) {
+	int rng = irand(2);
+	if (rng) {
+		return i;
+	}
+	else {
+		return j;
+	}
 }

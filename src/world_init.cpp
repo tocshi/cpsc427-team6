@@ -839,7 +839,7 @@ Entity createCampfire(RenderSystem* renderer, vec2 pos) {
 	Entity entity = Entity();
 	AnimationData& anim = registry.animations.emplace(entity);
 	anim.spritesheet_texture = TEXTURE_ASSET_ID::CAMPFIRE_SPRITESHEET;
-	anim.frametime_ms = 200;
+	anim.frametime_ms = 150;
 	anim.frame_indices = { 0, 1, 2, 3, 4 };
 	anim.spritesheet_columns = 5;
 	anim.spritesheet_rows = 1;

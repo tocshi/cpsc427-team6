@@ -8,6 +8,7 @@
 #include <sstream>
 #include <string>
 #include "render_system.hpp"
+#include "common.hpp"
 
 struct Rect
 {
@@ -35,6 +36,7 @@ struct TileInfo
 
 struct Tile
 {
+	vec2 offset = { 0,0 };
 	std::shared_ptr<TileInfo> properties;
 	int x; // x and y are positions within the tile grid, not screen pixels
 	int y;
@@ -76,6 +78,7 @@ private:
 		BuildLayer(
 			rapidxml::xml_node<>* layerNode, std::shared_ptr<TileSheetData> tileSheetData
 		);
+	Entity TileMapParser::createTileFromData(std::shared_ptr<Tile> tile, int tileSizeX, int tileSizeY, int scaleFactor, float uv_padding, std::string layer_name, vec2 offset = { 0,0 });
 
 	static inline bool IsInteger(const std::string& s)
 	{

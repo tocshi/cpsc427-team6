@@ -455,7 +455,7 @@ void WorldSystem::restart_game() {
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
 
-	createTiles(renderer, "map1.tmx");
+	createTiles(renderer, "map1_random.tmx");
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
@@ -534,7 +534,8 @@ void WorldSystem::spawn_player_random_location() {
 		randY -= 200;
 	}
 
-	createPlayer(renderer, { (float)randX, (float)randY } );
+	//createPlayer(renderer, { (float)randX, (float)randY } );
+	createPlayer(renderer, { 400, 400 });
 }
 
 // spawn enemy entity in random location

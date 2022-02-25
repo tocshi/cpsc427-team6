@@ -223,6 +223,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			set_is_player_turn(true);
 
 			// perform start-of-turn actions for player
+			logText("It is now your turn!");
 			start_player_turn();
 			
 		}
@@ -238,6 +239,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// Update HP/MP/EP bars and movement
+	// Check for player death
 	for (Entity player : registry.players.entities) {
 		Player& p = registry.players.get(player);
 		
@@ -246,6 +248,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		float& hp = registry.stats.get(player).hp;
 		float& mp = registry.stats.get(player).mp;
 		float& ep = registry.stats.get(player).ep;
+
+		// Check if player has died
+		if (hp <= 0 && !registry.deathTimers.has(player)) {
+			registry.deathTimers.emplace(player);
+			logText("You have died!");
+			player_move_click = false;
+			break;
+		}
 
 		// update player motion
 		Motion& player_motion = registry.motions.get(player);
@@ -256,6 +266,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				p.attacked = false;
 				set_is_player_turn(false);
 				player_move_click = false;
+				logText("It is now the enemies' turn!");
 			}
 			else { 
 				float ep_rate = 1.f;
@@ -750,6 +761,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		if (get_is_player_turn() && !player_move_click && ypos < window_height_px - 200.f) {
 			for (Entity e : registry.players.entities) {
 				Player& player = registry.players.get(e);
+				Motion& player_motion = registry.motions.get(e);
+				Stats& player_stats = registry.stats.get(e);
 
 				PLAYER_ACTION action = player.action;
 				switch (action) {
@@ -765,8 +778,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 							if ((world_pos.x <= (enemyX + m.scale[0] / 2) && world_pos.x >= (enemyX - m.scale[0] / 2)) &&
 								(world_pos.y >= (enemyY - m.scale[1] / 2) && world_pos.y <= (enemyY + m.scale[1] / 2))) {
-								// only attack if have enough ep
-								if (player.ep >= 0.5 * player.maxEP) {
+								// only attack if have enough ep and is close enough
+								if (player_stats.ep >= 0.5 * player_stats.maxep && dist_to(player_motion.position,m.position) <= 100.f) {
 									// todo: add dealDamage call
 
 									// show explosion animation
@@ -775,13 +788,18 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									// play attack sound
 									Mix_PlayChannel(-1, fire_explosion_sound, 0);
 
-									logText("hit enemy!");
+									logText(deal_damage(e, en, 100.f));
 									// lower ep
-									player.ep -= 0.5 * player.maxEP;
+									player_stats.ep -= 0.5 * player_stats.maxep;
 									player.attacked = true;
 								}
+								else if (player_stats.ep < 0.5 * player_stats.maxep) {
+									logText("Not enough EP to attack!");
+									// play error sound
+									Mix_PlayChannel(-1, error_sound, 0);
+								}
 								else {
-									logText("not enough ep to attack!");
+									logText("Target too far away!");
 									// play error sound
 									Mix_PlayChannel(-1, error_sound, 0);
 								}

@@ -147,6 +147,7 @@ struct Stats {
 	float maxep = 100.f;
 	float atk   = 10.f;
 	float def   = 10.f;
+	float speed = 10.f;
 	float range = 450.f;
 	float chase = 450.f;
 };

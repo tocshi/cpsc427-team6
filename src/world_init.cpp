@@ -115,6 +115,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	stats.name = "Slime";
 	stats.prefix = "the ";
 	stats.atk = 10;
+	stats.range = 250;
 
 	// Create and (empty) Enemy component to be able to refer to all enemies
 	registry.enemies.emplace(entity);

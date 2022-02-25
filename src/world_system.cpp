@@ -943,3 +943,4 @@ void WorldSystem::logText(std::string msg) {
 	Entity e = createText(renderer, defaultPos, msg, 1.5f, textColor);
 	registry.textTimers.emplace(e);
 }
+

@@ -11,23 +11,30 @@ void AISystem::step(float elapsed_ms)
 
 void AISystem::slime_logic() {
 	for (Entity& slime : registry.slimeEnemies.entities) {
-		SLIME_STATE state = registry.slimeEnemies.get(slime).state;
-		float initialY = registry.slimeEnemies.get(slime).initialPosition.y;
-		float chaseRange = registry.slimeEnemies.get(slime).chaseRange;
+		Stats& stats = registry.stats.get(slime);
+		float chaseRange = stats.range;
 		int dx = ichoose(irandRange(-75, -25), irandRange(25, 75));
 		int dy = ichoose(irandRange(-75, -25), irandRange(25, 75));
 
 		Motion& motion_struct = registry.motions.get(slime);
 
-		// perform action based on state, and update state before next turn if required
+		// Determine slime state
+		// check if player is in range first
+		if (player_in_range(motion_struct.position, chaseRange)) {
+			printf("BECOME AGGRO \n");
+			registry.slimeEnemies.get(slime).state = SLIME_STATE::AGGRO;
+		}
+		else {
+			printf("BECOME IDLE \n");
+			registry.slimeEnemies.get(slime).state = SLIME_STATE::IDLE;
+		}
+
+		SLIME_STATE state = registry.slimeEnemies.get(slime).state;
+		// perform action based on state
 		switch (state) {
 		case SLIME_STATE::IDLE:
 			motion_struct.destination = { motion_struct.position.x + dx, motion_struct.position.y + dy };
 			motion_struct.velocity = 180.f * normalize(motion_struct.destination - motion_struct.position);
-			// check if player is in range first
-			if (player_in_range(motion_struct.position, chaseRange)) {
-				registry.slimeEnemies.get(slime).state = SLIME_STATE::AGGRO;
-			}
 			motion_struct.in_motion = true;
 			break;
 		case SLIME_STATE::AGGRO:
@@ -49,13 +56,6 @@ void AISystem::slime_logic() {
 				motion_struct.velocity = { x_component, y_component };
 				motion_struct.destination = motion_struct.position + (direction * 150.f);
 				motion_struct.in_motion = true;
-			}
-
-			// if player moves out of range, return to idle animation
-			if (!player_in_range(motion_struct.position, chaseRange)) {
-				registry.slimeEnemies.get(slime).state = SLIME_STATE::IDLE;
-				// need to update initialPosition of slime so it idles from its new location
-				registry.slimeEnemies.get(slime).initialPosition = motion_struct.position;
 			}
 			break;
 		}

@@ -220,7 +220,7 @@ Entity createPlantProjectile(RenderSystem* renderer, vec2 pos)
 	motion.position = pos;
 	motion.destination = pos;
 	motion.in_motion = false;
-	motion.movement_speed = 0;
+	motion.movement_speed = 200.f;
 
 	motion.scale = vec2({ PLANT_PROJECTILE_BB_WIDTH, PLANT_PROJECTILE_BB_HEIGHT });
 

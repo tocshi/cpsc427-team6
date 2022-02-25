@@ -120,14 +120,19 @@ GLFWwindow* WorldSystem::create_window() {
 		fprintf(stderr, "Failed to open audio device");
 		return nullptr;
 	}
+	// Music and volumes
 	Mix_VolumeMusic(10);
-
 	background_music = Mix_LoadMUS(audio_path("bgm/caves0.wav").c_str());
+
+	// Sounds and volumes
 	chicken_dead_sound = Mix_LoadWAV(audio_path("chicken_dead.wav").c_str());
 	chicken_eat_sound = Mix_LoadWAV(audio_path("chicken_eat.wav").c_str());
 	fire_explosion_sound = Mix_LoadWAV(audio_path("feedback/fire_explosion.wav").c_str());
+	Mix_VolumeChunk(fire_explosion_sound, 13);
 	error_sound = Mix_LoadWAV(audio_path("feedback/error.wav").c_str());
+	Mix_VolumeChunk(error_sound, 13);
 	footstep_sound = Mix_LoadWAV(audio_path("feedback/footstep.wav").c_str());
+	Mix_VolumeChunk(footstep_sound, 14);
 
 	if (background_music == nullptr || chicken_dead_sound == nullptr || chicken_eat_sound == nullptr 
 		|| fire_explosion_sound == nullptr || error_sound == nullptr || footstep_sound == nullptr) {
@@ -187,12 +192,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				// handle footstep sound
 				if (move_audio_timer_ms <= 0) {
 					// play the footstep sound
-					Mix_VolumeChunk(footstep_sound, 9);
 					Mix_PlayChannel(-1, footstep_sound, 0);
 					move_audio_timer_ms = 200.f;
 				}
 				else {
-					move_audio_timer_ms -= 50.f;
+					move_audio_timer_ms -= 20.f;
 				}
 				// update the fog of war if the player is moving
 				remove_fog_of_war();
@@ -754,7 +758,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							if ((world_pos.x <= (enemyX + m.scale[0] / 2) && world_pos.x >= (enemyX - m.scale[0] / 2)) &&
 								(world_pos.y >= (enemyY - m.scale[1] / 2) && world_pos.y <= (enemyY + m.scale[1] / 2))) {
 								// only attack if have enough ep
-								if (player.ep >= 0.33 * player.maxEP) {
+								if (player.ep >= 0.5 * player.maxEP) {
 									// todo: add dealDamage call
 
 									// show explosion animation
@@ -765,7 +769,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 									logText("hit enemy!");
 									// lower ep
-									player.ep -= 0.33 * player.maxEP;
+									player.ep -= 0.5 * player.maxEP;
 									player.attacked = true;
 								}
 								else {

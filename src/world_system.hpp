@@ -98,6 +98,9 @@ private:
 	// remove entities for loading
 	void removeForLoad();
 
+	// remove entities for new room
+	void removeForNewRoom();
+
 	// load entities from saved data
 	std::queue<Entity> loadFromData(json data);
 

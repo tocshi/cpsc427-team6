@@ -637,10 +637,10 @@ void WorldSystem::spawn_game_entities() {
 		{"Left click the buttons at the bottom to switch between actions.", 2000},
 		{"In Move mode, you can click to move as long as you have EP.", 6000},
 		{"EP is the yellow bar at the top of the screen, which gets expended as you move and attack.", 10000},
-		{"In Attack mode, you can click on an enemy close to you to deal damage.", 16000},
+		{"In Attack mode, you can click on an enemy close to you to deal damage at the cost of half your EP.", 15000},
 		{"Use your attacks wisely. You can only attack once per turn.", 20000},
 		{"After your EP hits 0 or you click on End Turn, the enemies will have a turn to move and attack you.", 24000},
-		{"Good luck, nameless adventurer.", 28000}};
+		{"Good luck, nameless adventurer.", 30000}};
 
 	createSign(
 		renderer, 

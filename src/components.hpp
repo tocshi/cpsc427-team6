@@ -182,6 +182,7 @@ struct Stats {
 	float speed = 10.f;
 	float range = 450.f;
 	float chase = 450.f;
+	bool guard = false;
 };
 
 struct Queueable {

@@ -850,8 +850,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						break;
 					case BUTTON_ACTION_ID::COLLECTION:
 						// TODO: add real functionality for this
-						logText("Hmm... you collection looks empty");
-						logText("collect and artifact and come back later.");
+						logText("Collection Menu to be implemented later!");
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_BACK:
 						// hide mode text elements
@@ -869,20 +868,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_ITEM:
 						// TODO: add real functionality for this
-						logText("Hmm... you have no items");
-						logText("collect an item and come back later.");
-						break;
-					case BUTTON_ACTION_ID::ACTIONS_GUARD:
-						// TODO: add real functionality for this
-						logText("you defend yourself! (next enemy attack is weaker)");
-						for (Entity player : registry.players.entities) {
-							handle_end_player_turn(player);
-						}
-						break;
-					case BUTTON_ACTION_ID::ACTIONS_END_TURN:
-						for (Entity player : registry.players.entities) {
-							handle_end_player_turn(player);
-						}
+						logText("Items Menu to be implemented later!");
 						break;
 				}
 			}
@@ -910,9 +896,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 				switch (action) {
 				case BUTTON_ACTION_ID::ACTIONS_GUARD:
-					// TODO: add real functionality for this
-					logText("you defend yourself! (next enemy attack is weaker)");
+					logText("You brace yourself...");
 					for (Entity player : registry.players.entities) {
+						registry.stats.get(player).guard = true;
 						handle_end_player_turn(player);
 					}
 					break;
@@ -1069,7 +1055,13 @@ void WorldSystem::start_player_turn() {
 		float& mp = registry.stats.get(player).mp;
 		float& ep = registry.stats.get(player).ep;
 
-		ep = maxep;
+		if (registry.stats.get(player).guard) {
+			//ep = maxep * 1.5f;
+			registry.stats.get(player).guard = false;
+		}
+		else {
+			ep = maxep;
+		}
 
 	}
 }

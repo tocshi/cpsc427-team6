@@ -84,7 +84,9 @@ class RenderSystem {
 		shader_path("textured"),
 		shader_path("wind"),
 		shader_path("text"),
-		shader_path("fog") };
+		shader_path("fog"),
+		shader_path("ep_range")
+	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
 	std::array<GLuint, geometry_count> index_buffers;

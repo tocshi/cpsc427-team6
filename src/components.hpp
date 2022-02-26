@@ -242,6 +242,12 @@ struct MenuItem {
 
 };
 
+struct EpRange {
+	float radius = 450.f;
+	float resolution = 2000.f;
+	vec2 screen_resolution = { 1600.f, 900.f };
+};
+
 struct Fog {
 	float radius = 450.f;
 	float resolution = 2000.f;
@@ -361,7 +367,8 @@ enum class EFFECT_ASSET_ID {
 	WIND = TEXTURED + 1,
 	TEXT = WIND + 1,
 	FOG = TEXT + 1,
-	EFFECT_COUNT = FOG + 1
+	EP = FOG + 1,
+	EFFECT_COUNT = EP + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
@@ -372,7 +379,8 @@ enum class GEOMETRY_BUFFER_ID {
 	EGG = TILEMAP + 1,
 	ANIMATION = EGG + 1,
 	FOG = ANIMATION + 1,
-	DEBUG_LINE = FOG + 1,
+	EP = FOG + 1,
+	DEBUG_LINE = EP + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
 	TEXTQUAD = SCREEN_TRIANGLE + 1,
 	GEOMETRY_COUNT = TEXTQUAD + 1

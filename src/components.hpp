@@ -264,8 +264,11 @@ struct TileUV {
 };
 
 struct Sign {
+	int counter_ms = 0;
 	std::vector<std::string> messages; // a list of messages
-	std::vector<int> msg_delays_ms; // the delay before each message is logged
+	std::vector<int> msg_times; // the time since click at which each message is logged
+	bool playing = false; // counter_ms only updates when this is true
+	int next_message = 0;
 };
 
 /**
@@ -303,7 +306,8 @@ enum class TEXTURE_ASSET_ID {
 	CHEST = EQUIPABLE + 1,
 	DOOR = CHEST + 1,
 	SIGN = DOOR + 1,
-	STAIR = SIGN + 1,
+	SIGN_GLOW_SPRITESHEET = SIGN + 1,
+	STAIR = SIGN_GLOW_SPRITESHEET + 1,
 	START = STAIR + 1,
 	QUIT = START + 1,
 	TITLE = QUIT + 1,

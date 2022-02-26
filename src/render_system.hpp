@@ -46,6 +46,7 @@ class RenderSystem {
 			textures_path("chest.png"),
 			textures_path("door.png"),
 			textures_path("sign.png"),
+			textures_path("sign_glowing.png"),
 			textures_path("stair.png"),
 			textures_path("start.png"),
 			textures_path("quit.png"),

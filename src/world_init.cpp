@@ -373,9 +373,18 @@ Entity createDoor(RenderSystem* renderer, vec2 pos)
 }
 
 // Sign
-Entity createSign(RenderSystem* renderer, vec2 pos)
+Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::string>& messages, std::vector<int> msg_delays_ms)
 {
 	auto entity = Entity();
+	AnimationData& anim = registry.animations.emplace(entity);
+	anim.spritesheet_texture = TEXTURE_ASSET_ID::SIGN_GLOW_SPRITESHEET;
+	anim.frametime_ms = 200;
+	anim.frame_indices = { 0, 1, 2, 3, 4, 5, 6, 7 };
+	anim.spritesheet_columns = 8;
+	anim.spritesheet_rows = 1;
+	anim.spritesheet_width = 256;
+	anim.spritesheet_height = 32;
+	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
 
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -392,15 +401,15 @@ Entity createSign(RenderSystem* renderer, vec2 pos)
 	// Create and (empty) SIGN component to be able to refer to all signs
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::SIGN,
+		{ TEXTURE_ASSET_ID::SIGN_GLOW_SPRITESHEET,
 		EFFECT_ASSET_ID::TEXTURED,
-		GEOMETRY_BUFFER_ID::SPRITE,
+		GEOMETRY_BUFFER_ID::ANIMATION,
 		RENDER_LAYER_ID::SPRITE
 		});
 
 	Sign& sign = registry.signs.emplace(entity);
-	sign.messages = { "Welcome to Adrift in Somnium!", "This is a test message.", "And here's another one with a longer delay."};
-	sign.msg_delays_ms = { 0, 2000, 4000 };
+	sign.messages = messages;
+	sign.msg_times = msg_delays_ms;
 
 	return entity;
 }

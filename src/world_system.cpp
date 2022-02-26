@@ -405,8 +405,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// update animations 
-	for (int i = 0; i < registry.animations.size(); i++) {
-		Entity e = registry.animations.entities[i];
+	for (Entity e : registry.animations.entities) {
 		AnimationData& anim = registry.animations.get(e);
 		anim.animation_time_ms += elapsed_ms_since_last_update;
 		if (anim.animation_time_ms > anim.frametime_ms * anim.frame_indices.size() - 1) {
@@ -420,6 +419,25 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			anim.animation_time_ms -= anim.frametime_ms * anim.frame_indices.size() - 1;
 		}
 		anim.current_frame = std::min(anim.animation_time_ms / anim.frametime_ms, int(anim.frame_indices.size()) - 1);
+	}
+
+	// update timed log text from signs
+	for (Entity e : registry.signs.entities) {
+		Sign& sign = registry.signs.get(e);
+		if (sign.playing) {
+			sign.counter_ms += elapsed_ms_since_last_update;
+			for (int i = sign.next_message; i < sign.messages.size(); i++) {
+				if (sign.counter_ms < sign.msg_times[i]) {
+					sign.next_message = i;
+					break;
+				}
+				logText(sign.messages[i]);
+				sign.next_message = i;
+			}
+			if (sign.counter_ms > sign.msg_times[sign.msg_times.size() - 1]) {
+				sign.playing = false;
+			}
+		}
 	}
 
 	return true;
@@ -520,6 +538,18 @@ void WorldSystem::spawn_game_entities() {
 	createSign(renderer, { 350.f, 550.f });
 	createStair(renderer, { 350.f, 650.f });
 	*/
+	Entity player = registry.players.entities[0];
+	Motion& player_motion = registry.motions.get(player);
+
+	std::vector<std::string> messages = {
+		"Welcome to Adrift in Somnium!",
+		"This is a test message.",
+		"And here's another one with a longer delay." };
+	createSign(
+		renderer, 
+		{ player_motion.position.x - 64, player_motion.position.y - 64 },
+		messages,
+		{ 0, 2000, 6000 });
 
 	// setup turn order system
 	turnOrderSystem.setUpTurnOrder();
@@ -864,6 +894,17 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 					}
 					break;
+				default:
+					for (Entity& sign_entity : registry.signs.entities) {
+						Motion& sign_motion = registry.motions.get(sign_entity);
+						if (world_pos.x <= sign_motion.position.x + abs(sign_motion.scale.x / 2) &&
+							world_pos.x >= sign_motion.position.x - abs(sign_motion.scale.x / 2) &&
+							world_pos.y <= sign_motion.position.y + abs(sign_motion.scale.y / 2) &&
+							world_pos.y >= sign_motion.position.y - abs(sign_motion.scale.y / 2)) {
+							Sign& sign = registry.signs.get(sign_entity);
+							sign.playing = true;
+						}
+					}
 				}
 			}
 		}

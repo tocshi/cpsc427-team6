@@ -238,7 +238,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// If started, remove menu entities, and spawn game entities
 	//if(!current_game_state) (
 	//current_game_state > GameStates::CUTSCENE || current_game_state <GameStates::SPLASH_SCREEN
-	if (current_game_state == GameStates::GAME_START) {
+	if (current_game_state == GameStates::GAME_START || current_game_state == GameStates::BATTLE_MENU) {
 		// remove all menu entities
 		for (Entity e : registry.menuItems.entities) {
 			registry.remove_all_components_of(e);
@@ -539,6 +539,8 @@ void WorldSystem::restart_game() {
 }
 
 void WorldSystem::handle_end_player_turn(Entity player) {
+	Motion& player_motion = registry.motions.get(player);
+	Player& p = registry.players.get(player);
 	player_motion.velocity = { 0.f, 0.f };
 	player_motion.in_motion = false;
 	p.attacked = false;
@@ -546,8 +548,8 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 	player_move_click = false;
 	logText("It is now the enemies' turn!");
 	// set player's doing_turn to false
-  registry.queueables.get(player).doing_turn = false;
-  set_gamestate(GameStates::ENEMY_TURN);
+	registry.queueables.get(player).doing_turn = false;
+	set_gamestate(GameStates::ENEMY_TURN);
 }
 
 // spawn the game entities
@@ -846,6 +848,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							}
 							hideGuardButton = true;
 
+							// set game state to attack menu
+							set_gamestate(GameStates::ATTACK_MENU);
+
 							// create back button and attack mode text
 							createBackButton(renderer, { 100.f , window_height_px - 60.f });
 							createAttackModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
@@ -863,6 +868,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							}
 							hideGuardButton = true;
 
+							// set game state to move menu
+							set_gamestate(GameStates::MOVEMENT_MENU);
+
 							// create back button and move mode text
 							createBackButton(renderer, { 100.f , window_height_px - 60.f });
 							createMoveModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
@@ -871,7 +879,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					case BUTTON_ACTION_ID::PAUSE:
 						// TODO: pause enimies if it is their turn
 						
-						inMenu = true;
+						// inMenu = true;
+						set_gamestate(GameStates::PAUSE_MENU);
 						// render quit button
 						createMenuQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90});
 
@@ -880,7 +889,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_CANCEL:
-						inMenu = false;
+						// inMenu = false;
+						set_gamestate(GameStates::BATTLE_MENU);
 						break;
 					case BUTTON_ACTION_ID::COLLECTION:
 						// TODO: add real functionality for this

@@ -58,11 +58,11 @@ namespace {
 	}
 }
 
-// bool inMenu; (previious)
+// bool current_game_state; (previious)
 // In start menu (CHANGE TO INT TO SEE IF IT WORKS)
 // CUTSCENE IS null
-GameStates inMenu;
-GameStates previousGameState = inMenu;
+GameStates current_game_state;
+GameStates previous_game_state = current_game_state;
 
 
 // fog stats
@@ -115,17 +115,17 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
 
 	// Set the game to start on the menu screen
-	previousGameState = inMenu;
+	previous_game_state = current_game_state;
 	//printf("Previous Game State : Game state = MAIN_MENU");
 	//printf()
-	inMenu = GameStates::MAIN_MENU;
-	printf("previous state in Now %d \n", static_cast<int>(previousGameState));
+	current_game_state = GameStates::MAIN_MENU;
+	printf("previous state in Now %d \n", static_cast<int>(previous_game_state));
 
-	// set previousgamestate to inMenu
-	previousGameState = inMenu;
+	// set previous_game_state to current_game_state
+	previous_game_state = current_game_state;
 	printf("ACTION: SET THE GAME TO START : Game state = MAIN_MENU\n");
-	printf("Current inMenu Game state %d \n", static_cast<int>(inMenu));
-	printf("previous state in Now %d \n", static_cast<int>(previousGameState));
+	printf("Current current_game_state Game state %d \n", static_cast<int>(current_game_state));
+	printf("previous state in Now %d \n", static_cast<int>(previous_game_state));
 	
 
 	//////////////////////////////////////
@@ -202,8 +202,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// if not in menu do turn order logic (!inMenu)
-	if (inMenu>GameStates::CUTSCENE|| inMenu <GameStates::SPLASH_SCREEN) {
+	// if not in menu do turn order logic (!current_game_state)
+	if (current_game_state>GameStates::CUTSCENE|| current_game_state <GameStates::SPLASH_SCREEN) {
+		printf("TURN ORDER LOGIC ==========\n");
 		doTurnOrderLogic();
 	}
 
@@ -234,9 +235,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// If started, remove menu entities, and spawn game entities
-	//if(!inMenu) (
-	//inMenu > GameStates::CUTSCENE || inMenu <GameStates::SPLASH_SCREEN
-	if (inMenu == GameStates::GAME_START) {
+	//if(!current_game_state) (
+	//current_game_state > GameStates::CUTSCENE || current_game_state <GameStates::SPLASH_SCREEN
+	if (current_game_state == GameStates::GAME_START) {
 		// remove all menu entities
 		for (Entity e : registry.menuItems.entities) {
 			registry.remove_all_components_of(e);
@@ -490,21 +491,21 @@ void WorldSystem::restart_game() {
 	*/
 
 	// restart the game on the menu screen
-	//inMenu = true;
-	printf("previous state in %d: \n", static_cast<int>(previousGameState));
-	inMenu = GameStates::MAIN_MENU;
-	previousGameState = inMenu;
-	printf("previous state in Now:  %d \n", static_cast<int>(previousGameState));
+	//current_game_state = true;
+	printf("previous state in %d: \n", static_cast<int>(previous_game_state));
+	current_game_state = GameStates::MAIN_MENU;
+	previous_game_state = current_game_state;
+	printf("previous state in Now:  %d \n", static_cast<int>(previous_game_state));
 	std::cout << "ACTION: Loading initial game world or Pressed Restart button, Go to MENU SCREEN : Game state = MAIN_MENU \n" << std::endl;
-	printf("Game State inMenu value is: %d \n", static_cast<int>(previousGameState));
-	printf("%d", static_cast<int>(inMenu));
+	printf("Game State current_game_state value is: %d \n", static_cast<int>(previous_game_state));
+	printf("%d", static_cast<int>(current_game_state));
 
-	/*if (inMenu != GameStates::MAIN_MENU) {
-		//inMenu = GameStates::MAIN_MENU;
+	/*if (current_game_state != GameStates::MAIN_MENU) {
+		//current_game_state = GameStates::MAIN_MENU;
 		std::cout << "ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU" << std::endl;
 		//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
 	}*/
-	//inMenu = GameStates::MAIN_MENU;
+	//current_game_state = GameStates::MAIN_MENU;
 	//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
 
 	// For testing textures
@@ -777,9 +778,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				switch (action_taken) {
 
 					case BUTTON_ACTION_ID::MENU_START: 
-						inMenu = GameStates::GAME_START;
-						previousGameState = inMenu; printf("\n set previous game state to current games state for inMenu: %d\n", static_cast<int>(previousGameState));
-						printf("\n BUTTON PRESS ACTION START : Game state = GAME_START : We are playing a Game: %d\n",static_cast<int>(inMenu));
+						current_game_state = GameStates::GAME_START;
+						previous_game_state = current_game_state; printf("\n set previous game state to current games state for current_game_state: %d\n", static_cast<int>(previous_game_state));
+						printf("\n BUTTON PRESS ACTION START : Game state = GAME_START : We are playing a Game: %d\n",static_cast<int>(current_game_state));
 						spawn_game_entities();
 						// spawn the actions bar
 						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });

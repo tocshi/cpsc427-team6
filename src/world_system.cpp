@@ -630,8 +630,8 @@ void WorldSystem::spawn_game_entities() {
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
-	// spawn_player_random_location(spawnData.playerSpawns);
-	createPlayer(renderer, {500.f, 450.f});	// to be removed
+	spawn_player_random_location(spawnData.playerSpawns);
+// 	createPlayer(renderer, {500.f, 450.f});	// to be removed
 	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
 	spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
   

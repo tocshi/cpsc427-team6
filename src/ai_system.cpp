@@ -4,13 +4,22 @@
 #include "ai_system.hpp"
 #include "combat_system.hpp"
 #include "world_system.hpp"
+#include "world_init.hpp"
 #include "physics_system.hpp"
 
 void AISystem::step(Entity e, WorldSystem* world, RenderSystem* renderer)
 {
 	for (Entity& player : registry.players.entities) {
-		if (registry.slimeEnemies.has(e)) {
-			slime_logic(e, player, world, renderer);
+		if (registry.enemies.has(e)) {
+			ENEMY_TYPE enemy_type = registry.enemies.get(e).type;
+			switch(enemy_type) {
+				case ENEMY_TYPE::SLIME:
+					slime_logic(e, player, world, renderer);
+					break;
+				case ENEMY_TYPE::PLANT_SHOOTER:
+					plant_shooter_logic(e, player, world, renderer);
+					break;
+			}
 		}
 	}
 }
@@ -24,26 +33,26 @@ void AISystem::slime_logic(Entity slime, Entity& player, WorldSystem* world, Ren
 	Motion& motion_struct = registry.motions.get(slime);
 
 	// Perform melee attack if close enough
-	if (registry.slimeEnemies.get(slime).state == ENEMY_STATE::ATTACK) {
+	if (registry.enemies.get(slime).state == ENEMY_STATE::ATTACK) {
 		if (player_in_range(motion_struct.position, meleeRange)) {
 			createExplosion(renderer, player_motion.position);
 			Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
 			world->logText(deal_damage(slime, player, 100));
 		}
-		registry.slimeEnemies.get(slime).state = ENEMY_STATE::AGGRO;
+		registry.enemies.get(slime).state = ENEMY_STATE::AGGRO;
 		return;
 	}
 
 	// Determine slime state
 	// check if player is in range first
 	if (player_in_range(motion_struct.position, chaseRange)) {
-		registry.slimeEnemies.get(slime).state = ENEMY_STATE::AGGRO;
+		registry.enemies.get(slime).state = ENEMY_STATE::AGGRO;
 	}
 	else {
-		registry.slimeEnemies.get(slime).state = ENEMY_STATE::IDLE;
+		registry.enemies.get(slime).state = ENEMY_STATE::IDLE;
 	}
 
-	ENEMY_STATE state = registry.slimeEnemies.get(slime).state;
+	ENEMY_STATE state = registry.enemies.get(slime).state;
 	// perform action based on state
 	int dx = ichoose(irandRange(-75, -25), irandRange(25, 75));
 	int dy = ichoose(irandRange(-75, -25), irandRange(25, 75));
@@ -96,6 +105,51 @@ void AISystem::slime_logic(Entity slime, Entity& player, WorldSystem* world, Ren
 			}
 		}
 		break;
+	}
+}
+
+void AISystem::plant_shooter_logic(Entity plant_shooter, Entity& player, WorldSystem* world, RenderSystem* renderer) {
+	Motion& player_motion = registry.motions.get(player);
+	Stats& stats = registry.stats.get(plant_shooter);
+	float aggroRange = stats.range;
+
+	Motion& motion_struct = registry.motions.get(plant_shooter);
+
+	// Resolve end-of-movement state change
+	if (registry.enemies.get(plant_shooter).state == ENEMY_STATE::ATTACK) {
+		registry.enemies.get(plant_shooter).state = ENEMY_STATE::AGGRO;
+		return;
+	}
+
+	ENEMY_STATE& state = registry.enemies.get(plant_shooter).state;
+	// Determine plant_shooter state
+	// check if player is in range first
+	if (player_in_range(motion_struct.position, aggroRange)) {
+		state = ENEMY_STATE::AGGRO;
+	}
+	else {
+		state = ENEMY_STATE::IDLE;
+	}
+
+	// perform action
+	switch(state) {
+		case ENEMY_STATE::IDLE:
+			// do nothing
+			break;
+		case ENEMY_STATE::AGGRO:
+			// Perform  attack if close enough
+			if (player_in_range(motion_struct.position, aggroRange)) {
+				// spawn projectile, etc
+				vec2 dir = normalize(player_motion.position - motion_struct.position);
+				createPlantProjectile(renderer, motion_struct.position, dir, plant_shooter);
+				registry.motions.get(plant_shooter).in_motion = true;
+			}
+			break;
+		case ENEMY_STATE::DEATH:
+			// death
+			break;
+		default:
+			printf("Enemy State not supported\n");
 	}
 }
 

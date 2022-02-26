@@ -1,7 +1,5 @@
 // internal
 #include "physics_system.hpp"
-#include "world_init.hpp"
-#include "world_system.hpp"
 
 // Returns the local bounding coordinates scaled by the current size of the entity
 vec2 get_bounding_box(const Motion& motion)
@@ -40,7 +38,7 @@ float dist_to(const vec2 position1, const vec2 position2) {
 	return sqrt(pow(position2.x - position1.x, 2) + pow(position2.y - position1.y, 2));
 }
 
-void PhysicsSystem::step(float elapsed_ms)
+void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* renderer)
 {
 	// Resolve entity movement
 	auto& motion_registry = registry.motions;
@@ -57,6 +55,22 @@ void PhysicsSystem::step(float elapsed_ms)
 		vec2 dest = motion.destination;
 
 		vec2 pos_final = {pos.x + (vel.x * step_seconds), pos.y + (vel.y * step_seconds)};
+
+		// projectile collision
+		if (registry.projectileTimers.has(entity)) {
+			Entity player = registry.players.entities[0];
+			Motion& player_motion = motion_registry.get(player);
+			if (collides(motion_registry.get(entity), motion_registry.get(player))) {
+				// hit player
+				Entity enemy = registry.projectileTimers.get(entity).owner;
+				createExplosion(renderer, player_motion.position);
+				Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
+				world->logText(deal_damage(enemy, player, 100));
+				Entity& e = registry.projectileTimers.get(entity).owner;
+				motion_registry.get(e).in_motion = false;
+				registry.remove_all_components_of(entity);
+			}
+		}
 
 		// behaviour if currently moving
 		if (vel.x * step_seconds != 0 || vel.y * step_seconds != 0) {
@@ -113,6 +127,11 @@ void PhysicsSystem::step(float elapsed_ms)
 				motion.destination = motion.position;
 				motion.velocity = { 0,0 };
 				motion.in_motion = false;
+				if (registry.projectileTimers.has(entity)) {
+					Entity& e = registry.projectileTimers.get(entity).owner;
+					motion_registry.get(e).in_motion = false;
+					registry.remove_all_components_of(entity);
+				}
 			}
 		}
 	}

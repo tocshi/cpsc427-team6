@@ -419,6 +419,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// reduce window brightness if any of the present chickens is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
+	// Projectile Timers
+	for (Entity entity : registry.projectileTimers.entities) {
+		// progress timer
+		ProjectileTimer& counter = registry.projectileTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if(counter.counter_ms < min_counter_ms){
+		    min_counter_ms = counter.counter_ms;
+		}
+
+		// remove text once the text timer has expired
+		if (counter.counter_ms < 0) {
+			registry.motions.get(counter.owner).in_motion = false;
+			registry.remove_all_components_of(entity);
+		}
+	}
+
 	// Text Timers
 	for (Entity entity : registry.textTimers.entities) {
 		// progress timer
@@ -616,6 +632,7 @@ void WorldSystem::spawn_game_entities() {
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
 	spawn_player_random_location(spawnData.playerSpawns);
+// 	createPlayer(renderer, {500.f, 450.f});	// to be removed
 	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
 	spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
   
@@ -646,6 +663,9 @@ void WorldSystem::spawn_game_entities() {
 		renderer, 
 		{ player_motion.position.x - 64, player_motion.position.y - 64 },
 		messages);
+
+	createPlantShooter(renderer, { 500.f, 500.f });
+	// createPlantProjectile(renderer, { 50.f, 400.f }, {10.f, 0.f});
 
 	// setup turn order system
 	turnOrderSystem.setUpTurnOrder();
@@ -1443,8 +1463,11 @@ void WorldSystem::doTurnOrderLogic() {
 
 // Set attack state for enemies who attack after moving
 void set_enemy_state_attack(Entity enemy) {
-	if (registry.slimeEnemies.has(enemy)) {
-		registry.slimeEnemies.get(enemy).state = ENEMY_STATE::ATTACK;
+	if (registry.enemies.get(enemy).type == ENEMY_TYPE::SLIME) {
+		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
+	}
+	if (registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER) {
+		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
 	}
 }
 

@@ -144,6 +144,12 @@ struct WobbleTimer
 	vec2 orig_scale = { 0, 0 };
 };
 
+struct ProjectileTimer
+{
+	float counter_ms = 3000;
+	Entity owner;
+};
+
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & chicken.vs.glsl)
 struct ColoredVertex
 {
@@ -226,16 +232,25 @@ struct Solid {
 
 };
 
-// simple component for all enemies
-struct Enemy {
-
-};
-
 enum class ENEMY_STATE {
 	IDLE = 0,
 	AGGRO = IDLE + 1,
 	ATTACK = AGGRO + 1,
-	STATE_COUNT = ATTACK + 1
+	DEATH = ATTACK + 1,
+	STATE_COUNT = DEATH + 1
+};
+
+enum class ENEMY_TYPE {
+	SLIME = 0,
+	PLANT_SHOOTER = SLIME + 1,
+	TYPE_COUNT = PLANT_SHOOTER + 1
+};
+
+// simple component for all enemies
+struct Enemy {
+	vec2 initialPosition = { 0, 0 };
+	ENEMY_STATE state = ENEMY_STATE::STATE_COUNT;
+	ENEMY_TYPE type = ENEMY_TYPE::TYPE_COUNT;
 };
 
 struct SlimeEnemy {
@@ -350,7 +365,9 @@ enum class TEXTURE_ASSET_ID {
 	BG = 0,
 	PLAYER = BG + 1,
 	SLIME = PLAYER + 1,
-	BOSS = SLIME + 1,
+	PLANT_SHOOTER = SLIME + 1,
+	PLANT_PROJECTILE = PLANT_SHOOTER + 1,
+	BOSS = PLANT_PROJECTILE + 1,
 	ARTIFACT = BOSS + 1,
 	CONSUMABLE = ARTIFACT + 1,
 	EQUIPABLE = CONSUMABLE + 1,

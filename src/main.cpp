@@ -48,7 +48,7 @@ int main()
 			(float)(std::chrono::duration_cast<std::chrono::microseconds>(now - t)).count() / 1000;
 		t = now;
 
-		physics.step(elapsed_ms);
+		physics.step(elapsed_ms, &world, &renderer);
 		world.step(elapsed_ms);
 		
 		world.handle_collisions();

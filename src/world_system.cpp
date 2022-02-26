@@ -1,7 +1,6 @@
 // Header
 #include "world_system.hpp"
 #include "world_init.hpp"
-
 // stlib
 #include <cassert>
 #include <sstream>
@@ -16,6 +15,8 @@ const size_t MAX_EAGLES = 15;
 const size_t MAX_BUG = 5;
 const size_t EAGLE_DELAY_MS = 2000 * 3;
 const size_t BUG_DELAY_MS = 5000 * 3;
+// decalre gamestates
+//GameStates game_state = GameStates::CUTSCENE;
 
 // Create the bug world
 WorldSystem::WorldSystem()
@@ -56,8 +57,12 @@ namespace {
 	}
 }
 
-// In start menu
-bool inMenu;
+// bool current_game_state; (previious)
+// In start menu (CHANGE TO INT TO SEE IF IT WORKS)
+// CUTSCENE IS null
+GameStates current_game_state;
+GameStates previous_game_state = current_game_state;
+
 
 // fog stats
 float fog_radius = 450.f;
@@ -109,7 +114,18 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
 
 	// Set the game to start on the menu screen
-	inMenu = true;
+	previous_game_state = current_game_state;
+	//printf("Previous Game State : Game state = MAIN_MENU");
+	//printf()
+	current_game_state = GameStates::MAIN_MENU;
+	printf("previous state in Now %d \n", static_cast<int>(previous_game_state));
+
+	// set previous_game_state to current_game_state
+	previous_game_state = current_game_state;
+	printf("ACTION: SET THE GAME TO START : Game state = MAIN_MENU\n");
+	printf("Current current_game_state Game state %d \n", static_cast<int>(current_game_state));
+	printf("previous state in Now %d \n", static_cast<int>(previous_game_state));
+	
 
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
@@ -185,8 +201,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// if not in menu do turn order logic
-	if (!inMenu) {
+	// if not in menu do turn order logic (!current_game_state)
+	if (current_game_state < GameStates::CUTSCENE && current_game_state >= GameStates::GAME_START) {
 		doTurnOrderLogic();
 	}
 
@@ -217,13 +233,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// If started, remove menu entities, and spawn game entities
-	if (!inMenu) {
+	//if(!current_game_state) (
+	//current_game_state > GameStates::CUTSCENE || current_game_state <GameStates::SPLASH_SCREEN
+	if (current_game_state == GameStates::GAME_START) {
 		// remove all menu entities
 		for (Entity e : registry.menuItems.entities) {
 			registry.remove_all_components_of(e);
 		}
 	}
-
 	// Update HP/MP/EP bars and movement
 	// Check for player death
 	for (Entity player : registry.players.entities) {
@@ -255,6 +272,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				logText("It is now the enemies' turn!");
 				// set player's doing_turn to false
 				registry.queueables.get(player).doing_turn = false;
+				set_gamestate(GameStates::ENEMY_TURN);
 			}
 			else { 
 				float ep_rate = 1.f;
@@ -309,7 +327,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Update the camera to follow the player
 		Camera& camera = registry.cameras.get(active_camera_entity);
 		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
-
 	}
 
 	// Check for enemy death
@@ -419,7 +436,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			anim.animation_time_ms -= anim.frametime_ms * anim.frame_indices.size() - 1;
 		}
-		anim.current_frame = anim.animation_time_ms / anim.frametime_ms;
+		anim.current_frame = std::min(anim.animation_time_ms / anim.frametime_ms, int(anim.frame_indices.size()) - 1);
 	}
 
 	return true;
@@ -473,7 +490,16 @@ void WorldSystem::restart_game() {
 	*/
 
 	// restart the game on the menu screen
-	inMenu = true;
+	//current_game_state = true;
+	set_gamestate(GameStates::MAIN_MENU);
+
+	/*if (current_game_state != GameStates::MAIN_MENU) {
+		//current_game_state = GameStates::MAIN_MENU;
+		std::cout << "ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU" << std::endl;
+		//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
+	}*/
+	//current_game_state = GameStates::MAIN_MENU;
+	//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
 
 	// For testing textures
 	//createPlayer(renderer, {50.f, 250.f});
@@ -502,15 +528,15 @@ void WorldSystem::restart_game() {
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
 
-	createTiles(renderer, "map1.tmx");
+	SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
-	spawn_player_random_location();
-	spawn_enemy_random_location();
-	spawn_enemy_random_location();
-	spawn_enemy_random_location();
+	spawn_player_random_location(spawnData.playerSpawns);
+	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
+	spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
   
+	/*
 	createBoss(renderer, { 250.f, 450.f });
 	createArtifact(renderer, { 250.f, 550.f });
 	createConsumable(renderer, { 250.f, 650.f });
@@ -519,7 +545,7 @@ void WorldSystem::spawn_game_entities() {
 	createDoor(renderer, { 350.f, 450.f });
 	createSign(renderer, { 350.f, 550.f });
 	createStair(renderer, { 350.f, 650.f });
-
+	*/
 
 	// setup turn order system
 	turnOrderSystem.setUpTurnOrder();
@@ -545,7 +571,6 @@ void WorldSystem::spawn_game_entities() {
 	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war();
-	createCampfire(renderer, { 200, 200 });
 }
 
 // render fog of war around the player
@@ -570,49 +595,55 @@ void WorldSystem::remove_fog_of_war() {
 }
 
 // spawn player entity in random location
-void WorldSystem::spawn_player_random_location() {
-	printf("%d", rand());
-	int randX = rand() % ((window_width_px - 200 + 1) + 200);
-	int randY = rand() % ((window_height_px - 200 + 1) + 200);
+void WorldSystem::spawn_player_random_location(std::vector<vec2>& playerSpawns) {
+	std::random_shuffle(playerSpawns.begin(), playerSpawns.end());
+	if (playerSpawns.size() > 0) {
+		createPlayer(renderer, { playerSpawns[0].x, playerSpawns[0].y});
+		return;
+	}
+	// default spawn location in case we don't have player spawns
+	createPlayer(renderer, { 0, 0 });
 
-	if (randX < 200) {
-		randX += 200;
-	}
-	else if (randX >= window_width_px - 200) {
-		randX -= 200;
-	}
-
-	if (randY < 200) {
-		randY += 200;
-	}
-	else if (randY >= window_height_px - 200) {
-		randY -= 200;
-	}
-
-	createPlayer(renderer, { (float)randX, (float)randY } );
 }
 
-// spawn enemy entity in random location
-void WorldSystem::spawn_enemy_random_location() {
-	printf("%d", rand());
-	int randX = rand()%((window_width_px - 200 + 1) + 200);
-	int randY = rand()%((window_height_px - 200 + 1) + 200);
+// spawn enemy entities in random locations
+void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, int min, int max) {
+	std::random_shuffle(enemySpawns.begin(), enemySpawns.end());
+	if (enemySpawns.size() > 0) {
+		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
+		for (int i = 0; i < numberToSpawn; i++) {
+			createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+		}
+	}
+}
 
-	if (randX < 200) {
-		randX += 200;
-	}
-	else if (randX >= window_width_px - 200) {
-		randX -= 200;
-	}
+// spawn item entities in random locations
+void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int min, int max) {
+	std::random_shuffle(itemSpawns.begin(), itemSpawns.end());
+	if (itemSpawns.size() > 0) {
+		int numberToSpawn = std::min(irandRange(min, max + 1), int(itemSpawns.size()));
+		Entity& player = registry.players.entities[0];
+		Motion& motion = registry.motions.get(player);
+		int range = 0;
+		if (registry.stats.has(player)) {
+			range = registry.stats.get(player).range;
+		}
 
-	if (randY < 200) {
-		randY += 200;
+		int spawned = 0;
+		int i = 0;
+		while (spawned < numberToSpawn && i < itemSpawns.size()) {
+			// temporary, later we can also randomize the item types
+			if (range > 0) {
+				if (dist_to(motion.position, itemSpawns[i]) <= range) {
+					i++;
+					continue;
+				}
+			}
+			createCampfire(renderer, { itemSpawns[i].x, itemSpawns[i].y });
+			spawned++;
+			i++;
+		}
 	}
-	else if (randY >= window_height_px - 200) {
-		randY -= 200;
-	}
-
-	createEnemy(renderer, { (float)randX, (float)randY });
 }
 
 // Compute collisions between entities
@@ -658,8 +689,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// SAVING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
-		saveSystem.saveGameState();
-		printf("SAVING KEY PRESSED\n");
+		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+		logText("Game state saved!");
 	}
 
 	// LOADING THE GAME
@@ -671,11 +702,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			// get saved game data
 			json gameData = saveSystem.getSaveData();
 			// load the entities in
-			loadFromData(gameData);
+			std::queue<Entity> entities = loadFromData(gameData);
+			turnOrderSystem.loadTurnOrder(entities);
 			saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc.
 		}
 
-		printf("LOADING KEY PRESSED\n");
+		logText("Game state loaded!");
+		remove_fog_of_war();
+		create_fog_of_war();
 	}
 
 	// Resetting game
@@ -684,6 +718,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		glfwGetWindowSize(window, &w, &h);
 
         restart_game();
+	}
+
+	// Resetting game
+	if (action == GLFW_RELEASE && key == GLFW_KEY_T) {
+		printf("GAME STATE LOG START ============\n");
+		printf("Previous game state is: %i\n", static_cast<int>(previous_game_state));
+		printf("Current game state is: %i\n", static_cast<int>(current_game_state));
+		printf("GAME STATE LOG END ============\n\n\n");
 	}
 
 	// Debugging
@@ -738,13 +780,21 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
 
 				switch (action_taken) {
+
 					case BUTTON_ACTION_ID::MENU_START: 
-						inMenu = false;
+						set_gamestate(GameStates::GAME_START);
+						spawn_game_entities();
 						// spawn the actions bar
 						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
 						createAttackButton(renderer, { window_width_px - 200.f, window_height_px - 150.f });
 						createMoveButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
-						spawn_game_entities(); 
+						for (int i = registry.renderRequests.size() - 1; i >= 0; i--) {
+							if (registry.renderRequests.components[i].used_layer == RENDER_LAYER_ID::BG) {
+								registry.remove_all_components_of(registry.renderRequests.entities[i]);
+							}
+						}
+
+						//spawn_game_entities(); 
 						is_player_turn = true; 
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
@@ -854,6 +904,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					break;
 				}
+
 			}
 		}
 	}
@@ -930,36 +981,64 @@ void WorldSystem::removeForLoad() {
 	}
 }
 
-void WorldSystem::loadFromData(json data) {
+std::queue<Entity> WorldSystem::loadFromData(json data) {
 	// load player
-	loadPlayer(data["player"]);
-	loadEnemies(data["enemies"]);
+	json entityList = data["entities"];
+	std::queue<Entity> entities;
+	for (auto entity : entityList) {
+		Entity e;
+		if (entity["type"] == "player") {
+			e = loadPlayer(entity);
+		}
+		else {
+			e = loadEnemy(entity);
+		}
+		entities.push(e);
+	}
+
+	return entities;
 }
 
-void WorldSystem::loadPlayer(json playerData) {
+Entity WorldSystem::loadPlayer(json playerData) {
 	// create a player from the save data
 	// get player motion
 	Motion motion = loadMotion(playerData["motion"]);
 	
 	// create player
 	Entity e = createPlayer(renderer, motion);
-	// get player stats
+
+	// get player component stuff
+	registry.players.get(e).attacked = playerData["player"]["attacked"];
+
+	// get queueable stuff
+	registry.queueables.get(e).doing_turn = playerData["queueable"]["doingTurn"];
+
+	// get stats
 	json stats = playerData["stats"];
 	registry.stats.get(e).ep = stats["ep"];
+	registry.stats.get(e).maxep = stats["maxEP"];
 	registry.stats.get(e).hp = stats["hp"];
-	registry.stats.get(e).maxep = stats["maxep"];
+	registry.stats.get(e).maxep = stats["maxHP"];
 	registry.stats.get(e).mp = stats["mp"];
+	registry.stats.get(e).maxmp = stats["maxMP"];
+	registry.stats.get(e).atk = stats["atk"];
+	registry.stats.get(e).def = stats["def"];
+	registry.stats.get(e).speed = stats["speed"];
+	registry.stats.get(e).range = stats["range"];
+	registry.stats.get(e).chase = stats["chase"];
+	
+	return e;
 }
 
-void WorldSystem::loadEnemies(json enemyData) {
-	for (auto enemy : enemyData) {
-		if (enemy["type"] == "slime") {
-			loadSlime(enemy);
-		}
+Entity WorldSystem::loadEnemy(json enemyData) {
+	Entity e;
+	if (enemyData["type"] == "slime") {
+		e = loadSlime(enemyData);
 	}
+	return e;
 }
 
-void WorldSystem::loadSlime(json slimeData) {
+Entity WorldSystem::loadSlime(json slimeData) {
 	// get slime's motion
 	Motion motion = loadMotion(slimeData["motion"]);
 
@@ -967,8 +1046,28 @@ void WorldSystem::loadSlime(json slimeData) {
 	Entity e = createEnemy(renderer, motion);
 
 	// set slimeEnemy data
-	json data = slimeData["data"];
-	registry.slimeEnemies.get(e).state = data["state"];
+	json slimeEnemy = slimeData["slime"];
+	registry.slimeEnemies.get(e).state = slimeEnemy["state"];
+
+	// get queueable stuff
+	json queueable = slimeData["queueable"];
+	registry.queueables.get(e).doing_turn = queueable["doingTurn"];
+
+	// get stats
+	json stats = slimeData["stats"];
+	registry.stats.get(e).ep = stats["ep"];
+	registry.stats.get(e).maxep = stats["maxEP"];
+	registry.stats.get(e).hp = stats["hp"];
+	registry.stats.get(e).maxep = stats["maxHP"];
+	registry.stats.get(e).mp = stats["mp"];
+	registry.stats.get(e).maxmp = stats["maxMP"];
+	registry.stats.get(e).atk = stats["atk"];
+	registry.stats.get(e).def = stats["def"];
+	registry.stats.get(e).speed = stats["speed"];
+	registry.stats.get(e).range = stats["range"];
+	registry.stats.get(e).chase = stats["chase"];
+
+	return e;
 }
 
 Motion WorldSystem::loadMotion(json motionData) {
@@ -1022,6 +1121,7 @@ void WorldSystem::doTurnOrderLogic() {
 			set_is_player_turn(true);
 			start_player_turn();
 			logText("It is now your turn!");
+			set_gamestate(GameStates::BATTLE_MENU);
 		}
 	}
 
@@ -1039,4 +1139,10 @@ void set_enemy_state_attack(Entity enemy) {
 	if (registry.slimeEnemies.has(enemy)) {
 		registry.slimeEnemies.get(enemy).state = ENEMY_STATE::ATTACK;
 	}
+}
+
+// Set attack state for enemies who attack after moving
+void set_gamestate(GameStates state) {
+	previous_game_state = current_game_state;
+	current_game_state = state;
 }

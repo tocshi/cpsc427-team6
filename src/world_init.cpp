@@ -549,6 +549,7 @@ Entity createMenuQuit(RenderSystem* renderer, vec2 pos)
 
 	motion.scale = vec2({ QUIT_BB_WIDTH, QUIT_BB_HEIGHT });
 
+	registry.menuItems.emplace(entity);
 	// Create and (empty) QUIT component to be able to refer to all quit buttons
 	registry.buttons.insert(
 		entity,
@@ -606,6 +607,7 @@ Entity createAttackButton(RenderSystem* renderer, vec2 pos) {
 
 	motion.scale = vec2({ ACTIONS_BUTTON_BB_WIDTH, ACTIONS_BUTTON_BB_HEIGHT });
 
+	registry.actionButtons.emplace(entity);
 	// Create and (empty) ACTIONS_ATTACK component to be able to refer to all attack buttons
 	Button& b = registry.buttons.emplace(entity);
 	b.action_taken = BUTTON_ACTION_ID::ACTIONS_ATTACK;
@@ -635,12 +637,241 @@ Entity createMoveButton(RenderSystem* renderer, vec2 pos) {
 
 	motion.scale = vec2({ ACTIONS_BUTTON_BB_WIDTH, ACTIONS_BUTTON_BB_HEIGHT });
 
+	registry.actionButtons.emplace(entity);
 	// Create and (empty) ACTIONS_MOVE component to be able to refer to all move buttons
 	Button& b = registry.buttons.emplace(entity);
 	b.action_taken = BUTTON_ACTION_ID::ACTIONS_MOVE;
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ACTIONS_MOVE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+// Guard button
+Entity createGuardButton(RenderSystem* renderer, vec2 pos, BUTTON_ACTION_ID action, TEXTURE_ASSET_ID texture) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ ACTIONS_BUTTON_BB_WIDTH, ACTIONS_BUTTON_BB_HEIGHT });
+
+	registry.actionButtons.emplace(entity);
+	GuardButton& gb = registry.guardButtons.emplace(entity);
+	gb.texture = texture;
+	gb.action = action;
+	registry.renderRequests.insert(
+		entity,
+		{ texture,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+// Item button
+Entity createItemButton(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ ACTIONS_BUTTON_BB_WIDTH, ACTIONS_BUTTON_BB_HEIGHT });
+
+	registry.actionButtons.emplace(entity);
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::ACTIONS_ITEM;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ACTIONS_ITEM,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+// Back button
+Entity createBackButton(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ MODE_BB_HEIGHT, MODE_BB_HEIGHT });
+
+	registry.modeVisualizationObjects.emplace(entity);
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::ACTIONS_BACK;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ACTIONS_BACK,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+// Cancel button
+Entity createCancelButton(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ QUIT_BB_WIDTH, QUIT_BB_HEIGHT });
+
+	registry.menuItems.emplace(entity);
+
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::ACTIONS_CANCEL;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ACTIONS_CANCEL,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+// Attack mode text
+Entity createAttackModeText(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ MODE_BB_WIDTH, MODE_BB_HEIGHT });
+
+	registry.modeVisualizationObjects.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ACTIONS_ATTACK_MODE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+// Move mode text
+Entity createMoveModeText(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ MODE_BB_WIDTH, MODE_BB_HEIGHT });
+
+	registry.modeVisualizationObjects.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ACTIONS_MOVE_MODE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+// Pause button
+Entity createPauseButton(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ PAUSE_BUTTON_BB_WIDTH, PAUSE_BUTTON_BB_HEIGHT });
+
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::PAUSE;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::PAUSE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+// Collection (book) button
+Entity createCollectionButton(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ PAUSE_BUTTON_BB_WIDTH, PAUSE_BUTTON_BB_HEIGHT });
+
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::COLLECTION;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::COLLECTION_BUTTON,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI });

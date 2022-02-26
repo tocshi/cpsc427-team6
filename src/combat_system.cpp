@@ -63,6 +63,12 @@ float calc_damage(Stats& attacker, Stats& defender, float multiplier)
 {
 	float final_damage = attacker.atk * multiplier / 100;
 	final_damage -= defender.def;
+
+	if (defender.guard) {
+		final_damage /= 2.f;
+	}
+
+	// Minimum damage is 1
 	final_damage = max(1.f, final_damage);
 	
 	return final_damage;

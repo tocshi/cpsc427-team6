@@ -202,8 +202,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// if not in menu do turn order logic
-	if (!inMenu) {
+	// if not in menu do turn order logic (!inMenu)
+	if (inMenu>GameStates::CUTSCENE|| inMenu >GameStates::SPLASH_SCREEN) {
 		doTurnOrderLogic();
 	}
 

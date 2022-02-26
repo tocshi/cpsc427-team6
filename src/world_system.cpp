@@ -686,7 +686,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// SAVING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
 		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
-		printf("SAVING KEY PRESSED\n");
+		logText("Game state saved!");
 	}
 
 	// LOADING THE GAME
@@ -703,7 +703,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc.
 		}
 
-		printf("LOADING KEY PRESSED\n");
+		logText("Game state loaded!");
+		remove_fog_of_war();
+		create_fog_of_war();
 	}
 
 	// Resetting game

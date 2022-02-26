@@ -663,8 +663,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// SAVING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
-		saveSystem.saveGameState();
-		printf("SAVING KEY PRESSED\n");
+		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+		logText("Game state saved!");
 	}
 
 	// LOADING THE GAME
@@ -676,11 +676,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			// get saved game data
 			json gameData = saveSystem.getSaveData();
 			// load the entities in
-			loadFromData(gameData);
+			std::queue<Entity> entities = loadFromData(gameData);
+			turnOrderSystem.loadTurnOrder(entities);
 			saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc.
 		}
 
-		printf("LOADING KEY PRESSED\n");
+		logText("Game state loaded!");
+		remove_fog_of_war();
+		create_fog_of_war();
 	}
 
 	// Resetting game
@@ -941,36 +944,64 @@ void WorldSystem::removeForLoad() {
 	}
 }
 
-void WorldSystem::loadFromData(json data) {
+std::queue<Entity> WorldSystem::loadFromData(json data) {
 	// load player
-	loadPlayer(data["player"]);
-	loadEnemies(data["enemies"]);
+	json entityList = data["entities"];
+	std::queue<Entity> entities;
+	for (auto entity : entityList) {
+		Entity e;
+		if (entity["type"] == "player") {
+			e = loadPlayer(entity);
+		}
+		else {
+			e = loadEnemy(entity);
+		}
+		entities.push(e);
+	}
+
+	return entities;
 }
 
-void WorldSystem::loadPlayer(json playerData) {
+Entity WorldSystem::loadPlayer(json playerData) {
 	// create a player from the save data
 	// get player motion
 	Motion motion = loadMotion(playerData["motion"]);
 	
 	// create player
 	Entity e = createPlayer(renderer, motion);
-	// get player stats
+
+	// get player component stuff
+	registry.players.get(e).attacked = playerData["player"]["attacked"];
+
+	// get queueable stuff
+	registry.queueables.get(e).doing_turn = playerData["queueable"]["doingTurn"];
+
+	// get stats
 	json stats = playerData["stats"];
 	registry.stats.get(e).ep = stats["ep"];
+	registry.stats.get(e).maxep = stats["maxEP"];
 	registry.stats.get(e).hp = stats["hp"];
-	registry.stats.get(e).maxep = stats["maxep"];
+	registry.stats.get(e).maxep = stats["maxHP"];
 	registry.stats.get(e).mp = stats["mp"];
+	registry.stats.get(e).maxmp = stats["maxMP"];
+	registry.stats.get(e).atk = stats["atk"];
+	registry.stats.get(e).def = stats["def"];
+	registry.stats.get(e).speed = stats["speed"];
+	registry.stats.get(e).range = stats["range"];
+	registry.stats.get(e).chase = stats["chase"];
+	
+	return e;
 }
 
-void WorldSystem::loadEnemies(json enemyData) {
-	for (auto enemy : enemyData) {
-		if (enemy["type"] == "slime") {
-			loadSlime(enemy);
-		}
+Entity WorldSystem::loadEnemy(json enemyData) {
+	Entity e;
+	if (enemyData["type"] == "slime") {
+		e = loadSlime(enemyData);
 	}
+	return e;
 }
 
-void WorldSystem::loadSlime(json slimeData) {
+Entity WorldSystem::loadSlime(json slimeData) {
 	// get slime's motion
 	Motion motion = loadMotion(slimeData["motion"]);
 
@@ -978,8 +1009,28 @@ void WorldSystem::loadSlime(json slimeData) {
 	Entity e = createEnemy(renderer, motion);
 
 	// set slimeEnemy data
-	json data = slimeData["data"];
-	registry.slimeEnemies.get(e).state = data["state"];
+	json slimeEnemy = slimeData["slime"];
+	registry.slimeEnemies.get(e).state = slimeEnemy["state"];
+
+	// get queueable stuff
+	json queueable = slimeData["queueable"];
+	registry.queueables.get(e).doing_turn = queueable["doingTurn"];
+
+	// get stats
+	json stats = slimeData["stats"];
+	registry.stats.get(e).ep = stats["ep"];
+	registry.stats.get(e).maxep = stats["maxEP"];
+	registry.stats.get(e).hp = stats["hp"];
+	registry.stats.get(e).maxep = stats["maxHP"];
+	registry.stats.get(e).mp = stats["mp"];
+	registry.stats.get(e).maxmp = stats["maxMP"];
+	registry.stats.get(e).atk = stats["atk"];
+	registry.stats.get(e).def = stats["def"];
+	registry.stats.get(e).speed = stats["speed"];
+	registry.stats.get(e).range = stats["range"];
+	registry.stats.get(e).chase = stats["chase"];
+
+	return e;
 }
 
 Motion WorldSystem::loadMotion(json motionData) {

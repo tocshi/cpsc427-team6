@@ -97,19 +97,22 @@ private:
 	void removeForLoad();
 
 	// load entities from saved data
-	void loadFromData(json data);
+	std::queue<Entity> loadFromData(json data);
 
 	// load player from data
-	void loadPlayer(json playerData);
+	Entity loadPlayer(json playerData);
   
 	// load enemies from data
-	void loadEnemies(json enemyData);
+	Entity loadEnemy(json enemyData);
 
 	// load a slime from data
-	void loadSlime(json slimeData);
+	Entity loadSlime(json slimeData);
 
 	// load motion data
 	Motion loadMotion(json motionData);
+
+	// load stats data
+	Stats loadStats(json statsData);
   
   // do turn order logic
 	void doTurnOrderLogic();

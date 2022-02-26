@@ -691,16 +691,30 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		// remove all entities for new room
 		removeForNewRoom();
 		// save game (should be just player stuff)
-		saveSystem.saveGameState();
+		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
 		// remove player
 		for (Entity e : registry.players.entities) {
 			registry.remove_all_components_of(e);
 		}
 		// make new map
-		SpawnData spawndata = createTiles(renderer, "map1_random.tmx");
+		SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
 		// load the player back
 		json gameData = saveSystem.getSaveData();
-		loadFromData(gameData);
+		std::queue<Entity> queue = loadFromData(gameData);
+		turnOrderSystem.loadTurnOrder(queue);
+		// get the player and set its position
+		for (Entity e : registry.players.entities) {
+			std::random_shuffle(spawnData.playerSpawns.begin(), spawnData.playerSpawns.end());
+			Motion& motion = registry.motions.get(e);
+			// set random position
+			motion.position = { spawnData.playerSpawns[0].x, spawnData.playerSpawns[0].y };
+			// set everything else in motion to default
+			motion.angle = 0.f;
+			motion.velocity = { 0.f, 0.f };
+			motion.in_motion = false;
+			motion.movement_speed = 200;
+			motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
+		}
 	}
 
 	// Resetting game

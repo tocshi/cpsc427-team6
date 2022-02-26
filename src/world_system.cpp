@@ -636,7 +636,6 @@ void WorldSystem::spawn_game_entities() {
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
 	spawn_player_random_location(spawnData.playerSpawns);
-// 	createPlayer(renderer, {500.f, 450.f});	// to be removed
 	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
 	spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
   
@@ -667,9 +666,6 @@ void WorldSystem::spawn_game_entities() {
 		renderer, 
 		{ player_motion.position.x - 64, player_motion.position.y - 64 },
 		messages);
-
-	createPlantShooter(renderer, { 500.f, 500.f });
-	// createPlantProjectile(renderer, { 50.f, 400.f }, {10.f, 0.f});
 
 	// setup turn order system
 	turnOrderSystem.setUpTurnOrder();
@@ -902,6 +898,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("Previous game state is: %i\n", static_cast<int>(previous_game_state));
 		printf("Current game state is: %i\n", static_cast<int>(current_game_state));
 		printf("GAME STATE LOG END ============\n\n\n");
+		turnOrderSystem.getTurnOrder();
 	}
 
 	// Debugging
@@ -980,8 +977,6 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								registry.remove_all_components_of(registry.renderRequests.entities[i]);
 							}
 						}
-
-						//spawn_game_entities(); 
 						is_player_turn = true; 
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;

@@ -244,7 +244,7 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir)
+Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir, Entity owner)
 {
 	auto entity = Entity();
 
@@ -255,10 +255,10 @@ Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir)
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
+	motion.velocity = dir;
 	motion.position = pos;
-	motion.destination = pos + (dir * 600.f);
-	motion.in_motion = false;
+	motion.destination = pos + (dir * 500.f);
+	motion.in_motion = true;
 	motion.movement_speed = 200.f;
 
 	motion.scale = vec2({ PLANT_PROJECTILE_BB_WIDTH, PLANT_PROJECTILE_BB_HEIGHT });
@@ -268,6 +268,8 @@ Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir)
 	auto& stat = registry.stats.emplace(entity);
 	stat.atk = 8.f;
 
+	auto& projectileTimer = registry.projectileTimers.emplace(entity);
+	projectileTimer.owner = owner;
 	// Create and (empty) Enemy component to be able to refer to all enemies
 	// registry.enemies.emplace(entity);
 	registry.renderRequests.insert(

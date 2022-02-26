@@ -352,6 +352,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// reduce window brightness if any of the present chickens is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
 
+	// Projectile Timers
+	for (Entity entity : registry.projectileTimers.entities) {
+		// progress timer
+		ProjectileTimer& counter = registry.projectileTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if(counter.counter_ms < min_counter_ms){
+		    min_counter_ms = counter.counter_ms;
+		}
+
+		// remove text once the text timer has expired
+		if (counter.counter_ms < 0) {
+			registry.remove_all_components_of(entity);
+		}
+	}
+
 	// Text Timers
 	for (Entity entity : registry.textTimers.entities) {
 		// progress timer
@@ -506,7 +521,8 @@ void WorldSystem::spawn_game_entities() {
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
-	spawn_player_random_location(spawnData.playerSpawns);
+	// spawn_player_random_location(spawnData.playerSpawns);
+	createPlayer(renderer, {500.f, 450.f});	// to be removed
 	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
 	spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
   
@@ -521,8 +537,8 @@ void WorldSystem::spawn_game_entities() {
 	createStair(renderer, { 350.f, 650.f });
 	*/
 
-	// createPlantShooter(renderer, { 500.f, 500.f });
-	// createPlantProjectile(renderer, { 500.f, 550.f });
+	createPlantShooter(renderer, { 500.f, 500.f });
+	// createPlantProjectile(renderer, { 50.f, 400.f }, {10.f, 0.f});
 
 	// setup turn order system
 	turnOrderSystem.setUpTurnOrder();

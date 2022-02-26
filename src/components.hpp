@@ -110,6 +110,12 @@ struct WobbleTimer
 	vec2 orig_scale = { 0, 0 };
 };
 
+struct ProjectileTimer
+{
+	float counter_ms = 3000;
+	Entity owner;
+};
+
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & chicken.vs.glsl)
 struct ColoredVertex
 {

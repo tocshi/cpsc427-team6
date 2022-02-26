@@ -2,6 +2,7 @@
 #include "ai_system.hpp"
 #include "combat_system.hpp"
 #include "world_system.hpp"
+#include "world_init.hpp"
 
 void AISystem::step(Entity e, WorldSystem* world, RenderSystem* renderer)
 {
@@ -103,23 +104,25 @@ void AISystem::plant_shooter_logic(Entity plant_shooter, Entity& player, WorldSy
 
 	Motion& motion_struct = registry.motions.get(plant_shooter);
 
+	// Perform melee attack if close enough
+	if (registry.enemies.get(plant_shooter).state == ENEMY_STATE::ATTACK) {
+		if (player_in_range(motion_struct.position, aggroRange)) {
+			// spawn projectile, etc
+			vec2 dir = normalize(player_motion.position - motion_struct.position);
+			createPlantProjectile(renderer, motion_struct.position, dir, plant_shooter);
+		}
+		registry.enemies.get(plant_shooter).state = ENEMY_STATE::AGGRO;
+		return;
+	}
+
 	ENEMY_STATE& state = registry.enemies.get(plant_shooter).state;
 	// Determine plant_shooter state
-	// update state
-	switch(state) {
-		case ENEMY_STATE::IDLE:
-			if (stats.hp <= 0) { state = ENEMY_STATE::DEATH; }
-			else if (player_in_range(motion_struct.position, aggroRange)) { state = ENEMY_STATE::ATTACK; }
-			break;
-		case ENEMY_STATE::AGGRO:
-			if (stats.hp <= 0) { state = ENEMY_STATE::DEATH; }
-			else if (player_in_range(motion_struct.position, aggroRange)) { state = ENEMY_STATE::ATTACK; }
-			else if (!player_in_range(motion_struct.position, aggroRange)) { state = ENEMY_STATE::IDLE; }
-			break;
-		case ENEMY_STATE::DEATH:
-			break;
-		default:
-			printf("Enemy State not supported\n");
+	// check if player is in range first
+	if (player_in_range(motion_struct.position, aggroRange)) {
+		state = ENEMY_STATE::AGGRO;
+	}
+	else {
+		state = ENEMY_STATE::IDLE;
 	}
 
 	// perform action
@@ -127,12 +130,8 @@ void AISystem::plant_shooter_logic(Entity plant_shooter, Entity& player, WorldSy
 		case ENEMY_STATE::IDLE:
 			// do nothing
 			break;
-		case ENEMY_STATE::ATTACK:
-			// spawn projectile, etc
-			createExplosion(renderer, player_motion.position);
-			Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
-			world->logText(deal_damage(plant_shooter, player, 100));
-			state = ENEMY_STATE::AGGRO;
+		case ENEMY_STATE::AGGRO:
+			state = ENEMY_STATE::ATTACK;
 			break;
 		case ENEMY_STATE::DEATH:
 			// death

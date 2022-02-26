@@ -78,7 +78,7 @@ Entity createEnemy(RenderSystem* renderer, Motion m);
 // Plant Shooter
 Entity createPlantShooter(RenderSystem* renderer, vec2 pos);
 // Plant Projectile
-Entity createPlantProjectile(RenderSystem* renderer, vec2 pos);
+Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir, Entity owner);
 // Boss
 Entity createBoss(RenderSystem* renderer, vec2 pos);
 // Artifact

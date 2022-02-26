@@ -203,7 +203,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// if not in menu do turn order logic (!inMenu)
-	if (inMenu>GameStates::CUTSCENE|| inMenu >GameStates::SPLASH_SCREEN) {
+	if (inMenu>GameStates::CUTSCENE|| inMenu <GameStates::SPLASH_SCREEN) {
 		doTurnOrderLogic();
 	}
 
@@ -777,10 +777,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				switch (action_taken) {
 
 					case BUTTON_ACTION_ID::MENU_START: 
-            inMenu = GameStates::GAME_START;
-            previousGameState = inMenu; printf("\n set previous game state to current games state for inMenu: %d\n", static_cast<int>(previousGameState));
-            printf("\n BUTTON PRESS ACTION START : Game state = GAME_START : We are playing a Game: %d\n",static_cast<int>(inMenu));
-            spawn_game_entities();
+						inMenu = GameStates::GAME_START;
+						previousGameState = inMenu; printf("\n set previous game state to current games state for inMenu: %d\n", static_cast<int>(previousGameState));
+						printf("\n BUTTON PRESS ACTION START : Game state = GAME_START : We are playing a Game: %d\n",static_cast<int>(inMenu));
+						spawn_game_entities();
 						// spawn the actions bar
 						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
 						createAttackButton(renderer, { window_width_px - 200.f, window_height_px - 150.f });
@@ -791,7 +791,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							}
 						}
 
-						spawn_game_entities(); 
+						//spawn_game_entities(); 
 						is_player_turn = true; 
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;

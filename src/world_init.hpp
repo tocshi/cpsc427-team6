@@ -46,6 +46,10 @@ const float ACTIONS_BAR_BB_HEIGHT = 200.f;
 const float ACTIONS_BAR_BB_WIDTH = 1800.f;
 const float ACTIONS_BUTTON_BB_HEIGHT = 75.f;
 const float ACTIONS_BUTTON_BB_WIDTH = 300.f;
+const float PAUSE_BUTTON_BB_HEIGHT = 50.f;
+const float PAUSE_BUTTON_BB_WIDTH = 50.f;
+const float MODE_BB_WIDTH = 800.f;
+const float MODE_BB_HEIGHT = 100.f;
 // want to make fog small so it can be rendered a lot TODO: this is a bad implementation and will need to be changed later to use shadows or drawing circles or something better
 const float FOG_BB_WIDTH = 0.6f * 100.f;
 const float FOG_BB_HEIGHT = 0.6f * 100.f;
@@ -103,6 +107,24 @@ Entity createActionsBar(RenderSystem* renderer, vec2 pos);
 Entity createAttackButton(RenderSystem* renderer, vec2 pos);
 // Move button
 Entity createMoveButton(RenderSystem* renderer, vec2 pos);
+// Guard button
+Entity createGuardButton(RenderSystem* renderer, vec2 pos);
+// End turn button
+Entity createEndTurnButton(RenderSystem* renderer, vec2 pos);
+// Item button
+Entity createItemButton(RenderSystem* renderer, vec2 pos);
+// Back button
+Entity createBackButton(RenderSystem* renderer, vec2 pos);
+// Cancel button
+Entity createCancelButton(RenderSystem* renderer, vec2 pos);
+// Pause button
+Entity createPauseButton(RenderSystem* renderer, vec2 pos);
+// Collection (book) button
+Entity createCollectionButton(RenderSystem* renderer, vec2 pos);
+// Attack mode text
+Entity createAttackModeText(RenderSystem* renderer, vec2 pos);
+// Move mode text
+Entity createMoveModeText(RenderSystem* renderer, vec2 pos);
 // HP Bar 
 Entity createHPBar(RenderSystem* renderer, vec2 position);
 // MP Bar 

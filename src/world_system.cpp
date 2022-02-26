@@ -66,6 +66,11 @@ float fog_resolution = 2000.f;
 // move audio timer
 float move_audio_timer_ms = 200.f;
 
+// check if guard button has changed
+bool guardButtonChanged = false;
+bool hideGuardButton = false;
+bool guardButtonPlaced = false;
+
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
 GLFWwindow* WorldSystem::create_window() {
@@ -243,18 +248,28 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			break;
 		}
 
+		// change guard button to end turn if ep is not full
+		if (ep < maxep && !guardButtonChanged && !hideGuardButton) {
+			// remove guard button
+			for (Entity b : registry.buttons.entities) {
+				if (registry.buttons.get(b).action_taken == BUTTON_ACTION_ID::ACTIONS_GUARD) {
+					registry.remove_all_components_of(b);
+				}
+			}
+			// add end turn button
+			createEndTurnButton(renderer, { window_width_px - 600.f, window_height_px - 50.f });
+			guardButtonChanged = true;
+		}
+		else if (ep >= maxep && !hideGuardButton && !guardButtonPlaced) {
+			createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f });
+			guardButtonChanged = false;
+		}
+
 		// update player motion
 		Motion& player_motion = registry.motions.get(player);
 		if (player_motion.in_motion) {
-			if (ep <= 0) { 
-				player_motion.velocity = { 0.f, 0.f };
-				player_motion.in_motion = false;
-				p.attacked = false;
-				set_is_player_turn(false);
-				player_move_click = false;
-				logText("It is now the enemies' turn!");
-				// set player's doing_turn to false
-				registry.queueables.get(player).doing_turn = false;
+			if (ep <= 0) {
+				handle_end_player_turn(player);
 			}
 			else { 
 				float ep_rate = 1.f;
@@ -499,6 +514,21 @@ void WorldSystem::restart_game() {
 	// createText(renderer, vec2(200.f, 500.f), ".'", 2.f, vec3(1.0f));
 }
 
+void WorldSystem::handle_end_player_turn(Entity player) {
+	Motion& player_motion = registry.motions.get(player);
+	Player& p = registry.players.get(player);
+	player_motion.velocity = { 0.f, 0.f };
+	player_motion.in_motion = false;
+	p.attacked = false;
+	guardButtonChanged = false;
+	guardButtonPlaced = false;
+	set_is_player_turn(false);
+	player_move_click = false;
+	logText("It is now the enemies' turn!");
+	// set player's doing_turn to false
+	registry.queueables.get(player).doing_turn = false;
+}
+
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
 
@@ -537,7 +567,7 @@ void WorldSystem::spawn_game_entities() {
 	*/
 	
 	float statbarsX = 150.f;
-	float statbarsY = 740.f;
+	float statbarsY = 35.f;
 	createHPFill(renderer, { statbarsX, statbarsY });
 	createHPBar(renderer,  { statbarsX, statbarsY });
 	createMPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
@@ -747,7 +777,11 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	//printf("World Position at (%f, %f)\n", world_pos.x, world_pos.y);
 
 	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
-		// Clicking the start button on the menu screen
+
+		///////////////////////////
+		// logic for button presses
+		///////////////////////////
+
 		for (Entity e : registry.buttons.entities) {
 			if (!registry.motions.has(e)) {
 				continue;
@@ -769,9 +803,18 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						inMenu = false;
 						// spawn the actions bar
 						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
-						createAttackButton(renderer, { window_width_px - 200.f, window_height_px - 150.f });
-						createMoveButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
-						spawn_game_entities(); 
+						createMoveButton(renderer, { window_width_px - 1400.f, window_height_px - 50.f });
+						createAttackButton(renderer, { window_width_px - 1000.f, window_height_px - 50.f });
+						createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f });
+						createItemButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
+
+						guardButtonPlaced = true;
+
+						// spawn the collection and pause buttons
+						createPauseButton(renderer, { window_width_px - 80.f, 50.f });
+						createCollectionButton(renderer, { window_width_px - 160.f, 50.f });
+
+						spawn_game_entities();
 						is_player_turn = true; 
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
@@ -780,8 +823,16 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						for (Entity p : registry.players.entities) {
 							Player& player = registry.players.get(p);
 							player.action = PLAYER_ACTION::ATTACKING;
-							// todo: add some sort of visual queue to show the player what action state they are in
-							logText("You are in Attack Mode!");
+							
+							// hide all action buttons
+							for (Entity ab : registry.actionButtons.entities) {
+								registry.remove_all_components_of(ab);
+							}
+							hideGuardButton = true;
+
+							// create back button and attack mode text
+							createBackButton(renderer, { 100.f , window_height_px - 60.f });
+							createAttackModeText(renderer, { 800.f , window_height_px - 60.f });
 						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_MOVE:
@@ -789,14 +840,75 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						for (Entity p : registry.players.entities) {
 							Player& player = registry.players.get(p);
 							player.action = PLAYER_ACTION::MOVING;
-							// todo: add some sort of visual queue to show the player what action state they are in
-							logText("You are in Movement Mode!");
+
+							// hide all action buttons
+							for (Entity ab : registry.actionButtons.entities) {
+								registry.remove_all_components_of(ab);
+							}
+							hideGuardButton = true;
+
+							// create back button and move mode text
+							createBackButton(renderer, { 100.f , window_height_px - 60.f });
+							createMoveModeText(renderer, { 800.f , window_height_px - 60.f });
+						}
+						break;
+					case BUTTON_ACTION_ID::PAUSE:
+						// TODO: pause enimies if it is their turn
+						
+						inMenu = true;
+						// render quit button
+						createMenuQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90});
+
+						// render cancel button
+						createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f });
+						
+						break;
+					case BUTTON_ACTION_ID::ACTIONS_CANCEL:
+						inMenu = false;
+						break;
+					case BUTTON_ACTION_ID::COLLECTION:
+						// TODO: add real functionality for this
+						logText("Hmm... you collection looks empty");
+						logText("collect and artifact and come back later.");
+						break;
+					case BUTTON_ACTION_ID::ACTIONS_BACK:
+						// hide mode text elements
+						for (Entity mvo : registry.modeVisualizationObjects.entities) {
+							registry.remove_all_components_of(mvo);
+						}
+
+						// create action buttons
+						createMoveButton(renderer, { window_width_px - 1400.f, window_height_px - 50.f });
+						createAttackButton(renderer, { window_width_px - 1000.f, window_height_px - 50.f });
+						createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f });
+						createItemButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
+
+						hideGuardButton = false;
+						guardButtonPlaced = true;
+
+						break;
+					case BUTTON_ACTION_ID::ACTIONS_ITEM:
+						// TODO: add real functionality for this
+						logText("Hmm... you have no items");
+						logText("collect an item and come back later.");
+						break;
+					case BUTTON_ACTION_ID::ACTIONS_GUARD:
+						// TODO: add real functionality for this
+						logText("you defend yourself! (next enemy attack is weaker)");
+						for (Entity player : registry.players.entities) {
+							handle_end_player_turn(player);
+						}
+						break;
+					case BUTTON_ACTION_ID::ACTIONS_END_TURN:
+						for (Entity player : registry.players.entities) {
+							handle_end_player_turn(player);
 						}
 						break;
 				}
 			}
 		}
 
+		///////////////////////////
 		// logic for player actions
 		///////////////////////////
 

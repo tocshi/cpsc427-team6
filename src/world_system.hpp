@@ -116,8 +116,11 @@ private:
 	// load stats data
 	Stats loadStats(json statsData);
   
-  // do turn order logic
+	// do turn order logic
 	void doTurnOrderLogic();
+
+	// handle end of player's turn
+	void handle_end_player_turn(Entity player);
 
 	// OpenGL window handle
 	GLFWwindow* window;

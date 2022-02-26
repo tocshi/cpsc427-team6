@@ -238,7 +238,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					registry.remove_all_components_of(epr);
 				}
 				// update ep range
-				create_ep_range(stats.ep, player_motion.movement_speed, player_motion.position);
+				if (current_game_state == GameStates::MOVEMENT_MENU) {
+					create_ep_range(stats.ep, player_motion.movement_speed, player_motion.position);
+				}
 			}
 			else {
 				// if in movement mode, show the new ep range
@@ -263,12 +265,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			registry.remove_all_components_of(e);
 		}
 
-		// bring back all of the buttons
-		createMoveButton(renderer, { window_width_px - 1400.f, window_height_px - 50.f });
-		createAttackButton(renderer, { window_width_px - 1000.f, window_height_px - 50.f });
-		createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
-		createItemButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
-
+		if (registry.actionButtons.entities.size() < 4) {
+			// bring back all of the buttons
+			createMoveButton(renderer, { window_width_px - 1400.f, window_height_px - 50.f });
+			createAttackButton(renderer, { window_width_px - 1000.f, window_height_px - 50.f });
+			createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+			createItemButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
+		}
+		
 		// hide all the visulaiztion tools
 		for (Entity mvo : registry.modeVisualizationObjects.entities) {
 			registry.remove_all_components_of(mvo);
@@ -740,7 +744,13 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 	if (enemySpawns.size() > 0) {
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
-			createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			// Spawn either a slime or PlantShooter
+			if (ichoose(0, 1)) {
+				createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			}
+			else {
+				createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			}
 		}
 	}
 }
@@ -805,7 +815,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// LOGGING TEXT TEST
 	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
 		for (Entity& player : registry.players.entities) {
-			for (Entity& enemy : registry.slimeEnemies.entities) {
+			for (Entity& enemy : registry.enemies.entities) {
 				int test = irandRange(100,200);
 				std::string log_message = deal_damage(enemy, player, test);
 

@@ -238,6 +238,7 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	// hp = 20, atk = 8, queue = 7, def = 2, range = 400
 	auto& stat = registry.stats.emplace(entity);
 	stat.name = "Plant Shooter";
+	stat.prefix = "the";
 	stat.maxhp = 20.f;
 	stat.hp = stat.maxhp;
 	stat.atk = 8.f;

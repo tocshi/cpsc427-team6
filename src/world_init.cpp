@@ -176,6 +176,17 @@ Entity createEnemy(RenderSystem* renderer, Motion m)
 	motion.destination = m.destination;
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
+	// Create slime stats
+	auto& stats = registry.stats.emplace(entity);
+	stats.name = "Slime";
+	stats.prefix = "the";
+	stats.hp = 25;
+	stats.maxhp = 25;
+	stats.atk = 10;
+	stats.def = 3;
+	stats.speed = 8;
+	stats.range = 250;
+
 	// Create and (empty) Enemy component to be able to refer to all enemies
 	registry.enemies.emplace(entity);
 	// make it a slime enemy for now
@@ -189,6 +200,9 @@ Entity createEnemy(RenderSystem* renderer, Motion m)
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
+
+	// add enemy to queuables
+	registry.queueables.emplace(entity);
 
 	return entity;
 }

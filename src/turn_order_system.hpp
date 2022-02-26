@@ -10,6 +10,8 @@ public:
 	void setUpTurnOrder();
 	Entity getCurrentTurnEntity();
 	Entity getNextTurn();
+	std::queue<Entity> getTurnOrder();
+	void loadTurnOrder(std::queue<Entity> queue);
 
 private:
 	Entity currentEntity;

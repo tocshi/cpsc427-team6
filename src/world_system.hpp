@@ -15,6 +15,8 @@
 #include "save_system.hpp"
 #include "turn_order_system.hpp"
 #include "ai_system.hpp"
+#include "game_state.hpp"
+
 #include <../ext/json/single_include/nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -145,3 +147,6 @@ private:
 
 // Set attack state for enemies that attack after moving
 void set_enemy_state_attack(Entity enemy);
+
+// set gamestate
+void set_gamestate(GameStates state);

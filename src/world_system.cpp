@@ -1,7 +1,6 @@
 // Header
 #include "world_system.hpp"
 #include "world_init.hpp"
-#include "game_state.hpp"
 // stlib
 #include <cassert>
 #include <sstream>
@@ -203,8 +202,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// if not in menu do turn order logic (!current_game_state)
-	if (current_game_state>GameStates::CUTSCENE|| current_game_state <GameStates::SPLASH_SCREEN) {
-		printf("TURN ORDER LOGIC ==========\n");
+	if (current_game_state < GameStates::CUTSCENE && current_game_state >= GameStates::GAME_START) {
 		doTurnOrderLogic();
 	}
 
@@ -274,6 +272,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				logText("It is now the enemies' turn!");
 				// set player's doing_turn to false
 				registry.queueables.get(player).doing_turn = false;
+				set_gamestate(GameStates::ENEMY_TURN);
 			}
 			else { 
 				float ep_rate = 1.f;
@@ -492,13 +491,7 @@ void WorldSystem::restart_game() {
 
 	// restart the game on the menu screen
 	//current_game_state = true;
-	printf("previous state in %d: \n", static_cast<int>(previous_game_state));
-	current_game_state = GameStates::MAIN_MENU;
-	previous_game_state = current_game_state;
-	printf("previous state in Now:  %d \n", static_cast<int>(previous_game_state));
-	std::cout << "ACTION: Loading initial game world or Pressed Restart button, Go to MENU SCREEN : Game state = MAIN_MENU \n" << std::endl;
-	printf("Game State current_game_state value is: %d \n", static_cast<int>(previous_game_state));
-	printf("%d", static_cast<int>(current_game_state));
+	set_gamestate(GameStates::MAIN_MENU);
 
 	/*if (current_game_state != GameStates::MAIN_MENU) {
 		//current_game_state = GameStates::MAIN_MENU;
@@ -724,6 +717,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
         restart_game();
 	}
 
+	// Resetting game
+	if (action == GLFW_RELEASE && key == GLFW_KEY_T) {
+		printf("GAME STATE LOG START ============\n");
+		printf("Previous game state is: %i\n", static_cast<int>(previous_game_state));
+		printf("Current game state is: %i\n", static_cast<int>(current_game_state));
+		printf("GAME STATE LOG END ============\n\n\n");
+	}
+
 	// Debugging
 	if (key == GLFW_KEY_D) {
 		if (action == GLFW_RELEASE)
@@ -778,9 +779,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				switch (action_taken) {
 
 					case BUTTON_ACTION_ID::MENU_START: 
-						current_game_state = GameStates::GAME_START;
-						previous_game_state = current_game_state; printf("\n set previous game state to current games state for current_game_state: %d\n", static_cast<int>(previous_game_state));
-						printf("\n BUTTON PRESS ACTION START : Game state = GAME_START : We are playing a Game: %d\n",static_cast<int>(current_game_state));
+						set_gamestate(GameStates::GAME_START);
 						spawn_game_entities();
 						// spawn the actions bar
 						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
@@ -1071,6 +1070,7 @@ void WorldSystem::doTurnOrderLogic() {
 			set_is_player_turn(true);
 			start_player_turn();
 			logText("It is now your turn!");
+			set_gamestate(GameStates::BATTLE_MENU);
 		}
 	}
 
@@ -1088,4 +1088,10 @@ void set_enemy_state_attack(Entity enemy) {
 	if (registry.slimeEnemies.has(enemy)) {
 		registry.slimeEnemies.get(enemy).state = ENEMY_STATE::ATTACK;
 	}
+}
+
+// Set attack state for enemies who attack after moving
+void set_gamestate(GameStates state) {
+	previous_game_state = current_game_state;
+	current_game_state = state;
 }

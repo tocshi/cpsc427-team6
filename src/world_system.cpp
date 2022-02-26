@@ -471,8 +471,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// update animations 
-	for (int i = 0; i < registry.animations.size(); i++) {
-		Entity e = registry.animations.entities[i];
+	for (Entity e : registry.animations.entities) {
 		AnimationData& anim = registry.animations.get(e);
 		anim.animation_time_ms += elapsed_ms_since_last_update;
 		if (anim.animation_time_ms > anim.frametime_ms * anim.frame_indices.size() - 1) {
@@ -486,6 +485,26 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			anim.animation_time_ms -= anim.frametime_ms * anim.frame_indices.size() - 1;
 		}
 		anim.current_frame = std::min(anim.animation_time_ms / anim.frametime_ms, int(anim.frame_indices.size()) - 1);
+	}
+
+	// update timed log text from signs
+	for (Entity e : registry.signs.entities) {
+		Sign& sign = registry.signs.get(e);
+		if (sign.playing) {
+			sign.counter_ms += elapsed_ms_since_last_update;
+			for (int i = sign.next_message; i < sign.messages.size(); i++) {
+				if (sign.counter_ms < sign.messages[i].second) {
+					sign.next_message = i;
+					break;
+				}
+				logText(sign.messages[i].first);
+				sign.next_message = i;
+			}
+			if (sign.counter_ms > sign.messages[sign.messages.size()-1].second) {
+				sign.counter_ms = 0;
+				sign.playing = false;
+			}
+		}
 	}
 
 	return true;
@@ -609,6 +628,23 @@ void WorldSystem::spawn_game_entities() {
 	createSign(renderer, { 350.f, 550.f });
 	createStair(renderer, { 350.f, 650.f });
 	*/
+	Entity player = registry.players.entities[0];
+	Motion& player_motion = registry.motions.get(player);
+
+	std::vector<std::pair<std::string, int>> messages = {
+		{"Welcome to Adrift in Somnium!", 0},
+		{"Left click the buttons at the bottom to switch between actions.", 2000},
+		{"In Move mode, you can click to move as long as you have EP.", 6000},
+		{"EP is the yellow bar at the top of the screen, which gets expended as you move and attack.", 10000},
+		{"In Attack mode, you can click on an enemy close to you to deal damage.", 16000},
+		{"Use your attacks wisely. You can only attack once per turn.", 20000},
+		{"After your EP hits 0 or you click on End Turn, the enemies will have a turn to move and attack you.", 24000},
+		{"Good luck, nameless adventurer.", 28000}};
+
+	createSign(
+		renderer, 
+		{ player_motion.position.x - 64, player_motion.position.y - 64 },
+		messages);
 
 	// setup turn order system
 	turnOrderSystem.setUpTurnOrder();
@@ -1116,6 +1152,17 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 					}
 					break;
+				default:
+					for (Entity& sign_entity : registry.signs.entities) {
+						Motion& sign_motion = registry.motions.get(sign_entity);
+						if (world_pos.x <= sign_motion.position.x + abs(sign_motion.scale.x / 2) &&
+							world_pos.x >= sign_motion.position.x - abs(sign_motion.scale.x / 2) &&
+							world_pos.y <= sign_motion.position.y + abs(sign_motion.scale.y / 2) &&
+							world_pos.y >= sign_motion.position.y - abs(sign_motion.scale.y / 2)) {
+							Sign& sign = registry.signs.get(sign_entity);
+							sign.playing = true;
+						}
+					}
 				}
 
 			}
@@ -1336,7 +1383,8 @@ void WorldSystem::logText(std::string msg) {
 	vec3 textColor = vec3(1.0f, 1.0f, 1.0f); // white
 
 	Entity e = createText(renderer, defaultPos, msg, 1.5f, textColor);
-	registry.textTimers.emplace(e);
+	TextTimer& timer = registry.textTimers.emplace(e);
+	timer.counter_ms = 8000;
 }
 
 void WorldSystem::doTurnOrderLogic() {

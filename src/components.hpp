@@ -315,6 +315,13 @@ struct TileUV {
 	vec2 uv_end = { 0,0 };
 };
 
+struct Sign {
+	int counter_ms = 0;
+	std::vector<std::pair<std::string, int>> messages; // a list of messages, and the time since click at which each message is logged
+	bool playing = false; // counter_ms only updates when this is true
+	int next_message = 0;
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -350,7 +357,8 @@ enum class TEXTURE_ASSET_ID {
 	CHEST = EQUIPABLE + 1,
 	DOOR = CHEST + 1,
 	SIGN = DOOR + 1,
-	STAIR = SIGN + 1,
+	SIGN_GLOW_SPRITESHEET = SIGN + 1,
+	STAIR = SIGN_GLOW_SPRITESHEET + 1,
 	START = STAIR + 1,
 	QUIT = START + 1,
 	TITLE = QUIT + 1,

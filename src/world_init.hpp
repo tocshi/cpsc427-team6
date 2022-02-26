@@ -28,8 +28,8 @@ const float CHEST_BB_WIDTH = 0.6f * 150.f;
 const float CHEST_BB_HEIGHT = 0.6f * 150.f;
 const float DOOR_BB_WIDTH = 0.6f * 150.f;
 const float DOOR_BB_HEIGHT = 0.6f * 150.f;
-const float SIGN_BB_WIDTH = 0.6f * 150.f;
-const float SIGN_BB_HEIGHT = 0.6f * 150.f;
+const float SIGN_BB_WIDTH = 64.f;
+const float SIGN_BB_HEIGHT = 64.f;
 const float STAIR_BB_WIDTH = 0.6f * 150.f;
 const float STAIR_BB_HEIGHT = 0.6f * 150.f;
 const float WALL_BB_WIDTH = 100.f;
@@ -90,7 +90,7 @@ Entity createChest(RenderSystem* renderer, vec2 pos);
 // Door
 Entity createDoor(RenderSystem* renderer, vec2 pos);
 // Sign
-Entity createSign(RenderSystem* renderer, vec2 pos);
+Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::pair<std::string, int>>& messages);
 // Stair
 Entity createStair(RenderSystem* renderer, vec2 pos);
 // Wall

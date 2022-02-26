@@ -68,6 +68,9 @@ GameStates previous_game_state = current_game_state;
 float fog_radius = 450.f;
 float fog_resolution = 2000.f;
 
+// ep range stats
+float ep_resolution = 2000.f;
+
 // move audio timer
 float move_audio_timer_ms = 200.f;
 
@@ -215,6 +218,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (get_is_player_turn() && player_move_click) {
 		for (Entity player : registry.players.entities) {
 			Motion player_motion = registry.motions.get(player);
+			Stats stats = registry.stats.get(player);
 			if (player_motion.in_motion) {
 				// handle footstep sound
 				if (move_audio_timer_ms <= 0) {
@@ -228,8 +232,23 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				// update the fog of war if the player is moving
 				remove_fog_of_war();
 				create_fog_of_war();
+
+				// remove old ep range
+				for (Entity epr : registry.epRange.entities) {
+					registry.remove_all_components_of(epr);
+				}
+				// update ep range
+				create_ep_range(stats.ep, player_motion.movement_speed, player_motion.position);
 			}
 			else {
+				// if in movement mode, show the new ep range
+				if (current_game_state == GameStates::MOVEMENT_MENU) {
+					// remove old ep range
+					for (Entity epr : registry.epRange.entities) {
+						registry.remove_all_components_of(epr);
+					}
+					create_ep_range(stats.ep, player_motion.movement_speed, player_motion.position);
+				}
 				player_move_click = false;
 			}
 		}
@@ -243,6 +262,23 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		for (Entity e : registry.menuItems.entities) {
 			registry.remove_all_components_of(e);
 		}
+		// bring back all of the buttons
+		createMoveButton(renderer, { window_width_px - 1400.f, window_height_px - 50.f });
+		createAttackButton(renderer, { window_width_px - 1000.f, window_height_px - 50.f });
+		createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+		createItemButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
+
+		// hide all the visulaiztion tools
+		for (Entity mvo : registry.modeVisualizationObjects.entities) {
+			registry.remove_all_components_of(mvo);
+		}
+
+		// destory ep range
+		for (Entity ep : registry.epRange.entities) {
+			registry.remove_all_components_of(ep);
+		}
+
+		hideGuardButton = false;
 	}
 	// Update HP/MP/EP bars and movement
 	// Check for player death
@@ -620,6 +656,14 @@ void WorldSystem::spawn_game_entities() {
 	create_fog_of_war();
 }
 
+// render ep range around the given position
+void WorldSystem::create_ep_range(float remaining_ep, float speed, vec2 pos) {
+	float ep_radius = remaining_ep * speed * 0.03 + ((110.f * remaining_ep) / 100);
+
+	Entity ep = createEpRange({ pos.x , pos.y }, ep_resolution, ep_radius, { window_width_px, window_height_px });
+	registry.colors.insert(ep, { 0.2, 0.2, 8.7 });
+}
+
 // render fog of war around the player
 void WorldSystem::create_fog_of_war() {	
 	for (Entity player : registry.players.entities) {
@@ -759,6 +803,44 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		create_fog_of_war();
 	}
 
+	// simulating a new room
+	if (action == GLFW_RELEASE && key == GLFW_KEY_N && get_is_player_turn()) {
+		// remove all entities for new room
+		removeForNewRoom();
+		// save game (should be just player stuff)
+		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+		// remove player
+		for (Entity e : registry.players.entities) {
+			registry.remove_all_components_of(e);
+		}
+		// make new map
+		SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
+		// load the player back
+		json gameData = saveSystem.getSaveData();
+		std::queue<Entity> queue = loadFromData(gameData);
+		turnOrderSystem.loadTurnOrder(queue);
+		// get the player and set its position
+		for (Entity e : registry.players.entities) {
+			std::random_shuffle(spawnData.playerSpawns.begin(), spawnData.playerSpawns.end());
+			Motion& motion = registry.motions.get(e);
+			Stats& stats = registry.stats.get(e);
+			// set random position
+			motion.position = { spawnData.playerSpawns[0].x, spawnData.playerSpawns[0].y };
+			// set everything else in motion to default
+			motion.angle = 0.f;
+			motion.velocity = { 0.f, 0.f };
+			motion.in_motion = false;
+			motion.movement_speed = 200;
+			motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
+
+			// Refill Player EP
+			stats.ep = stats.maxep;
+
+		}
+		remove_fog_of_war();
+		create_fog_of_war();
+	}
+
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
@@ -880,6 +962,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						// set player action to move
 						for (Entity p : registry.players.entities) {
 							Player& player = registry.players.get(p);
+							Stats stats = registry.stats.get(p);
 							player.action = PLAYER_ACTION::MOVING;
 
 							// hide all action buttons
@@ -887,6 +970,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								registry.remove_all_components_of(ab);
 							}
 							hideGuardButton = true;
+
+							// show ep range
+							Motion motion = registry.motions.get(p);
+							create_ep_range(stats.ep, motion.movement_speed, motion.position);
 
 							// set game state to move menu
 							set_gamestate(GameStates::MOVEMENT_MENU);
@@ -917,17 +1004,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						logText("Collection Menu to be implemented later!");
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_BACK:
-						// hide mode text elements
-						for (Entity mvo : registry.modeVisualizationObjects.entities) {
-							registry.remove_all_components_of(mvo);
-						}
-
-						// create action buttons
-						createMoveButton(renderer, { window_width_px - 1400.f, window_height_px - 50.f });
-						createAttackButton(renderer, { window_width_px - 1000.f, window_height_px - 50.f });
-						createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
-						createItemButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
-						hideGuardButton = false;
+						// set gamestate back to normal
+						set_gamestate(GameStates::BATTLE_MENU);
 
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_ITEM:
@@ -986,9 +1064,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				Motion& player_motion = registry.motions.get(e);
 				Stats& player_stats = registry.stats.get(e);
 
-				PLAYER_ACTION action = player.action;
-				switch (action) {
-				case PLAYER_ACTION::ATTACKING:
+				switch (current_game_state) {
+				case GameStates::ATTACK_MENU:
 					// ensure player has clicked on an enemy
 					for (Entity en : registry.enemies.entities) {
 						// super simple bounding box for now
@@ -1042,7 +1119,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						}
 					}
 					break;
-				case PLAYER_ACTION::MOVING:
+				case GameStates::MOVEMENT_MENU:
 					for (Entity& player : registry.players.entities) {
 						Motion& motion_struct = registry.motions.get(player);
 
@@ -1140,6 +1217,28 @@ void WorldSystem::removeForLoad() {
 	// remove enemies
 	for (Entity enemy : registry.enemies.entities) {
 		registry.remove_all_components_of(enemy);
+	}
+}
+
+void WorldSystem::removeForNewRoom() {
+	// remove enemies
+	for (Entity enemy : registry.enemies.entities) {
+		registry.remove_all_components_of(enemy);
+	}
+
+	// remove solids
+	for (Entity solids : registry.solid.entities) {
+		registry.remove_all_components_of(solids);
+	}
+
+	// remove tileUVs
+	for (Entity tileUV : registry.tileUVs.entities) {
+		registry.remove_all_components_of(tileUV);
+	}
+
+	// remove animations
+	for (Entity animation : registry.animations.entities) {
+		registry.remove_all_components_of(animation);
 	}
 }
 

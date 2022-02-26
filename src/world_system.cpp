@@ -700,8 +700,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			// remove entities to load in entities
 			removeForLoad();
 			// get saved game data
+			printf("\n Line 703 grab data \n");
 			json gameData = saveSystem.getSaveData();
+			printf("\n Line 706 data grabbed \n");
 			// load the entities in
+			printf("\n line 708 reaching to loadData\n");
 			loadFromData(gameData);
 			saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc.
 		}
@@ -1015,6 +1018,7 @@ void WorldSystem::loadSlime(json slimeData) {
 	Entity e = createEnemy(renderer, motion);
 
 	// set slimeEnemy data
+	printf("\nSetting Slime data \n\n\n");
 	json data = slimeData["data"];
 	registry.slimeEnemies.get(e).state = data["state"];
 }

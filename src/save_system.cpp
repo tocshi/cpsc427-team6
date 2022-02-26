@@ -132,7 +132,7 @@ void SaveSystem::saveGameState() {
 
 		// item axe avilable add to stat
 		if (equipItem.axe) {
-			//printf("true has axe");
+			printf("\ntrue has axe");
 			inventory["equiptment"]["axe"] = true;
 		}
 		if (equipItem.sword) {

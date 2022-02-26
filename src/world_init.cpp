@@ -55,9 +55,12 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	stats.def = 2;
 	stats.speed = 10;
 	stats.range = 450;
+	
 
 	// Create and (empty) Player component to be able to refer to all players
-	registry.players.emplace(entity);
+	auto& player = registry.players.emplace(entity);
+	player.inv = registry.inventories.emplace(entity);
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER,

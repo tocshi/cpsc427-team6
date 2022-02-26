@@ -10,23 +10,6 @@ enum class PLAYER_ACTION {
 	ACTION_COUNT = ATTACKING + 1
 };
 
-// Player component
-struct Player
-{
-	float s;
-	//Inventory inv;
-	// current action taking (count acts as no current action being taken)
-	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
-
-	// true if the player has already attacked that turn
-	bool attacked = false;
-};
-
-// Inventory component
-struct Inventory
-{
-};
-
 // Inventory Items
 enum class CONSUMABLE {
 	REDPOT = 0,
@@ -69,6 +52,28 @@ enum class ARTIFACT {
 	WEAPON_UPGRADE = KB_MALLET + 1,
 	ARMOUR_UPGRADE = WEAPON_UPGRADE + 1,
 	ARTIFACT_COUNT = ARMOUR_UPGRADE + 1
+};
+
+// Inventory component
+struct Inventory
+{
+	int equipped[2] = { -1, -1 };
+	int consumable[static_cast<int>(CONSUMABLE::CONSUMABLE_COUNT)];
+	int weapon[static_cast<int>(WEAPON::WEAPON_COUNT)];
+	int armour[static_cast<int>(ARMOUR::ARMOUR_COUNT)];
+	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
+};
+
+// Player component
+struct Player
+{
+	float s;
+	Inventory inv;
+	// current action taking (count acts as no current action being taken)
+	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
+
+	// true if the player has already attacked that turn
+	bool attacked = false;
 };
 
 // Mode visualization objects

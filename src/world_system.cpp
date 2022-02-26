@@ -218,6 +218,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (get_is_player_turn() && player_move_click) {
 		for (Entity player : registry.players.entities) {
 			Motion player_motion = registry.motions.get(player);
+			Stats stats = registry.stats.get(player);
 			if (player_motion.in_motion) {
 				// handle footstep sound
 				if (move_audio_timer_ms <= 0) {
@@ -231,6 +232,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				// update the fog of war if the player is moving
 				remove_fog_of_war();
 				create_fog_of_war();
+
+				// remove old ep range
+				for (Entity epr : registry.epRange.entities) {
+					registry.remove_all_components_of(epr);
+				}
+				// update ep range
+				create_ep_range(stats.ep, player_motion.movement_speed, player_motion.position);
 			}
 			else {
 				// if in movement mode, show the new ep range
@@ -239,8 +247,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					for (Entity epr : registry.epRange.entities) {
 						registry.remove_all_components_of(epr);
 					}
-
-					Stats& stats = registry.stats.get(player);
 					create_ep_range(stats.ep, player_motion.movement_speed, player_motion.position);
 				}
 				player_move_click = false;

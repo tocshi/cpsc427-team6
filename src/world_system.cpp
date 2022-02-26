@@ -683,6 +683,23 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("LOADING KEY PRESSED\n");
 	}
 
+	// simulating a new room
+	if (action == GLFW_RELEASE && key == GLFW_KEY_N && get_is_player_turn()) {
+		// remove all entities for new room
+		removeForNewRoom();
+		// save game (should be just player stuff)
+		saveSystem.saveGameState();
+		// remove player
+		for (Entity e : registry.players.entities) {
+			registry.remove_all_components_of(e);
+		}
+		// make new map
+		SpawnData spawndata = createTiles(renderer, "map1_random.tmx");
+		// load the player back
+		json gameData = saveSystem.getSaveData();
+		loadFromData(gameData);
+	}
+
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
@@ -938,6 +955,28 @@ void WorldSystem::removeForLoad() {
 	// remove enemies
 	for (Entity enemy : registry.enemies.entities) {
 		registry.remove_all_components_of(enemy);
+	}
+}
+
+void WorldSystem::removeForNewRoom() {
+	// remove enemies
+	for (Entity enemy : registry.enemies.entities) {
+		registry.remove_all_components_of(enemy);
+	}
+
+	// remove solids
+	for (Entity solids : registry.solid.entities) {
+		registry.remove_all_components_of(solids);
+	}
+
+	// remove tileUVs
+	for (Entity tileUV : registry.tileUVs.entities) {
+		registry.remove_all_components_of(tileUV);
+	}
+
+	// remove animations
+	for (Entity animation : registry.animations.entities) {
+		registry.remove_all_components_of(animation);
 	}
 }
 

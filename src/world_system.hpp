@@ -80,6 +80,9 @@ private:
 	// spawn entities
 	void spawn_game_entities();
 
+	// create ep range
+	void create_ep_range(float remaining_ep, float speed, vec2 pos);
+
 	// create fog of war
 	void create_fog_of_war();
 

@@ -1107,6 +1107,31 @@ Entity createFog(vec2 pos, float resolution, float radius, vec2 screen_resolutio
 	return entity;
 }
 
+Entity createEpRange(vec2 pos, float resolution, float radius, vec2 screen_resolution) {
+	auto entity = Entity();
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.scale = { resolution, resolution };
+
+	EpRange& ep = registry.epRange.emplace(entity);
+	ep.resolution = resolution;
+	ep.radius = radius;
+	ep.screen_resolution = screen_resolution;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::EP,
+			GEOMETRY_BUFFER_ID::EP,
+			RENDER_LAYER_ID::EFFECT });
+
+	return entity;
+}
+
 // Create an entity with a camera and motion component
 Entity createCamera(vec2 pos)
 {

@@ -596,9 +596,26 @@ void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int
 	std::random_shuffle(itemSpawns.begin(), itemSpawns.end());
 	if (itemSpawns.size() > 0) {
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(itemSpawns.size()));
-		for (int i = 0; i < numberToSpawn; i++) {
+		Entity& player = registry.players.entities[0];
+		Motion& motion = registry.motions.get(player);
+		int range = 0;
+		if (registry.stats.has(player)) {
+			range = registry.stats.get(player).range;
+		}
+
+		int spawned = 0;
+		int i = 0;
+		while (spawned < numberToSpawn && i < itemSpawns.size()) {
 			// temporary, later we can also randomize the item types
+			if (range > 0) {
+				if (dist_to(motion.position, itemSpawns[i]) <= range) {
+					i++;
+					continue;
+				}
+			}
 			createCampfire(renderer, { itemSpawns[i].x, itemSpawns[i].y });
+			spawned++;
+			i++;
 		}
 	}
 }

@@ -930,6 +930,7 @@ Entity createCampfire(RenderSystem* renderer, vec2 pos) {
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::ANIMATION,
 			RENDER_LAYER_ID::FLOOR_DECO });
+	registry.hidables.emplace(entity);
 
 	return entity;
 }

@@ -93,39 +93,13 @@ void SaveSystem::readJsonFile() {
 
 }
 
-void SaveSystem::saveGameState() {
+void SaveSystem::saveGameState(std::queue<Entity> entities) {
 	json saveState;
-	json playerData;
-
 	
 	// equipped items
 	json inventory;
-
-
-	for (Entity e : registry.players.entities) {
-		Stats player_stats = registry.stats.get(e);
-		playerData["stats"]["hp"] = player_stats.hp;
-		playerData["stats"]["ep"] = player_stats.ep;
-		playerData["stats"]["maxEP"] = player_stats.maxep;
-		playerData["stats"]["mp"] = player_stats.mp;
-		
-		Motion player_motion = registry.motions.get(e);
-
-		playerData["motion"]["position_x"] = player_motion.position.x;
-		playerData["motion"]["position_y"] = player_motion.position.y;
-		playerData["motion"]["angle"] = player_motion.angle;
-		playerData["motion"]["velocity_x"] = player_motion.velocity.x;
-		playerData["motion"]["velocity_y"] = player_motion.velocity.y;
-		playerData["motion"]["destination_x"] = player_motion.destination.x;
-		playerData["motion"]["destination_y"] = player_motion.destination.y;
-		playerData["motion"]["movement_speed"] = player_motion.movement_speed;
-		playerData["motion"]["in_motion"] = player_motion.in_motion;
-			// get player position
-	 
-		
-	}
+	
 	// Equipment items
-	printf("LEFT PLAYER LOOP");
 	for (Entity e : registry.equipables.entities) {
 		Equipable equipItem = registry.equipables.get(e);
 		printf("IN equiptable items");
@@ -163,45 +137,8 @@ void SaveSystem::saveGameState() {
 		}
 	}
 
-	//for (Entity e: registry.)
-	// current invetory of items 
-
-
-	// array of json objects for enemies
-	auto enemies = json::array();
-	for (Entity e : registry.enemies.entities) {
-		json enemyData;
-		
-		// if it is a slime enemy
-		if (registry.slimeEnemies.has(e)) {
-			enemyData["type"] = "slime";
-			json data;
-			SlimeEnemy se = registry.slimeEnemies.get(e);	
-			Stats slime_stats = registry.stats.get(e);
-			data["state"] = se.state;
-			enemyData["data"] = data;
-		}
-		
-		// set motion stuff
-		Motion m = registry.motions.get(e);
-		json motionData;
-		motionData["position_x"] = m.position.x;
-		motionData["position_y"] = m.position.y;
-		motionData["angle"] = m.angle;
-		motionData["velocity_x"] = m.velocity.x;
-		motionData["velocity_y"] = m.velocity.y;
-		motionData["destination_x"] = m.destination.x;
-		motionData["destination_y"] = m.destination.y;
-		motionData["movement_speed"] = m.movement_speed;
-		motionData["in_motion"] = m.in_motion;
-
-		enemyData["motion"] = motionData;
-		enemies.push_back(enemyData);
-	}
-
-	saveState["player"] = playerData;
+	saveState["entities"] = jsonifyEntities(entities);
 	saveState["inventory"] = inventory;
-	saveState["enemies"] = enemies;
 
 	saveToFile(saveState);
 }
@@ -219,3 +156,118 @@ json SaveSystem::getSaveData() {
 	return j;
 }
 
+json SaveSystem::jsonifyEntities(std::queue<Entity> entities) {
+	auto entityList = json::array();
+	// loop through all the entities in order of turn system and save them
+	while (entities.size() != 0) {
+		Entity e = entities.front();
+		entities.pop();
+		json entity;
+		bool changed = false;
+		// check to see what type of entity it is
+		if (registry.players.has(e)) {
+			changed = true;
+			entity = jsonifyPlayer(e);
+		}
+		else if (registry.slimeEnemies.has(e)) {
+			changed = true;
+			entity = jsonifySlime(e);
+		}
+
+		// if something was actually jsonified put it into the array (removes nulls)
+		if (changed) {
+			// put entity json onto json array
+			entityList.push_back(entity);
+		}
+	}
+
+	return entityList;
+}
+
+json SaveSystem::jsonifyQueueable(Queueable q) {
+	json queueable;
+	queueable["doingTurn"] = q.doing_turn;
+	return queueable;
+}
+
+json SaveSystem::jsonifyStats(Stats s) {
+	json stats;
+	stats["hp"] = s.hp;
+	stats["maxHP"] = s.maxhp;
+	stats["ep"] = s.ep;
+	stats["maxEP"] = s.maxep;
+	stats["mp"] = s.mp;
+	stats["maxMP"] = s.maxmp;
+	stats["atk"] = s.atk;
+	stats["def"] = s.def;
+	stats["speed"] = s.speed;
+	stats["range"] = s.range;
+	stats["chase"] = s.chase;
+	return stats;
+}
+
+json SaveSystem::jsonifyMotion(Motion m) {
+	json motion;
+	motion["position_x"] = m.position.x;
+	motion["position_y"] = m.position.y;
+	motion["angle"] = m.angle;
+	motion["velocity_x"] = m.velocity.x;
+	motion["velocity_y"] = m.velocity.y;
+	motion["destination_x"] = m.destination.x;
+	motion["destination_y"] = m.destination.y;
+	motion["movement_speed"] = m.movement_speed;
+	motion["in_motion"] = m.in_motion;
+	return motion;
+}
+
+json SaveSystem::jsonifyPlayer(Entity player) {
+	json playerData;
+	// set the entity type
+	playerData["type"] = "player";
+
+	// save player component stuff
+	Player p = registry.players.get(player);
+	json pl;
+	pl["attacked"] = p.attacked;
+	playerData["player"] = pl;
+
+	// jsonify queueable
+	Queueable q = registry.queueables.get(player);
+	playerData["queueable"] = jsonifyQueueable(q);
+
+	// jsonify stats
+	Stats player_stats = registry.stats.get(player);
+	playerData["stats"] = jsonifyStats(player_stats);
+
+	// jsonify motion
+	Motion player_motion = registry.motions.get(player);
+	playerData["motion"] = jsonifyMotion(player_motion);
+
+	return playerData;
+}
+
+json SaveSystem::jsonifySlime(Entity slime) {
+	json slimeData;
+	// save entity type
+	slimeData["type"] = "slime";
+	
+	// save slime enemy component stuff
+	SlimeEnemy se = registry.slimeEnemies.get(slime);
+	json slimeEnemy;
+	slimeEnemy["state"] = se.state;
+	slimeData["slime"] = slimeEnemy;
+
+	// jsonify queueable stuff
+	Queueable q = registry.queueables.get(slime);
+	slimeData["queueable"] = jsonifyQueueable(q);
+
+	// jsonify stats
+	Stats slime_stats = registry.stats.get(slime);
+	slimeData["stats"] = jsonifyStats(slime_stats);
+
+	// jsonify motion
+	Motion m = registry.motions.get(slime);
+	slimeData["motion"] = jsonifyMotion(m);
+
+	return slimeData;
+}

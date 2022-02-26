@@ -47,6 +47,11 @@ enum class ARTIFACT {
 	ACTION_COUNT = ATTACKING + 1
 };
 
+// Mode visualization objects
+struct ModeVisualization {
+
+};
+
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2 position = { 0, 0 };
@@ -183,6 +188,7 @@ struct Stats {
 	float speed = 10.f;
 	float range = 450.f;
 	float chase = 450.f;
+	bool guard = false;
 };
 
 struct Queueable {
@@ -223,12 +229,23 @@ struct SlimeEnemy {
 	ENEMY_STATE state = ENEMY_STATE::STATE_COUNT;
 };
 
+struct ActionButton {
+
+};
+
 enum class BUTTON_ACTION_ID {
 	MENU_QUIT = 0,
 	MENU_START = MENU_QUIT + 1,
 	ACTIONS_MOVE = MENU_START + 1,
 	ACTIONS_ATTACK = ACTIONS_MOVE + 1,
-	ACTION_COUNT = ACTIONS_ATTACK + 1
+	ACTIONS_GUARD = ACTIONS_ATTACK + 1,
+	ACTIONS_END_TURN = ACTIONS_GUARD + 1,
+	ACTIONS_ITEM = ACTIONS_END_TURN + 1,
+	ACTIONS_BACK = ACTIONS_ITEM + 1,
+	ACTIONS_CANCEL = ACTIONS_BACK + 1,
+	PAUSE = ACTIONS_CANCEL + 1,
+	COLLECTION = PAUSE + 1,
+	ACTION_COUNT = COLLECTION + 1
 };
 const int button_action_count = (int)BUTTON_ACTION_ID::ACTION_COUNT;
 
@@ -329,7 +346,16 @@ enum class TEXTURE_ASSET_ID {
 	ACTIONS_MOVE = EPFILL + 1,
 	ACTIONS_ATTACK = ACTIONS_MOVE + 1,
 	ACTIONS_BAR = ACTIONS_ATTACK + 1,
-	DUNGEON_TILESHEET = ACTIONS_BAR + 1,
+	ACTIONS_GUARD = ACTIONS_BAR + 1,
+	ACTIONS_ITEM = ACTIONS_GUARD + 1,
+	ACTIONS_END_TURN = ACTIONS_ITEM + 1,
+	ACTIONS_BACK = ACTIONS_END_TURN + 1,
+	ACTIONS_CANCEL = ACTIONS_BACK + 1,
+	ACTIONS_ATTACK_MODE = ACTIONS_CANCEL + 1,
+	ACTIONS_MOVE_MODE = ACTIONS_ATTACK_MODE + 1,
+	PAUSE = ACTIONS_MOVE_MODE + 1,
+	COLLECTION_BUTTON = PAUSE + 1,
+	DUNGEON_TILESHEET = COLLECTION_BUTTON + 1,
 	CAMPFIRE_SPRITESHEET = DUNGEON_TILESHEET + 1,
 	EXPLOSION_SPRITESHEET = CAMPFIRE_SPRITESHEET + 1,
 	TEXTURE_COUNT = EXPLOSION_SPRITESHEET + 1
@@ -402,4 +428,13 @@ struct AnimationData {
 
 	bool loop = true;
 	bool delete_on_finish = false; // if the entitiy should be deleted when the loop is finished
+};
+
+// guard button
+struct GuardButton {
+	// which texture to show
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::ACTIONS_GUARD;
+
+	// which button action to take
+	BUTTON_ACTION_ID action = BUTTON_ACTION_ID::ACTIONS_GUARD;
 };

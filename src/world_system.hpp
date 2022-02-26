@@ -15,6 +15,8 @@
 #include "save_system.hpp"
 #include "turn_order_system.hpp"
 #include "ai_system.hpp"
+#include "game_state.hpp"
+
 #include <../ext/json/single_include/nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -97,22 +99,28 @@ private:
 	void removeForLoad();
 
 	// load entities from saved data
-	void loadFromData(json data);
+	std::queue<Entity> loadFromData(json data);
 
 	// load player from data
-	void loadPlayer(json playerData);
+	Entity loadPlayer(json playerData);
   
 	// load enemies from data
-	void loadEnemies(json enemyData);
+	Entity loadEnemy(json enemyData);
 
 	// load a slime from data
-	void loadSlime(json slimeData);
+	Entity loadSlime(json slimeData);
 
 	// load motion data
 	Motion loadMotion(json motionData);
+
+	// load stats data
+	Stats loadStats(json statsData);
   
-  // do turn order logic
+	// do turn order logic
 	void doTurnOrderLogic();
+
+	// handle end of player's turn
+	void handle_end_player_turn(Entity player);
 
 	// OpenGL window handle
 	GLFWwindow* window;
@@ -145,3 +153,6 @@ private:
 
 // Set attack state for enemies that attack after moving
 void set_enemy_state_attack(Entity enemy);
+
+// set gamestate
+void set_gamestate(GameStates state);

@@ -265,8 +265,7 @@ struct TileUV {
 
 struct Sign {
 	int counter_ms = 0;
-	std::vector<std::string> messages; // a list of messages
-	std::vector<int> msg_times; // the time since click at which each message is logged
+	std::vector<std::pair<std::string, int>> messages; // a list of messages, and the time since click at which each message is logged
 	bool playing = false; // counter_ms only updates when this is true
 	int next_message = 0;
 };

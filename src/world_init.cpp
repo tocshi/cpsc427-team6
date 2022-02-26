@@ -373,7 +373,7 @@ Entity createDoor(RenderSystem* renderer, vec2 pos)
 }
 
 // Sign
-Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::string>& messages, std::vector<int> msg_delays_ms)
+Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::pair<std::string, int>>& messages)
 {
 	auto entity = Entity();
 	AnimationData& anim = registry.animations.emplace(entity);
@@ -409,7 +409,6 @@ Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::string>& me
 
 	Sign& sign = registry.signs.emplace(entity);
 	sign.messages = messages;
-	sign.msg_times = msg_delays_ms;
 
 	return entity;
 }

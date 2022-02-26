@@ -86,7 +86,7 @@ Entity createChest(RenderSystem* renderer, vec2 pos);
 // Door
 Entity createDoor(RenderSystem* renderer, vec2 pos);
 // Sign
-Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::string>& messages, std::vector<int> msg_delays_ms);
+Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::pair<std::string, int>>& messages);
 // Stair
 Entity createStair(RenderSystem* renderer, vec2 pos);
 // Wall

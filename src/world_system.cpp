@@ -427,14 +427,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (sign.playing) {
 			sign.counter_ms += elapsed_ms_since_last_update;
 			for (int i = sign.next_message; i < sign.messages.size(); i++) {
-				if (sign.counter_ms < sign.msg_times[i]) {
+				if (sign.counter_ms < sign.messages[i].second) {
 					sign.next_message = i;
 					break;
 				}
-				logText(sign.messages[i]);
+				logText(sign.messages[i].first);
 				sign.next_message = i;
 			}
-			if (sign.counter_ms > sign.msg_times[sign.msg_times.size() - 1]) {
+			if (sign.counter_ms > sign.messages[sign.messages.size()-1].second) {
+				sign.counter_ms = 0;
 				sign.playing = false;
 			}
 		}
@@ -541,15 +542,20 @@ void WorldSystem::spawn_game_entities() {
 	Entity player = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player);
 
-	std::vector<std::string> messages = {
-		"Welcome to Adrift in Somnium!",
-		"This is a test message.",
-		"And here's another one with a longer delay." };
+	std::vector<std::pair<std::string, int>> messages = {
+		{"Welcome to Adrift in Somnium!", 0},
+		{"Left click the buttons at the bottom to switch between actions.", 2000},
+		{"In Move mode, you can click to move as long as you have EP.", 6000},
+		{"EP is the yellow bar at the top of the screen, which gets expended as you move and attack.", 10000},
+		{"In Attack mode, you can click on an enemy close to you to deal damage.", 16000},
+		{"Use your attacks wisely. You can only attack once per turn.", 20000},
+		{"After your EP hits 0 or you click on End Turn, the enemies will have a turn to move and attack you.", 24000},
+		{"Good luck, nameless adventurer.", 28000}};
+
 	createSign(
 		renderer, 
 		{ player_motion.position.x - 64, player_motion.position.y - 64 },
-		messages,
-		{ 0, 2000, 6000 });
+		messages);
 
 	// setup turn order system
 	turnOrderSystem.setUpTurnOrder();
@@ -1048,7 +1054,8 @@ void WorldSystem::logText(std::string msg) {
 	vec3 textColor = vec3(1.0f, 1.0f, 1.0f); // white
 
 	Entity e = createText(renderer, defaultPos, msg, 1.5f, textColor);
-	registry.textTimers.emplace(e);
+	TextTimer& timer = registry.textTimers.emplace(e);
+	timer.counter_ms = 8000;
 }
 
 void WorldSystem::doTurnOrderLogic() {

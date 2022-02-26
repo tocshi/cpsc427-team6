@@ -15,6 +15,7 @@ public:
 	ComponentContainer<Motion> motions;
 	ComponentContainer<Collision> collisions;
 	ComponentContainer<Player> players;
+	ComponentContainer<Inventory> inventories;
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
 	ComponentContainer<ScreenState> screenStates;
@@ -54,6 +55,7 @@ public:
 	ComponentContainer<Door>door;
 	ComponentContainer<Artifact> artifacts;
 	ComponentContainer<AnimationData> animations;
+	ComponentContainer<Sign> signs;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -63,6 +65,7 @@ public:
 		registry_list.push_back(&motions);
 		registry_list.push_back(&collisions);
 		registry_list.push_back(&players);
+		registry_list.push_back(&inventories);
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
 		registry_list.push_back(&screenStates);
@@ -94,6 +97,7 @@ public:
 		registry_list.push_back(&squishTimers);
 		registry_list.push_back(&wobbleTimers);
 		registry_list.push_back(&projectileTimers);
+		registry_list.push_back(&signs);
 		registry_list.push_back(&hidden);
 		registry_list.push_back(&hidables);
 		// door in registry list 

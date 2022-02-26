@@ -55,9 +55,12 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	stats.def = 2;
 	stats.speed = 10;
 	stats.range = 450;
+	
 
 	// Create and (empty) Player component to be able to refer to all players
-	registry.players.emplace(entity);
+	auto& player = registry.players.emplace(entity);
+	player.inv = registry.inventories.emplace(entity);
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER,
@@ -478,9 +481,18 @@ Entity createDoor(RenderSystem* renderer, vec2 pos)
 }
 
 // Sign
-Entity createSign(RenderSystem* renderer, vec2 pos)
+Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::pair<std::string, int>>& messages)
 {
 	auto entity = Entity();
+	AnimationData& anim = registry.animations.emplace(entity);
+	anim.spritesheet_texture = TEXTURE_ASSET_ID::SIGN_GLOW_SPRITESHEET;
+	anim.frametime_ms = 200;
+	anim.frame_indices = { 0, 1, 2, 3, 4, 5, 6, 7 };
+	anim.spritesheet_columns = 8;
+	anim.spritesheet_rows = 1;
+	anim.spritesheet_width = 256;
+	anim.spritesheet_height = 32;
+	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
 
 	// Store a reference to the potentially re-used mesh object
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -495,12 +507,16 @@ Entity createSign(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ SIGN_BB_WIDTH, SIGN_BB_HEIGHT });
 
 	// Create and (empty) SIGN component to be able to refer to all signs
-	registry.test.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::SIGN,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
+		{ TEXTURE_ASSET_ID::SIGN_GLOW_SPRITESHEET,
+		EFFECT_ASSET_ID::TEXTURED,
+		GEOMETRY_BUFFER_ID::ANIMATION,
+		RENDER_LAYER_ID::SPRITE
+		});
+
+	Sign& sign = registry.signs.emplace(entity);
+	sign.messages = messages;
 
 	return entity;
 }

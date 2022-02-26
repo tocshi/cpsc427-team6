@@ -14,7 +14,7 @@ enum class PLAYER_ACTION {
 struct Player
 {
 	float s;
-
+	Inventory inv;
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
 
@@ -22,29 +22,53 @@ struct Player
 	bool attacked = false;
 };
 
+// Inventory component
+struct Inventory
+{
+};
+
 // Inventory Items
 enum class CONSUMABLE {
 	REDPOT = 0,
 	BLUPOT = REDPOT + 1,
-	ACTION_COUNT = BLUPOT + 1
+	YELPOT = BLUPOT + 1,
+	CONSUMABLE_COUNT = YELPOT + 1
 };
 
 enum class WEAPON {
-	MOVING = 0,
-	ATTACKING = MOVING + 1,
-	ACTION_COUNT = ATTACKING + 1
+	STICK = 0,
+	BOW0 = STICK + 1,
+	SWORD0 = BOW0 + 1,
+	BLUNT0 = SWORD0 + 1,
+	BOW1 = BLUNT0 + 1,
+	SWORD1 = BOW1 + 1,
+	BLUNT1 = SWORD1 + 1,
+	WEAPON_COUNT = BLUNT1 + 1
 };
 
 enum class ARMOUR {
-	MOVING = 0,
-	ATTACKING = MOVING + 1,
-	ACTION_COUNT = ATTACKING + 1
+	FAMCLOTH = 0,
+	ARMOUR_COUNT = FAMCLOTH + 1
 };
 
 enum class ARTIFACT {
-	MOVING = 0,
-	ATTACKING = MOVING + 1,
-	ACTION_COUNT = ATTACKING + 1
+	POISON_FANG = 0,
+	GLAD_HOPLON = POISON_FANG + 1,
+	PIOUS_PRAYER = GLAD_HOPLON + 1,
+	BLADE_POLISH = PIOUS_PRAYER + 1,
+	HQ_FLETCHING = BLADE_POLISH + 1,
+	HOMEMADE_MEAL = HQ_FLETCHING + 1,
+	THUNDER_TWIG = HOMEMADE_MEAL + 1,
+	LUCKY_CHIP = THUNDER_TWIG + 1,
+	GUIDE_HEALBUFF = LUCKY_CHIP + 1,
+	THICK_TOME = GUIDE_HEALBUFF + 1,
+	GOLIATH_BELT = THICK_TOME + 1,
+	BLOOD_RUBY = GOLIATH_BELT + 1,
+	WINDBAG = BLOOD_RUBY + 1,
+	KB_MALLET = WINDBAG + 1,
+	WEAPON_UPGRADE = KB_MALLET + 1,
+	ARMOUR_UPGRADE = WEAPON_UPGRADE + 1,
+	ARTIFACT_COUNT = ARMOUR_UPGRADE + 1
 };
 
 // All data relevant to the shape and motion of entities

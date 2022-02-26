@@ -51,6 +51,7 @@ public:
 	ComponentContainer<Door>door;
 	ComponentContainer<Artifact> artifacts;
 	ComponentContainer<AnimationData> animations;
+	ComponentContainer<Sign> signs;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -88,6 +89,7 @@ public:
 		registry_list.push_back(&textTimers);
 		registry_list.push_back(&squishTimers);
 		registry_list.push_back(&wobbleTimers);
+		registry_list.push_back(&signs);
 		registry_list.push_back(&hidden);
 		registry_list.push_back(&hidables);
 		// door in registry list 

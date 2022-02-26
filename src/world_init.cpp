@@ -390,12 +390,17 @@ Entity createSign(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ SIGN_BB_WIDTH, SIGN_BB_HEIGHT });
 
 	// Create and (empty) SIGN component to be able to refer to all signs
-	registry.test.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SIGN,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
+		EFFECT_ASSET_ID::TEXTURED,
+		GEOMETRY_BUFFER_ID::SPRITE,
+		RENDER_LAYER_ID::SPRITE
+		});
+
+	Sign& sign = registry.signs.emplace(entity);
+	sign.messages = { "Welcome to Adrift in Somnium!", "This is a test message.", "And here's another one with a longer delay."};
+	sign.msg_delays_ms = { 0, 2000, 4000 };
 
 	return entity;
 }

@@ -250,6 +250,11 @@ struct TileUV {
 	vec2 uv_end = { 0,0 };
 };
 
+struct Sign {
+	std::vector<std::string> messages; // a list of messages
+	std::vector<int> msg_delays_ms; // the delay before each message is logged
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture

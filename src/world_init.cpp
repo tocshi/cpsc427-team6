@@ -126,6 +126,11 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
+	auto& enemy = registry.enemies.emplace(entity);
+	enemy.initialPosition = pos;
+	enemy.state = ENEMY_STATE::IDLE;
+	enemy.type = ENEMY_TYPE::SLIME;
+
 	// Create slime stats
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Slime";
@@ -137,10 +142,6 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	stats.speed = 8;
 	stats.range = 250;
 
-	auto& enemy = registry.enemies.emplace(entity);
-	enemy.initialPosition = pos;
-	enemy.state = ENEMY_STATE::IDLE;
-	enemy.type = ENEMY_TYPE::SLIME;
 	// make it a slime enemy for now
 	registry.slimeEnemies.insert(
 		entity,
@@ -181,6 +182,7 @@ Entity createEnemy(RenderSystem* renderer, Motion m)
 	auto& enemy = registry.enemies.emplace(entity);
 	enemy.state = ENEMY_STATE::IDLE;
 	enemy.type = ENEMY_TYPE::SLIME;
+
 	// Create slime stats
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Slime";
@@ -192,8 +194,6 @@ Entity createEnemy(RenderSystem* renderer, Motion m)
 	stats.speed = 8;
 	stats.range = 250;
 
-	// Create and (empty) Enemy component to be able to refer to all enemies
-	registry.enemies.emplace(entity);
 	// make it a slime enemy for now
 	registry.slimeEnemies.insert(
 		entity,
@@ -227,7 +227,7 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	motion.position = pos;
 	motion.destination = pos;
 	motion.in_motion = false;
-	motion.movement_speed = 0;
+	motion.movement_speed = 0.f;
 
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
@@ -275,14 +275,14 @@ Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir, Entity 
 	motion.position = pos;
 	motion.destination = pos + (dir * 500.f);
 	motion.in_motion = true;
-	motion.movement_speed = 200.f;
+	motion.movement_speed = 300.f;
 
 	motion.scale = vec2({ PLANT_PROJECTILE_BB_WIDTH, PLANT_PROJECTILE_BB_HEIGHT });
 
 	// Initilalize stats
 	// hp = 20, atk = 8, queue = 7, def = 2, range = 400
 	auto& stat = registry.stats.emplace(entity);
-	stat.atk = 8.f;
+	stat = registry.stats.get(owner);
 
 	auto& projectileTimer = registry.projectileTimers.emplace(entity);
 	projectileTimer.owner = owner;

@@ -393,6 +393,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// remove text once the text timer has expired
 		if (counter.counter_ms < 0) {
+			registry.motions.get(counter.owner).in_motion = false;
 			registry.remove_all_components_of(entity);
 		}
 	}
@@ -1297,8 +1298,11 @@ void WorldSystem::doTurnOrderLogic() {
 
 // Set attack state for enemies who attack after moving
 void set_enemy_state_attack(Entity enemy) {
-	if (registry.slimeEnemies.has(enemy)) {
-		registry.slimeEnemies.get(enemy).state = ENEMY_STATE::ATTACK;
+	if (registry.enemies.get(enemy).type == ENEMY_TYPE::SLIME) {
+		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
+	}
+	if (registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER) {
+		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
 	}
 }
 

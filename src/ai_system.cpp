@@ -30,26 +30,26 @@ void AISystem::slime_logic(Entity slime, Entity& player, WorldSystem* world, Ren
 	Motion& motion_struct = registry.motions.get(slime);
 
 	// Perform melee attack if close enough
-	if (registry.slimeEnemies.get(slime).state == ENEMY_STATE::ATTACK) {
+	if (registry.enemies.get(slime).state == ENEMY_STATE::ATTACK) {
 		if (player_in_range(motion_struct.position, meleeRange)) {
 			createExplosion(renderer, player_motion.position);
 			Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
 			world->logText(deal_damage(slime, player, 100));
 		}
-		registry.slimeEnemies.get(slime).state = ENEMY_STATE::AGGRO;
+		registry.enemies.get(slime).state = ENEMY_STATE::AGGRO;
 		return;
 	}
 
 	// Determine slime state
 	// check if player is in range first
 	if (player_in_range(motion_struct.position, chaseRange)) {
-		registry.slimeEnemies.get(slime).state = ENEMY_STATE::AGGRO;
+		registry.enemies.get(slime).state = ENEMY_STATE::AGGRO;
 	}
 	else {
-		registry.slimeEnemies.get(slime).state = ENEMY_STATE::IDLE;
+		registry.enemies.get(slime).state = ENEMY_STATE::IDLE;
 	}
 
-	ENEMY_STATE state = registry.slimeEnemies.get(slime).state;
+	ENEMY_STATE state = registry.enemies.get(slime).state;
 	// perform action based on state
 	int dx = ichoose(irandRange(-75, -25), irandRange(25, 75));
 	int dy = ichoose(irandRange(-75, -25), irandRange(25, 75));
@@ -104,13 +104,8 @@ void AISystem::plant_shooter_logic(Entity plant_shooter, Entity& player, WorldSy
 
 	Motion& motion_struct = registry.motions.get(plant_shooter);
 
-	// Perform melee attack if close enough
+	// Resolve end-of-movement state change
 	if (registry.enemies.get(plant_shooter).state == ENEMY_STATE::ATTACK) {
-		if (player_in_range(motion_struct.position, aggroRange)) {
-			// spawn projectile, etc
-			vec2 dir = normalize(player_motion.position - motion_struct.position);
-			createPlantProjectile(renderer, motion_struct.position, dir, plant_shooter);
-		}
 		registry.enemies.get(plant_shooter).state = ENEMY_STATE::AGGRO;
 		return;
 	}
@@ -131,7 +126,13 @@ void AISystem::plant_shooter_logic(Entity plant_shooter, Entity& player, WorldSy
 			// do nothing
 			break;
 		case ENEMY_STATE::AGGRO:
-			state = ENEMY_STATE::ATTACK;
+			// Perform  attack if close enough
+			if (player_in_range(motion_struct.position, aggroRange)) {
+				// spawn projectile, etc
+				vec2 dir = normalize(player_motion.position - motion_struct.position);
+				createPlantProjectile(renderer, motion_struct.position, dir, plant_shooter);
+				registry.motions.get(plant_shooter).in_motion = true;
+			}
 			break;
 		case ENEMY_STATE::DEATH:
 			// death

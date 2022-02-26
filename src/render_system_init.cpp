@@ -235,6 +235,31 @@ void RenderSystem::initializeGlGeometryBuffers()
 	meshes[fog_geom_index].vertex_indices = fog_indices;
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::FOG, meshes[fog_geom_index].vertices, meshes[fog_geom_index].vertex_indices);
 
+	////////////////////////
+	// Initialize ep
+	std::vector<ColoredVertex> ep_vertices;
+	std::vector<uint16_t> ep_indices;
+	constexpr float ep_z = 0.5f;
+	constexpr int EP_NUM_TRIANGLES = 93;
+
+	constexpr vec3 ep_color = { 0.1, 0.1, 1.0 };
+
+	// Corner points
+	ep_vertices = {
+		{{-0.5,-0.5, ep_z}, ep_color},
+		{{-0.5, 0.5, ep_z}, ep_color},
+		{{ 0.5, 0.5, ep_z}, ep_color},
+		{{ 0.5,-0.5, ep_z}, ep_color},
+	};
+
+	// Two triangles
+	ep_indices = { 0, 1, 3, 1, 2, 3 };
+
+	int ep_geom_index = (int)GEOMETRY_BUFFER_ID::EP;
+	meshes[ep_geom_index].vertices = ep_vertices;
+	meshes[ep_geom_index].vertex_indices = ep_indices;
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::EP, meshes[ep_geom_index].vertices, meshes[ep_geom_index].vertex_indices);
+
 	//////////////////////////////////
 	// Initialize debug line
 	std::vector<ColoredVertex> line_vertices;

@@ -739,6 +739,44 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		create_fog_of_war();
 	}
 
+	// simulating a new room
+	if (action == GLFW_RELEASE && key == GLFW_KEY_N && get_is_player_turn()) {
+		// remove all entities for new room
+		removeForNewRoom();
+		// save game (should be just player stuff)
+		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+		// remove player
+		for (Entity e : registry.players.entities) {
+			registry.remove_all_components_of(e);
+		}
+		// make new map
+		SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
+		// load the player back
+		json gameData = saveSystem.getSaveData();
+		std::queue<Entity> queue = loadFromData(gameData);
+		turnOrderSystem.loadTurnOrder(queue);
+		// get the player and set its position
+		for (Entity e : registry.players.entities) {
+			std::random_shuffle(spawnData.playerSpawns.begin(), spawnData.playerSpawns.end());
+			Motion& motion = registry.motions.get(e);
+			Stats& stats = registry.stats.get(e);
+			// set random position
+			motion.position = { spawnData.playerSpawns[0].x, spawnData.playerSpawns[0].y };
+			// set everything else in motion to default
+			motion.angle = 0.f;
+			motion.velocity = { 0.f, 0.f };
+			motion.in_motion = false;
+			motion.movement_speed = 200;
+			motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
+
+			// Refill Player EP
+			stats.ep = stats.maxep;
+
+		}
+		remove_fog_of_war();
+		create_fog_of_war();
+	}
+
 	// Resetting game
 	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
 		int w, h;
@@ -1120,6 +1158,28 @@ void WorldSystem::removeForLoad() {
 	// remove enemies
 	for (Entity enemy : registry.enemies.entities) {
 		registry.remove_all_components_of(enemy);
+	}
+}
+
+void WorldSystem::removeForNewRoom() {
+	// remove enemies
+	for (Entity enemy : registry.enemies.entities) {
+		registry.remove_all_components_of(enemy);
+	}
+
+	// remove solids
+	for (Entity solids : registry.solid.entities) {
+		registry.remove_all_components_of(solids);
+	}
+
+	// remove tileUVs
+	for (Entity tileUV : registry.tileUVs.entities) {
+		registry.remove_all_components_of(tileUV);
+	}
+
+	// remove animations
+	for (Entity animation : registry.animations.entities) {
+		registry.remove_all_components_of(animation);
 	}
 }
 

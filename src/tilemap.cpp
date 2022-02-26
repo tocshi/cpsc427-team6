@@ -113,15 +113,15 @@ SpawnData TileMapParser::Parse(const std::string& file, RenderSystem *renderer, 
 
 	// load and store player/enemy/item spawnpoints
 	SpawnData spawnData = SpawnData();
-	std::tuple<std::vector<vec2>, int, int> playerSpawnInfo = BuildSpawns(rootNode, "player", scaleFactor, offset);
+	std::tuple<std::vector<vec2>, int, int> playerSpawnInfo = BuildSpawns(rootNode, "player", tileSizeX, tileSizeY, scaleFactor, offset);
 	spawnData.playerSpawns = std::get<0>(playerSpawnInfo);
 
-	std::tuple<std::vector<vec2>, int, int> enemySpawnInfo = BuildSpawns(rootNode, "enemy", scaleFactor, offset);
+	std::tuple<std::vector<vec2>, int, int> enemySpawnInfo = BuildSpawns(rootNode, "enemy", tileSizeX, tileSizeY, scaleFactor, offset);
 	spawnData.enemySpawns = std::get<0>(enemySpawnInfo);
 	spawnData.minEnemies = std::get<1>(enemySpawnInfo);
 	spawnData.maxEnemies = std::get<2>(enemySpawnInfo);
 
-	std::tuple<std::vector<vec2>, int, int> itemSpawnInfo = BuildSpawns(rootNode, "item", scaleFactor, offset);
+	std::tuple<std::vector<vec2>, int, int> itemSpawnInfo = BuildSpawns(rootNode, "item", tileSizeX, tileSizeY, scaleFactor, offset);
 	spawnData.itemSpawns = std::get<0>(itemSpawnInfo);
 	spawnData.minItems = std::get<1>(itemSpawnInfo);
 	spawnData.maxItems = std::get<2>(itemSpawnInfo);
@@ -322,7 +322,7 @@ Entity TileMapParser::createTileFromData(std::shared_ptr<Tile> tile, int tileSiz
 	return entity;
 }
 
-std::tuple<std::vector<vec2>, int, int> TileMapParser::BuildSpawns(rapidxml::xml_node<>* rootNode, std::string layerName, int scaleFactor, vec2 offset) {
+std::tuple<std::vector<vec2>, int, int> TileMapParser::BuildSpawns(rapidxml::xml_node<>* rootNode, std::string layerName, int tileSizeX, int tileSizeY, int scaleFactor, vec2 offset) {
 	std::vector<vec2> objects = std::vector<vec2>();
 	int min = 0;
 	int max = 0;
@@ -335,7 +335,7 @@ std::tuple<std::vector<vec2>, int, int> TileMapParser::BuildSpawns(rapidxml::xml
 				objectnode; objectnode = objectnode->next_sibling("object"))
 			{
 				objects.push_back({
-					std::atof(objectnode->first_attribute("x")->value()) * scaleFactor + offset.x,
+					(std::atof(objectnode->first_attribute("x")->value()) - tileSizeX) * scaleFactor + offset.x,
 					std::atof(objectnode->first_attribute("y")->value()) * scaleFactor + offset.y
 				});
 			}

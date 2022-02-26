@@ -83,7 +83,7 @@ public:
 	SpawnData Parse(const std::string& file, RenderSystem *renderer, vec2 offset = { 0, 0 });
 private:
 	std::vector<std::shared_ptr<MapObject>> BuildObjects(rapidxml::xml_node<>* rootNode);
-	std::tuple<std::vector<vec2>, int, int> BuildSpawns(rapidxml::xml_node<>* rootNode, std::string layerName, int scaleFactor, vec2 offset);
+	std::tuple<std::vector<vec2>, int, int> BuildSpawns(rapidxml::xml_node<>* rootNode, std::string layerName, int tileSizeX, int tileSizeY, int scaleFactor, vec2 offset);
 	std::shared_ptr<TileSheetData> BuildTileSheetData(rapidxml::xml_node<>* rootNode, RenderSystem *renderer);
 	std::shared_ptr<MapTiles> BuildMapTiles(rapidxml::xml_node<>* rootNode, RenderSystem *renderer);
 	std::pair<std::string, std::shared_ptr<Layer>>

@@ -340,6 +340,9 @@ std::tuple<std::vector<vec2>, int, int> TileMapParser::BuildSpawns(rapidxml::xml
 				});
 			}
 		}
+		else {
+			continue;
+		}
 
 		// use property of current group to determine how many of this group to spawn
 		rapidxml::xml_node<>* properties = node->first_node("properties");

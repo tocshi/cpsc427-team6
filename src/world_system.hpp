@@ -85,28 +85,34 @@ private:
 	void remove_fog_of_war();
 
 	// spawn player in random location
-	void spawn_player_random_location();
+	void spawn_player_random_location(std::vector<vec2>& playerSpawns);
 
-	// spawn enemy in random location
-	void spawn_enemy_random_location();
+	// spawn enemies in random location
+	void spawn_enemies_random_location(std::vector<vec2>& enemySpawns, int min, int max);
+
+	// spawn items in random location
+	void spawn_items_random_location(std::vector<vec2>& itemSpawns, int min, int max);
 
 	// remove entities for loading
 	void removeForLoad();
 
 	// load entities from saved data
-	void loadFromData(json data);
+	std::queue<Entity> loadFromData(json data);
 
 	// load player from data
-	void loadPlayer(json playerData);
+	Entity loadPlayer(json playerData);
   
 	// load enemies from data
-	void loadEnemies(json enemyData);
+	Entity loadEnemy(json enemyData);
 
 	// load a slime from data
-	void loadSlime(json slimeData);
+	Entity loadSlime(json slimeData);
 
 	// load motion data
 	Motion loadMotion(json motionData);
+
+	// load stats data
+	Stats loadStats(json statsData);
   
 	// do turn order logic
 	void doTurnOrderLogic();

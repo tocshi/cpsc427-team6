@@ -433,7 +433,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			anim.animation_time_ms -= anim.frametime_ms * anim.frame_indices.size() - 1;
 		}
-		anim.current_frame = anim.animation_time_ms / anim.frametime_ms;
+		anim.current_frame = std::min(anim.animation_time_ms / anim.frametime_ms, int(anim.frame_indices.size()) - 1);
 	}
 
 	return true;
@@ -529,15 +529,15 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
 
-	createTiles(renderer, "map1.tmx");
+	SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
-	spawn_player_random_location();
-	spawn_enemy_random_location();
-	spawn_enemy_random_location();
-	spawn_enemy_random_location();
+	spawn_player_random_location(spawnData.playerSpawns);
+	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
+	spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
   
+	/*
 	createBoss(renderer, { 250.f, 450.f });
 	createArtifact(renderer, { 250.f, 550.f });
 	createConsumable(renderer, { 250.f, 650.f });
@@ -546,7 +546,7 @@ void WorldSystem::spawn_game_entities() {
 	createDoor(renderer, { 350.f, 450.f });
 	createSign(renderer, { 350.f, 550.f });
 	createStair(renderer, { 350.f, 650.f });
-
+	*/
 
 	// setup turn order system
 	turnOrderSystem.setUpTurnOrder();
@@ -572,7 +572,6 @@ void WorldSystem::spawn_game_entities() {
 	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war();
-	createCampfire(renderer, { 200, 200 });
 }
 
 // render fog of war around the player
@@ -597,49 +596,55 @@ void WorldSystem::remove_fog_of_war() {
 }
 
 // spawn player entity in random location
-void WorldSystem::spawn_player_random_location() {
-	printf("%d", rand());
-	int randX = rand() % ((window_width_px - 200 + 1) + 200);
-	int randY = rand() % ((window_height_px - 200 + 1) + 200);
+void WorldSystem::spawn_player_random_location(std::vector<vec2>& playerSpawns) {
+	std::random_shuffle(playerSpawns.begin(), playerSpawns.end());
+	if (playerSpawns.size() > 0) {
+		createPlayer(renderer, { playerSpawns[0].x, playerSpawns[0].y});
+		return;
+	}
+	// default spawn location in case we don't have player spawns
+	createPlayer(renderer, { 0, 0 });
 
-	if (randX < 200) {
-		randX += 200;
-	}
-	else if (randX >= window_width_px - 200) {
-		randX -= 200;
-	}
-
-	if (randY < 200) {
-		randY += 200;
-	}
-	else if (randY >= window_height_px - 200) {
-		randY -= 200;
-	}
-
-	createPlayer(renderer, { (float)randX, (float)randY } );
 }
 
-// spawn enemy entity in random location
-void WorldSystem::spawn_enemy_random_location() {
-	printf("%d", rand());
-	int randX = rand()%((window_width_px - 200 + 1) + 200);
-	int randY = rand()%((window_height_px - 200 + 1) + 200);
+// spawn enemy entities in random locations
+void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, int min, int max) {
+	std::random_shuffle(enemySpawns.begin(), enemySpawns.end());
+	if (enemySpawns.size() > 0) {
+		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
+		for (int i = 0; i < numberToSpawn; i++) {
+			createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+		}
+	}
+}
 
-	if (randX < 200) {
-		randX += 200;
-	}
-	else if (randX >= window_width_px - 200) {
-		randX -= 200;
-	}
+// spawn item entities in random locations
+void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int min, int max) {
+	std::random_shuffle(itemSpawns.begin(), itemSpawns.end());
+	if (itemSpawns.size() > 0) {
+		int numberToSpawn = std::min(irandRange(min, max + 1), int(itemSpawns.size()));
+		Entity& player = registry.players.entities[0];
+		Motion& motion = registry.motions.get(player);
+		int range = 0;
+		if (registry.stats.has(player)) {
+			range = registry.stats.get(player).range;
+		}
 
-	if (randY < 200) {
-		randY += 200;
+		int spawned = 0;
+		int i = 0;
+		while (spawned < numberToSpawn && i < itemSpawns.size()) {
+			// temporary, later we can also randomize the item types
+			if (range > 0) {
+				if (dist_to(motion.position, itemSpawns[i]) <= range) {
+					i++;
+					continue;
+				}
+			}
+			createCampfire(renderer, { itemSpawns[i].x, itemSpawns[i].y });
+			spawned++;
+			i++;
+		}
 	}
-	else if (randY >= window_height_px - 200) {
-		randY -= 200;
-	}
-
-	createEnemy(renderer, { (float)randX, (float)randY });
 }
 
 // Compute collisions between entities
@@ -651,33 +656,6 @@ void WorldSystem::handle_collisions() {
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other;
 
-		// For now, we are only interested in collisions that involve the player
-		if (registry.players.has(entity)) {
-			//Player& player = registry.players.get(entity);
-
-			// Checking Player - Deadly collisions
-			if (registry.deadlys.has(entity_other)) {
-				// initiate death unless already dying
-				if (!registry.deathTimers.has(entity)) {
-					// Scream, reset timer, and make the chicken sink
-					registry.deathTimers.emplace(entity);
-					Mix_PlayChannel(-1, chicken_dead_sound, 0);
-
-					// !!! TODO A1: change the chicken orientation and color on death
-				}
-			}
-			// Checking Player - Eatable collisions
-			else if (registry.eatables.has(entity_other)) {
-				if (!registry.deathTimers.has(entity)) {
-					// chew, count points, and set the LightUp timer
-					registry.remove_all_components_of(entity_other);
-					Mix_PlayChannel(-1, chicken_eat_sound, 0);
-					++points;
-
-					// !!! TODO A1: create a new struct called LightUp in components.hpp and add an instance to the chicken entity by modifying the ECS registry
-				}
-			}
-		}
 	}
 
 	// Remove all collisions from this simulation step
@@ -712,8 +690,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// SAVING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
-		saveSystem.saveGameState();
-		printf("SAVING KEY PRESSED\n");
+		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+		logText("Game state saved!");
 	}
 
 	// LOADING THE GAME
@@ -725,11 +703,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			// get saved game data
 			json gameData = saveSystem.getSaveData();
 			// load the entities in
-			loadFromData(gameData);
+			std::queue<Entity> entities = loadFromData(gameData);
+			turnOrderSystem.loadTurnOrder(entities);
 			saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc.
 		}
 
-		printf("LOADING KEY PRESSED\n");
+		logText("Game state loaded!");
+		remove_fog_of_war();
+		create_fog_of_war();
 	}
 
 	// Resetting game
@@ -809,7 +790,13 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						createPauseButton(renderer, { window_width_px - 80.f, 50.f });
 						createCollectionButton(renderer, { window_width_px - 160.f, 50.f });
 
-						spawn_game_entities();
+						for (int i = registry.renderRequests.size() - 1; i >= 0; i--) {
+							if (registry.renderRequests.components[i].used_layer == RENDER_LAYER_ID::BG) {
+								registry.remove_all_components_of(registry.renderRequests.entities[i]);
+							}
+						}
+
+						spawn_game_entities(); 
 						is_player_turn = true; 
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
@@ -1099,36 +1086,64 @@ void WorldSystem::removeForLoad() {
 	}
 }
 
-void WorldSystem::loadFromData(json data) {
+std::queue<Entity> WorldSystem::loadFromData(json data) {
 	// load player
-	loadPlayer(data["player"]);
-	loadEnemies(data["enemies"]);
+	json entityList = data["entities"];
+	std::queue<Entity> entities;
+	for (auto entity : entityList) {
+		Entity e;
+		if (entity["type"] == "player") {
+			e = loadPlayer(entity);
+		}
+		else {
+			e = loadEnemy(entity);
+		}
+		entities.push(e);
+	}
+
+	return entities;
 }
 
-void WorldSystem::loadPlayer(json playerData) {
+Entity WorldSystem::loadPlayer(json playerData) {
 	// create a player from the save data
 	// get player motion
 	Motion motion = loadMotion(playerData["motion"]);
 	
 	// create player
 	Entity e = createPlayer(renderer, motion);
-	// get player stats
+
+	// get player component stuff
+	registry.players.get(e).attacked = playerData["player"]["attacked"];
+
+	// get queueable stuff
+	registry.queueables.get(e).doing_turn = playerData["queueable"]["doingTurn"];
+
+	// get stats
 	json stats = playerData["stats"];
 	registry.stats.get(e).ep = stats["ep"];
+	registry.stats.get(e).maxep = stats["maxEP"];
 	registry.stats.get(e).hp = stats["hp"];
-	registry.stats.get(e).maxep = stats["maxep"];
+	registry.stats.get(e).maxep = stats["maxHP"];
 	registry.stats.get(e).mp = stats["mp"];
+	registry.stats.get(e).maxmp = stats["maxMP"];
+	registry.stats.get(e).atk = stats["atk"];
+	registry.stats.get(e).def = stats["def"];
+	registry.stats.get(e).speed = stats["speed"];
+	registry.stats.get(e).range = stats["range"];
+	registry.stats.get(e).chase = stats["chase"];
+	
+	return e;
 }
 
-void WorldSystem::loadEnemies(json enemyData) {
-	for (auto enemy : enemyData) {
-		if (enemy["type"] == "slime") {
-			loadSlime(enemy);
-		}
+Entity WorldSystem::loadEnemy(json enemyData) {
+	Entity e;
+	if (enemyData["type"] == "slime") {
+		e = loadSlime(enemyData);
 	}
+	return e;
 }
 
-void WorldSystem::loadSlime(json slimeData) {
+Entity WorldSystem::loadSlime(json slimeData) {
 	// get slime's motion
 	Motion motion = loadMotion(slimeData["motion"]);
 
@@ -1136,8 +1151,28 @@ void WorldSystem::loadSlime(json slimeData) {
 	Entity e = createEnemy(renderer, motion);
 
 	// set slimeEnemy data
-	json data = slimeData["data"];
-	registry.slimeEnemies.get(e).state = data["state"];
+	json slimeEnemy = slimeData["slime"];
+	registry.slimeEnemies.get(e).state = slimeEnemy["state"];
+
+	// get queueable stuff
+	json queueable = slimeData["queueable"];
+	registry.queueables.get(e).doing_turn = queueable["doingTurn"];
+
+	// get stats
+	json stats = slimeData["stats"];
+	registry.stats.get(e).ep = stats["ep"];
+	registry.stats.get(e).maxep = stats["maxEP"];
+	registry.stats.get(e).hp = stats["hp"];
+	registry.stats.get(e).maxep = stats["maxHP"];
+	registry.stats.get(e).mp = stats["mp"];
+	registry.stats.get(e).maxmp = stats["maxMP"];
+	registry.stats.get(e).atk = stats["atk"];
+	registry.stats.get(e).def = stats["def"];
+	registry.stats.get(e).speed = stats["speed"];
+	registry.stats.get(e).range = stats["range"];
+	registry.stats.get(e).chase = stats["chase"];
+
+	return e;
 }
 
 Motion WorldSystem::loadMotion(json motionData) {

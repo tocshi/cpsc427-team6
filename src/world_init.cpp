@@ -176,6 +176,17 @@ Entity createEnemy(RenderSystem* renderer, Motion m)
 	motion.destination = m.destination;
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
+	// Create slime stats
+	auto& stats = registry.stats.emplace(entity);
+	stats.name = "Slime";
+	stats.prefix = "the";
+	stats.hp = 25;
+	stats.maxhp = 25;
+	stats.atk = 10;
+	stats.def = 3;
+	stats.speed = 8;
+	stats.range = 250;
+
 	// Create and (empty) Enemy component to be able to refer to all enemies
 	registry.enemies.emplace(entity);
 	// make it a slime enemy for now
@@ -189,6 +200,9 @@ Entity createEnemy(RenderSystem* renderer, Motion m)
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
+
+	// add enemy to queuables
+	registry.queueables.emplace(entity);
 
 	return entity;
 }
@@ -1134,7 +1148,7 @@ Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale
 	return entity;
 }
 
-std::vector<Entity> createTiles(RenderSystem* renderer, const std::string& filepath) {
+SpawnData createTiles(RenderSystem* renderer, const std::string& filepath) {
 	TileMapParser parser = TileMapParser();
 	return parser.Parse(tilemaps_path(filepath), renderer);
 }
@@ -1143,7 +1157,7 @@ Entity createCampfire(RenderSystem* renderer, vec2 pos) {
 	Entity entity = Entity();
 	AnimationData& anim = registry.animations.emplace(entity);
 	anim.spritesheet_texture = TEXTURE_ASSET_ID::CAMPFIRE_SPRITESHEET;
-	anim.frametime_ms = 200;
+	anim.frametime_ms = 150;
 	anim.frame_indices = { 0, 1, 2, 3, 4 };
 	anim.spritesheet_columns = 5;
 	anim.spritesheet_rows = 1;
@@ -1160,7 +1174,8 @@ Entity createCampfire(RenderSystem* renderer, vec2 pos) {
 		{ TEXTURE_ASSET_ID::CAMPFIRE_SPRITESHEET,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::ANIMATION,
-			RENDER_LAYER_ID::WALLS });
+			RENDER_LAYER_ID::FLOOR_DECO });
+	registry.hidables.emplace(entity);
 
 	return entity;
 }

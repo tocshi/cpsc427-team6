@@ -60,10 +60,16 @@ bool gl_has_errors()
 }
 
 int irand(int i) {
+	if (i == 0) {
+		return 0;
+	}
 	return rand() % i;
 }
 
 int irandRange(int i, int j) {
+	if (j - i == 0) {
+		return i;
+	}
 	return rand() % (j - i) + i;
 }
 

@@ -903,7 +903,7 @@ Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale
 	return entity;
 }
 
-std::vector<Entity> createTiles(RenderSystem* renderer, const std::string& filepath) {
+SpawnData createTiles(RenderSystem* renderer, const std::string& filepath) {
 	TileMapParser parser = TileMapParser();
 	return parser.Parse(tilemaps_path(filepath), renderer);
 }
@@ -912,7 +912,7 @@ Entity createCampfire(RenderSystem* renderer, vec2 pos) {
 	Entity entity = Entity();
 	AnimationData& anim = registry.animations.emplace(entity);
 	anim.spritesheet_texture = TEXTURE_ASSET_ID::CAMPFIRE_SPRITESHEET;
-	anim.frametime_ms = 200;
+	anim.frametime_ms = 150;
 	anim.frame_indices = { 0, 1, 2, 3, 4 };
 	anim.spritesheet_columns = 5;
 	anim.spritesheet_rows = 1;
@@ -929,7 +929,8 @@ Entity createCampfire(RenderSystem* renderer, vec2 pos) {
 		{ TEXTURE_ASSET_ID::CAMPFIRE_SPRITESHEET,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::ANIMATION,
-			RENDER_LAYER_ID::WALLS });
+			RENDER_LAYER_ID::FLOOR_DECO });
+	registry.hidables.emplace(entity);
 
 	return entity;
 }

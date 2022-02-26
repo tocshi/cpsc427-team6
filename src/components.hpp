@@ -178,16 +178,25 @@ struct Solid {
 
 };
 
-// simple component for all enemies
-struct Enemy {
-
-};
-
 enum class ENEMY_STATE {
 	IDLE = 0,
 	AGGRO = IDLE + 1,
 	ATTACK = AGGRO + 1,
-	STATE_COUNT = ATTACK + 1
+	DEATH = ATTACK + 1,
+	STATE_COUNT = DEATH + 1
+};
+
+enum class ENEMY_TYPE {
+	SLIME = 0,
+	PLANT_SHOOTER = SLIME + 1,
+	TYPE_COUNT = PLANT_SHOOTER + 1
+};
+
+// simple component for all enemies
+struct Enemy {
+	vec2 initialPosition = { 0, 0 };
+	ENEMY_STATE state = ENEMY_STATE::STATE_COUNT;
+	ENEMY_TYPE type = ENEMY_TYPE::TYPE_COUNT;
 };
 
 struct SlimeEnemy {

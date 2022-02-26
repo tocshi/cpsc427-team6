@@ -137,8 +137,10 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	stats.speed = 8;
 	stats.range = 250;
 
-	// Create and (empty) Enemy component to be able to refer to all enemies
-	registry.enemies.emplace(entity);
+	auto& enemy = registry.enemies.emplace(entity);
+	enemy.initialPosition = pos;
+	enemy.state = ENEMY_STATE::IDLE;
+	enemy.type = ENEMY_TYPE::SLIME;
 	// make it a slime enemy for now
 	registry.slimeEnemies.insert(
 		entity,
@@ -176,8 +178,9 @@ Entity createEnemy(RenderSystem* renderer, Motion m)
 	motion.destination = m.destination;
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
-	// Create and (empty) Enemy component to be able to refer to all enemies
-	registry.enemies.emplace(entity);
+	auto& enemy = registry.enemies.emplace(entity);
+	enemy.state = ENEMY_STATE::IDLE;
+	enemy.type = ENEMY_TYPE::SLIME;
 	// make it a slime enemy for now
 	registry.slimeEnemies.insert(
 		entity,
@@ -215,6 +218,7 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	// Initilalize stats
 	// hp = 20, atk = 8, queue = 7, def = 2, range = 400
 	auto& stat = registry.stats.emplace(entity);
+	stat.name = "Plant Shooter";
 	stat.maxhp = 20.f;
 	stat.hp = stat.maxhp;
 	stat.atk = 8.f;
@@ -223,9 +227,12 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	stat.range = 400.f;
 	stat.chase = 0.f;
 
-	// Create and (empty) Enemy component to be able to refer to all enemies
-	registry.enemies.emplace(entity);
-	// registry.queueables.emplace(entity);
+	auto& enemy = registry.enemies.emplace(entity);
+	enemy.initialPosition = pos;
+	enemy.state = ENEMY_STATE::IDLE;
+	enemy.type = ENEMY_TYPE::PLANT_SHOOTER;
+
+	registry.queueables.emplace(entity);
 	// registry.damageables.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
@@ -237,7 +244,7 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createPlantProjectile(RenderSystem* renderer, vec2 pos)
+Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir)
 {
 	auto entity = Entity();
 
@@ -250,7 +257,7 @@ Entity createPlantProjectile(RenderSystem* renderer, vec2 pos)
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
-	motion.destination = pos;
+	motion.destination = pos + (dir * 600.f);
 	motion.in_motion = false;
 	motion.movement_speed = 200.f;
 
@@ -262,7 +269,7 @@ Entity createPlantProjectile(RenderSystem* renderer, vec2 pos)
 	stat.atk = 8.f;
 
 	// Create and (empty) Enemy component to be able to refer to all enemies
-	registry.enemies.emplace(entity);
+	// registry.enemies.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::PLANT_PROJECTILE,

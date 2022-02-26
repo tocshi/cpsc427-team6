@@ -6,8 +6,16 @@
 void AISystem::step(Entity e, WorldSystem* world, RenderSystem* renderer)
 {
 	for (Entity& player : registry.players.entities) {
-		if (registry.slimeEnemies.has(e)) {
-			slime_logic(e, player, world, renderer);
+		if (registry.enemies.has(e)) {
+			ENEMY_TYPE enemy_type = registry.enemies.get(e).type;
+			switch(enemy_type) {
+				case ENEMY_TYPE::SLIME:
+					slime_logic(e, player, world, renderer);
+					break;
+				case ENEMY_TYPE::PLANT_SHOOTER:
+					plant_shooter_logic(e, player, world, renderer);
+					break;
+			}
 		}
 	}
 }
@@ -70,6 +78,52 @@ void AISystem::slime_logic(Entity slime, Entity& player, WorldSystem* world, Ren
 			motion_struct.in_motion = true;
 		}
 		break;
+	}
+}
+
+void AISystem::plant_shooter_logic(Entity plant_shooter, Entity& player, WorldSystem* world, RenderSystem* renderer) {
+	Motion& player_motion = registry.motions.get(player);
+	Stats& stats = registry.stats.get(plant_shooter);
+	float aggroRange = stats.range;
+
+	Motion& motion_struct = registry.motions.get(plant_shooter);
+
+	ENEMY_STATE& state = registry.enemies.get(plant_shooter).state;
+	// Determine plant_shooter state
+	// update state
+	switch(state) {
+		case ENEMY_STATE::IDLE:
+			if (stats.hp <= 0) { state = ENEMY_STATE::DEATH; }
+			else if (player_in_range(motion_struct.position, aggroRange)) { state = ENEMY_STATE::ATTACK; }
+			break;
+		case ENEMY_STATE::AGGRO:
+			if (stats.hp <= 0) { state = ENEMY_STATE::DEATH; }
+			else if (player_in_range(motion_struct.position, aggroRange)) { state = ENEMY_STATE::ATTACK; }
+			else if (!player_in_range(motion_struct.position, aggroRange)) { state = ENEMY_STATE::IDLE; }
+			break;
+		case ENEMY_STATE::DEATH:
+			break;
+		default:
+			printf("Enemy State not supported\n");
+	}
+
+	// perform action
+	switch(state) {
+		case ENEMY_STATE::IDLE:
+			// do nothing
+			break;
+		case ENEMY_STATE::ATTACK:
+			// spawn projectile, etc
+			createExplosion(renderer, player_motion.position);
+			Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
+			world->logText(deal_damage(plant_shooter, player, 100));
+			state = ENEMY_STATE::AGGRO;
+			break;
+		case ENEMY_STATE::DEATH:
+			// death
+			break;
+		default:
+			printf("Enemy State not supported\n");
 	}
 }
 

@@ -56,8 +56,16 @@ void AISystem::slime_logic(Entity slime, Entity& player, WorldSystem* world, Ren
 	switch (state) {
 	case ENEMY_STATE::IDLE:
 		motion_struct.destination = { motion_struct.position.x + dx, motion_struct.position.y + dy };
-		motion_struct.velocity = 180.f * normalize(motion_struct.destination - motion_struct.position);
-		motion_struct.in_motion = true;
+
+		// Teleport if out of player sight range
+		if (!player_in_range(motion_struct.position, registry.stats.get(player).range) && !player_in_range(motion_struct.destination, registry.stats.get(player).range)) {
+			motion_struct.position = motion_struct.destination;
+			motion_struct.in_motion = false;
+		}
+		else {
+			motion_struct.velocity = 180.f * normalize(motion_struct.destination - motion_struct.position);
+			motion_struct.in_motion = true;
+		}
 		break;
 	case ENEMY_STATE::AGGRO:
 		// move towards player
@@ -73,9 +81,16 @@ void AISystem::slime_logic(Entity slime, Entity& player, WorldSystem* world, Ren
 			float x_component = cos(angle) * slime_velocity;
 			float y_component = sin(angle) * slime_velocity;
 
-			motion_struct.velocity = { x_component, y_component };
+			// Teleport if out of player sight range
 			motion_struct.destination = motion_struct.position + (direction * 120.f);
-			motion_struct.in_motion = true;
+			if (!player_in_range(motion_struct.position, registry.stats.get(player).range) && !player_in_range(motion_struct.destination, registry.stats.get(player).range)) {
+				motion_struct.position = motion_struct.destination;
+				motion_struct.in_motion = false;
+			}
+			else {
+				motion_struct.velocity = { x_component, y_component };
+				motion_struct.in_motion = true;
+			}
 		}
 		break;
 	}

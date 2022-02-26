@@ -10,6 +10,8 @@
 // DON'T WORRY ABOUT THIS CLASS UNTIL ASSIGNMENT 3
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+// This is a hack to get logText() to work from ai_system
+// Source: trust me bro
 class WorldSystem;
 
 class AISystem

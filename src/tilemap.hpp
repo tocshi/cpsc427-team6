@@ -8,6 +8,7 @@
 #include <sstream>
 #include <string>
 #include "render_system.hpp"
+#include "common.hpp"
 
 struct Rect
 {
@@ -35,6 +36,7 @@ struct TileInfo
 
 struct Tile
 {
+	vec2 offset = { 0,0 };
 	std::shared_ptr<TileInfo> properties;
 	int x; // x and y are positions within the tile grid, not screen pixels
 	int y;
@@ -58,6 +60,17 @@ struct MapObject
 	Rect objectRect;
 };
 
+struct SpawnData
+{
+	std::vector<vec2> playerSpawns;
+	std::vector<vec2> enemySpawns;
+	std::vector<vec2> itemSpawns;
+	int minEnemies = 0;
+	int maxEnemies = 0;
+	int minItems = 0;
+	int maxItems = 0;
+};
+
 using Layer = std::vector<std::shared_ptr<Tile>>;
 // Stores layer names with layer.
 using MapTiles = std::map<std::string, std::shared_ptr<Layer>>;
@@ -67,15 +80,17 @@ using TileSet = std::unordered_map<unsigned int, std::shared_ptr<TileInfo>>;
 class TileMapParser
 {
 public:
-	std::vector<Entity> Parse(const std::string& file, RenderSystem *renderer, vec2 offset = { 0, 0 });
+	SpawnData Parse(const std::string& file, RenderSystem *renderer, vec2 offset = { 0, 0 });
 private:
-	std::vector<MapObject> BuildObjects(rapidxml::xml_node<>* rootNode);
+	std::vector<std::shared_ptr<MapObject>> BuildObjects(rapidxml::xml_node<>* rootNode);
+	std::tuple<std::vector<vec2>, int, int> BuildSpawns(rapidxml::xml_node<>* rootNode, std::string layerName, int tileSizeX, int tileSizeY, int scaleFactor, vec2 offset);
 	std::shared_ptr<TileSheetData> BuildTileSheetData(rapidxml::xml_node<>* rootNode, RenderSystem *renderer);
 	std::shared_ptr<MapTiles> BuildMapTiles(rapidxml::xml_node<>* rootNode, RenderSystem *renderer);
 	std::pair<std::string, std::shared_ptr<Layer>>
 		BuildLayer(
 			rapidxml::xml_node<>* layerNode, std::shared_ptr<TileSheetData> tileSheetData
 		);
+	Entity TileMapParser::createTileFromData(std::shared_ptr<Tile> tile, int tileSizeX, int tileSizeY, int scaleFactor, float uv_padding, std::string layer_name, vec2 offset = { 0,0 });
 
 	static inline bool IsInteger(const std::string& s)
 	{

@@ -22,16 +22,29 @@ struct Player
 	bool attacked = false;
 };
 
-// Eagles have a hard shell
-struct Deadly
-{
-
+// Inventory Items
+enum class CONSUMABLE {
+	REDPOT = 0,
+	BLUPOT = REDPOT + 1,
+	ACTION_COUNT = BLUPOT + 1
 };
 
-// Bug and Chicken have a soft shell
-struct Eatable
-{
+enum class WEAPON {
+	MOVING = 0,
+	ATTACKING = MOVING + 1,
+	ACTION_COUNT = ATTACKING + 1
+};
 
+enum class ARMOUR {
+	MOVING = 0,
+	ATTACKING = MOVING + 1,
+	ACTION_COUNT = ATTACKING + 1
+};
+
+enum class ARTIFACT {
+	MOVING = 0,
+	ATTACKING = MOVING + 1,
+	ACTION_COUNT = ATTACKING + 1
 };
 
 // All data relevant to the shape and motion of entities
@@ -349,7 +362,8 @@ enum class RENDER_LAYER_ID {
 	FLOOR_DECO = FLOOR + 1,
 	SPRITE = FLOOR_DECO + 1,
 	WALLS = SPRITE + 1,
-	EFFECT = WALLS + 1,
+	RANDOM_WALLS = WALLS + 1,
+	EFFECT = RANDOM_WALLS + 1,
 	UI = EFFECT + 1,
 	UI_TOP = UI + 1,
 	DEBUG_LAYER = UI_TOP + 1,

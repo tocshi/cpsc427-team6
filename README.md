@@ -31,10 +31,9 @@ world_system.cpp | spawn_items_random_location() | line 749
     - Player's movement range is represented by a fading blue circle
     Entry points: 
     world_system.cpp | create_fog_of_war() | line 705
-    shaders/fog.fs.glsl
-    
+    shaders/fog.fs.glsl | shader file
     world_system.cpp | create_ep_range() | line 697
-    shaders/ep_range.fs.glsl
+    shaders/ep_range.fs.glsl | shader file
 
 - Game state
     - The player and the enemy take actions based on turn

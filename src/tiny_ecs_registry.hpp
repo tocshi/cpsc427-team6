@@ -18,8 +18,6 @@ public:
 	ComponentContainer<Mesh*> meshPtrs;
 	ComponentContainer<RenderRequest> renderRequests;
 	ComponentContainer<ScreenState> screenStates;
-	ComponentContainer<Eatable> eatables;
-	ComponentContainer<Deadly> deadlys;
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<vec3> colors;
 
@@ -29,7 +27,7 @@ public:
 	ComponentContainer<Equipable> equipables;
 	ComponentContainer<Guardable> guardables;
 	ComponentContainer<Interactable> interactables;
-	ComponentContainer<Stat> stats;
+	ComponentContainer<Stats> stats;
 	ComponentContainer<Queueable> queueables;
 	ComponentContainer<Test> test;	// for testing
 	ComponentContainer<Solid> solid;
@@ -41,6 +39,8 @@ public:
 	ComponentContainer<Camera> cameras;
 	ComponentContainer<Text> texts;
 	ComponentContainer<TextTimer> textTimers;
+	ComponentContainer<SquishTimer> squishTimers;
+	ComponentContainer<WobbleTimer> wobbleTimers;
 	ComponentContainer<Test> hidden;
 	ComponentContainer<Test> hidables;
 	ComponentContainer<TileUV> tileUVs;
@@ -61,8 +61,6 @@ public:
 		registry_list.push_back(&meshPtrs);
 		registry_list.push_back(&renderRequests);
 		registry_list.push_back(&screenStates);
-		registry_list.push_back(&eatables);
-		registry_list.push_back(&deadlys);
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&colors);
 
@@ -84,6 +82,8 @@ public:
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&texts);
 		registry_list.push_back(&textTimers);
+		registry_list.push_back(&squishTimers);
+		registry_list.push_back(&wobbleTimers);
 		registry_list.push_back(&hidden);
 		registry_list.push_back(&hidables);
 		// door in registry list 

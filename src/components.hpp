@@ -13,12 +13,7 @@ enum class PLAYER_ACTION {
 // Player component
 struct Player
 {
-	float s; 
-	//Entity Stat; // hp, ep ,mp 
-	float hp = 100;
-	float mp = 100;
-	float ep = 100; 
-	float maxEP = 100; 
+	float s;
 
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
@@ -27,16 +22,29 @@ struct Player
 	bool attacked = false;
 };
 
-// Eagles have a hard shell
-struct Deadly
-{
-
+// Inventory Items
+enum class CONSUMABLE {
+	REDPOT = 0,
+	BLUPOT = REDPOT + 1,
+	ACTION_COUNT = BLUPOT + 1
 };
 
-// Bug and Chicken have a soft shell
-struct Eatable
-{
+enum class WEAPON {
+	MOVING = 0,
+	ATTACKING = MOVING + 1,
+	ACTION_COUNT = ATTACKING + 1
+};
 
+enum class ARMOUR {
+	MOVING = 0,
+	ATTACKING = MOVING + 1,
+	ACTION_COUNT = ATTACKING + 1
+};
+
+enum class ARTIFACT {
+	MOVING = 0,
+	ATTACKING = MOVING + 1,
+	ACTION_COUNT = ATTACKING + 1
 };
 
 // All data relevant to the shape and motion of entities
@@ -82,10 +90,24 @@ struct DebugComponent
 	// Note, an empty struct has size 1
 };
 
-// A timer that will be associated to dying chicken
+// A timer that will be associated to dying player
 struct DeathTimer
 {
 	float counter_ms = 3000;
+};
+
+// Squishing effect timer
+struct SquishTimer
+{
+	float counter_ms = 3000;
+	vec2 orig_scale = { 0, 0 };
+};
+
+// Wobble effect timer
+struct WobbleTimer
+{
+	float counter_ms = 3000;
+	vec2 orig_scale = { 0, 0 };
 };
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & chicken.vs.glsl)
@@ -139,15 +161,26 @@ struct Interactable {
 	
 };
 
-struct Stat {
+struct Stats {
+	// Name goes here too
+	std::string name = "Placeholder Name";
+	std::string prefix = "";
 	// set intial stats to 100 points
-	float hp = 100;
-	float mp = 100;
-	float ep = 100;
+	float hp    = 100.f;
+	float maxhp = 100.f;
+	float mp    = 100.f;
+	float maxmp = 100.f;
+	float ep    = 100.f;
+	float maxep = 100.f;
+	float atk   = 10.f;
+	float def   = 10.f;
+	float speed = 10.f;
+	float range = 450.f;
+	float chase = 450.f;
 };
 
 struct Queueable {
-
+	bool doing_turn = false;
 };
 
 struct Test {
@@ -163,18 +196,16 @@ struct Enemy {
 
 };
 
-enum class SLIME_STATE {
-	IDLE_DOWN = 0,
-	IDLE_UP = IDLE_DOWN + 1,
-	CHASING = IDLE_UP + 1,
-	STATE_COUNT = CHASING + 1
+enum class ENEMY_STATE {
+	IDLE = 0,
+	AGGRO = IDLE + 1,
+	ATTACK = AGGRO + 1,
+	STATE_COUNT = ATTACK + 1
 };
 
 struct SlimeEnemy {
-	float hp = 0;
-	float chaseRange = 0;
 	vec2 initialPosition = { 0, 0 };
-	SLIME_STATE state = SLIME_STATE::STATE_COUNT;
+	ENEMY_STATE state = ENEMY_STATE::STATE_COUNT;
 };
 
 enum class BUTTON_ACTION_ID {
@@ -320,7 +351,8 @@ enum class RENDER_LAYER_ID {
 	FLOOR_DECO = FLOOR + 1,
 	SPRITE = FLOOR_DECO + 1,
 	WALLS = SPRITE + 1,
-	EFFECT = WALLS + 1,
+	RANDOM_WALLS = WALLS + 1,
+	EFFECT = RANDOM_WALLS + 1,
 	UI = EFFECT + 1,
 	UI_TOP = UI + 1,
 	DEBUG_LAYER = UI_TOP + 1,

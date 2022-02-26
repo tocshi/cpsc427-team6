@@ -9,6 +9,7 @@
 #include<fstream>
 
 #include "physics_system.hpp"
+#include "combat_system.hpp"
 
 // Game configuration
 const size_t MAX_EAGLES = 15;
@@ -180,7 +181,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Updating window title with points
 	std::stringstream title_ss;
-	title_ss << "Points: " << points;
+	title_ss << "Adrift In Somnium: Alpha Build";
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
@@ -200,6 +201,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(motions_registry.entities[i]);
 		}
 	}
+
+	// if not in menu do turn order logic
+	if (!inMenu) {
+		doTurnOrderLogic();
+	}
+
+	
 
 	// perform in-motion behaviour
 	if (get_is_player_turn() && player_move_click) {
@@ -225,26 +233,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// if all ai have moved, start player turn
-	if (!get_is_player_turn() && get_is_ai_turn()) {
-		bool all_moved = true;
-		for (Entity ai : registry.slimeEnemies.entities) {
-			Motion ai_motion = registry.motions.get(ai);
-			if (ai_motion.in_motion) {
-				all_moved = false;
-			}
-		}
-		if (all_moved) {
-			set_is_ai_turn(false);
-			set_is_player_turn(true);
-
-			// perform start-of-turn actions for player
-			start_player_turn();
-			
-		}
-		// save the data to the json file
-	}
-
 	// If started, remove menu entities, and spawn game entities
 	//if(!inMenu) (
 	//inMenu > GameStates::CUTSCENE || inMenu <GameStates::SPLASH_SCREEN
@@ -255,14 +243,23 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 	// Update HP/MP/EP bars and movement
+	// Check for player death
 	for (Entity player : registry.players.entities) {
 		Player& p = registry.players.get(player);
 		
 		// get player stats
-		float& maxEP = p.maxEP;
-		float& hp = p.hp;
-		float& mp = p.mp;
-		float& ep = p.ep;
+		float& maxep = registry.stats.get(player).maxep;
+		float& hp = registry.stats.get(player).hp;
+		float& mp = registry.stats.get(player).mp;
+		float& ep = registry.stats.get(player).ep;
+
+		// Check if player has died
+		if (hp <= 0 && !registry.deathTimers.has(player)) {
+			registry.deathTimers.emplace(player);
+			logText("You have died!");
+			player_move_click = false;
+			break;
+		}
 
 		// update player motion
 		Motion& player_motion = registry.motions.get(player);
@@ -273,6 +270,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				p.attacked = false;
 				set_is_player_turn(false);
 				player_move_click = false;
+				logText("It is now the enemies' turn!");
+				// set player's doing_turn to false
+				registry.queueables.get(player).doing_turn = false;
 			}
 			else { 
 				float ep_rate = 1.f;
@@ -329,6 +329,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
 	}
 
+	// Check for enemy death
+	for (Entity& enemy : registry.enemies.entities) {
+		if (registry.stats.get(enemy).hp <= 0 && !registry.squishTimers.has(enemy)) {
+			std::string log_text = "The enemy ";
+			log_text = log_text.append(registry.stats.get(enemy).name.append(" is defeated!"));
+			logText(log_text);
+			SquishTimer& squish = registry.squishTimers.emplace(enemy);
+			squish.orig_scale = registry.motions.get(enemy).scale;
+		}
+	}
+
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// TODO A3: HANDLE EGG SPAWN HERE
 	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
@@ -373,6 +384,43 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// Wobble Timers
+	for (Entity entity : registry.wobbleTimers.entities) {
+		// prioritize squish over wobble
+		if (registry.squishTimers.has(entity)) { break; }
+		// progress timer
+		WobbleTimer& counter = registry.wobbleTimers.get(entity);
+		//float x_scale = (counter.orig_scale.x / 4) * sin(counter.counter_ms/100) + counter.orig_scale.x;
+		//float y_scale = (counter.orig_scale.x / 4) * sin(counter.counter_ms/100 + M_PI) + counter.orig_scale.x;
+		float x_scale = (pow(counter.counter_ms, 2) / 800000) * cos(counter.counter_ms / 50) + counter.orig_scale.x;
+		float y_scale = (pow(counter.counter_ms, 2) / 800000) * cos(counter.counter_ms / 50 + M_PI) + counter.orig_scale.x;
+		registry.motions.get(entity).scale = {x_scale, y_scale};
+		counter.counter_ms -= elapsed_ms_since_last_update;
+
+		// remove entity once the timer has expired
+		if (counter.counter_ms < 0) {
+			registry.motions.get(entity).scale = counter.orig_scale;
+			registry.wobbleTimers.remove(entity);
+		}
+	}
+
+	// Squish Timers
+	for (Entity entity : registry.squishTimers.entities) {
+		// progress timer
+		SquishTimer& counter = registry.squishTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+
+		float x_scale = registry.motions.get(entity).scale.x;
+		float y_scale = registry.motions.get(entity).scale.y / 1.04f;
+		registry.motions.get(entity).scale = { x_scale, y_scale };
+		registry.motions.get(entity).position.y += (y_scale * 1.04 - y_scale)/2;
+
+		// remove entity once the timer has expired
+		if (counter.counter_ms < 0) {
+			registry.remove_all_components_of(entity);
+		}
+	}
+
 	// update animations 
 	for (int i = 0; i < registry.animations.size(); i++) {
 		Entity e = registry.animations.entities[i];
@@ -388,10 +436,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			anim.animation_time_ms -= anim.frametime_ms * anim.frame_indices.size() - 1;
 		}
-		anim.current_frame = anim.animation_time_ms / anim.frametime_ms;
+		anim.current_frame = std::min(anim.animation_time_ms / anim.frametime_ms, int(anim.frame_indices.size()) - 1);
 	}
 
-	// !!! TODO A1: update LightUp timers and remove if time drops below zero, similar to the death counter
 	return true;
 }
 
@@ -487,13 +534,15 @@ void WorldSystem::restart_game() {
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
 
-	createTiles(renderer, "map1.tmx");
+	SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
-	spawn_player_random_location();
-	spawn_enemy_random_location();
+	spawn_player_random_location(spawnData.playerSpawns);
+	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
+	spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
   
+	/*
 	createBoss(renderer, { 250.f, 450.f });
 	createArtifact(renderer, { 250.f, 550.f });
 	createConsumable(renderer, { 250.f, 650.f });
@@ -502,6 +551,12 @@ void WorldSystem::spawn_game_entities() {
 	createDoor(renderer, { 350.f, 450.f });
 	createSign(renderer, { 350.f, 550.f });
 	createStair(renderer, { 350.f, 650.f });
+	*/
+
+	// setup turn order system
+	turnOrderSystem.setUpTurnOrder();
+	// start first turn
+	turnOrderSystem.getNextTurn();
 	/*
 	for (uint i = 0; WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i < window_width_px; i++) {
 		createWall(renderer, { WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i, WALL_BB_HEIGHT / 2 });
@@ -522,7 +577,6 @@ void WorldSystem::spawn_game_entities() {
 	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war();
-	createCampfire(renderer, { 200, 200 });
 }
 
 // render fog of war around the player
@@ -547,49 +601,55 @@ void WorldSystem::remove_fog_of_war() {
 }
 
 // spawn player entity in random location
-void WorldSystem::spawn_player_random_location() {
-	printf("%d", rand());
-	int randX = rand() % ((window_width_px - 200 + 1) + 200);
-	int randY = rand() % ((window_height_px - 200 + 1) + 200);
+void WorldSystem::spawn_player_random_location(std::vector<vec2>& playerSpawns) {
+	std::random_shuffle(playerSpawns.begin(), playerSpawns.end());
+	if (playerSpawns.size() > 0) {
+		createPlayer(renderer, { playerSpawns[0].x, playerSpawns[0].y});
+		return;
+	}
+	// default spawn location in case we don't have player spawns
+	createPlayer(renderer, { 0, 0 });
 
-	if (randX < 200) {
-		randX += 200;
-	}
-	else if (randX >= window_width_px - 200) {
-		randX -= 200;
-	}
-
-	if (randY < 200) {
-		randY += 200;
-	}
-	else if (randY >= window_height_px - 200) {
-		randY -= 200;
-	}
-
-	createPlayer(renderer, { (float)randX, (float)randY } );
 }
 
-// spawn enemy entity in random location
-void WorldSystem::spawn_enemy_random_location() {
-	printf("%d", rand());
-	int randX = rand()%((window_width_px - 200 + 1) + 200);
-	int randY = rand()%((window_height_px - 200 + 1) + 200);
+// spawn enemy entities in random locations
+void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, int min, int max) {
+	std::random_shuffle(enemySpawns.begin(), enemySpawns.end());
+	if (enemySpawns.size() > 0) {
+		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
+		for (int i = 0; i < numberToSpawn; i++) {
+			createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+		}
+	}
+}
 
-	if (randX < 200) {
-		randX += 200;
-	}
-	else if (randX >= window_width_px - 200) {
-		randX -= 200;
-	}
+// spawn item entities in random locations
+void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int min, int max) {
+	std::random_shuffle(itemSpawns.begin(), itemSpawns.end());
+	if (itemSpawns.size() > 0) {
+		int numberToSpawn = std::min(irandRange(min, max + 1), int(itemSpawns.size()));
+		Entity& player = registry.players.entities[0];
+		Motion& motion = registry.motions.get(player);
+		int range = 0;
+		if (registry.stats.has(player)) {
+			range = registry.stats.get(player).range;
+		}
 
-	if (randY < 200) {
-		randY += 200;
+		int spawned = 0;
+		int i = 0;
+		while (spawned < numberToSpawn && i < itemSpawns.size()) {
+			// temporary, later we can also randomize the item types
+			if (range > 0) {
+				if (dist_to(motion.position, itemSpawns[i]) <= range) {
+					i++;
+					continue;
+				}
+			}
+			createCampfire(renderer, { itemSpawns[i].x, itemSpawns[i].y });
+			spawned++;
+			i++;
+		}
 	}
-	else if (randY >= window_height_px - 200) {
-		randY -= 200;
-	}
-
-	createEnemy(renderer, { (float)randX, (float)randY });
 }
 
 // Compute collisions between entities
@@ -601,33 +661,6 @@ void WorldSystem::handle_collisions() {
 		Entity entity = collisionsRegistry.entities[i];
 		Entity entity_other = collisionsRegistry.components[i].other;
 
-		// For now, we are only interested in collisions that involve the player
-		if (registry.players.has(entity)) {
-			//Player& player = registry.players.get(entity);
-
-			// Checking Player - Deadly collisions
-			if (registry.deadlys.has(entity_other)) {
-				// initiate death unless already dying
-				if (!registry.deathTimers.has(entity)) {
-					// Scream, reset timer, and make the chicken sink
-					registry.deathTimers.emplace(entity);
-					Mix_PlayChannel(-1, chicken_dead_sound, 0);
-
-					// !!! TODO A1: change the chicken orientation and color on death
-				}
-			}
-			// Checking Player - Eatable collisions
-			else if (registry.eatables.has(entity_other)) {
-				if (!registry.deathTimers.has(entity)) {
-					// chew, count points, and set the LightUp timer
-					registry.remove_all_components_of(entity_other);
-					Mix_PlayChannel(-1, chicken_eat_sound, 0);
-					++points;
-
-					// !!! TODO A1: create a new struct called LightUp in components.hpp and add an instance to the chicken entity by modifying the ECS registry
-				}
-			}
-		}
 	}
 
 	// Remove all collisions from this simulation step
@@ -649,14 +682,21 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// LOGGING TEXT TEST
 	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
-		logText("this is a test");
-		printf("this is a test\n");
+		for (Entity& player : registry.players.entities) {
+			for (Entity& enemy : registry.slimeEnemies.entities) {
+				int test = irandRange(100,200);
+				std::string log_message = deal_damage(enemy, player, test);
+
+				logText(log_message);
+				printf("testing combat with 10 ATK and %d multiplier\n", test);
+			}
+		}
 	}
 
 	// SAVING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
 		saveSystem.saveGameState();
-		printf("SAVING KEY PRESSED");
+		printf("SAVING KEY PRESSED\n");
 	}
 
 	// LOADING THE GAME
@@ -672,7 +712,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc.
 		}
 
-		printf("LOADING KEY PRESSED");
+		printf("LOADING KEY PRESSED\n");
 	}
 
 	// Resetting game
@@ -745,6 +785,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
 						createAttackButton(renderer, { window_width_px - 200.f, window_height_px - 150.f });
 						createMoveButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
+						for (int i = registry.renderRequests.size() - 1; i >= 0; i--) {
+							if (registry.renderRequests.components[i].used_layer == RENDER_LAYER_ID::BG) {
+								registry.remove_all_components_of(registry.renderRequests.entities[i]);
+							}
+						}
+
 						spawn_game_entities(); 
 						is_player_turn = true; 
 						break;
@@ -755,7 +801,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							Player& player = registry.players.get(p);
 							player.action = PLAYER_ACTION::ATTACKING;
 							// todo: add some sort of visual queue to show the player what action state they are in
-							logText("attacking");
+							logText("You are in Attack Mode!");
 						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_MOVE:
@@ -764,7 +810,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							Player& player = registry.players.get(p);
 							player.action = PLAYER_ACTION::MOVING;
 							// todo: add some sort of visual queue to show the player what action state they are in
-							logText("moving");
+							logText("You are in Movement Mode!");
 						}
 						break;
 				}
@@ -778,24 +824,27 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		if (get_is_player_turn() && !player_move_click && ypos < window_height_px - 200.f) {
 			for (Entity e : registry.players.entities) {
 				Player& player = registry.players.get(e);
+				Motion& player_motion = registry.motions.get(e);
+				Stats& player_stats = registry.stats.get(e);
 
 				PLAYER_ACTION action = player.action;
 				switch (action) {
 				case PLAYER_ACTION::ATTACKING:
-					// only attack if the player hasn't attacked that turn
-					if (!player.attacked) {
-						// ensure player has clicked on an enemy
-						for (Entity en : registry.enemies.entities) {
-							// super simple bounding box for now
-							Motion m = registry.motions.get(en);
-							int enemyX = m.position[0];
-							int enemyY = m.position[1];
+					// ensure player has clicked on an enemy
+					for (Entity en : registry.enemies.entities) {
+						// super simple bounding box for now
+						Motion m = registry.motions.get(en);
+						int enemyX = m.position[0];
+						int enemyY = m.position[1];
+						
+						if ((world_pos.x <= (enemyX + m.scale[0] / 2) && world_pos.x >= (enemyX - m.scale[0] / 2)) &&
+							(world_pos.y >= (enemyY - m.scale[1] / 2) && world_pos.y <= (enemyY + m.scale[1] / 2))) {
+								
+							// only attack if the player hasn't attacked that turn
+							if (!player.attacked) {
 
-							if ((world_pos.x <= (enemyX + m.scale[0] / 2) && world_pos.x >= (enemyX - m.scale[0] / 2)) &&
-								(world_pos.y >= (enemyY - m.scale[1] / 2) && world_pos.y <= (enemyY + m.scale[1] / 2))) {
-								// only attack if have enough ep
-								if (player.ep >= 0.5 * player.maxEP) {
-									// todo: add dealDamage call
+								// only attack if have enough ep and is close enough
+								if (player_stats.ep >= 0.5 * player_stats.maxep && dist_to(player_motion.position, m.position) <= 100.f) {
 
 									// show explosion animation
 									createExplosion(renderer, { enemyX, enemyY });
@@ -803,23 +852,35 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									// play attack sound
 									Mix_PlayChannel(-1, fire_explosion_sound, 0);
 
-									logText("hit enemy!");
+									logText(deal_damage(e, en, 100.f));
+
+									// wobble the enemy lol
+									if (!registry.wobbleTimers.has(en)){
+										WobbleTimer& wobble = registry.wobbleTimers.emplace(en);
+										wobble.orig_scale = m.scale;
+									}
+						
 									// lower ep
-									player.ep -= 0.5 * player.maxEP;
+									player_stats.ep -= 0.5 * player_stats.maxep;
 									player.attacked = true;
 								}
+								else if (player_stats.ep < 0.5 * player_stats.maxep) {
+									logText("Not enough EP to attack!");
+									// play error sound
+									Mix_PlayChannel(-1, error_sound, 0);
+								}
 								else {
-									logText("not enough ep to attack!");
+									logText("Target too far away!");
 									// play error sound
 									Mix_PlayChannel(-1, error_sound, 0);
 								}
 							}
+							else {
+								logText("You already attacked this turn!");
+								// play error sound
+								Mix_PlayChannel(-1, error_sound, 0);
+							}
 						}
-					}
-					else {
-						logText("already attacked this turn");
-						// play error sound
-						Mix_PlayChannel(-1, error_sound, 0);
 					}
 					break;
 				case PLAYER_ACTION::MOVING:
@@ -895,12 +956,12 @@ void WorldSystem::start_player_turn() {
 	for (Entity player : registry.players.entities) {
 
 		// get player stats
-		float& maxEP = registry.players.get(player).maxEP;
-		float& hp = registry.players.get(player).hp;
-		float& mp = registry.players.get(player).mp;
-		float& ep = registry.players.get(player).ep;
+		float& maxep = registry.stats.get(player).maxep;
+		float& hp = registry.stats.get(player).hp;
+		float& mp = registry.stats.get(player).mp;
+		float& ep = registry.stats.get(player).ep;
 
-		ep = maxEP;
+		ep = maxep;
 
 	}
 }
@@ -932,10 +993,10 @@ void WorldSystem::loadPlayer(json playerData) {
 	Entity e = createPlayer(renderer, motion);
 	// get player stats
 	json stats = playerData["stats"];
-	registry.players.get(e).ep = stats["ep"];
-	registry.players.get(e).hp = stats["hp"];
-	registry.players.get(e).maxEP = stats["maxEP"];
-	registry.players.get(e).mp = stats["mp"];
+	registry.stats.get(e).ep = stats["ep"];
+	registry.stats.get(e).hp = stats["hp"];
+	registry.stats.get(e).maxep = stats["maxep"];
+	registry.stats.get(e).mp = stats["mp"];
 }
 
 void WorldSystem::loadEnemies(json enemyData) {
@@ -955,8 +1016,6 @@ void WorldSystem::loadSlime(json slimeData) {
 
 	// set slimeEnemy data
 	json data = slimeData["data"];
-	registry.slimeEnemies.get(e).hp = data["hp"];
-	registry.slimeEnemies.get(e).chaseRange = data["chaseRange"];
 	registry.slimeEnemies.get(e).state = data["state"];
 }
 
@@ -986,4 +1045,46 @@ void WorldSystem::logText(std::string msg) {
 
 	Entity e = createText(renderer, defaultPos, msg, 1.5f, textColor);
 	registry.textTimers.emplace(e);
+}
+
+void WorldSystem::doTurnOrderLogic() {
+	Entity currentTurnEntity = turnOrderSystem.getCurrentTurnEntity();
+
+	// if current entity is not doing turn and stopped moving, get the next turn entity
+	if (!registry.queueables.get(currentTurnEntity).doing_turn && !registry.motions.get(currentTurnEntity).in_motion) {
+		// if player just finished their turn, set is player turn to false
+		if (registry.players.has(currentTurnEntity)) {
+			set_is_player_turn(false);
+		}
+		// perform end-of-movement attacks for enemies
+		else {
+			set_enemy_state_attack(currentTurnEntity);
+			aiSystem.step(currentTurnEntity, this, renderer);
+		}
+
+		// get next turn
+		currentTurnEntity = turnOrderSystem.getNextTurn();
+
+		// if the current entity is the player, call start_player_turn()
+		if (registry.players.has(currentTurnEntity)) {
+			set_is_player_turn(true);
+			start_player_turn();
+			logText("It is now your turn!");
+		}
+	}
+
+	// if current turn entity is enemy and is still doing_turn call ai.step();
+	if (!registry.players.has(currentTurnEntity) && registry.queueables.get(currentTurnEntity).doing_turn) {
+		aiSystem.step(currentTurnEntity, this, renderer);
+
+		// now that ai did its step, set doing turn to false
+		registry.queueables.get(currentTurnEntity).doing_turn = false;
+	}
+}
+
+// Set attack state for enemies who attack after moving
+void set_enemy_state_attack(Entity enemy) {
+	if (registry.slimeEnemies.has(enemy)) {
+		registry.slimeEnemies.get(enemy).state = ENEMY_STATE::ATTACK;
+	}
 }

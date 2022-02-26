@@ -65,6 +65,8 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 				createExplosion(renderer, player_motion.position);
 				Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
 				world->logText(deal_damage(enemy, player, 100));
+				Entity& e = registry.projectileTimers.get(entity).owner;
+				motion_registry.get(e).in_motion = false;
 				registry.remove_all_components_of(entity);
 			}
 		}
@@ -125,10 +127,17 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 				motion.velocity = { 0,0 };
 				motion.in_motion = false;
 				if (registry.projectileTimers.has(entity)) {
+					Entity& e = registry.projectileTimers.get(entity).owner;
+					motion_registry.get(e).in_motion = false;
 					registry.remove_all_components_of(entity);
 				}
 			}
 		}
+		// if (registry.enemies.has(entity) && registry.enemies.get(entity).type == ENEMY_TYPE::PLANT_SHOOTER) {
+		// 	if (registry.projectileTimers.size()) {
+		// 		motion_registry.get(entity).in_motion = true;
+		// 	}
+		// }
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

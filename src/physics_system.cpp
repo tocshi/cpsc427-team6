@@ -134,11 +134,6 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 				}
 			}
 		}
-		// if (registry.enemies.has(entity) && registry.enemies.get(entity).type == ENEMY_TYPE::PLANT_SHOOTER) {
-		// 	if (registry.projectileTimers.size()) {
-		// 		motion_registry.get(entity).in_motion = true;
-		// 	}
-		// }
 	}
 
 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

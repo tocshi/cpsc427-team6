@@ -706,6 +706,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		for (Entity e : registry.players.entities) {
 			std::random_shuffle(spawnData.playerSpawns.begin(), spawnData.playerSpawns.end());
 			Motion& motion = registry.motions.get(e);
+			Stats& stats = registry.stats.get(e);
 			// set random position
 			motion.position = { spawnData.playerSpawns[0].x, spawnData.playerSpawns[0].y };
 			// set everything else in motion to default
@@ -714,7 +715,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			motion.in_motion = false;
 			motion.movement_speed = 200;
 			motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
+
+			// Refill Player EP
+			stats.ep = stats.maxep;
+
 		}
+		remove_fog_of_war();
+		create_fog_of_war();
 	}
 
 	// Resetting game

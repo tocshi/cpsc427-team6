@@ -638,7 +638,7 @@ Entity createMoveButton(RenderSystem* renderer, vec2 pos) {
 }
 
 // Guard button
-Entity createGuardButton(RenderSystem* renderer, vec2 pos) {
+Entity createGuardButton(RenderSystem* renderer, vec2 pos, BUTTON_ACTION_ID action, TEXTURE_ASSET_ID texture) {
 	auto entity = Entity();
 
 	// Store a reference to the potentially re-used mesh object
@@ -654,11 +654,12 @@ Entity createGuardButton(RenderSystem* renderer, vec2 pos) {
 	motion.scale = vec2({ ACTIONS_BUTTON_BB_WIDTH, ACTIONS_BUTTON_BB_HEIGHT });
 
 	registry.actionButtons.emplace(entity);
-	Button& b = registry.buttons.emplace(entity);
-	b.action_taken = BUTTON_ACTION_ID::ACTIONS_GUARD;
+	GuardButton& gb = registry.guardButtons.emplace(entity);
+	gb.texture = texture;
+	gb.action = action;
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::ACTIONS_GUARD,
+		{ texture,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI });
@@ -688,35 +689,6 @@ Entity createItemButton(RenderSystem* renderer, vec2 pos) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::ACTIONS_ITEM,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::UI });
-
-	return entity;
-}
-
-// End turn button
-Entity createEndTurnButton(RenderSystem* renderer, vec2 pos) {
-	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initilaize the position, scale, and physics components (more to be changed/added)
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.position = pos;
-
-	motion.scale = vec2({ ACTIONS_BUTTON_BB_WIDTH, ACTIONS_BUTTON_BB_HEIGHT });
-
-	registry.actionButtons.emplace(entity);
-	Button& b = registry.buttons.emplace(entity);
-	b.action_taken = BUTTON_ACTION_ID::ACTIONS_END_TURN;
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::ACTIONS_END_TURN,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI });

@@ -108,9 +108,8 @@ Entity createAttackButton(RenderSystem* renderer, vec2 pos);
 // Move button
 Entity createMoveButton(RenderSystem* renderer, vec2 pos);
 // Guard button
-Entity createGuardButton(RenderSystem* renderer, vec2 pos);
+Entity createGuardButton(RenderSystem* renderer, vec2 pos, BUTTON_ACTION_ID action, TEXTURE_ASSET_ID texture);
 // End turn button
-Entity createEndTurnButton(RenderSystem* renderer, vec2 pos);
 // Item button
 Entity createItemButton(RenderSystem* renderer, vec2 pos);
 // Back button

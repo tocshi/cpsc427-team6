@@ -66,10 +66,8 @@ float fog_resolution = 2000.f;
 // move audio timer
 float move_audio_timer_ms = 200.f;
 
-// check if guard button has changed
-bool guardButtonChanged = false;
+// hide guard buttons
 bool hideGuardButton = false;
-bool guardButtonPlaced = false;
 
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
@@ -249,20 +247,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 
 		// change guard button to end turn if ep is not full
-		if (ep < maxep && !guardButtonChanged && !hideGuardButton) {
+		if (ep < maxep && !hideGuardButton) {
 			// remove guard button
-			for (Entity b : registry.buttons.entities) {
-				if (registry.buttons.get(b).action_taken == BUTTON_ACTION_ID::ACTIONS_GUARD) {
-					registry.remove_all_components_of(b);
-				}
+			for (Entity gb : registry.guardButtons.entities) {
+				registry.remove_all_components_of(gb);
 			}
 			// add end turn button
-			createEndTurnButton(renderer, { window_width_px - 600.f, window_height_px - 50.f });
-			guardButtonChanged = true;
+			createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_END_TURN, TEXTURE_ASSET_ID::ACTIONS_END_TURN);
 		}
-		else if (ep >= maxep && !hideGuardButton && !guardButtonPlaced) {
-			createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f });
-			guardButtonChanged = false;
+		else if (!hideGuardButton) {
+			// remove guard button
+			for (Entity gb : registry.guardButtons.entities) {
+				registry.remove_all_components_of(gb);
+			}
+			// add end turn button
+			createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
 		}
 
 		// update player motion
@@ -520,8 +519,6 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 	player_motion.velocity = { 0.f, 0.f };
 	player_motion.in_motion = false;
 	p.attacked = false;
-	guardButtonChanged = false;
-	guardButtonPlaced = false;
 	set_is_player_turn(false);
 	player_move_click = false;
 	logText("It is now the enemies' turn!");
@@ -805,10 +802,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
 						createMoveButton(renderer, { window_width_px - 1400.f, window_height_px - 50.f });
 						createAttackButton(renderer, { window_width_px - 1000.f, window_height_px - 50.f });
-						createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f });
+						createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
 						createItemButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
-
-						guardButtonPlaced = true;
 
 						// spawn the collection and pause buttons
 						createPauseButton(renderer, { window_width_px - 80.f, 50.f });
@@ -832,7 +827,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 							// create back button and attack mode text
 							createBackButton(renderer, { 100.f , window_height_px - 60.f });
-							createAttackModeText(renderer, { 800.f , window_height_px - 60.f });
+							createAttackModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
 						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_MOVE:
@@ -849,7 +844,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 							// create back button and move mode text
 							createBackButton(renderer, { 100.f , window_height_px - 60.f });
-							createMoveModeText(renderer, { 800.f , window_height_px - 60.f });
+							createMoveModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
 						}
 						break;
 					case BUTTON_ACTION_ID::PAUSE:
@@ -880,11 +875,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						// create action buttons
 						createMoveButton(renderer, { window_width_px - 1400.f, window_height_px - 50.f });
 						createAttackButton(renderer, { window_width_px - 1000.f, window_height_px - 50.f });
-						createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f });
+						createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
 						createItemButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
-
 						hideGuardButton = false;
-						guardButtonPlaced = true;
 
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_ITEM:
@@ -909,11 +902,48 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		}
 
 		///////////////////////////
+		// logic for guard button presses
+		///////////////////////////
+
+		for (Entity e : registry.guardButtons.entities) {
+			if (!registry.motions.has(e)) {
+				continue;
+			}
+			Motion m = registry.motions.get(e);
+			int buttonX = m.position[0];
+			int buttonY = m.position[1];
+			// if mouse is interating with a button
+			if ((xpos <= (buttonX + m.scale[0] / 2) && xpos >= (buttonX - m.scale[0] / 2)) &&
+				(ypos >= (buttonY - m.scale[1] / 2) && ypos <= (buttonY + m.scale[1] / 2))) {
+				if (!registry.guardButtons.has(e)) {
+					continue;
+				}
+				// perform action based on button ENUM
+				BUTTON_ACTION_ID action = registry.guardButtons.get(e).action;
+
+				switch (action) {
+				case BUTTON_ACTION_ID::ACTIONS_GUARD:
+					// TODO: add real functionality for this
+					logText("you defend yourself! (next enemy attack is weaker)");
+					for (Entity player : registry.players.entities) {
+						handle_end_player_turn(player);
+					}
+					break;
+				case BUTTON_ACTION_ID::ACTIONS_END_TURN:
+					for (Entity player : registry.players.entities) {
+						handle_end_player_turn(player);
+					}
+					break;
+				}
+			}
+		}
+
+		///////////////////////////
 		// logic for player actions
 		///////////////////////////
 
 		// ensure it is the player's turn and they are not currently moving
-		if (get_is_player_turn() && !player_move_click && ypos < window_height_px - 200.f) {
+		if (get_is_player_turn() && !player_move_click && ypos < window_height_px - 200.f && ypos > 80.f) {
 			for (Entity e : registry.players.entities) {
 				Player& player = registry.players.get(e);
 				Motion& player_motion = registry.motions.get(e);

@@ -36,6 +36,7 @@ public:
 	ComponentContainer<Enemy> enemies;
 	ComponentContainer<SlimeEnemy> slimeEnemies;
 	ComponentContainer<ActionButton> actionButtons;
+	ComponentContainer<GuardButton> guardButtons;
 	ComponentContainer<Button> buttons;
 	ComponentContainer<MenuItem> menuItems;
 	ComponentContainer<ModeVisualization> modeVisualizationObjects;
@@ -83,6 +84,7 @@ public:
 		registry_list.push_back(&enemies);
 		registry_list.push_back(&slimeEnemies);
 		registry_list.push_back(&actionButtons);
+		registry_list.push_back(&guardButtons);
 		registry_list.push_back(&buttons);
 		registry_list.push_back(&modeVisualizationObjects);
 		registry_list.push_back(&menuItems);

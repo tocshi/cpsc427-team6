@@ -397,3 +397,12 @@ struct AnimationData {
 	bool loop = true;
 	bool delete_on_finish = false; // if the entitiy should be deleted when the loop is finished
 };
+
+// guard button
+struct GuardButton {
+	// which texture to show
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::ACTIONS_GUARD;
+
+	// which button action to take
+	BUTTON_ACTION_ID action = BUTTON_ACTION_ID::ACTIONS_GUARD;
+};

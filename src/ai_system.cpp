@@ -1,7 +1,10 @@
+#pragma once
+
 // internal
 #include "ai_system.hpp"
 #include "combat_system.hpp"
 #include "world_system.hpp"
+#include "physics_system.hpp"
 
 void AISystem::step(Entity e, WorldSystem* world, RenderSystem* renderer)
 {
@@ -51,7 +54,15 @@ void AISystem::slime_logic(Entity slime, Entity& player, WorldSystem* world, Ren
 
 		// Teleport if out of player sight range
 		if (!player_in_range(motion_struct.position, registry.stats.get(player).range) && !player_in_range(motion_struct.destination, registry.stats.get(player).range)) {
-			motion_struct.position = motion_struct.destination;
+			// temp check
+			motion_struct.destination = motion_struct.position;
+			motion_struct.position = { motion_struct.position.x + dx, motion_struct.position.y + dy };
+			for (Entity solid : registry.solid.entities) {
+				if (collides_AABB(motion_struct, registry.motions.get(solid))) {
+					motion_struct.position = motion_struct.destination;
+					break;
+				}
+			}
 			motion_struct.in_motion = false;
 		}
 		else {

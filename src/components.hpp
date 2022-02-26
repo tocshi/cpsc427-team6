@@ -14,7 +14,7 @@ enum class PLAYER_ACTION {
 struct Player
 {
 	float s;
-	Inventory inv;
+	//Inventory inv;
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
 

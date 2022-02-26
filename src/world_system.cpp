@@ -1,7 +1,6 @@
 // Header
 #include "world_system.hpp"
 #include "world_init.hpp"
-
 // stlib
 #include <cassert>
 #include <sstream>
@@ -16,6 +15,8 @@ const size_t MAX_EAGLES = 15;
 const size_t MAX_BUG = 5;
 const size_t EAGLE_DELAY_MS = 2000 * 3;
 const size_t BUG_DELAY_MS = 5000 * 3;
+// decalre gamestates
+//GameStates game_state = GameStates::CUTSCENE;
 
 // Create the bug world
 WorldSystem::WorldSystem()
@@ -56,8 +57,12 @@ namespace {
 	}
 }
 
-// In start menu
-bool inMenu;
+// bool current_game_state; (previious)
+// In start menu (CHANGE TO INT TO SEE IF IT WORKS)
+// CUTSCENE IS null
+GameStates current_game_state;
+GameStates previous_game_state = current_game_state;
+
 
 // fog stats
 float fog_radius = 450.f;
@@ -65,6 +70,9 @@ float fog_resolution = 2000.f;
 
 // move audio timer
 float move_audio_timer_ms = 200.f;
+
+// hide guard buttons
+bool hideGuardButton = false;
 
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
@@ -109,7 +117,18 @@ GLFWwindow* WorldSystem::create_window() {
 	glfwSetCursorPosCallback(window, cursor_pos_redirect);
 
 	// Set the game to start on the menu screen
-	inMenu = true;
+	previous_game_state = current_game_state;
+	//printf("Previous Game State : Game state = MAIN_MENU");
+	//printf()
+	current_game_state = GameStates::MAIN_MENU;
+	printf("previous state in Now %d \n", static_cast<int>(previous_game_state));
+
+	// set previous_game_state to current_game_state
+	previous_game_state = current_game_state;
+	printf("ACTION: SET THE GAME TO START : Game state = MAIN_MENU\n");
+	printf("Current current_game_state Game state %d \n", static_cast<int>(current_game_state));
+	printf("previous state in Now %d \n", static_cast<int>(previous_game_state));
+	
 
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
@@ -185,8 +204,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// if not in menu do turn order logic
-	if (!inMenu) {
+	// if not in menu do turn order logic (!current_game_state)
+	if (current_game_state < GameStates::CUTSCENE && current_game_state >= GameStates::GAME_START) {
 		doTurnOrderLogic();
 	}
 
@@ -217,13 +236,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// If started, remove menu entities, and spawn game entities
-	if (!inMenu) {
+	//if(!current_game_state) (
+	//current_game_state > GameStates::CUTSCENE || current_game_state <GameStates::SPLASH_SCREEN
+	if (current_game_state == GameStates::GAME_START || current_game_state == GameStates::BATTLE_MENU) {
 		// remove all menu entities
 		for (Entity e : registry.menuItems.entities) {
 			registry.remove_all_components_of(e);
 		}
 	}
-
 	// Update HP/MP/EP bars and movement
 	// Check for player death
 	for (Entity player : registry.players.entities) {
@@ -243,18 +263,29 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			break;
 		}
 
+		// change guard button to end turn if ep is not full
+		if (ep < maxep && !hideGuardButton) {
+			// remove guard button
+			for (Entity gb : registry.guardButtons.entities) {
+				registry.remove_all_components_of(gb);
+			}
+			// add end turn button
+			createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_END_TURN, TEXTURE_ASSET_ID::ACTIONS_END_TURN);
+		}
+		else if (!hideGuardButton) {
+			// remove guard button
+			for (Entity gb : registry.guardButtons.entities) {
+				registry.remove_all_components_of(gb);
+			}
+			// add end turn button
+			createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+		}
+
 		// update player motion
 		Motion& player_motion = registry.motions.get(player);
 		if (player_motion.in_motion) {
-			if (ep <= 0) { 
-				player_motion.velocity = { 0.f, 0.f };
-				player_motion.in_motion = false;
-				p.attacked = false;
-				set_is_player_turn(false);
-				player_move_click = false;
-				logText("It is now the enemies' turn!");
-				// set player's doing_turn to false
-				registry.queueables.get(player).doing_turn = false;
+			if (ep <= 0) {
+				handle_end_player_turn(player);
 			}
 			else { 
 				float ep_rate = 1.f;
@@ -309,7 +340,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Update the camera to follow the player
 		Camera& camera = registry.cameras.get(active_camera_entity);
 		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
-
 	}
 
 	// Check for enemy death
@@ -492,7 +522,16 @@ void WorldSystem::restart_game() {
 	*/
 
 	// restart the game on the menu screen
-	inMenu = true;
+	//current_game_state = true;
+	set_gamestate(GameStates::MAIN_MENU);
+
+	/*if (current_game_state != GameStates::MAIN_MENU) {
+		//current_game_state = GameStates::MAIN_MENU;
+		std::cout << "ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU" << std::endl;
+		//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
+	}*/
+	//current_game_state = GameStates::MAIN_MENU;
+	//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
 
 	// For testing textures
 	//createPlayer(renderer, {50.f, 250.f});
@@ -516,6 +555,20 @@ void WorldSystem::restart_game() {
 	// createText(renderer, vec2(200.f, 500.f), ",./:;'()[]", 1.5f, vec3(1.0f, 0.0f, 0.0f));
 	// createText(renderer, vec2(0.f, 50.f), "test,. '123", 1.5f, vec3(1.0f));
 	// createText(renderer, vec2(200.f, 500.f), ".'", 2.f, vec3(1.0f));
+}
+
+void WorldSystem::handle_end_player_turn(Entity player) {
+	Motion& player_motion = registry.motions.get(player);
+	Player& p = registry.players.get(player);
+	player_motion.velocity = { 0.f, 0.f };
+	player_motion.in_motion = false;
+	p.attacked = false;
+	set_is_player_turn(false);
+	player_move_click = false;
+	logText("It is now the enemies' turn!");
+	// set player's doing_turn to false
+	registry.queueables.get(player).doing_turn = false;
+	set_gamestate(GameStates::ENEMY_TURN);
 }
 
 // spawn the game entities
@@ -573,7 +626,7 @@ void WorldSystem::spawn_game_entities() {
 	*/
 	
 	float statbarsX = 150.f;
-	float statbarsY = 740.f;
+	float statbarsY = 35.f;
 	createHPFill(renderer, { statbarsX, statbarsY });
 	createHPBar(renderer,  { statbarsX, statbarsY });
 	createMPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
@@ -699,8 +752,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// SAVING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
-		saveSystem.saveGameState();
-		printf("SAVING KEY PRESSED\n");
+		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+		logText("Game state saved!");
 	}
 
 	// LOADING THE GAME
@@ -712,11 +765,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			// get saved game data
 			json gameData = saveSystem.getSaveData();
 			// load the entities in
-			loadFromData(gameData);
+			std::queue<Entity> entities = loadFromData(gameData);
+			turnOrderSystem.loadTurnOrder(entities);
 			saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc.
 		}
 
-		printf("LOADING KEY PRESSED\n");
+		logText("Game state loaded!");
+		remove_fog_of_war();
+		create_fog_of_war();
 	}
 
 	// Resetting game
@@ -725,6 +781,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		glfwGetWindowSize(window, &w, &h);
 
         restart_game();
+	}
+
+	// Resetting game
+	if (action == GLFW_RELEASE && key == GLFW_KEY_T) {
+		printf("GAME STATE LOG START ============\n");
+		printf("Previous game state is: %i\n", static_cast<int>(previous_game_state));
+		printf("Current game state is: %i\n", static_cast<int>(current_game_state));
+		printf("GAME STATE LOG END ============\n\n\n");
 	}
 
 	// Debugging
@@ -761,7 +825,11 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	//printf("World Position at (%f, %f)\n", world_pos.x, world_pos.y);
 
 	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
-		// Clicking the start button on the menu screen
+
+		///////////////////////////
+		// logic for button presses
+		///////////////////////////
+
 		for (Entity e : registry.buttons.entities) {
 			if (!registry.motions.has(e)) {
 				continue;
@@ -779,19 +847,28 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
 
 				switch (action_taken) {
+
 					case BUTTON_ACTION_ID::MENU_START: 
-						inMenu = false;
+						set_gamestate(GameStates::GAME_START);
+						spawn_game_entities();
 						// spawn the actions bar
 						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
-						createAttackButton(renderer, { window_width_px - 200.f, window_height_px - 150.f });
-						createMoveButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
+						createMoveButton(renderer, { window_width_px - 1400.f, window_height_px - 50.f });
+						createAttackButton(renderer, { window_width_px - 1000.f, window_height_px - 50.f });
+						createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+						createItemButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
+
+						// spawn the collection and pause buttons
+						createPauseButton(renderer, { window_width_px - 80.f, 50.f });
+						createCollectionButton(renderer, { window_width_px - 160.f, 50.f });
+
 						for (int i = registry.renderRequests.size() - 1; i >= 0; i--) {
 							if (registry.renderRequests.components[i].used_layer == RENDER_LAYER_ID::BG) {
 								registry.remove_all_components_of(registry.renderRequests.entities[i]);
 							}
 						}
 
-						spawn_game_entities(); 
+						//spawn_game_entities(); 
 						is_player_turn = true; 
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
@@ -800,8 +877,19 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						for (Entity p : registry.players.entities) {
 							Player& player = registry.players.get(p);
 							player.action = PLAYER_ACTION::ATTACKING;
-							// todo: add some sort of visual queue to show the player what action state they are in
-							logText("You are in Attack Mode!");
+							
+							// hide all action buttons
+							for (Entity ab : registry.actionButtons.entities) {
+								registry.remove_all_components_of(ab);
+							}
+							hideGuardButton = true;
+
+							// set game state to attack menu
+							set_gamestate(GameStates::ATTACK_MENU);
+
+							// create back button and attack mode text
+							createBackButton(renderer, { 100.f , window_height_px - 60.f });
+							createAttackModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
 						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_MOVE:
@@ -809,19 +897,106 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						for (Entity p : registry.players.entities) {
 							Player& player = registry.players.get(p);
 							player.action = PLAYER_ACTION::MOVING;
-							// todo: add some sort of visual queue to show the player what action state they are in
-							logText("You are in Movement Mode!");
+
+							// hide all action buttons
+							for (Entity ab : registry.actionButtons.entities) {
+								registry.remove_all_components_of(ab);
+							}
+							hideGuardButton = true;
+
+							// set game state to move menu
+							set_gamestate(GameStates::MOVEMENT_MENU);
+
+							// create back button and move mode text
+							createBackButton(renderer, { 100.f , window_height_px - 60.f });
+							createMoveModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
 						}
+						break;
+					case BUTTON_ACTION_ID::PAUSE:
+						// TODO: pause enimies if it is their turn
+						
+						// inMenu = true;
+						set_gamestate(GameStates::PAUSE_MENU);
+						// render quit button
+						createMenuQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90});
+
+						// render cancel button
+						createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f });
+						
+						break;
+					case BUTTON_ACTION_ID::ACTIONS_CANCEL:
+						// inMenu = false;
+						set_gamestate(GameStates::BATTLE_MENU);
+						break;
+					case BUTTON_ACTION_ID::COLLECTION:
+						// TODO: add real functionality for this
+						logText("Collection Menu to be implemented later!");
+						break;
+					case BUTTON_ACTION_ID::ACTIONS_BACK:
+						// hide mode text elements
+						for (Entity mvo : registry.modeVisualizationObjects.entities) {
+							registry.remove_all_components_of(mvo);
+						}
+
+						// create action buttons
+						createMoveButton(renderer, { window_width_px - 1400.f, window_height_px - 50.f });
+						createAttackButton(renderer, { window_width_px - 1000.f, window_height_px - 50.f });
+						createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+						createItemButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
+						hideGuardButton = false;
+
+						break;
+					case BUTTON_ACTION_ID::ACTIONS_ITEM:
+						// TODO: add real functionality for this
+						logText("Items Menu to be implemented later!");
 						break;
 				}
 			}
 		}
 
+		///////////////////////////
+		// logic for guard button presses
+		///////////////////////////
+
+		for (Entity e : registry.guardButtons.entities) {
+			if (!registry.motions.has(e)) {
+				continue;
+			}
+			Motion m = registry.motions.get(e);
+			int buttonX = m.position[0];
+			int buttonY = m.position[1];
+			// if mouse is interating with a button
+			if ((xpos <= (buttonX + m.scale[0] / 2) && xpos >= (buttonX - m.scale[0] / 2)) &&
+				(ypos >= (buttonY - m.scale[1] / 2) && ypos <= (buttonY + m.scale[1] / 2))) {
+				if (!registry.guardButtons.has(e)) {
+					continue;
+				}
+				// perform action based on button ENUM
+				BUTTON_ACTION_ID action = registry.guardButtons.get(e).action;
+
+				switch (action) {
+				case BUTTON_ACTION_ID::ACTIONS_GUARD:
+					logText("You brace yourself...");
+					for (Entity player : registry.players.entities) {
+						registry.stats.get(player).guard = true;
+						handle_end_player_turn(player);
+					}
+					break;
+				case BUTTON_ACTION_ID::ACTIONS_END_TURN:
+					for (Entity player : registry.players.entities) {
+						handle_end_player_turn(player);
+					}
+					break;
+				}
+			}
+		}
+
+		///////////////////////////
 		// logic for player actions
 		///////////////////////////
 
 		// ensure it is the player's turn and they are not currently moving
-		if (get_is_player_turn() && !player_move_click && ypos < window_height_px - 200.f) {
+		if (get_is_player_turn() && !player_move_click && ypos < window_height_px - 200.f && ypos > 80.f) {
 			for (Entity e : registry.players.entities) {
 				Player& player = registry.players.get(e);
 				Motion& player_motion = registry.motions.get(e);
@@ -912,6 +1087,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						}
 					}
 				}
+
 			}
 		}
 	}
@@ -971,7 +1147,13 @@ void WorldSystem::start_player_turn() {
 		float& mp = registry.stats.get(player).mp;
 		float& ep = registry.stats.get(player).ep;
 
-		ep = maxep;
+		if (registry.stats.get(player).guard) {
+			//ep = maxep * 1.5f;
+			registry.stats.get(player).guard = false;
+		}
+		else {
+			ep = maxep;
+		}
 
 	}
 }
@@ -988,36 +1170,64 @@ void WorldSystem::removeForLoad() {
 	}
 }
 
-void WorldSystem::loadFromData(json data) {
+std::queue<Entity> WorldSystem::loadFromData(json data) {
 	// load player
-	loadPlayer(data["player"]);
-	loadEnemies(data["enemies"]);
+	json entityList = data["entities"];
+	std::queue<Entity> entities;
+	for (auto entity : entityList) {
+		Entity e;
+		if (entity["type"] == "player") {
+			e = loadPlayer(entity);
+		}
+		else {
+			e = loadEnemy(entity);
+		}
+		entities.push(e);
+	}
+
+	return entities;
 }
 
-void WorldSystem::loadPlayer(json playerData) {
+Entity WorldSystem::loadPlayer(json playerData) {
 	// create a player from the save data
 	// get player motion
 	Motion motion = loadMotion(playerData["motion"]);
 	
 	// create player
 	Entity e = createPlayer(renderer, motion);
-	// get player stats
+
+	// get player component stuff
+	registry.players.get(e).attacked = playerData["player"]["attacked"];
+
+	// get queueable stuff
+	registry.queueables.get(e).doing_turn = playerData["queueable"]["doingTurn"];
+
+	// get stats
 	json stats = playerData["stats"];
 	registry.stats.get(e).ep = stats["ep"];
+	registry.stats.get(e).maxep = stats["maxEP"];
 	registry.stats.get(e).hp = stats["hp"];
-	registry.stats.get(e).maxep = stats["maxep"];
+	registry.stats.get(e).maxep = stats["maxHP"];
 	registry.stats.get(e).mp = stats["mp"];
+	registry.stats.get(e).maxmp = stats["maxMP"];
+	registry.stats.get(e).atk = stats["atk"];
+	registry.stats.get(e).def = stats["def"];
+	registry.stats.get(e).speed = stats["speed"];
+	registry.stats.get(e).range = stats["range"];
+	registry.stats.get(e).chase = stats["chase"];
+	
+	return e;
 }
 
-void WorldSystem::loadEnemies(json enemyData) {
-	for (auto enemy : enemyData) {
-		if (enemy["type"] == "slime") {
-			loadSlime(enemy);
-		}
+Entity WorldSystem::loadEnemy(json enemyData) {
+	Entity e;
+	if (enemyData["type"] == "slime") {
+		e = loadSlime(enemyData);
 	}
+	return e;
 }
 
-void WorldSystem::loadSlime(json slimeData) {
+Entity WorldSystem::loadSlime(json slimeData) {
 	// get slime's motion
 	Motion motion = loadMotion(slimeData["motion"]);
 
@@ -1025,8 +1235,28 @@ void WorldSystem::loadSlime(json slimeData) {
 	Entity e = createEnemy(renderer, motion);
 
 	// set slimeEnemy data
-	json data = slimeData["data"];
-	registry.slimeEnemies.get(e).state = data["state"];
+	json slimeEnemy = slimeData["slime"];
+	registry.slimeEnemies.get(e).state = slimeEnemy["state"];
+
+	// get queueable stuff
+	json queueable = slimeData["queueable"];
+	registry.queueables.get(e).doing_turn = queueable["doingTurn"];
+
+	// get stats
+	json stats = slimeData["stats"];
+	registry.stats.get(e).ep = stats["ep"];
+	registry.stats.get(e).maxep = stats["maxEP"];
+	registry.stats.get(e).hp = stats["hp"];
+	registry.stats.get(e).maxep = stats["maxHP"];
+	registry.stats.get(e).mp = stats["mp"];
+	registry.stats.get(e).maxmp = stats["maxMP"];
+	registry.stats.get(e).atk = stats["atk"];
+	registry.stats.get(e).def = stats["def"];
+	registry.stats.get(e).speed = stats["speed"];
+	registry.stats.get(e).range = stats["range"];
+	registry.stats.get(e).chase = stats["chase"];
+
+	return e;
 }
 
 Motion WorldSystem::loadMotion(json motionData) {
@@ -1081,6 +1311,7 @@ void WorldSystem::doTurnOrderLogic() {
 			set_is_player_turn(true);
 			start_player_turn();
 			logText("It is now your turn!");
+			set_gamestate(GameStates::BATTLE_MENU);
 		}
 	}
 
@@ -1098,4 +1329,10 @@ void set_enemy_state_attack(Entity enemy) {
 	if (registry.slimeEnemies.has(enemy)) {
 		registry.slimeEnemies.get(enemy).state = ENEMY_STATE::ATTACK;
 	}
+}
+
+// Set attack state for enemies who attack after moving
+void set_gamestate(GameStates state) {
+	previous_game_state = current_game_state;
+	current_game_state = state;
 }

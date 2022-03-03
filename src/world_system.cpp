@@ -238,7 +238,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					registry.remove_all_components_of(epr);
 				}
 				// update ep range
-				create_ep_range(stats.ep, player_motion.movement_speed, player_motion.position);
+				if (current_game_state == GameStates::MOVEMENT_MENU) {
+					create_ep_range(stats.ep, player_motion.movement_speed, player_motion.position);
+				}
 			}
 			else {
 				// if in movement mode, show the new ep range
@@ -262,12 +264,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		for (Entity e : registry.menuItems.entities) {
 			registry.remove_all_components_of(e);
 		}
-		// bring back all of the buttons
-		createMoveButton(renderer, { window_width_px - 1400.f, window_height_px - 50.f });
-		createAttackButton(renderer, { window_width_px - 1000.f, window_height_px - 50.f });
-		createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
-		createItemButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
 
+		if (registry.actionButtons.entities.size() < 4) {
+			// bring back all of the buttons
+			createMoveButton(renderer, { window_width_px - 1400.f, window_height_px - 50.f });
+			createAttackButton(renderer, { window_width_px - 1000.f, window_height_px - 50.f });
+			createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+			createItemButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
+		}
+		
 		// hide all the visulaiztion tools
 		for (Entity mvo : registry.modeVisualizationObjects.entities) {
 			registry.remove_all_components_of(mvo);
@@ -417,6 +422,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 	// reduce window brightness if any of the present chickens is dying
 	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
+
+	// Projectile Timers
+	for (Entity entity : registry.projectileTimers.entities) {
+		// progress timer
+		ProjectileTimer& counter = registry.projectileTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if(counter.counter_ms < min_counter_ms){
+		    min_counter_ms = counter.counter_ms;
+		}
+
+		// remove text once the text timer has expired
+		if (counter.counter_ms < 0) {
+			registry.motions.get(counter.owner).in_motion = false;
+			registry.remove_all_components_of(entity);
+		}
+	}
 
 	// Text Timers
 	for (Entity entity : registry.textTimers.entities) {
@@ -636,10 +657,10 @@ void WorldSystem::spawn_game_entities() {
 		{"Left click the buttons at the bottom to switch between actions.", 2000},
 		{"In Move mode, you can click to move as long as you have EP.", 6000},
 		{"EP is the yellow bar at the top of the screen, which gets expended as you move and attack.", 10000},
-		{"In Attack mode, you can click on an enemy close to you to deal damage.", 16000},
+		{"In Attack mode, you can click on an enemy close to you to deal damage at the cost of half your EP.", 15000},
 		{"Use your attacks wisely. You can only attack once per turn.", 20000},
 		{"After your EP hits 0 or you click on End Turn, the enemies will have a turn to move and attack you.", 24000},
-		{"Good luck, nameless adventurer.", 28000}};
+		{"Good luck, nameless adventurer.", 30000}};
 
 	createSign(
 		renderer, 
@@ -719,7 +740,13 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 	if (enemySpawns.size() > 0) {
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
-			createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			// Spawn either a slime or PlantShooter
+			if (ichoose(0, 1)) {
+				createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			}
+			else {
+				createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			}
 		}
 	}
 }
@@ -784,7 +811,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// LOGGING TEXT TEST
 	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
 		for (Entity& player : registry.players.entities) {
-			for (Entity& enemy : registry.slimeEnemies.entities) {
+			for (Entity& enemy : registry.enemies.entities) {
 				int test = irandRange(100,200);
 				std::string log_message = deal_damage(enemy, player, test);
 
@@ -871,6 +898,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("Previous game state is: %i\n", static_cast<int>(previous_game_state));
 		printf("Current game state is: %i\n", static_cast<int>(current_game_state));
 		printf("GAME STATE LOG END ============\n\n\n");
+		turnOrderSystem.getTurnOrder();
 	}
 
 	// Debugging
@@ -949,54 +977,56 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								registry.remove_all_components_of(registry.renderRequests.entities[i]);
 							}
 						}
-
-						//spawn_game_entities(); 
 						is_player_turn = true; 
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
-					case BUTTON_ACTION_ID::ACTIONS_ATTACK: 
-						// set player action to attack
-						for (Entity p : registry.players.entities) {
-							Player& player = registry.players.get(p);
-							player.action = PLAYER_ACTION::ATTACKING;
-							
-							// hide all action buttons
-							for (Entity ab : registry.actionButtons.entities) {
-								registry.remove_all_components_of(ab);
+					case BUTTON_ACTION_ID::ACTIONS_ATTACK:
+						if (current_game_state != GameStates::ENEMY_TURN) {
+							// set player action to attack
+							for (Entity p : registry.players.entities) {
+								Player& player = registry.players.get(p);
+								player.action = PLAYER_ACTION::ATTACKING;
+
+								// hide all action buttons
+								for (Entity ab : registry.actionButtons.entities) {
+									registry.remove_all_components_of(ab);
+								}
+								hideGuardButton = true;
+
+								// set game state to attack menu
+								set_gamestate(GameStates::ATTACK_MENU);
+
+								// create back button and attack mode text
+								createBackButton(renderer, { 100.f , window_height_px - 60.f });
+								createAttackModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
 							}
-							hideGuardButton = true;
-
-							// set game state to attack menu
-							set_gamestate(GameStates::ATTACK_MENU);
-
-							// create back button and attack mode text
-							createBackButton(renderer, { 100.f , window_height_px - 60.f });
-							createAttackModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
 						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_MOVE:
-						// set player action to move
-						for (Entity p : registry.players.entities) {
-							Player& player = registry.players.get(p);
-							Stats stats = registry.stats.get(p);
-							player.action = PLAYER_ACTION::MOVING;
+						if (current_game_state != GameStates::ENEMY_TURN) {
+							// set player action to move
+							for (Entity p : registry.players.entities) {
+								Player& player = registry.players.get(p);
+								Stats stats = registry.stats.get(p);
+								player.action = PLAYER_ACTION::MOVING;
 
-							// hide all action buttons
-							for (Entity ab : registry.actionButtons.entities) {
-								registry.remove_all_components_of(ab);
+								// hide all action buttons
+								for (Entity ab : registry.actionButtons.entities) {
+									registry.remove_all_components_of(ab);
+								}
+								hideGuardButton = true;
+
+								// show ep range
+								Motion motion = registry.motions.get(p);
+								create_ep_range(stats.ep, motion.movement_speed, motion.position);
+
+								// set game state to move menu
+								set_gamestate(GameStates::MOVEMENT_MENU);
+
+								// create back button and move mode text
+								createBackButton(renderer, { 100.f , window_height_px - 60.f });
+								createMoveModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
 							}
-							hideGuardButton = true;
-
-							// show ep range
-							Motion motion = registry.motions.get(p);
-							create_ep_range(stats.ep, motion.movement_speed, motion.position);
-
-							// set game state to move menu
-							set_gamestate(GameStates::MOVEMENT_MENU);
-
-							// create back button and move mode text
-							createBackButton(renderer, { 100.f , window_height_px - 60.f });
-							createMoveModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
 						}
 						break;
 					case BUTTON_ACTION_ID::PAUSE:
@@ -1027,6 +1057,18 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					case BUTTON_ACTION_ID::ACTIONS_ITEM:
 						// TODO: add real functionality for this
 						logText("Items Menu to be implemented later!");
+
+						// hide all action buttons
+						for (Entity ab : registry.actionButtons.entities) {
+							registry.remove_all_components_of(ab);
+						}
+						hideGuardButton = true;
+
+						// set game state to move menu
+						set_gamestate(GameStates::ITEM_MENU);
+
+						// create back button and move mode text
+						createBackButton(renderer, { 100.f , window_height_px - 60.f });
 						break;
 				}
 			}
@@ -1035,36 +1077,37 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		///////////////////////////
 		// logic for guard button presses
 		///////////////////////////
-
-		for (Entity e : registry.guardButtons.entities) {
-			if (!registry.motions.has(e)) {
-				continue;
-			}
-			Motion m = registry.motions.get(e);
-			int buttonX = m.position[0];
-			int buttonY = m.position[1];
-			// if mouse is interating with a button
-			if ((xpos <= (buttonX + m.scale[0] / 2) && xpos >= (buttonX - m.scale[0] / 2)) &&
-				(ypos >= (buttonY - m.scale[1] / 2) && ypos <= (buttonY + m.scale[1] / 2))) {
-				if (!registry.guardButtons.has(e)) {
+		if (current_game_state != GameStates::ENEMY_TURN) {
+			for (Entity e : registry.guardButtons.entities) {
+				if (!registry.motions.has(e)) {
 					continue;
 				}
-				// perform action based on button ENUM
-				BUTTON_ACTION_ID action = registry.guardButtons.get(e).action;
+				Motion m = registry.motions.get(e);
+				int buttonX = m.position[0];
+				int buttonY = m.position[1];
+				// if mouse is interating with a button
+				if ((xpos <= (buttonX + m.scale[0] / 2) && xpos >= (buttonX - m.scale[0] / 2)) &&
+					(ypos >= (buttonY - m.scale[1] / 2) && ypos <= (buttonY + m.scale[1] / 2))) {
+					if (!registry.guardButtons.has(e)) {
+						continue;
+					}
+					// perform action based on button ENUM
+					BUTTON_ACTION_ID action = registry.guardButtons.get(e).action;
 
-				switch (action) {
-				case BUTTON_ACTION_ID::ACTIONS_GUARD:
-					logText("You brace yourself...");
-					for (Entity player : registry.players.entities) {
-						registry.stats.get(player).guard = true;
-						handle_end_player_turn(player);
+					switch (action) {
+					case BUTTON_ACTION_ID::ACTIONS_GUARD:
+						logText("You brace yourself...");
+						for (Entity player : registry.players.entities) {
+							registry.stats.get(player).guard = true;
+							handle_end_player_turn(player);
+						}
+						break;
+					case BUTTON_ACTION_ID::ACTIONS_END_TURN:
+						for (Entity player : registry.players.entities) {
+							handle_end_player_turn(player);
+						}
+						break;
 					}
-					break;
-				case BUTTON_ACTION_ID::ACTIONS_END_TURN:
-					for (Entity player : registry.players.entities) {
-						handle_end_player_turn(player);
-					}
-					break;
 				}
 			}
 		}
@@ -1425,8 +1468,11 @@ void WorldSystem::doTurnOrderLogic() {
 
 // Set attack state for enemies who attack after moving
 void set_enemy_state_attack(Entity enemy) {
-	if (registry.slimeEnemies.has(enemy)) {
-		registry.slimeEnemies.get(enemy).state = ENEMY_STATE::ATTACK;
+	if (registry.enemies.get(enemy).type == ENEMY_TYPE::SLIME) {
+		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
+	}
+	if (registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER) {
+		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
 	}
 }
 

@@ -4,7 +4,7 @@
 void TurnOrderSystem::setUpTurnOrder() {
 	// get player and put to front of queue
 	for (Entity player : registry.players.entities) {
-		currentEntity = player;
+		turnQueue.push(player);
 	}
 
 	// loop through all queuables and add them to turnQueue
@@ -26,7 +26,7 @@ Entity TurnOrderSystem::getNextTurn() {
 	
 	Entity next;
 
-	// push current Entity into queue just in case quueue is empty
+	// push current Entity into queue just in case queue is empty
 	turnQueue.push(currentEntity);
 
 	// check to see if the next thing is still alive(should still be in queueables)
@@ -52,6 +52,14 @@ std::queue<Entity> TurnOrderSystem::getTurnOrder() {
 	for (int i = 0; i < size; i++) {
 		// get entity
 		Entity e = turnQueue.front();
+		// print turn order
+		/*
+		if (registry.players.has(e)) {
+			printf("player here\n");
+		}
+		if (registry.enemies.has(e)) {
+			printf("enemy here\n");
+		}*/
 		turnQueue.pop();
 		// put in return queue
 		returnQueue.push(e);

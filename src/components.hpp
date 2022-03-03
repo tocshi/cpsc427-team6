@@ -10,41 +10,70 @@ enum class PLAYER_ACTION {
 	ACTION_COUNT = ATTACKING + 1
 };
 
+// Inventory Items
+enum class CONSUMABLE {
+	REDPOT = 0,
+	BLUPOT = REDPOT + 1,
+	YELPOT = BLUPOT + 1,
+	CONSUMABLE_COUNT = YELPOT + 1
+};
+
+enum class WEAPON {
+	STICK = 0,
+	BOW0 = STICK + 1,
+	SWORD0 = BOW0 + 1,
+	BLUNT0 = SWORD0 + 1,
+	BOW1 = BLUNT0 + 1,
+	SWORD1 = BOW1 + 1,
+	BLUNT1 = SWORD1 + 1,
+	WEAPON_COUNT = BLUNT1 + 1
+};
+
+enum class ARMOUR {
+	FAMCLOTH = 0,
+	ARMOUR_COUNT = FAMCLOTH + 1
+};
+
+enum class ARTIFACT {
+	POISON_FANG = 0,
+	GLAD_HOPLON = POISON_FANG + 1,
+	PIOUS_PRAYER = GLAD_HOPLON + 1,
+	BLADE_POLISH = PIOUS_PRAYER + 1,
+	HQ_FLETCHING = BLADE_POLISH + 1,
+	HOMEMADE_MEAL = HQ_FLETCHING + 1,
+	THUNDER_TWIG = HOMEMADE_MEAL + 1,
+	LUCKY_CHIP = THUNDER_TWIG + 1,
+	GUIDE_HEALBUFF = LUCKY_CHIP + 1,
+	THICK_TOME = GUIDE_HEALBUFF + 1,
+	GOLIATH_BELT = THICK_TOME + 1,
+	BLOOD_RUBY = GOLIATH_BELT + 1,
+	WINDBAG = BLOOD_RUBY + 1,
+	KB_MALLET = WINDBAG + 1,
+	WEAPON_UPGRADE = KB_MALLET + 1,
+	ARMOUR_UPGRADE = WEAPON_UPGRADE + 1,
+	ARTIFACT_COUNT = ARMOUR_UPGRADE + 1
+};
+
+// Inventory component
+struct Inventory
+{
+	int equipped[2] = { -1, -1 };
+	int consumable[static_cast<int>(CONSUMABLE::CONSUMABLE_COUNT)];
+	int weapon[static_cast<int>(WEAPON::WEAPON_COUNT)];
+	int armour[static_cast<int>(ARMOUR::ARMOUR_COUNT)];
+	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
+};
+
 // Player component
 struct Player
 {
 	float s;
-
+	Inventory inv;
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
 
 	// true if the player has already attacked that turn
 	bool attacked = false;
-};
-
-// Inventory Items
-enum class CONSUMABLE {
-	REDPOT = 0,
-	BLUPOT = REDPOT + 1,
-	ACTION_COUNT = BLUPOT + 1
-};
-
-enum class WEAPON {
-	MOVING = 0,
-	ATTACKING = MOVING + 1,
-	ACTION_COUNT = ATTACKING + 1
-};
-
-enum class ARMOUR {
-	MOVING = 0,
-	ATTACKING = MOVING + 1,
-	ACTION_COUNT = ATTACKING + 1
-};
-
-enum class ARTIFACT {
-	MOVING = 0,
-	ATTACKING = MOVING + 1,
-	ACTION_COUNT = ATTACKING + 1
 };
 
 // Mode visualization objects
@@ -113,6 +142,12 @@ struct WobbleTimer
 {
 	float counter_ms = 3000;
 	vec2 orig_scale = { 0, 0 };
+};
+
+struct ProjectileTimer
+{
+	float counter_ms = 3000;
+	Entity owner;
 };
 
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & chicken.vs.glsl)
@@ -197,16 +232,25 @@ struct Solid {
 
 };
 
-// simple component for all enemies
-struct Enemy {
-
-};
-
 enum class ENEMY_STATE {
 	IDLE = 0,
 	AGGRO = IDLE + 1,
 	ATTACK = AGGRO + 1,
-	STATE_COUNT = ATTACK + 1
+	DEATH = ATTACK + 1,
+	STATE_COUNT = DEATH + 1
+};
+
+enum class ENEMY_TYPE {
+	SLIME = 0,
+	PLANT_SHOOTER = SLIME + 1,
+	TYPE_COUNT = PLANT_SHOOTER + 1
+};
+
+// simple component for all enemies
+struct Enemy {
+	vec2 initialPosition = { 0, 0 };
+	ENEMY_STATE state = ENEMY_STATE::STATE_COUNT;
+	ENEMY_TYPE type = ENEMY_TYPE::TYPE_COUNT;
 };
 
 struct SlimeEnemy {
@@ -321,7 +365,9 @@ enum class TEXTURE_ASSET_ID {
 	BG = 0,
 	PLAYER = BG + 1,
 	SLIME = PLAYER + 1,
-	BOSS = SLIME + 1,
+	PLANT_SHOOTER = SLIME + 1,
+	PLANT_PROJECTILE = PLANT_SHOOTER + 1,
+	BOSS = PLANT_PROJECTILE + 1,
 	ARTIFACT = BOSS + 1,
 	CONSUMABLE = ARTIFACT + 1,
 	EQUIPABLE = CONSUMABLE + 1,

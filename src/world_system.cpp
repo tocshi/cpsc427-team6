@@ -523,6 +523,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			if (sign.counter_ms > sign.messages[sign.messages.size()-1].second) {
 				sign.counter_ms = 0;
+				sign.next_message = 0;
 				sign.playing = false;
 			}
 		}

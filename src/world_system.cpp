@@ -11,18 +11,12 @@
 #include "combat_system.hpp"
 
 // Game configuration
-const size_t MAX_EAGLES = 15;
-const size_t MAX_BUG = 5;
-const size_t EAGLE_DELAY_MS = 2000 * 3;
-const size_t BUG_DELAY_MS = 5000 * 3;
 // decalre gamestates
 //GameStates game_state = GameStates::CUTSCENE;
 
-// Create the bug world
+// Create the world
 WorldSystem::WorldSystem()
-	: points(0)
-	, next_eagle_spawn(0.f)
-	, next_bug_spawn(0.f) {
+{
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 }
@@ -31,10 +25,6 @@ WorldSystem::~WorldSystem() {
 	// Destroy music components
 	if (background_music != nullptr)
 		Mix_FreeMusic(background_music);
-	if (chicken_dead_sound != nullptr)
-		Mix_FreeChunk(chicken_dead_sound);
-	if (chicken_eat_sound != nullptr)
-		Mix_FreeChunk(chicken_eat_sound);
 	if (fire_explosion_sound != nullptr)
 		Mix_FreeChunk(fire_explosion_sound);
 	if (error_sound != nullptr)
@@ -148,8 +138,6 @@ GLFWwindow* WorldSystem::create_window() {
 	background_music = Mix_LoadMUS(audio_path("bgm/caves0.wav").c_str());
 
 	// Sounds and volumes
-	chicken_dead_sound = Mix_LoadWAV(audio_path("chicken_dead.wav").c_str());
-	chicken_eat_sound = Mix_LoadWAV(audio_path("chicken_eat.wav").c_str());
 	fire_explosion_sound = Mix_LoadWAV(audio_path("feedback/fire_explosion.wav").c_str());
 	Mix_VolumeChunk(fire_explosion_sound, 13);
 	error_sound = Mix_LoadWAV(audio_path("feedback/error.wav").c_str());
@@ -157,12 +145,10 @@ GLFWwindow* WorldSystem::create_window() {
 	footstep_sound = Mix_LoadWAV(audio_path("feedback/footstep.wav").c_str());
 	Mix_VolumeChunk(footstep_sound, 14);
 
-	if (background_music == nullptr || chicken_dead_sound == nullptr || chicken_eat_sound == nullptr 
-		|| fire_explosion_sound == nullptr || error_sound == nullptr || footstep_sound == nullptr) {
+	if (background_music == nullptr || fire_explosion_sound == nullptr 
+		|| error_sound == nullptr || footstep_sound == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
 			audio_path("bgm/caves0.wav").c_str(),
-			audio_path("chicken_dead.wav").c_str(),
-			audio_path("chicken_eat.wav").c_str(),
 			audio_path("feedback/fire_explosion.wav").c_str(),
 			audio_path("feedback/error.wav").c_str(),
 			audio_path("feedback/footstep.wav").c_str());

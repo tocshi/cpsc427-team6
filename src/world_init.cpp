@@ -1270,7 +1270,7 @@ Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale
 	text.scale = scale;
 	text.textColor = textColor;
 
-	// Create an (empty) Bug component to be able to refer to all bug
+	// Create an (empty) TEXT component to be able to refer to all text
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,

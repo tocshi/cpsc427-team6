@@ -150,7 +150,7 @@ struct ProjectileTimer
 	Entity owner;
 };
 
-// Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl & chicken.vs.glsl)
+// Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl)
 struct ColoredVertex
 {
 	vec3 position;
@@ -416,8 +416,7 @@ enum class EFFECT_ASSET_ID {
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
 
 enum class GEOMETRY_BUFFER_ID {
-	CHICKEN = 0,
-	SPRITE = CHICKEN + 1,
+	SPRITE = 0,
 	TILEMAP = SPRITE + 1,
 	LINE = TILEMAP + 1,
 	ANIMATION = LINE + 1,

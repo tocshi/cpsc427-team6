@@ -251,11 +251,6 @@ struct Enemy {
 	ENEMY_TYPE type = ENEMY_TYPE::TYPE_COUNT;
 };
 
-struct SlimeEnemy {
-	vec2 initialPosition = { 0, 0 };
-	ENEMY_STATE state = ENEMY_STATE::STATE_COUNT;
-};
-
 struct ActionButton {
 
 };

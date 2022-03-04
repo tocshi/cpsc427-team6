@@ -145,11 +145,6 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	stats.speed = 8;
 	stats.range = 250;
 
-	// make it a slime enemy for now
-	registry.slimeEnemies.insert(
-		entity,
-		{ { window_width_px / 2, 350.f },
-		ENEMY_STATE::IDLE });
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SLIME,
@@ -197,11 +192,6 @@ Entity createEnemy(RenderSystem* renderer, Motion m)
 	stats.speed = 8;
 	stats.range = 250;
 
-	// make it a slime enemy for now
-	registry.slimeEnemies.insert(
-		entity,
-		{ { window_width_px / 2, 350.f },
-		ENEMY_STATE::IDLE });
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SLIME,

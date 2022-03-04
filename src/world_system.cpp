@@ -1300,7 +1300,7 @@ Entity WorldSystem::loadSlime(json slimeData) {
 
 	// set slimeEnemy data
 	json slimeEnemy = slimeData["slime"];
-	registry.slimeEnemies.get(e).state = slimeEnemy["state"];
+	registry.enemies.get(e).state = slimeEnemy["state"];
 
 	// get queueable stuff
 	json queueable = slimeData["queueable"];

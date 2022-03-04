@@ -169,9 +169,9 @@ json SaveSystem::jsonifyEntities(std::queue<Entity> entities) {
 			changed = true;
 			entity = jsonifyPlayer(e);
 		}
-		else if (registry.slimeEnemies.has(e)) {
+		else if (registry.enemies.has(e)) {
 			changed = true;
-			entity = jsonifySlime(e);
+			entity = jsonifyEnemy(e);
 		}
 
 		// if something was actually jsonified put it into the array (removes nulls)
@@ -246,28 +246,28 @@ json SaveSystem::jsonifyPlayer(Entity player) {
 	return playerData;
 }
 
-json SaveSystem::jsonifySlime(Entity slime) {
-	json slimeData;
+json SaveSystem::jsonifyEnemy(Entity enemy) {
+	json enemyData;
 	// save entity type
-	slimeData["type"] = "slime";
+	enemyData["type"] = "slime";
 	
 	// save slime enemy component stuff
-	SlimeEnemy se = registry.slimeEnemies.get(slime);
-	json slimeEnemy;
-	slimeEnemy["state"] = se.state;
-	slimeData["slime"] = slimeEnemy;
+	Enemy e = registry.enemies.get(enemy);
+	json enemyEnemy;
+	enemyEnemy["state"] = e.state;
+	enemyData["enemy"] = enemyEnemy;
 
 	// jsonify queueable stuff
-	Queueable q = registry.queueables.get(slime);
-	slimeData["queueable"] = jsonifyQueueable(q);
+	Queueable q = registry.queueables.get(enemy);
+	enemyData["queueable"] = jsonifyQueueable(q);
 
 	// jsonify stats
-	Stats slime_stats = registry.stats.get(slime);
-	slimeData["stats"] = jsonifyStats(slime_stats);
+	Stats enemy_stats = registry.stats.get(enemy);
+	enemyData["stats"] = jsonifyStats(enemy_stats);
 
 	// jsonify motion
-	Motion m = registry.motions.get(slime);
-	slimeData["motion"] = jsonifyMotion(m);
+	Motion m = registry.motions.get(enemy);
+	enemyData["motion"] = jsonifyMotion(m);
 
-	return slimeData;
+	return enemyData;
 }

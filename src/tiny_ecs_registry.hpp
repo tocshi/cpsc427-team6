@@ -21,8 +21,6 @@ public:
 	ComponentContainer<ScreenState> screenStates;
 	ComponentContainer<DebugComponent> debugComponents;
 	ComponentContainer<vec3> colors;
-
-	// =============================
 	ComponentContainer<Damageable> damageables;
 	ComponentContainer<Consumable> consumables;
 	ComponentContainer<Equipable> equipables;
@@ -71,8 +69,6 @@ public:
 		registry_list.push_back(&screenStates);
 		registry_list.push_back(&debugComponents);
 		registry_list.push_back(&colors);
-
-		// =========================
 		registry_list.push_back(&damageables);
 		registry_list.push_back(&consumables);
 		registry_list.push_back(&equipables);

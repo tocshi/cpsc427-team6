@@ -57,20 +57,10 @@ const float FOG_BB_WIDTH = 0.6f * 100.f;
 const float FOG_BB_HEIGHT = 0.6f * 100.f;
 
 
-// the player
-Entity createChicken(RenderSystem* renderer, vec2 pos);
-// the prey
-Entity createBug(RenderSystem* renderer, vec2 position);
-// the enemy
-Entity createEagle(RenderSystem* renderer, vec2 position);
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
-// a egg
-Entity createEgg(vec2 pos, vec2 size);
 // the background
 Entity createBackground(RenderSystem* renderer, vec2 position);
-
-// ================================
 // Player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // Player with motion component as input

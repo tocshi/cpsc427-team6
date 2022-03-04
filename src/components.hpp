@@ -173,8 +173,6 @@ struct Mesh
 	std::vector<uint16_t> vertex_indices;
 };
 
-// =========================================
-// 
 struct Damageable {
 
 };
@@ -407,9 +405,8 @@ const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
-	EGG = COLOURED + 1,
-	CHICKEN = EGG + 1,
-	TEXTURED = CHICKEN + 1,
+	LINE = COLOURED + 1,
+	TEXTURED = LINE + 1,
 	WIND = TEXTURED + 1,
 	TEXT = WIND + 1,
 	FOG = TEXT + 1,
@@ -422,8 +419,8 @@ enum class GEOMETRY_BUFFER_ID {
 	CHICKEN = 0,
 	SPRITE = CHICKEN + 1,
 	TILEMAP = SPRITE + 1,
-	EGG = TILEMAP + 1,
-	ANIMATION = EGG + 1,
+	LINE = TILEMAP + 1,
+	ANIMATION = LINE + 1,
 	FOG = ANIMATION + 1,
 	EP = FOG + 1,
 	DEBUG_LINE = EP + 1,

@@ -9,7 +9,7 @@ Entity createLine(vec2 position, vec2 scale)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 EFFECT_ASSET_ID::EGG,
+		 EFFECT_ASSET_ID::LINE,
 		 GEOMETRY_BUFFER_ID::DEBUG_LINE });
 
 	// Create motion

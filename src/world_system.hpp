@@ -142,7 +142,6 @@ private:
 
 	Entity active_camera_entity;
 
-	Entity player_chicken;
 	Entity background;
 	bool is_player_turn = true;
 	bool player_move_click = false;

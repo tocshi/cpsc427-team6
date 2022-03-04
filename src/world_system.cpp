@@ -394,11 +394,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A3: HANDLE EGG SPAWN HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 	// Processing the chicken state
 	assert(registry.screenStates.components.size() <= 1);
     ScreenState &screen = registry.screenStates.components[0];
@@ -560,24 +555,6 @@ void WorldSystem::restart_game() {
 	// Add a camera entity
 	active_camera_entity = createCamera({0, 0});
 
-	//// Create a new chicken
-	//player_chicken = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
-	//registry.colors.insert(player_chicken, {1, 0.8f, 0.8f});
-
-	// !! TODO A3: Enable static eggs on the ground
-	// Create eggs on the floor for reference
-	/*
-	for (uint i = 0; i < 20; i++) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
-		float radius = 30 * (uniform_dist(rng) + 0.3f); // range 0.3 .. 1.3
-		Entity egg = createEgg({ uniform_dist(rng) * w, h - uniform_dist(rng) * 20 },
-			         { radius, radius });
-		float brightness = uniform_dist(rng) * 0.5 + 0.5;
-		registry.colors.insert(egg, { brightness, brightness, brightness});
-	}
-	*/
-
 	// restart the game on the menu screen
 	//current_game_state = true;
 	set_gamestate(GameStates::MAIN_MENU);
@@ -590,28 +567,9 @@ void WorldSystem::restart_game() {
 	//current_game_state = GameStates::MAIN_MENU;
 	//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
 
-	// For testing textures
-	//createPlayer(renderer, {50.f, 250.f});
-	//createEnemy(renderer, {50.f, 350.f});
-	//createBoss(renderer, {50.f, 450.f});
-	//createArtifact(renderer, {50.f, 550.f});
-	//createConsumable(renderer, {50.f, 650.f});
-	//createEquipable(renderer, {150.f, 250.f});
-	//createChest(renderer, {150.f, 350.f});
-	//createDoor(renderer, {150.f, 450.f});
-	//createSign(renderer, {150.f, 550.f});
-	//createStair(renderer, {150.f, 650.f});
 	createMenuStart(renderer, { window_width_px / 2, 500.f });
 	createMenuQuit(renderer, { window_width_px / 2, 850.f });
 	createMenuTitle(renderer, { window_width_px / 2, 200.f });
-
-	// testing text
-	// createText(renderer, vec2(200.f, 200.f), "abcdefghijklmnopqrstuvwxyz", 1.5f, vec3(1.0f, 0.0f, 0.0f));
-	// createText(renderer, vec2(200.f, 300.f), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1.5f, vec3(1.0f, 0.0f, 0.0f));
-	// createText(renderer, vec2(200.f, 400.f), "0123456789", 1.5f, vec3(1.0f, 0.0f, 0.0f));
-	// createText(renderer, vec2(200.f, 500.f), ",./:;'()[]", 1.5f, vec3(1.0f, 0.0f, 0.0f));
-	// createText(renderer, vec2(0.f, 50.f), "test,. '123", 1.5f, vec3(1.0f));
-	// createText(renderer, vec2(200.f, 500.f), ".'", 2.f, vec3(1.0f));
 }
 
 void WorldSystem::handle_end_player_turn(Entity player) {
@@ -639,16 +597,6 @@ void WorldSystem::spawn_game_entities() {
 	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
 	spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
   
-	/*
-	createBoss(renderer, { 250.f, 450.f });
-	createArtifact(renderer, { 250.f, 550.f });
-	createConsumable(renderer, { 250.f, 650.f });
-	createEquipable(renderer, { 350.f, 250.f });
-	createChest(renderer, { 350.f, 350.f });
-	createDoor(renderer, { 350.f, 450.f });
-	createSign(renderer, { 350.f, 550.f });
-	createStair(renderer, { 350.f, 650.f });
-	*/
 	Entity player = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player);
 
@@ -802,12 +750,6 @@ bool WorldSystem::is_over() const {
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: HANDLE CHICKEN MOVEMENT HERE
-	// key is of 'type' GLFW_KEY_
-	// action can be GLFW_PRESS GLFW_RELEASE GLFW_REPEAT
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 	// LOGGING TEXT TEST
 	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
 		for (Entity& player : registry.players.entities) {
@@ -1233,12 +1175,6 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: HANDLE CHICKEN ROTATION HERE
-	// xpos and ypos are relative to the top-left of the window, the chicken's
-	// default facing direction is (1, 0)
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 	(vec2)mouse_position; // dummy to avoid compiler warning
 }
 

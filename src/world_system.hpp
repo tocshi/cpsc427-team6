@@ -57,6 +57,9 @@ public:
 
 	void start_player_turn();
 
+	// Game state
+	Entity player_main;
+
 	// music references
 	Mix_Music* background_music;
 	Mix_Chunk* fire_explosion_sound;

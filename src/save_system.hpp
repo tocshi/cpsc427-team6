@@ -22,7 +22,7 @@ public:
 private:
 	json jsonifyEntities(std::queue<Entity> entities);
 	json jsonifyPlayer(Entity player);
-	json jsonifySlime(Entity slime);
+	json jsonifyEnemy(Entity enemy);
 	json jsonifyMotion(Motion m);
 	json jsonifyStats(Stats s);
 	json jsonifyQueueable(Queueable q);

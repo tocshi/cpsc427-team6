@@ -11,18 +11,12 @@
 #include "combat_system.hpp"
 
 // Game configuration
-const size_t MAX_EAGLES = 15;
-const size_t MAX_BUG = 5;
-const size_t EAGLE_DELAY_MS = 2000 * 3;
-const size_t BUG_DELAY_MS = 5000 * 3;
 // decalre gamestates
 //GameStates game_state = GameStates::CUTSCENE;
 
-// Create the bug world
+// Create the world
 WorldSystem::WorldSystem()
-	: points(0)
-	, next_eagle_spawn(0.f)
-	, next_bug_spawn(0.f) {
+{
 	// Seeding rng with random device
 	rng = std::default_random_engine(std::random_device()());
 }
@@ -31,10 +25,6 @@ WorldSystem::~WorldSystem() {
 	// Destroy music components
 	if (background_music != nullptr)
 		Mix_FreeMusic(background_music);
-	if (chicken_dead_sound != nullptr)
-		Mix_FreeChunk(chicken_dead_sound);
-	if (chicken_eat_sound != nullptr)
-		Mix_FreeChunk(chicken_eat_sound);
 	if (fire_explosion_sound != nullptr)
 		Mix_FreeChunk(fire_explosion_sound);
 	if (error_sound != nullptr)
@@ -148,8 +138,6 @@ GLFWwindow* WorldSystem::create_window() {
 	background_music = Mix_LoadMUS(audio_path("bgm/caves0.wav").c_str());
 
 	// Sounds and volumes
-	chicken_dead_sound = Mix_LoadWAV(audio_path("chicken_dead.wav").c_str());
-	chicken_eat_sound = Mix_LoadWAV(audio_path("chicken_eat.wav").c_str());
 	fire_explosion_sound = Mix_LoadWAV(audio_path("feedback/fire_explosion.wav").c_str());
 	Mix_VolumeChunk(fire_explosion_sound, 13);
 	error_sound = Mix_LoadWAV(audio_path("feedback/error.wav").c_str());
@@ -157,12 +145,10 @@ GLFWwindow* WorldSystem::create_window() {
 	footstep_sound = Mix_LoadWAV(audio_path("feedback/footstep.wav").c_str());
 	Mix_VolumeChunk(footstep_sound, 14);
 
-	if (background_music == nullptr || chicken_dead_sound == nullptr || chicken_eat_sound == nullptr 
-		|| fire_explosion_sound == nullptr || error_sound == nullptr || footstep_sound == nullptr) {
+	if (background_music == nullptr || fire_explosion_sound == nullptr 
+		|| error_sound == nullptr || footstep_sound == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
 			audio_path("bgm/caves0.wav").c_str(),
-			audio_path("chicken_dead.wav").c_str(),
-			audio_path("chicken_eat.wav").c_str(),
 			audio_path("feedback/fire_explosion.wav").c_str(),
 			audio_path("feedback/error.wav").c_str(),
 			audio_path("feedback/footstep.wav").c_str());
@@ -216,43 +202,41 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// perform in-motion behaviour
 	if (get_is_player_turn() && player_move_click) {
-		for (Entity player : registry.players.entities) {
-			Motion player_motion = registry.motions.get(player);
-			Stats stats = registry.stats.get(player);
-			if (player_motion.in_motion) {
-				// handle footstep sound
-				if (move_audio_timer_ms <= 0) {
-					// play the footstep sound
-					Mix_PlayChannel(-1, footstep_sound, 0);
-					move_audio_timer_ms = 200.f;
-				}
-				else {
-					move_audio_timer_ms -= 20.f;
-				}
-				// update the fog of war if the player is moving
-				remove_fog_of_war();
-				create_fog_of_war();
+		Motion player_motion = registry.motions.get(player_main);
+		Stats stats = registry.stats.get(player_main);
+		if (player_motion.in_motion) {
+			// handle footstep sound
+			if (move_audio_timer_ms <= 0) {
+				// play the footstep sound
+				Mix_PlayChannel(-1, footstep_sound, 0);
+				move_audio_timer_ms = 200.f;
+			}
+			else {
+				move_audio_timer_ms -= 20.f;
+			}
+			// update the fog of war if the player is moving
+			remove_fog_of_war();
+			create_fog_of_war();
 
+			// remove old ep range
+			for (Entity epr : registry.epRange.entities) {
+				registry.remove_all_components_of(epr);
+			}
+			// update ep range
+			if (current_game_state == GameStates::MOVEMENT_MENU) {
+				create_ep_range(stats.ep, player_motion.movement_speed, player_motion.position);
+			}
+		}
+		else {
+			// if in movement mode, show the new ep range
+			if (current_game_state == GameStates::MOVEMENT_MENU) {
 				// remove old ep range
 				for (Entity epr : registry.epRange.entities) {
 					registry.remove_all_components_of(epr);
 				}
-				// update ep range
-				if (current_game_state == GameStates::MOVEMENT_MENU) {
-					create_ep_range(stats.ep, player_motion.movement_speed, player_motion.position);
-				}
+				create_ep_range(stats.ep, player_motion.movement_speed, player_motion.position);
 			}
-			else {
-				// if in movement mode, show the new ep range
-				if (current_game_state == GameStates::MOVEMENT_MENU) {
-					// remove old ep range
-					for (Entity epr : registry.epRange.entities) {
-						registry.remove_all_components_of(epr);
-					}
-					create_ep_range(stats.ep, player_motion.movement_speed, player_motion.position);
-				}
-				player_move_click = false;
-			}
+			player_move_click = false;
 		}
 	}
 
@@ -393,11 +377,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			squish.orig_scale = registry.motions.get(enemy).scale;
 		}
 	}
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A3: HANDLE EGG SPAWN HERE
-	// DON'T WORRY ABOUT THIS UNTIL ASSIGNMENT 3
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	// Processing the chicken state
 	assert(registry.screenStates.components.size() <= 1);
@@ -560,24 +539,6 @@ void WorldSystem::restart_game() {
 	// Add a camera entity
 	active_camera_entity = createCamera({0, 0});
 
-	//// Create a new chicken
-	//player_chicken = createChicken(renderer, { window_width_px/2, window_height_px - 200 });
-	//registry.colors.insert(player_chicken, {1, 0.8f, 0.8f});
-
-	// !! TODO A3: Enable static eggs on the ground
-	// Create eggs on the floor for reference
-	/*
-	for (uint i = 0; i < 20; i++) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
-		float radius = 30 * (uniform_dist(rng) + 0.3f); // range 0.3 .. 1.3
-		Entity egg = createEgg({ uniform_dist(rng) * w, h - uniform_dist(rng) * 20 },
-			         { radius, radius });
-		float brightness = uniform_dist(rng) * 0.5 + 0.5;
-		registry.colors.insert(egg, { brightness, brightness, brightness});
-	}
-	*/
-
 	// restart the game on the menu screen
 	//current_game_state = true;
 	set_gamestate(GameStates::MAIN_MENU);
@@ -590,28 +551,9 @@ void WorldSystem::restart_game() {
 	//current_game_state = GameStates::MAIN_MENU;
 	//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
 
-	// For testing textures
-	//createPlayer(renderer, {50.f, 250.f});
-	//createEnemy(renderer, {50.f, 350.f});
-	//createBoss(renderer, {50.f, 450.f});
-	//createArtifact(renderer, {50.f, 550.f});
-	//createConsumable(renderer, {50.f, 650.f});
-	//createEquipable(renderer, {150.f, 250.f});
-	//createChest(renderer, {150.f, 350.f});
-	//createDoor(renderer, {150.f, 450.f});
-	//createSign(renderer, {150.f, 550.f});
-	//createStair(renderer, {150.f, 650.f});
 	createMenuStart(renderer, { window_width_px / 2, 500.f });
 	createMenuQuit(renderer, { window_width_px / 2, 850.f });
 	createMenuTitle(renderer, { window_width_px / 2, 200.f });
-
-	// testing text
-	// createText(renderer, vec2(200.f, 200.f), "abcdefghijklmnopqrstuvwxyz", 1.5f, vec3(1.0f, 0.0f, 0.0f));
-	// createText(renderer, vec2(200.f, 300.f), "ABCDEFGHIJKLMNOPQRSTUVWXYZ", 1.5f, vec3(1.0f, 0.0f, 0.0f));
-	// createText(renderer, vec2(200.f, 400.f), "0123456789", 1.5f, vec3(1.0f, 0.0f, 0.0f));
-	// createText(renderer, vec2(200.f, 500.f), ",./:;'()[]", 1.5f, vec3(1.0f, 0.0f, 0.0f));
-	// createText(renderer, vec2(0.f, 50.f), "test,. '123", 1.5f, vec3(1.0f));
-	// createText(renderer, vec2(200.f, 500.f), ".'", 2.f, vec3(1.0f));
 }
 
 void WorldSystem::handle_end_player_turn(Entity player) {
@@ -639,16 +581,6 @@ void WorldSystem::spawn_game_entities() {
 	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
 	spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
   
-	/*
-	createBoss(renderer, { 250.f, 450.f });
-	createArtifact(renderer, { 250.f, 550.f });
-	createConsumable(renderer, { 250.f, 650.f });
-	createEquipable(renderer, { 350.f, 250.f });
-	createChest(renderer, { 350.f, 350.f });
-	createDoor(renderer, { 350.f, 450.f });
-	createSign(renderer, { 350.f, 550.f });
-	createStair(renderer, { 350.f, 650.f });
-	*/
 	Entity player = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player);
 
@@ -703,15 +635,13 @@ void WorldSystem::create_ep_range(float remaining_ep, float speed, vec2 pos) {
 
 // render fog of war around the player
 void WorldSystem::create_fog_of_war() {	
-	for (Entity player : registry.players.entities) {
 		// get player position
-		Motion player_motion = registry.motions.get(player);
-		float playerX = player_motion.position.x;
-		float playerY = player_motion.position.y;
+	Motion player_motion = registry.motions.get(player_main);
+	float playerX = player_motion.position.x;
+	float playerY = player_motion.position.y;
 
-		Entity fog = createFog({ playerX, playerY }, fog_resolution, fog_radius, { window_width_px, window_height_px });
-		registry.colors.insert(fog, { 0.2, 0.2, 0.2 });
-	}
+	Entity fog = createFog({ playerX, playerY }, fog_resolution, fog_radius, { window_width_px, window_height_px });
+	registry.colors.insert(fog, { 0.2, 0.2, 0.2 });
 }
 
 // remove all fog entities
@@ -726,11 +656,11 @@ void WorldSystem::remove_fog_of_war() {
 void WorldSystem::spawn_player_random_location(std::vector<vec2>& playerSpawns) {
 	std::random_shuffle(playerSpawns.begin(), playerSpawns.end());
 	if (playerSpawns.size() > 0) {
-		createPlayer(renderer, { playerSpawns[0].x, playerSpawns[0].y});
+		player_main = createPlayer(renderer, { playerSpawns[0].x, playerSpawns[0].y});
 		return;
 	}
 	// default spawn location in case we don't have player spawns
-	createPlayer(renderer, { 0, 0 });
+	player_main = createPlayer(renderer, { 0, 0 });
 
 }
 
@@ -802,22 +732,14 @@ bool WorldSystem::is_over() const {
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: HANDLE CHICKEN MOVEMENT HERE
-	// key is of 'type' GLFW_KEY_
-	// action can be GLFW_PRESS GLFW_RELEASE GLFW_REPEAT
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 	// LOGGING TEXT TEST
 	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
-		for (Entity& player : registry.players.entities) {
-			for (Entity& enemy : registry.enemies.entities) {
-				int test = irandRange(100,200);
-				std::string log_message = deal_damage(enemy, player, test);
+		for (Entity& enemy : registry.enemies.entities) {
+			int test = irandRange(100,200);
+			std::string log_message = deal_damage(enemy, player_main, test);
 
-				logText(log_message);
-				printf("testing combat with 10 ATK and %d multiplier\n", test);
-			}
+			logText(log_message);
+			printf("testing combat with 10 ATK and %d multiplier\n", test);
 		}
 	}
 
@@ -853,9 +775,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		// save game (should be just player stuff)
 		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
 		// remove player
-		for (Entity e : registry.players.entities) {
-			registry.remove_all_components_of(e);
-		}
+		registry.remove_all_components_of(player_main);
 		// make new map
 		SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
 		// load the player back
@@ -863,23 +783,21 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		std::queue<Entity> queue = loadFromData(gameData);
 		turnOrderSystem.loadTurnOrder(queue);
 		// get the player and set its position
-		for (Entity e : registry.players.entities) {
-			std::random_shuffle(spawnData.playerSpawns.begin(), spawnData.playerSpawns.end());
-			Motion& motion = registry.motions.get(e);
-			Stats& stats = registry.stats.get(e);
-			// set random position
-			motion.position = { spawnData.playerSpawns[0].x, spawnData.playerSpawns[0].y };
-			// set everything else in motion to default
-			motion.angle = 0.f;
-			motion.velocity = { 0.f, 0.f };
-			motion.in_motion = false;
-			motion.movement_speed = 200;
-			motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
+		std::random_shuffle(spawnData.playerSpawns.begin(), spawnData.playerSpawns.end());
+		Motion& motion = registry.motions.get(player_main);
+		Stats& stats = registry.stats.get(player_main);
+		// set random position
+		motion.position = { spawnData.playerSpawns[0].x, spawnData.playerSpawns[0].y };
+		// set everything else in motion to default
+		motion.angle = 0.f;
+		motion.velocity = { 0.f, 0.f };
+		motion.in_motion = false;
+		motion.movement_speed = 200;
+		motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 
-			// Refill Player EP
-			stats.ep = stats.maxep;
+		// Refill Player EP
+		stats.ep = stats.maxep;
 
-		}
 		remove_fog_of_war();
 		create_fog_of_war();
 	}
@@ -983,50 +901,46 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					case BUTTON_ACTION_ID::ACTIONS_ATTACK:
 						if (current_game_state != GameStates::ENEMY_TURN) {
 							// set player action to attack
-							for (Entity p : registry.players.entities) {
-								Player& player = registry.players.get(p);
-								player.action = PLAYER_ACTION::ATTACKING;
+							Player& player = registry.players.get(player_main);
+							player.action = PLAYER_ACTION::ATTACKING;
 
-								// hide all action buttons
-								for (Entity ab : registry.actionButtons.entities) {
-									registry.remove_all_components_of(ab);
-								}
-								hideGuardButton = true;
-
-								// set game state to attack menu
-								set_gamestate(GameStates::ATTACK_MENU);
-
-								// create back button and attack mode text
-								createBackButton(renderer, { 100.f , window_height_px - 60.f });
-								createAttackModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
+							// hide all action buttons
+							for (Entity ab : registry.actionButtons.entities) {
+								registry.remove_all_components_of(ab);
 							}
+							hideGuardButton = true;
+
+							// set game state to attack menu
+							set_gamestate(GameStates::ATTACK_MENU);
+
+							// create back button and attack mode text
+							createBackButton(renderer, { 100.f , window_height_px - 60.f });
+							createAttackModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
 						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_MOVE:
 						if (current_game_state != GameStates::ENEMY_TURN) {
 							// set player action to move
-							for (Entity p : registry.players.entities) {
-								Player& player = registry.players.get(p);
-								Stats stats = registry.stats.get(p);
-								player.action = PLAYER_ACTION::MOVING;
+							Player& player = registry.players.get(player_main);
+							Stats stats = registry.stats.get(player_main);
+							player.action = PLAYER_ACTION::MOVING;
 
-								// hide all action buttons
-								for (Entity ab : registry.actionButtons.entities) {
-									registry.remove_all_components_of(ab);
-								}
-								hideGuardButton = true;
-
-								// show ep range
-								Motion motion = registry.motions.get(p);
-								create_ep_range(stats.ep, motion.movement_speed, motion.position);
-
-								// set game state to move menu
-								set_gamestate(GameStates::MOVEMENT_MENU);
-
-								// create back button and move mode text
-								createBackButton(renderer, { 100.f , window_height_px - 60.f });
-								createMoveModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
+							// hide all action buttons
+							for (Entity ab : registry.actionButtons.entities) {
+								registry.remove_all_components_of(ab);
 							}
+							hideGuardButton = true;
+
+							// show ep range
+							Motion motion = registry.motions.get(player_main);
+							create_ep_range(stats.ep, motion.movement_speed, motion.position);
+
+							// set game state to move menu
+							set_gamestate(GameStates::MOVEMENT_MENU);
+
+							// create back button and move mode text
+							createBackButton(renderer, { 100.f , window_height_px - 60.f });
+							createMoveModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
 						}
 						break;
 					case BUTTON_ACTION_ID::PAUSE:
@@ -1097,15 +1011,11 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					switch (action) {
 					case BUTTON_ACTION_ID::ACTIONS_GUARD:
 						logText("You brace yourself...");
-						for (Entity player : registry.players.entities) {
-							registry.stats.get(player).guard = true;
-							handle_end_player_turn(player);
-						}
+						registry.stats.get(player_main).guard = true;
+						handle_end_player_turn(player_main);
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_END_TURN:
-						for (Entity player : registry.players.entities) {
-							handle_end_player_turn(player);
-						}
+						handle_end_player_turn(player_main);
 						break;
 					}
 				}
@@ -1118,10 +1028,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 		// ensure it is the player's turn and they are not currently moving
 		if (get_is_player_turn() && !player_move_click && ypos < window_height_px - 200.f && ypos > 80.f) {
-			for (Entity e : registry.players.entities) {
-				Player& player = registry.players.get(e);
-				Motion& player_motion = registry.motions.get(e);
-				Stats& player_stats = registry.stats.get(e);
+			if (player_main) {
+				Player& player = registry.players.get(player_main);
+				Motion& player_motion = registry.motions.get(player_main);
+				Stats& player_stats = registry.stats.get(player_main);
 
 				switch (current_game_state) {
 				case GameStates::ATTACK_MENU:
@@ -1147,7 +1057,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									// play attack sound
 									Mix_PlayChannel(-1, fire_explosion_sound, 0);
 
-									logText(deal_damage(e, en, 100.f));
+									logText(deal_damage(player_main, en, 100.f));
 
 									// wobble the enemy lol
 									if (!registry.wobbleTimers.has(en)){
@@ -1179,8 +1089,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					break;
 				case GameStates::MOVEMENT_MENU:
-					for (Entity& player : registry.players.entities) {
-						Motion& motion_struct = registry.motions.get(player);
+					if (player_main) {
+						Motion& motion_struct = registry.motions.get(player_main);
 
 						// set velocity to the direction of the cursor, at a magnitude of player_velocity
 						float speed = motion_struct.movement_speed;
@@ -1214,31 +1124,22 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 
 	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_move_click) {
-		for (Entity& player : registry.players.entities) {
-			Motion& motion_struct = registry.motions.get(player);
+		Motion& motion_struct = registry.motions.get(player_main);
 
-			// set velocity to the direction of the cursor, at a magnitude of player_velocity
-			float speed = motion_struct.movement_speed;
-			float angle = atan2(world_pos.y - motion_struct.position.y, world_pos.x - motion_struct.position.x);
-			float x_component = cos(angle) * speed;
-			float y_component = sin(angle) * speed;
-			motion_struct.velocity = { x_component, y_component};
-			//motion_struct.angle = angle + (0.5 * M_PI);
-			motion_struct.destination = { world_pos.x, world_pos.y };
-			motion_struct.in_motion = true;
-			player_move_click = true;
-
-		}
+		// set velocity to the direction of the cursor, at a magnitude of player_velocity
+		float speed = motion_struct.movement_speed;
+		float angle = atan2(world_pos.y - motion_struct.position.y, world_pos.x - motion_struct.position.x);
+		float x_component = cos(angle) * speed;
+		float y_component = sin(angle) * speed;
+		motion_struct.velocity = { x_component, y_component};
+		//motion_struct.angle = angle + (0.5 * M_PI);
+		motion_struct.destination = { world_pos.x, world_pos.y };
+		motion_struct.in_motion = true;
+		player_move_click = true;
 	}
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// TODO A1: HANDLE CHICKEN ROTATION HERE
-	// xpos and ypos are relative to the top-left of the window, the chicken's
-	// default facing direction is (1, 0)
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 	(vec2)mouse_position; // dummy to avoid compiler warning
 }
 
@@ -1259,30 +1160,24 @@ bool WorldSystem::get_is_ai_turn() {
 }
 
 void WorldSystem::start_player_turn() {
-	for (Entity player : registry.players.entities) {
+	// get player stats
+	float& maxep = registry.stats.get(player_main).maxep;
+	float& hp = registry.stats.get(player_main).hp;
+	float& mp = registry.stats.get(player_main).mp;
+	float& ep = registry.stats.get(player_main).ep;
 
-		// get player stats
-		float& maxep = registry.stats.get(player).maxep;
-		float& hp = registry.stats.get(player).hp;
-		float& mp = registry.stats.get(player).mp;
-		float& ep = registry.stats.get(player).ep;
-
-		if (registry.stats.get(player).guard) {
-			//ep = maxep * 1.5f;
-			registry.stats.get(player).guard = false;
-		}
-		else {
-			ep = maxep;
-		}
-
+	if (registry.stats.get(player_main).guard) {
+		//ep = maxep * 1.5f;
+		registry.stats.get(player_main).guard = false;
+	}
+	else {
+		ep = maxep;
 	}
 }
 
 void WorldSystem::removeForLoad() {
 	// remove player for loading
-	for (Entity player : registry.players.entities) {
-		registry.remove_all_components_of(player);
-	}
+	registry.remove_all_components_of(player_main);
 
 	// remove enemies
 	for (Entity enemy : registry.enemies.entities) {
@@ -1378,7 +1273,7 @@ Entity WorldSystem::loadSlime(json slimeData) {
 
 	// set slimeEnemy data
 	json slimeEnemy = slimeData["slime"];
-	registry.slimeEnemies.get(e).state = slimeEnemy["state"];
+	registry.enemies.get(e).state = slimeEnemy["state"];
 
 	// get queueable stuff
 	json queueable = slimeData["queueable"];

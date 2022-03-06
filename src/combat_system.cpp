@@ -36,7 +36,6 @@ std::string deal_damage(Entity& attacker, Entity& defender, float multiplier)
 	int logged_damage = round(final_damage);
 
 	std::string log = attacker_name.append(" attacked ").append(defender_name).append(" for ").append(std::to_string(logged_damage)).append(" damage!");
-	Mix_PlayChannel(-1, world.error_sound, 0);
 	return log;
 }
 
@@ -73,4 +72,61 @@ float calc_damage(Stats& attacker, Stats& defender, float multiplier)
 	final_damage = max(1.f, final_damage);
 	
 	return final_damage;
+}
+
+void apply_status(Entity& target, StatusEffect& status) {
+	if (!registry.statuses.has(target)) {
+		StatusContainer& statusContainer = registry.statuses.emplace(target);
+		statusContainer.statuses.push_back(status);
+	}
+	else {
+		StatusContainer& statusContainer = registry.statuses.get(target);
+		statusContainer.statuses.push_back(status);
+	}
+}
+
+// call this function once at turn start (2nd param=true), and once at turn end (2nd param=false)
+void handle_status_ticks(Entity& entity, bool applied_from_turn_start) {
+	if (registry.statuses.has(entity)) {
+		StatusContainer& statusContainer = registry.statuses.get(entity);
+		for (int i = statusContainer.statuses.size() - 1; i >= 0; i--) {
+			StatusEffect& status = statusContainer.statuses[i];
+			// in case something was accidentally added with 0 turn duration
+			if (status.turns_remaining <= 0) {
+				statusContainer.statuses.erase(statusContainer.statuses.begin()+i);
+				continue;
+			}
+			if (status.apply_at_turn_start != applied_from_turn_start) {
+				continue;
+			}
+			switch (status.effect) {
+				case (StatusType::POISON):
+					if (status.percentage && registry.stats.has(entity)) {
+						Stats stats = registry.stats.get(entity);
+						take_damage(entity, stats.maxhp * status.value);
+					}
+					else {
+						take_damage(entity, status.value);
+						printf("took DoT of %f", status.value);
+					}
+					break;
+				case (StatusType::ATK_BUFF):
+					Stats stats = registry.stats.get(entity);
+					if (status.percentage && registry.stats.has(entity)) {
+						stats.atk *= 1 + status.value;
+					}
+					else {
+						stats.atk += status.value;
+					}
+					break;
+			}
+			// properly remove statuses that have expired, except for things with >=999 turns (we treat those as infinite)
+			if (status.turns_remaining >= 999) {
+				status.turns_remaining--;
+			}
+			if (status.turns_remaining <= 0) {
+				statusContainer.statuses.erase(statusContainer.statuses.begin() + i);
+			}
+		}
+	}
 }

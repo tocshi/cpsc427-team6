@@ -275,10 +275,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Player& p = registry.players.get(player);
 		
 		// get player stats
-		float& maxep = registry.stats.get(player).maxep;
 		float& hp = registry.stats.get(player).hp;
 		float& mp = registry.stats.get(player).mp;
 		float& ep = registry.stats.get(player).ep;
+		float& maxhp = registry.stats.get(player).maxhp;
+		float& maxmp = registry.stats.get(player).maxmp;
+		float& maxep = registry.stats.get(player).maxep;
 
 		// Check if player has died
 		if (hp <= 0 && !registry.deathTimers.has(player)) {
@@ -328,16 +330,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			
 			switch (render_struct.used_texture) {
 			case TEXTURE_ASSET_ID::HPFILL:
-				motion_struct.scale = { (hp / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
-				motion_struct.position[0] = 150.f - 150.f*(1.f - (hp / 100.f));	// original pos (full bar) - (1-multiplier)
+				motion_struct.scale = { (hp / maxhp) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (hp / maxhp));	// original pos (full bar) - (1-multiplier)
 				break;
 			case TEXTURE_ASSET_ID::MPFILL:
-				motion_struct.scale = { (mp / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
-				motion_struct.position[0] = 150.f - 150.f*(1.f - (mp / 100.f));	// original pos (full bar) - (1-multiplier)
+				motion_struct.scale = { (mp / maxmp) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (mp / maxmp));	// original pos (full bar) - (1-multiplier)
 				break;
 			case TEXTURE_ASSET_ID::EPFILL:
-				motion_struct.scale = { (ep / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
-				motion_struct.position[0] = 150.f - 150.f*(1.f - (ep / 100.f));	// original pos (full bar) - (1-multiplier)
+				motion_struct.scale = { (ep / maxep) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (ep / maxep));	// original pos (full bar) - (1-multiplier)
 				break;
 			}
 
@@ -676,7 +678,8 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 				createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 			}
 			else {
-				createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				// TODO: change this back to PlantShooter
+				createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 			}
 		}
 	}
@@ -748,6 +751,16 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
 		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
 		logText("Game state saved!");
+	}
+
+	// DEBUG: Testing artifact/stacking
+	if (action == GLFW_RELEASE && key == GLFW_KEY_1) {
+		int give = (int)ARTIFACT::BLADE_POLISH;
+		for (Entity& p : registry.players.entities) {
+			Inventory& inv = registry.inventories.get(p);
+			inv.artifact[give]++;
+		}
+		printf("Artifact %d given!\n", give);
 	}
 
 	// LOADING THE GAME
@@ -1168,7 +1181,7 @@ void WorldSystem::start_player_turn() {
 	float& ep = registry.stats.get(player_main).ep;
 
 	if (registry.stats.get(player_main).guard) {
-		ep = maxep * 1.5f;
+	//	ep = maxep * 1.5f;
 		registry.stats.get(player_main).guard = false;
 	}
 	else {

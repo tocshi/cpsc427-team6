@@ -12,3 +12,4 @@ void take_damage(Entity& entity, float damage);
 void take_damage_mp(Entity& entity, float damage);
 void take_damage_ep(Entity& entity, float damage);
 float calc_damage(Stats& attacker, Stats& defender, float multiplier);
+float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage);

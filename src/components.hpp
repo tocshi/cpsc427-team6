@@ -247,8 +247,10 @@ enum class ENEMY_TYPE {
 // simple component for all enemies
 struct Enemy {
 	vec2 initialPosition = { 0, 0 };
+	Inventory inv;
 	ENEMY_STATE state = ENEMY_STATE::STATE_COUNT;
 	ENEMY_TYPE type = ENEMY_TYPE::TYPE_COUNT;
+	bool hit_by_player = false;
 };
 
 struct ActionButton {

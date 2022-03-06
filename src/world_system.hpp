@@ -66,6 +66,17 @@ public:
 	Mix_Chunk* error_sound;
 	Mix_Chunk* footstep_sound;
 
+	// Game state
+	RenderSystem* renderer;
+	float current_speed;
+
+	Entity active_camera_entity;
+
+	Entity background;
+	bool is_player_turn = true;
+	bool player_move_click = false;
+	bool is_ai_turn = false;
+
 	// log text
 	void logText(std::string msg);
 
@@ -131,17 +142,6 @@ private:
 
 	// OpenGL window handle
 	GLFWwindow* window;
-
-	// Game state
-	RenderSystem* renderer;
-	float current_speed;
-
-	Entity active_camera_entity;
-
-	Entity background;
-	bool is_player_turn = true;
-	bool player_move_click = false;
-	bool is_ai_turn = false;
 
 	SaveSystem saveSystem;
 	TurnOrderSystem turnOrderSystem;

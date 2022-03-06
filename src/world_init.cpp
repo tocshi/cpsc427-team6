@@ -133,6 +133,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	enemy.initialPosition = pos;
 	enemy.state = ENEMY_STATE::IDLE;
 	enemy.type = ENEMY_TYPE::SLIME;
+	enemy.inv = registry.inventories.emplace(entity);
 
 	// Create slime stats
 	auto& stats = registry.stats.emplace(entity);
@@ -238,6 +239,7 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	stat.chase = 0.f;
 
 	auto& enemy = registry.enemies.emplace(entity);
+	enemy.inv = registry.inventories.emplace(entity);
 	enemy.initialPosition = pos;
 	enemy.state = ENEMY_STATE::IDLE;
 	enemy.type = ENEMY_TYPE::PLANT_SHOOTER;

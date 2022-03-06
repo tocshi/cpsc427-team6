@@ -1168,11 +1168,18 @@ void WorldSystem::start_player_turn() {
 	float& ep = registry.stats.get(player_main).ep;
 
 	if (registry.stats.get(player_main).guard) {
-		//ep = maxep * 1.5f;
+		ep = maxep * 1.5f;
 		registry.stats.get(player_main).guard = false;
 	}
 	else {
 		ep = maxep;
+	}
+
+	// reset enemies' hit_by_player status
+	for (Entity& enemy : registry.enemies.entities) {
+		auto& enemy_struct = registry.enemies.get(enemy);
+
+		enemy_struct.hit_by_player = false;
 	}
 }
 

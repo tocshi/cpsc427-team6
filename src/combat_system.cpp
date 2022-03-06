@@ -89,6 +89,9 @@ void apply_status(Entity& target, StatusEffect& status) {
 void handle_status_ticks(Entity& entity, bool applied_from_turn_start) {
 	if (registry.statuses.has(entity)) {
 		StatusContainer& statusContainer = registry.statuses.get(entity);
+		// sort the statuses to ensure that percentage buffs get applied before flat buffs
+		statusContainer.sort_statuses_reverse();
+		// we iterate backwards so that removing elements will not mess up the rest of the loop
 		for (int i = statusContainer.statuses.size() - 1; i >= 0; i--) {
 			StatusEffect& status = statusContainer.statuses[i];
 			// in case something was accidentally added with 0 turn duration
@@ -107,7 +110,7 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start) {
 					}
 					else {
 						take_damage(entity, status.value);
-						printf("took DoT of %f", status.value);
+						printf("took DoT of %f\n", status.value);
 					}
 					break;
 				case (StatusType::ATK_BUFF):
@@ -121,7 +124,7 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start) {
 					break;
 			}
 			// properly remove statuses that have expired, except for things with >=999 turns (we treat those as infinite)
-			if (status.turns_remaining >= 999) {
+			if (status.turns_remaining <= 999) {
 				status.turns_remaining--;
 			}
 			if (status.turns_remaining <= 0) {

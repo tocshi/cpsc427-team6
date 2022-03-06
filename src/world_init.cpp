@@ -9,7 +9,7 @@ Entity createLine(vec2 position, vec2 scale)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
-		 EFFECT_ASSET_ID::EGG,
+		 EFFECT_ASSET_ID::LINE,
 		 GEOMETRY_BUFFER_ID::DEBUG_LINE });
 
 	// Create motion
@@ -145,11 +145,6 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	stats.speed = 8;
 	stats.range = 250;
 
-	// make it a slime enemy for now
-	registry.slimeEnemies.insert(
-		entity,
-		{ { window_width_px / 2, 350.f },
-		ENEMY_STATE::IDLE });
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SLIME,
@@ -197,11 +192,6 @@ Entity createEnemy(RenderSystem* renderer, Motion m)
 	stats.speed = 8;
 	stats.range = 250;
 
-	// make it a slime enemy for now
-	registry.slimeEnemies.insert(
-		entity,
-		{ { window_width_px / 2, 350.f },
-		ENEMY_STATE::IDLE });
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::SLIME,
@@ -1270,7 +1260,7 @@ Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale
 	text.scale = scale;
 	text.textColor = textColor;
 
-	// Create an (empty) Bug component to be able to refer to all bug
+	// Create an (empty) TEXT component to be able to refer to all text
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,

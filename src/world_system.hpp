@@ -57,10 +57,11 @@ public:
 
 	void start_player_turn();
 
+	// Game state
+	Entity player_main;
+
 	// music references
 	Mix_Music* background_music;
-	Mix_Chunk* chicken_dead_sound;
-	Mix_Chunk* chicken_eat_sound;
 	Mix_Chunk* fire_explosion_sound;
 	Mix_Chunk* error_sound;
 	Mix_Chunk* footstep_sound;
@@ -131,18 +132,12 @@ private:
 	// OpenGL window handle
 	GLFWwindow* window;
 
-	// Number of bug eaten by the chicken, displayed in the window title
-	unsigned int points;
-
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
-	float next_eagle_spawn;
-	float next_bug_spawn;
 
 	Entity active_camera_entity;
 
-	Entity player_chicken;
 	Entity background;
 	bool is_player_turn = true;
 	bool player_move_click = false;

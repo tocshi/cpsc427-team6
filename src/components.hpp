@@ -330,6 +330,24 @@ struct Sign {
 	int next_message = 0;
 };
 
+enum class StatusType {
+	POISON = 0,
+	STUN = POISON + 1,
+	ATK_BUFF = STUN + 1,
+	DEF_BUFF = ATK_BUFF + 1
+};
+
+struct StatusEffect {
+	float value;
+	int turns_remaining;
+	StatusType effect;
+	bool percentage; // if true, the struct's value field is used as a percentage in calculations, otherwise it is applied as a flat buff after percentages are calculated
+};
+
+struct StatusContainer {
+	std::vector<StatusEffect> statuses;
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture

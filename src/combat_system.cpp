@@ -36,6 +36,7 @@ std::string deal_damage(Entity& attacker, Entity& defender, float multiplier)
 	int logged_damage = round(final_damage);
 
 	std::string log = attacker_name.append(" attacked ").append(defender_name).append(" for ").append(std::to_string(logged_damage)).append(" damage!");
+	Mix_PlayChannel(-1, world.error_sound, 0);
 	return log;
 }
 

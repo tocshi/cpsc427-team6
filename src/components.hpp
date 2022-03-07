@@ -330,6 +330,11 @@ struct Sign {
 	int next_message = 0;
 };
 
+struct KnockBack {
+	float remaining_distance = 0; 
+	float angle = 0;
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture

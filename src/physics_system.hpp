@@ -18,6 +18,11 @@ public:
 	PhysicsSystem()
 	{
 	}
+private:
+	float knock_base_velocity = 200.f;
+	float knock_min_velocity = 10.f;
+	float knock_decel_threshold = 64.f;
+	
 };
 
 float dist_to(const vec2 position1, const vec2 position2);

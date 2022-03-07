@@ -136,6 +136,64 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 		}
 	}
 
+	// Resolve knockback effects
+	for (int i = registry.knockbacks.size() - 1; i >= 0; i--) {
+		float step_seconds = elapsed_ms / 1000.f;
+		Entity entity_i = registry.knockbacks.entities[i];
+		if (!registry.motions.has(entity_i))
+			continue;
+		Motion& motion_i = registry.motions.get(entity_i);
+		KnockBack& knockback_i = registry.knockbacks.components[i];
+		if (knockback_i.remaining_distance < 0.01f) {
+			registry.knockbacks.remove(entity_i);
+			continue;
+		}
+		float vel_mag;
+		if (knockback_i.remaining_distance < knock_decel_threshold) {
+			float scaled_vel = knock_min_velocity + (knock_base_velocity - knock_min_velocity) * (1 - (knock_decel_threshold - knockback_i.remaining_distance) / knock_decel_threshold);
+			vel_mag = max(knock_min_velocity*step_seconds, scaled_vel * step_seconds);
+		}
+		else {
+			vel_mag = knock_base_velocity * step_seconds;
+		}
+		vel_mag = min(vel_mag, knock_base_velocity * step_seconds);
+		vec2 pos = motion_i.position;
+		vec2 velocity = vec2(vel_mag * cos(knockback_i.angle), vel_mag * sin(knockback_i.angle));
+
+		// perform angle sweep 
+		float original_angle = knockback_i.angle * 180/M_PI;
+		bool move_success = false;
+		for (int angle = 0; angle <= 60; angle += 10) {
+			for (int sign = -1; sign <= 1; sign += 2) {
+				float modified_angle = original_angle + angle * sign;
+				vec2 modified_velocity = { vel_mag * cos(modified_angle * M_PI / 180), vel_mag * sin(modified_angle * M_PI / 180) };
+				vec2 target_position = pos + modified_velocity;
+				motion_i.position = target_position;
+				bool target_valid = true;
+				for (uint j = 0; j < motion_registry.size(); j++) {
+					if (j != i && registry.solid.has(motion_registry.entities[j])) {
+						if (collides_AABB(motion_i, motion_registry.components[j])) {
+							target_valid = false;
+							break;
+						}
+					}
+				}
+				if (target_valid) {
+					move_success = true;
+					break;
+				}
+			}
+			if (move_success) {
+				knockback_i.remaining_distance -= vel_mag;
+				break;
+			}
+		}
+		if (!move_success) {
+			motion_i.position = pos;
+			registry.knockbacks.remove(entity_i);
+		}
+	}
+
 	// Check for collisions between all moving entities
     ComponentContainer<Motion> &motion_container = registry.motions;
 	for(uint i = 0; i<motion_container.components.size(); i++)

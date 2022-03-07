@@ -1065,6 +1065,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 										WobbleTimer& wobble = registry.wobbleTimers.emplace(en);
 										wobble.orig_scale = m.scale;
 									}
+
+									if (!registry.knockbacks.has(en)) {
+										KnockBack& knockback = registry.knockbacks.emplace(en);
+										knockback.remaining_distance = 64;
+										knockback.angle = atan2(enemyY - player_motion.position.y, enemyX - player_motion.position.x);
+									}
 						
 									// lower ep
 									player_stats.ep -= 0.5 * player_stats.maxep;

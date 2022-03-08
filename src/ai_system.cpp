@@ -39,7 +39,6 @@ void AISystem::slime_logic(Entity slime, Entity& player, WorldSystem* world, Ren
 			Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
 			world->logText(deal_damage(slime, player, 100));
 			StatusEffect test_poison = StatusEffect(2, 2, StatusType::POISON, false, false);
-			apply_status(player, test_poison);
 		}
 		registry.enemies.get(slime).state = ENEMY_STATE::AGGRO;
 		return;

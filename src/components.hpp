@@ -2,6 +2,7 @@
 #include "common.hpp"
 #include <vector>
 #include <unordered_map>
+#include <map>
 #include "../ext/stb_image/stb_image.h"
 
 enum class PLAYER_ACTION {
@@ -59,7 +60,35 @@ enum class ARTIFACT {
 	SMOKE_POWDER = BURRBAG + 1,
 	LIVELY_BULB = SMOKE_POWDER + 1,
 	MALEDICTION = LIVELY_BULB + 1,
-	ARTIFACT_COUNT = LIVELY_BULB + 1
+	ARTIFACT_COUNT = MALEDICTION + 1
+};
+
+// Artifact name map
+const std::map <ARTIFACT, std::string>artifact_names = {
+	{ARTIFACT::POISON_FANG, "Discarded Fang"},
+	{ARTIFACT::GLAD_HOPLON, "Gladiator Hoplon"},
+	{ARTIFACT::PIOUS_PRAYER, "Pious Prayer"},
+	{ARTIFACT::BLADE_POLISH, "Blade Polish Kit"},
+	{ARTIFACT::HQ_FLETCHING, "High-Quality Fletching"},
+	{ARTIFACT::MESSENGER_CAP, "Messenger's Cap"},
+	{ARTIFACT::WARM_CLOAK, "Warm Cloak"},
+	{ARTIFACT::THUNDER_TWIG, "Thundering Twig"},
+	{ARTIFACT::LUCKY_CHIP, "Lucky Chip"},
+	{ARTIFACT::GUIDE_HEALBUFF, "Guide to Healthy Eating"},
+	{ARTIFACT::THICK_TOME, "Unnecessarily Thick Tome"},
+	{ARTIFACT::GOLIATH_BELT, "Goliath's Belt"},
+	{ARTIFACT::BLOOD_RUBY, "Blood Ruby"},
+	{ARTIFACT::WINDBAG, "Bag of Wind"},
+	{ARTIFACT::KB_MALLET, "Rubber Mallet"},
+	{ARTIFACT::ARCANE_SPECS, "Arcane Spectacles"},
+	{ARTIFACT::SCOUT_STRIDE, "Scouting Striders"},
+	{ARTIFACT::ART_CONSERVE, "The Art of Conservation"},
+	{ARTIFACT::ARCANE_FUNNEL, "Arcane Funnel"},
+	{ARTIFACT::FUNGIFIER, "Fungifier"},
+	{ARTIFACT::BURRBAG, "Burrbag"},
+	{ARTIFACT::SMOKE_POWDER, "Smoke Powder"},
+	{ARTIFACT::LIVELY_BULB, "Lively Bulb"},
+	{ARTIFACT::MALEDICTION, "Malediction"}
 };
 
 // Artifact Rarity Arrays

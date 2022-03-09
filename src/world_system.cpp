@@ -565,6 +565,9 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 	player_motion.velocity = { 0.f, 0.f };
 	player_motion.in_motion = false;
 	p.attacked = false;
+	
+	handle_status_ticks(player, false);
+
 	set_is_player_turn(false);
 	player_move_click = false;
 	logText("It is now the enemies' turn!");

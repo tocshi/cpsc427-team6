@@ -55,7 +55,7 @@ GameStates previous_game_state = current_game_state;
 
 
 // fog stats
-float fog_radius = 450.f;
+float fog_radius = 300.f;
 float fog_resolution = 2000.f;
 
 // ep range stats
@@ -352,7 +352,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				sqrt(pow((motion_struct.position.x - player_motion.position.x), 2) 
 				+ pow((motion_struct.position.y - player_motion.position.y), 2));
 			
-			if (distance_to_player > fog_radius) {
+			if (distance_to_player > registry.stats.get(player_main).range) {
 				if (!registry.hidden.has(entity)) {
 					registry.hidden.emplace(entity);
 				}
@@ -643,10 +643,11 @@ void WorldSystem::create_ep_range(float remaining_ep, float speed, vec2 pos) {
 void WorldSystem::create_fog_of_war() {	
 		// get player position
 	Motion player_motion = registry.motions.get(player_main);
+	Stats player_stats = registry.stats.get(player_main);
 	float playerX = player_motion.position.x;
 	float playerY = player_motion.position.y;
 
-	Entity fog = createFog({ playerX, playerY }, fog_resolution, fog_radius, { window_width_px, window_height_px });
+	Entity fog = createFog({ playerX, playerY }, fog_resolution, player_stats.range, { window_width_px, window_height_px });
 	registry.colors.insert(fog, { 0.2, 0.2, 0.2 });
 }
 
@@ -758,7 +759,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_1) {
-		int give = (int)ARTIFACT::BLADE_POLISH;
+		int give = (int)ARTIFACT::THICK_TOME;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
@@ -1399,4 +1400,17 @@ void set_enemy_state_attack(Entity enemy) {
 void set_gamestate(GameStates state) {
 	previous_game_state = current_game_state;
 	current_game_state = state;
+}
+
+// Check if entity has a status effect;
+bool has_status(Entity e, StatusType status) {
+	if (!registry.statuses.has(e)) { return false; }
+
+	StatusContainer statuses = registry.statuses.get(e);
+	for (StatusEffect s : statuses.statuses) {
+		if (s.effect == status) {
+			return true;
+		}
+	}
+	return false;
 }

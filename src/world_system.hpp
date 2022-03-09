@@ -158,4 +158,7 @@ void set_enemy_state_attack(Entity enemy);
 // set gamestate
 void set_gamestate(GameStates state);
 
+// check if entity has a status effect;
+bool has_status(Entity e, StatusType status);
+
 extern WorldSystem world;

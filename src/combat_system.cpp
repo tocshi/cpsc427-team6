@@ -11,7 +11,7 @@ std::string deal_damage(Entity& attacker, Entity& defender, float multiplier)
 	// Damage Calculation
 	Stats& attacker_stats = registry.stats.get(attacker);
 	Stats& defender_stats = registry.stats.get(defender);
-	float final_damage = calc_damage(attacker_stats, defender_stats, multiplier);
+	float final_damage = calc_damage(attacker, defender, multiplier);
 
 	// Post-calculation effects
 	final_damage = handle_postcalc_effects(attacker, defender, final_damage);
@@ -49,6 +49,17 @@ void take_damage(Entity& entity, float damage)
 {
 	Stats& stats = registry.stats.get(entity);
 	Inventory& inv = registry.inventories.get(entity);
+
+	// Status Effects:
+	if (registry.statuses.has(entity)) {
+		StatusContainer& statuses = registry.statuses.get(entity);
+
+		// Invincibility check
+		if (has_status(entity, StatusType::INVINCIBLE)) {
+			damage = 0.f;
+		}
+	}
+
 	stats.hp -= damage;
 
 	// Effects:
@@ -56,7 +67,8 @@ void take_damage(Entity& entity, float damage)
 	if (inv.artifact[(int)ARTIFACT::THICK_TOME] > 0) {
 		if (stats.hp <= 0) {
 			stats.hp = 1;
-			// TODO: Make 3 turn invincible effect here
+			StatusEffect invincible = StatusEffect(0, 3, StatusType::INVINCIBLE, false, false);
+			apply_status(entity, invincible);
 
 			inv.artifact[(int)ARTIFACT::THICK_TOME]--;
 			world.logText("The Unnecessarily Thick Tome miraculously blocks the fatal blow and disintegrates!");
@@ -77,16 +89,33 @@ void take_damage_ep(Entity& entity, float damage)
 }
 
 // Damage calculation
-float calc_damage(Stats& attacker, Stats& defender, float multiplier)
+float calc_damage(Entity& attacker, Entity& defender, float multiplier)
 {
+	Stats& attacker_stats = registry.stats.get(attacker);
+	Stats& defender_stats = registry.stats.get(defender);
+	Motion& attacker_motion = registry.motions.get(attacker);
+	Motion& defender_motion = registry.motions.get(defender);
+	Inventory& attacker_inv = registry.inventories.get(attacker);
+	Inventory& defender_inv = registry.inventories.get(defender);
+
+	float attacker_atk = attacker_stats.atk;
+	float defender_def = defender_stats.def;
 
 	// Pre-calculation effects
-	//TODO :HERE
+	// Goliath's Belt
+	if (attacker_inv.artifact[(int)ARTIFACT::GOLIATH_BELT] > 0 && attacker_stats.hp >= attacker_stats.maxhp * 0.8) {
+		attacker_atk *= 1 + (0.2 * attacker_inv.artifact[(int)ARTIFACT::GOLIATH_BELT]);
+	}
 
-	float final_damage = attacker.atk * multiplier / 100;
-	final_damage -= defender.def;
+	// Blood Ruby
+	if (attacker_inv.artifact[(int)ARTIFACT::GOLIATH_BELT] > 0 && attacker_stats.hp <= attacker_stats.maxhp * 0.4) {
+		attacker_atk *= 1 + (0.2 * attacker_inv.artifact[(int)ARTIFACT::GOLIATH_BELT]);
+	}
 
-	if (defender.guard) {
+	float final_damage = attacker_atk * multiplier / 100;
+	final_damage -= defender_def;
+
+	if (defender_stats.guard) {
 		final_damage /= 2.f;
 	}
 
@@ -128,7 +157,21 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 		if (roll < 30) {
 			world.logText("DEBUG: Discarded Fang Procced!");
 			float damage = (attacker_stats.atk * 0.15) + (0.1 * attacker_inv.artifact[(int)ARTIFACT::POISON_FANG]);
-			// TODO: Add poison effect
+
+			StatusEffect poison = StatusEffect(damage, 3, StatusType::FANG_POISON, false, false);
+			apply_status(defender, poison);
+		}
+	}
+
+	// Thunderstruck Twig
+	if (attacker_inv.artifact[(int)ARTIFACT::THUNDER_TWIG] > 0) {
+		int roll = irand(100);
+		int chance = 15 * attacker_inv.artifact[(int)ARTIFACT::THUNDER_TWIG];
+		if (roll < chance) {
+			world.logText("DEBUG: Thunderstruck Twig Procced!");
+			float damage = attacker_stats.atk * 0.60;
+
+			// TODO: do thunder twig effect here
 		}
 	}
 
@@ -196,6 +239,7 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start) {
 			}
 			switch (status.effect) {
 				case (StatusType::POISON):
+				case (StatusType::FANG_POISON):
 					if (status.percentage && registry.stats.has(entity)) {
 						Stats stats = registry.stats.get(entity);
 						take_damage(entity, stats.maxhp * status.value);

@@ -54,8 +54,21 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	stats.atk = 10;
 	stats.def = 2;
 	stats.speed = 10;
-	stats.range = 450;
+	stats.range = 400;
+
+	// TODO: Remove
+	stats.maxhp = 1000;
+	stats.hp = stats.maxhp;
+	stats.mp = 100;
+	stats.maxmp = 100;
+	stats.ep = 100;
+	stats.maxep = 100;
+	stats.atk = 100;
+	stats.def = 0;
+	stats.speed = 10;
+	stats.range = 400;
 	
+	registry.basestats.insert(entity, stats);
 
 	// Create and (empty) Player component to be able to refer to all players
 	auto& player = registry.players.emplace(entity);
@@ -139,12 +152,22 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Slime";
 	stats.prefix = "the";
-	stats.hp = 25;
 	stats.maxhp = 25;
+	stats.hp = stats.maxhp;
 	stats.atk = 10;
 	stats.def = 3;
 	stats.speed = 8;
 	stats.range = 250;
+
+	// TODO: REmove
+	stats.maxhp = 1000;
+	stats.hp = stats.maxhp;
+	stats.atk = 100;
+	stats.def = 0;
+	stats.speed = 8;
+	stats.range = 250;
+
+	registry.basestats.insert(entity, stats);
 
 	registry.renderRequests.insert(
 		entity,
@@ -186,8 +209,8 @@ Entity createEnemy(RenderSystem* renderer, Motion m)
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Slime";
 	stats.prefix = "the";
-	stats.hp = 25;
 	stats.maxhp = 25;
+	stats.hp = stats.maxhp;
 	stats.atk = 10;
 	stats.def = 3;
 	stats.speed = 8;
@@ -227,16 +250,18 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 
 	// Initilalize stats
 	// hp = 20, atk = 8, queue = 7, def = 2, range = 400
-	auto& stat = registry.stats.emplace(entity);
-	stat.name = "Plant Shooter";
-	stat.prefix = "the";
-	stat.maxhp = 20.f;
-	stat.hp = stat.maxhp;
-	stat.atk = 8.f;
-	stat.def = 2.f;
-	stat.speed = 7.f;
-	stat.range = 400.f;
-	stat.chase = 0.f;
+	auto& stats = registry.stats.emplace(entity);
+	stats.name = "Plant Shooter";
+	stats.prefix = "the";
+	stats.maxhp = 20.f;
+	stats.hp = stats.maxhp;
+	stats.atk = 8.f;
+	stats.def = 2.f;
+	stats.speed = 7.f;
+	stats.range = 400.f;
+	stats.chase = 0.f;
+
+	registry.basestats.insert(entity, stats);
 
 	auto& enemy = registry.enemies.emplace(entity);
 	enemy.inv = registry.inventories.emplace(entity);

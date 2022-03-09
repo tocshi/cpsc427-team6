@@ -1167,9 +1167,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								Inventory& inv = registry.inventories.get(player_main);
 								inv.artifact[loot]++;
 
-								printf("Artifact %d given!\n", loot);
-								logText("You open the chest and find <artifact name>");
-								logText("DEBUG: For now, check output for artifact number, and refer to components.hpp to see what it is!");
+								std::string name = artifact_names.at((ARTIFACT)loot);
+								logText("You open the chest and find " + name + "!");
 
 								// TODO: make a more graceful chest destruction kthx
 								registry.remove_all_components_of(entity);

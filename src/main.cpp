@@ -11,12 +11,12 @@
 #include "world_system.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
+WorldSystem world;
 
 // Entry point
 int main()
 {
 	// Global systems
-	WorldSystem world;
 	RenderSystem renderer;
 	PhysicsSystem physics;
 

@@ -330,6 +330,47 @@ struct Sign {
 	int next_message = 0;
 };
 
+enum class StatusType {
+	POISON = 0,
+	STUN = POISON + 1,
+	ATK_BUFF = STUN + 1,
+	DEF_BUFF = ATK_BUFF + 1
+};
+
+struct StatusEffect {
+	StatusEffect(float value, int turns, StatusType effect, bool percentage, bool apply_at_turn_start):
+		value(value), turns_remaining(turns), effect(effect), percentage(percentage), apply_at_turn_start(apply_at_turn_start) {}
+	float value;
+	int turns_remaining;
+	StatusType effect;
+	bool percentage; // if true, the struct's value field is used as a percentage in calculations, otherwise it is applied as a flat buff after percentages are calculated
+	bool apply_at_turn_start; // if true, the status is applied at the start of a turn (i.e. stuns, buffs for stat recalculation). Otherwise it is applied at turn end (i.e. Damage over time)
+};
+
+struct StatusContainer {
+	std::vector<StatusEffect> statuses;
+	// this groups the same effect types together, then flat buffs of an effect type will appear before percentage buffs
+	// this is in reverse, because statuses is to be iterated backwards so that removing elements doesn't mess things up
+	void sort_statuses_reverse() {
+		std::sort(statuses.begin(), statuses.end(),
+			[](StatusEffect a, StatusEffect b) {
+				if (a.effect < b.effect) {
+					return true;
+				}
+				else if (a.effect == b.effect) {
+					if (!a.percentage && b.percentage) {
+						return true;
+					}
+					return false;
+				}
+				else {
+					return false;
+				}
+			}
+		);
+	}
+};
+
 struct KnockBack {
 	float remaining_distance = 0; 
 	float angle = 0;

@@ -40,7 +40,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
 	motion.in_motion = false;
-	motion.movement_speed = 200;
+	motion.movement_speed = 400;
 	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 
 	// Create player stats

@@ -310,13 +310,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// update player motion
 		Motion& player_motion = registry.motions.get(player);
+		Stats& player_stats = registry.stats.get(player);
 		if (player_motion.in_motion) {
 			if (ep <= 0) {
 				handle_end_player_turn(player);
 			}
 			else { 
-				float ep_rate = 1.f;
-				ep -= 0.03f * ep_rate * elapsed_ms_since_last_update; 
+				ep -= 0.06f * player_stats.epratemove * elapsed_ms_since_last_update; 
 			}
 		}
 		
@@ -633,7 +633,7 @@ void WorldSystem::spawn_game_entities() {
 
 // render ep range around the given position
 void WorldSystem::create_ep_range(float remaining_ep, float speed, vec2 pos) {
-	float ep_radius = remaining_ep * speed * 0.03 + ((110.f * remaining_ep) / 100);
+	float ep_radius = remaining_ep * speed * 0.015 + ((110.f * remaining_ep) / 100);
 
 	Entity ep = createEpRange({ pos.x , pos.y }, ep_resolution, ep_radius, { window_width_px, window_height_px });
 	registry.colors.insert(ep, { 0.2, 0.2, 8.7 });

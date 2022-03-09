@@ -540,6 +540,8 @@ Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::pair<std::s
 	Sign& sign = registry.signs.emplace(entity);
 	sign.messages = messages;
 
+	registry.interactables.emplace(entity);
+
 	return entity;
 }
 

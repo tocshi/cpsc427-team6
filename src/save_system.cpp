@@ -46,32 +46,35 @@ void setPlayer(json obj) {
 }
 
 void setArtifacts(json obj) {
-	bool artifact = obj["inventory"]["artifact_1"].get<bool>();
+	printf("\nsetting artifacts\n");
+	//bool artifact = obj["inventory"]["artifact_1"];
 	for (Entity e : registry.artifacts.entities) {
-		registry.artifacts.get(e).artifact1 = artifact;
+		registry.artifacts.get(e).artifact1 = obj["inventory"]["artifact_1"];
 
 	}
+	printf("\nsetting artifacts ending\n");
 }
 
 void setInventory(json obj) {
-	bool axe = obj["inventory"]["equiptment"]["axe"].get<bool>();
-	bool wand = obj["inventory"]["equiptment"]["wand"].get<bool>();
-	bool sword = obj["inventory"]["equiptment"]["sword"].get<bool>();
+	//bool axe = obj["inventory"]["equiptment"]["axe"].get<bool>();
+	//bool wand = obj["inventory"]["equiptment"]["wand"].get<bool>();
+	//bool sword = obj["inventory"]["equiptment"]["sword"].get<bool>();
 
 	// consume 
-	bool hp_potion = obj["inventory"]["consumables"]["hp_potion"].get<bool>();
-	bool mp_potion= obj["inventory"]["consumables"]["mp_potion"].get<bool>();
+	//bool hp_potion = obj["inventory"]["consumables"]["hp_potion"].get<bool>();
+	//bool mp_potion= obj["inventory"]["consumables"]["mp_potion"].get<bool>();
 
 	for (Entity e : registry.equipables.entities) {
-		registry.equipables.get(e).axe = axe;
-		registry.equipables.get(e).wand = wand;
-		registry.equipables.get(e).sword = sword;
+		registry.equipables.get(e).axe = obj["inventory"]["equiptment"]["axe"];
+		registry.equipables.get(e).wand = obj["inventory"]["equiptment"]["wand"];
+		registry.equipables.get(e).sword = obj["inventory"]["equiptment"]["sword"];
 	}
 
 	for (Entity e : registry.consumables.entities) {
-		registry.consumables.get(e).magic_potion = mp_potion;
-		registry.consumables.get(e).hp_potion = hp_potion;
+		registry.consumables.get(e).magic_potion = obj["inventory"]["consumables"]["hp_potion"];
+		registry.consumables.get(e).hp_potion = obj["inventory"]["consumables"]["mp_potion"];
 	}
+	printf("\n end of invetory list \n");
 }
 void SaveSystem::readJsonFile() {
 	//reading data 
@@ -85,7 +88,7 @@ void SaveSystem::readJsonFile() {
 	// similar function written so use other one for now 
 	//setPlayer(obj);
 	setArtifacts(obj);
-	setInventory(obj);
+	//setInventory(obj);
 
 	printf("\n");
 	printf("DONE READING FILE");

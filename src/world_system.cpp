@@ -690,7 +690,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// SAVING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
 		saveSystem.saveGameState();
-		printf("SAVING KEY PRESSED\n");
+		printf("\nSAVING KEY PRESSED\n");
 	}
 
 	// LOADING THE GAME
@@ -706,7 +706,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			// load the entities in
 			printf("\n line 708 reaching to loadData\n");
 			loadFromData(gameData);
-			saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc.
+			printf("\n line 709\n");
+			//saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc.
 		}
 
 		printf("LOADING KEY PRESSED\n");
@@ -983,6 +984,7 @@ void WorldSystem::removeForLoad() {
 
 void WorldSystem::loadFromData(json data) {
 	// load player
+	printf("\n in load from Data function line 987");
 	loadPlayer(data["player"]);
 	loadEnemies(data["enemies"]);
 }
@@ -990,16 +992,22 @@ void WorldSystem::loadFromData(json data) {
 void WorldSystem::loadPlayer(json playerData) {
 	// create a player from the save data
 	// get player motion
+	printf("\n in load player\n");
 	Motion motion = loadMotion(playerData["motion"]);
 	
 	// create player
 	Entity e = createPlayer(renderer, motion);
 	// get player stats
+	printf("\n get player stats\n");
 	json stats = playerData["stats"];
 	registry.stats.get(e).ep = stats["ep"];
+	printf("\n get player ep\n");
 	registry.stats.get(e).hp = stats["hp"];
-	registry.stats.get(e).maxep = stats["maxep"];
+	printf("\n get player hp\n");
+	//registry.stats.get(e).maxep = stats["maxEp"];
+	//printf("\n get player maxep\n");
 	registry.stats.get(e).mp = stats["mp"];
+	printf("\n get player mp\n");
 }
 
 void WorldSystem::loadEnemies(json enemyData) {
@@ -1008,12 +1016,14 @@ void WorldSystem::loadEnemies(json enemyData) {
 			loadSlime(enemy);
 		}
 	}
+	printf("\n end of slime data");
 }
 
 void WorldSystem::loadSlime(json slimeData) {
 	// get slime's motion
 	Motion motion = loadMotion(slimeData["motion"]);
 
+	printf("\nCREATING SLIME ENEMY??\n");
 	// create slime
 	Entity e = createEnemy(renderer, motion);
 

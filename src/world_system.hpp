@@ -161,4 +161,7 @@ void set_gamestate(GameStates state);
 // check if entity has a status effect;
 bool has_status(Entity e, StatusType status);
 
+// Remove a number of a status effect type from entity
+void remove_status(Entity e, StatusType status, int number = 1);
+
 extern WorldSystem world;

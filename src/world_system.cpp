@@ -565,8 +565,6 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 	player_motion.velocity = { 0.f, 0.f };
 	player_motion.in_motion = false;
 	p.attacked = false;
-	
-	handle_status_ticks(player, false);
 
 	set_is_player_turn(false);
 	player_move_click = false;
@@ -758,7 +756,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_1) {
-		int give = (int)ARTIFACT::THICK_TOME;
+		int give = (int)ARTIFACT::POISON_FANG;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
@@ -1453,4 +1451,20 @@ bool has_status(Entity e, StatusType status) {
 		}
 	}
 	return false;
+}
+
+// Remove a number of a status effect type from entity
+void remove_status(Entity e, StatusType status, int number) {
+	if (!registry.statuses.has(e)) { return; }
+
+	int index = 0;
+	StatusContainer statuses = registry.statuses.get(e);
+	for (StatusEffect s : statuses.statuses) {
+		if (s.effect == status && number > 0) {
+			statuses.statuses.erase(statuses.statuses.begin() + index);
+			number--;
+			index++;
+		}
+	}
+	return;
 }

@@ -156,9 +156,11 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 		int roll = irand(100);
 		if (roll < 30) {
 			world.logText("DEBUG: Discarded Fang Procced!");
-			float damage = (attacker_stats.atk * 0.15) + (0.1 * attacker_inv.artifact[(int)ARTIFACT::POISON_FANG]);
+			float damage = (attacker_stats.atk * 0.15) + (attacker_stats.atk * 0.1 * attacker_inv.artifact[(int)ARTIFACT::POISON_FANG] - 1);
+			std::cout << damage << std::endl;
 
-			StatusEffect poison = StatusEffect(damage, 3, StatusType::FANG_POISON, false, false);
+			StatusEffect poison = StatusEffect(damage, 5, StatusType::FANG_POISON, false, false);
+			if (has_status(defender, StatusType::FANG_POISON)) { remove_status(defender, StatusType::FANG_POISON); }
 			apply_status(defender, poison);
 		}
 	}

@@ -1,4 +1,5 @@
 #include "turn_order_system.hpp"
+#include "combat_system.hpp"
 
 // setup the turn order system
 void TurnOrderSystem::setUpTurnOrder() {
@@ -27,7 +28,9 @@ Entity TurnOrderSystem::getNextTurn() {
 	Entity next;
 
 	// push current Entity into queue just in case queue is empty
+	// handle end-of-turn behaviour
 	turnQueue.push(currentEntity);
+	handle_status_ticks(currentEntity, false);
 
 	// check to see if the next thing is still alive(should still be in queueables)
 	while (!registry.queueables.has(next)) {
@@ -37,6 +40,8 @@ Entity TurnOrderSystem::getNextTurn() {
 	
 	currentEntity = next;
 	// set doing_turn of the entity to true
+	// handle start-of-turn behaviour
+	handle_status_ticks(next, true);
 	registry.queueables.get(currentEntity).doing_turn = true;
 	return next;
 }

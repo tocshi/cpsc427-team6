@@ -56,7 +56,8 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	stats.speed = 10;
 	stats.range = 400;
 
-	// TODO: Remove
+	// For Artifact Testing
+	/*
 	stats.maxhp = 1000;
 	stats.hp = stats.maxhp;
 	stats.mp = 100;
@@ -66,7 +67,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	stats.atk = 100;
 	stats.def = 0;
 	stats.speed = 10;
-	stats.range = 400;
+	stats.range = 400;*/
 	
 	registry.basestats.insert(entity, stats);
 
@@ -159,13 +160,14 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	stats.speed = 8;
 	stats.range = 250;
 
-	// TODO: REmove
+	// For Artifact Testing
+	/*
 	stats.maxhp = 1000;
 	stats.hp = stats.maxhp;
 	stats.atk = 100;
 	stats.def = 0;
 	stats.speed = 8;
-	stats.range = 250;
+	stats.range = 250;*/
 
 	registry.basestats.insert(entity, stats);
 
@@ -458,8 +460,10 @@ Entity createChest(RenderSystem* renderer, vec2 pos)
 
 	motion.scale = vec2({ CHEST_BB_WIDTH, CHEST_BB_HEIGHT });
 
-	// Create and (empty) CHEST component to be able to refer to all chests
-	registry.test.emplace(entity);
+	// Set interaction type
+	auto& interactable = registry.interactables.emplace(entity);
+	interactable.type = INTERACT_TYPE::CHEST;
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::CHEST,

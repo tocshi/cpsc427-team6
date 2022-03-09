@@ -62,6 +62,41 @@ enum class ARTIFACT {
 	ARTIFACT_COUNT = LIVELY_BULB + 1
 };
 
+// Artifact Rarity Arrays
+// Commented artifacts have not yet been completed!
+const int artifact_T1[] {
+	(int)ARTIFACT::PIOUS_PRAYER,
+	(int)ARTIFACT::BLADE_POLISH,
+	(int)ARTIFACT::HQ_FLETCHING,
+	//(int)ARTIFACT::MESSENGER_CAP,
+	//(int)ARTIFACT::WARM_CLOAK,
+	(int)ARTIFACT::GOLIATH_BELT,
+	(int)ARTIFACT::BLOOD_RUBY
+};
+const int artifact_T2[] {
+	(int)ARTIFACT::POISON_FANG,
+	//(int)ARTIFACT::GUIDE_HEALBUFF,
+	//(int)ARTIFACT::WINDBAG,
+	//(int)ARTIFACT::SCOUT_STRIDE,
+	//(int)ARTIFACT::ART_CONSERVE,
+	//(int)ARTIFACT::SMOKE_POWDER
+};
+const int artifact_T3[] {
+	(int)ARTIFACT::GLAD_HOPLON,
+	//(int)ARTIFACT::THUNDER_TWIG,
+	//(int)ARTIFACT::KB_MALLET,
+	//(int)ARTIFACT::ARCANE_SPECS,
+	//(int)ARTIFACT::ARCANE_FUNNEL,
+	//(int)ARTIFACT::BURRBAG
+};
+const int artifact_T4[] {
+	(int)ARTIFACT::LUCKY_CHIP,
+	(int)ARTIFACT::THICK_TOME,
+	//(int)ARTIFACT::FUNGIFIER,
+	//(int)ARTIFACT::LIVELY_BULB,
+	//(int)ARTIFACT::MALEDICTION
+};
+
 // Inventory component
 struct Inventory
 {
@@ -77,6 +112,7 @@ struct Player
 {
 	float s;
 	Inventory inv;
+	int gacha_pity;
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
 
@@ -203,8 +239,16 @@ struct Guardable {
 
 };
 
+enum class INTERACT_TYPE {
+	CHEST = 0,
+	DOOR = CHEST + 1,
+	STAIRS = DOOR + 1,
+	SIGN = STAIRS + 1,
+	TYPE_COUNT = SIGN + 1
+};
+
 struct Interactable {
-	
+	INTERACT_TYPE type;
 };
 
 struct Stats {

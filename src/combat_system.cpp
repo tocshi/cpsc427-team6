@@ -193,7 +193,7 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 
 	// Pious Prayer
 	if (defender_inv.artifact[(int)ARTIFACT::PIOUS_PRAYER] > 0) {
-		final_damage = max(1.f, final_damage - 5.f * defender_inv.artifact[(int)ARTIFACT::PIOUS_PRAYER]);
+		final_damage = max(1.f, final_damage - 3.f * defender_inv.artifact[(int)ARTIFACT::PIOUS_PRAYER]);
 	}
 
 	// Blade Polish Kit

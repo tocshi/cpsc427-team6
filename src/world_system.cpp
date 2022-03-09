@@ -682,8 +682,7 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 				createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 			}
 			else {
-				// TODO: change this back to PlantShooter
-				createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 			}
 		}
 	}
@@ -711,7 +710,7 @@ void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int
 					continue;
 				}
 			}
-			createCampfire(renderer, { itemSpawns[i].x, itemSpawns[i].y });
+			createChest(renderer, { itemSpawns[i].x, itemSpawns[i].y });
 			spawned++;
 			i++;
 		}
@@ -1124,18 +1123,60 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					break;
 				default:
-					for (Entity& sign_entity : registry.signs.entities) {
-						Motion& sign_motion = registry.motions.get(sign_entity);
-						if (world_pos.x <= sign_motion.position.x + abs(sign_motion.scale.x / 2) &&
-							world_pos.x >= sign_motion.position.x - abs(sign_motion.scale.x / 2) &&
-							world_pos.y <= sign_motion.position.y + abs(sign_motion.scale.y / 2) &&
-							world_pos.y >= sign_motion.position.y - abs(sign_motion.scale.y / 2)) {
-							Sign& sign = registry.signs.get(sign_entity);
-							sign.playing = true;
+					for (Entity& entity : registry.interactables.entities) {
+						Motion& motion = registry.motions.get(entity);
+						Interactable& interactable = registry.interactables.get(entity);
+						if (world_pos.x <= motion.position.x + abs(motion.scale.x / 2) &&
+							world_pos.x >= motion.position.x - abs(motion.scale.x / 2) &&
+							world_pos.y <= motion.position.y + abs(motion.scale.y / 2) &&
+							world_pos.y >= motion.position.y - abs(motion.scale.y / 2)) {
+
+							// Sign behaviour
+							if (registry.signs.has(entity)) {
+								Sign& sign = registry.signs.get(entity);
+								sign.playing = true;
+							}
+							else if (interactable.type == INTERACT_TYPE::CHEST && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+								
+								// use gacha system to determine loot
+								int pity = registry.players.get(player_main).gacha_pity;
+								float chance_T4 = 5.f + 1 * pity;
+								float chance_T3 = chance_T4 + 15.f + 0.75 * pity;
+								float chance_T2 = chance_T3 + 30.f + 0.5 * pity;
+								float roll = rand() % 100;
+								int loot = 0;
+
+								// need sizeof() for array element size (yes I know it's 4 but I would like to generalize just in case)
+								if (roll < chance_T4) { 
+									loot = artifact_T4[irand(sizeof(artifact_T4) / sizeof(artifact_T4[0]))];
+									registry.players.get(player_main).gacha_pity = 0;
+								}
+								else if (roll < chance_T3) { 
+									loot = artifact_T3[irand(sizeof(artifact_T3) / sizeof(artifact_T3[0]))];
+									registry.players.get(player_main).gacha_pity++;
+								}
+								else if (roll < chance_T2) { 
+									loot = artifact_T2[irand(sizeof(artifact_T2) / sizeof(artifact_T2[0]))];
+									registry.players.get(player_main).gacha_pity++;
+								}
+								else                       { 
+									loot = artifact_T1[irand(sizeof(artifact_T1) / sizeof(artifact_T1[0]))];
+									registry.players.get(player_main).gacha_pity++;
+								}
+								
+								Inventory& inv = registry.inventories.get(player_main);
+								inv.artifact[loot]++;
+
+								printf("Artifact %d given!\n", loot);
+								logText("You open the chest and find <artifact name>");
+								logText("DEBUG: For now, check output for artifact number, and refer to components.hpp to see what it is!");
+
+								// TODO: make a more graceful chest destruction kthx
+								registry.remove_all_components_of(entity);
+							}
 						}
 					}
 				}
-
 			}
 		}
 	}
@@ -1236,7 +1277,7 @@ std::queue<Entity> WorldSystem::loadFromData(json data) {
 	// load player
 	json entityList = data["entities"];
 	std::queue<Entity> entities;
-	for (auto entity : entityList) {
+	for (auto& entity : entityList) {
 		Entity e;
 		if (entity["type"] == "player") {
 			e = loadPlayer(entity);

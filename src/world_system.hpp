@@ -157,3 +157,5 @@ void set_enemy_state_attack(Entity enemy);
 
 // set gamestate
 void set_gamestate(GameStates state);
+
+extern WorldSystem world;

@@ -112,6 +112,15 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 						}
 						break;
 					}
+					// projectile hit wall
+					if (!target_valid) {
+						if (registry.projectileTimers.has(entity)) {
+							Entity& e = registry.projectileTimers.get(entity).owner;
+							motion_registry.get(e).in_motion = false;
+							registry.remove_all_components_of(entity);
+							break;
+						}
+					}
 				}
 				if (move_success) {
 					float speed = motion.movement_speed;

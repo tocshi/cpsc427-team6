@@ -55,7 +55,7 @@ GameStates previous_game_state = current_game_state;
 
 
 // fog stats
-float fog_radius = 450.f;
+float fog_radius = 300.f;
 float fog_resolution = 2000.f;
 
 // ep range stats
@@ -275,10 +275,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Player& p = registry.players.get(player);
 		
 		// get player stats
-		float& maxep = registry.stats.get(player).maxep;
 		float& hp = registry.stats.get(player).hp;
 		float& mp = registry.stats.get(player).mp;
 		float& ep = registry.stats.get(player).ep;
+		float& maxhp = registry.stats.get(player).maxhp;
+		float& maxmp = registry.stats.get(player).maxmp;
+		float& maxep = registry.stats.get(player).maxep;
 
 		// Check if player has died
 		if (hp <= 0 && !registry.deathTimers.has(player)) {
@@ -308,13 +310,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// update player motion
 		Motion& player_motion = registry.motions.get(player);
+		Stats& player_stats = registry.stats.get(player);
 		if (player_motion.in_motion) {
 			if (ep <= 0) {
 				handle_end_player_turn(player);
 			}
 			else { 
-				float ep_rate = 1.f;
-				ep -= 0.03f * ep_rate * elapsed_ms_since_last_update; 
+				ep -= 0.06f * player_stats.epratemove * elapsed_ms_since_last_update; 
 			}
 		}
 		
@@ -328,16 +330,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			
 			switch (render_struct.used_texture) {
 			case TEXTURE_ASSET_ID::HPFILL:
-				motion_struct.scale = { (hp / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
-				motion_struct.position[0] = 150.f - 150.f*(1.f - (hp / 100.f));	// original pos (full bar) - (1-multiplier)
+				motion_struct.scale = { (hp / maxhp) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (hp / maxhp));	// original pos (full bar) - (1-multiplier)
 				break;
 			case TEXTURE_ASSET_ID::MPFILL:
-				motion_struct.scale = { (mp / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
-				motion_struct.position[0] = 150.f - 150.f*(1.f - (mp / 100.f));	// original pos (full bar) - (1-multiplier)
+				motion_struct.scale = { (mp / maxmp) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (mp / maxmp));	// original pos (full bar) - (1-multiplier)
 				break;
 			case TEXTURE_ASSET_ID::EPFILL:
-				motion_struct.scale = { (ep / 100.f) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
-				motion_struct.position[0] = 150.f - 150.f*(1.f - (ep / 100.f));	// original pos (full bar) - (1-multiplier)
+				motion_struct.scale = { (ep / maxep) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - (ep / maxep));	// original pos (full bar) - (1-multiplier)
 				break;
 			}
 
@@ -350,7 +352,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				sqrt(pow((motion_struct.position.x - player_motion.position.x), 2) 
 				+ pow((motion_struct.position.y - player_motion.position.y), 2));
 			
-			if (distance_to_player > fog_radius) {
+			if (distance_to_player > registry.stats.get(player_main).range) {
 				if (!registry.hidden.has(entity)) {
 					registry.hidden.emplace(entity);
 				}
@@ -563,8 +565,6 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 	player_motion.velocity = { 0.f, 0.f };
 	player_motion.in_motion = false;
 	p.attacked = false;
-	
-	handle_status_ticks(player, false);
 
 	set_is_player_turn(false);
 	player_move_click = false;
@@ -631,7 +631,7 @@ void WorldSystem::spawn_game_entities() {
 
 // render ep range around the given position
 void WorldSystem::create_ep_range(float remaining_ep, float speed, vec2 pos) {
-	float ep_radius = remaining_ep * speed * 0.03 + ((110.f * remaining_ep) / 100);
+	float ep_radius = remaining_ep * speed * 0.015 + ((110.f * remaining_ep) / 100);
 
 	Entity ep = createEpRange({ pos.x , pos.y }, ep_resolution, ep_radius, { window_width_px, window_height_px });
 	registry.colors.insert(ep, { 0.2, 0.2, 8.7 });
@@ -641,10 +641,11 @@ void WorldSystem::create_ep_range(float remaining_ep, float speed, vec2 pos) {
 void WorldSystem::create_fog_of_war() {	
 		// get player position
 	Motion player_motion = registry.motions.get(player_main);
+	Stats player_stats = registry.stats.get(player_main);
 	float playerX = player_motion.position.x;
 	float playerY = player_motion.position.y;
 
-	Entity fog = createFog({ playerX, playerY }, fog_resolution, fog_radius, { window_width_px, window_height_px });
+	Entity fog = createFog({ playerX, playerY }, fog_resolution, player_stats.range, { window_width_px, window_height_px });
 	registry.colors.insert(fog, { 0.2, 0.2, 0.2 });
 }
 
@@ -707,7 +708,7 @@ void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int
 					continue;
 				}
 			}
-			createCampfire(renderer, { itemSpawns[i].x, itemSpawns[i].y });
+			createChest(renderer, { itemSpawns[i].x, itemSpawns[i].y });
 			spawned++;
 			i++;
 		}
@@ -751,6 +752,16 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
 		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
 		logText("Game state saved!");
+	}
+
+	// DEBUG: Testing artifact/stacking
+	if (action == GLFW_RELEASE && key == GLFW_KEY_1) {
+		int give = (int)ARTIFACT::POISON_FANG;
+		for (Entity& p : registry.players.entities) {
+			Inventory& inv = registry.inventories.get(p);
+			inv.artifact[give]++;
+		}
+		printf("Artifact %d given!\n", give);
 	}
 
 	// LOADING THE GAME
@@ -1110,18 +1121,59 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					break;
 				default:
-					for (Entity& sign_entity : registry.signs.entities) {
-						Motion& sign_motion = registry.motions.get(sign_entity);
-						if (world_pos.x <= sign_motion.position.x + abs(sign_motion.scale.x / 2) &&
-							world_pos.x >= sign_motion.position.x - abs(sign_motion.scale.x / 2) &&
-							world_pos.y <= sign_motion.position.y + abs(sign_motion.scale.y / 2) &&
-							world_pos.y >= sign_motion.position.y - abs(sign_motion.scale.y / 2)) {
-							Sign& sign = registry.signs.get(sign_entity);
-							sign.playing = true;
+					for (Entity& entity : registry.interactables.entities) {
+						Motion& motion = registry.motions.get(entity);
+						Interactable& interactable = registry.interactables.get(entity);
+						if (world_pos.x <= motion.position.x + abs(motion.scale.x / 2) &&
+							world_pos.x >= motion.position.x - abs(motion.scale.x / 2) &&
+							world_pos.y <= motion.position.y + abs(motion.scale.y / 2) &&
+							world_pos.y >= motion.position.y - abs(motion.scale.y / 2)) {
+
+							// Sign behaviour
+							if (registry.signs.has(entity)) {
+								Sign& sign = registry.signs.get(entity);
+								sign.playing = true;
+							}
+							else if (interactable.type == INTERACT_TYPE::CHEST && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+								
+								// use gacha system to determine loot
+								int pity = registry.players.get(player_main).gacha_pity;
+								float chance_T4 = 5.f + 1 * pity;
+								float chance_T3 = chance_T4 + 15.f + 0.75 * pity;
+								float chance_T2 = chance_T3 + 30.f + 0.5 * pity;
+								float roll = rand() % 100;
+								int loot = 0;
+
+								// need sizeof() for array element size (yes I know it's 4 but I would like to generalize just in case)
+								if (roll < chance_T4) { 
+									loot = artifact_T4[irand(sizeof(artifact_T4) / sizeof(artifact_T4[0]))];
+									registry.players.get(player_main).gacha_pity = 0;
+								}
+								else if (roll < chance_T3) { 
+									loot = artifact_T3[irand(sizeof(artifact_T3) / sizeof(artifact_T3[0]))];
+									registry.players.get(player_main).gacha_pity++;
+								}
+								else if (roll < chance_T2) { 
+									loot = artifact_T2[irand(sizeof(artifact_T2) / sizeof(artifact_T2[0]))];
+									registry.players.get(player_main).gacha_pity++;
+								}
+								else                       { 
+									loot = artifact_T1[irand(sizeof(artifact_T1) / sizeof(artifact_T1[0]))];
+									registry.players.get(player_main).gacha_pity++;
+								}
+								
+								Inventory& inv = registry.inventories.get(player_main);
+								inv.artifact[loot]++;
+
+								std::string name = artifact_names.at((ARTIFACT)loot);
+								logText("You open the chest and find " + name + "!");
+
+								// TODO: make a more graceful chest destruction kthx
+								registry.remove_all_components_of(entity);
+							}
 						}
 					}
 				}
-
 			}
 		}
 	}
@@ -1171,11 +1223,18 @@ void WorldSystem::start_player_turn() {
 	float& ep = registry.stats.get(player_main).ep;
 
 	if (registry.stats.get(player_main).guard) {
-		//ep = maxep * 1.5f;
+	//	ep = maxep * 1.5f;
 		registry.stats.get(player_main).guard = false;
 	}
 	else {
 		ep = maxep;
+	}
+
+	// reset enemies' hit_by_player status
+	for (Entity& enemy : registry.enemies.entities) {
+		auto& enemy_struct = registry.enemies.get(enemy);
+
+		enemy_struct.hit_by_player = false;
 	}
 }
 
@@ -1215,7 +1274,7 @@ std::queue<Entity> WorldSystem::loadFromData(json data) {
 	// load player
 	json entityList = data["entities"];
 	std::queue<Entity> entities;
-	for (auto entity : entityList) {
+	for (auto& entity : entityList) {
 		Entity e;
 		if (entity["type"] == "player") {
 			e = loadPlayer(entity);
@@ -1379,4 +1438,33 @@ void set_enemy_state_attack(Entity enemy) {
 void set_gamestate(GameStates state) {
 	previous_game_state = current_game_state;
 	current_game_state = state;
+}
+
+// Check if entity has a status effect;
+bool has_status(Entity e, StatusType status) {
+	if (!registry.statuses.has(e)) { return false; }
+
+	StatusContainer statuses = registry.statuses.get(e);
+	for (StatusEffect s : statuses.statuses) {
+		if (s.effect == status) {
+			return true;
+		}
+	}
+	return false;
+}
+
+// Remove a number of a status effect type from entity
+void remove_status(Entity e, StatusType status, int number) {
+	if (!registry.statuses.has(e)) { return; }
+
+	int index = 0;
+	StatusContainer statuses = registry.statuses.get(e);
+	for (StatusEffect s : statuses.statuses) {
+		if (s.effect == status && number > 0) {
+			statuses.statuses.erase(statuses.statuses.begin() + index);
+			number--;
+			index++;
+		}
+	}
+	return;
 }

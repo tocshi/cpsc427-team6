@@ -2,6 +2,7 @@
 #include "tiny_ecs.hpp"
 #include "components.hpp"
 #include "tiny_ecs_registry.hpp"
+#include "turn_queue.hpp"
 #include <iostream>
 #include <queue>
 
@@ -15,5 +16,6 @@ public:
 
 private:
 	Entity currentEntity;
-	std::queue<Entity> turnQueue;
+	TurnQueue turnQueue;
+	bool firstTurn = false;
 };

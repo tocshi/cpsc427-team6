@@ -3,18 +3,8 @@
 
 // setup the turn order system
 void TurnOrderSystem::setUpTurnOrder() {
-	// get player and put to front of queue
-	for (Entity player : registry.players.entities) {
-		turnQueue.push(player);
-	}
-
-	// loop through all queuables and add them to turnQueue
-	for (Entity e : registry.queueables.entities) {
-		// if the entity is not the player, add to queue
-		if (!registry.players.has(e)) {
-			turnQueue.push(e);
-		}
-	}
+	firstTurn = true;
+	turnQueue.setUpQueue(registry.queueables.entities);
 }
 
 // get the entity of the object whose turn it is
@@ -29,13 +19,24 @@ Entity TurnOrderSystem::getNextTurn() {
 
 	// push current Entity into queue just in case queue is empty
 	// handle end-of-turn behaviour
-	turnQueue.push(currentEntity);
-	handle_status_ticks(currentEntity, false);
+	if (!firstTurn) {
+		turnQueue.putBackEntity(currentEntity);
+		handle_status_ticks(currentEntity, false);
+	}
+
+	// if this is the first turn, set first turn to false
+	if (firstTurn) {
+		firstTurn = false;
+	}
 
 	// check to see if the next thing is still alive(should still be in queueables)
 	while (!registry.queueables.has(next)) {
-		next = turnQueue.front();
-		turnQueue.pop();
+		next = turnQueue.getNext();
+	}
+
+	// if the next turn is player, we need to restructure the queue
+	if (registry.players.has(next)) {
+		turnQueue.restructure();
 	}
 	
 	currentEntity = next;
@@ -56,7 +57,7 @@ std::queue<Entity> TurnOrderSystem::getTurnOrder() {
 	int size = turnQueue.size();
 	for (int i = 0; i < size; i++) {
 		// get entity
-		Entity e = turnQueue.front();
+		Entity e = turnQueue.getNext();
 		// print turn order
 		/*
 		if (registry.players.has(e)) {
@@ -65,18 +66,19 @@ std::queue<Entity> TurnOrderSystem::getTurnOrder() {
 		if (registry.enemies.has(e)) {
 			printf("enemy here\n");
 		}*/
-		turnQueue.pop();
 		// put in return queue
 		returnQueue.push(e);
 		// put entity to back of turn Queue (at the end it should be the same order)
-		turnQueue.push(e);
+		turnQueue.putBackEntity(e);
 	}
 
 	return returnQueue;
 }
 
 void TurnOrderSystem::loadTurnOrder(std::queue<Entity> queue) {
-	turnQueue = queue;
-	currentEntity = turnQueue.front();
-	turnQueue.pop();
+	while (!queue.empty()) {
+		turnQueue.putBackEntity(queue.front());
+		queue.pop();
+	}
+	currentEntity = turnQueue.getNext();
 }

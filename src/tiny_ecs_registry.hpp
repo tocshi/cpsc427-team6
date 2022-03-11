@@ -27,6 +27,7 @@ public:
 	ComponentContainer<Guardable> guardables;
 	ComponentContainer<Interactable> interactables;
 	ComponentContainer<Stats> stats;
+	ComponentContainer<Stats> basestats;
 	ComponentContainer<Queueable> queueables;
 	ComponentContainer<Test> test;	// for testing
 	ComponentContainer<Solid> solid;
@@ -76,6 +77,7 @@ public:
 		registry_list.push_back(&guardables);
 		registry_list.push_back(&interactables);
 		registry_list.push_back(&stats);
+		registry_list.push_back(&basestats);
 		registry_list.push_back(&queueables);
 		registry_list.push_back(&test);
 		registry_list.push_back(&solid);

@@ -759,12 +759,24 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_1) {
-		int give = (int)ARTIFACT::POISON_FANG;
+		int give = (int)ARTIFACT::KB_MALLET;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
+
+			std::string name = artifact_names.at((ARTIFACT)give);
+			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
 		}
-		printf("Artifact %d given!\n", give);
+	}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_2) {
+		int give = (int)ARTIFACT::WINDBAG;
+		for (Entity& p : registry.players.entities) {
+			Inventory& inv = registry.inventories.get(p);
+			inv.artifact[give]++;
+
+			std::string name = artifact_names.at((ARTIFACT)give);
+			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
+		}
 	}
 
 	// LOADING THE GAME
@@ -1081,12 +1093,6 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									if (!registry.wobbleTimers.has(en)){
 										WobbleTimer& wobble = registry.wobbleTimers.emplace(en);
 										wobble.orig_scale = m.scale;
-									}
-
-									if (!registry.knockbacks.has(en)) {
-										KnockBack& knockback = registry.knockbacks.emplace(en);
-										knockback.remaining_distance = 64;
-										knockback.angle = atan2(enemyY - player_motion.position.y, enemyX - player_motion.position.x);
 									}
 						
 									// lower ep

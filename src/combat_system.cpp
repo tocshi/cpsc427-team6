@@ -149,6 +149,28 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 				stack--;
 			}
 		}
+
+		// Bag of Wind
+		if (defender_inv.artifact[(int)ARTIFACT::WINDBAG] > 0 && !has_status(defender, StatusType::WINDBAG_CD)) {
+			float hp_threshold = 0.2 + 0.05 * defender_inv.artifact[(int)ARTIFACT::WINDBAG];
+			int stun_duration = 2 + defender_inv.artifact[(int)ARTIFACT::WINDBAG];
+			if (defender_stats.hp - final_damage <= defender_stats.maxhp * hp_threshold) {
+				for (Entity e : registry.enemies.entities) {
+					Motion enemy_motion = registry.motions.get(e);
+					if (dist_to(defender_motion.position, enemy_motion.position) <= 200) {
+						if (!registry.knockbacks.has(e)) {
+							KnockBack& knockback = registry.knockbacks.emplace(e);
+							knockback.remaining_distance = 300;
+							knockback.angle = atan2(enemy_motion.position.y - defender_motion.position.y, enemy_motion.position.x - defender_motion.position.x);
+						}
+						StatusEffect stun = StatusEffect(0, stun_duration, StatusType::STUN, false, true);
+						apply_status(attacker, stun);
+						StatusEffect cd = StatusEffect(0, 15, StatusType::WINDBAG_CD, false, false);
+						apply_status(defender, cd);
+					}
+				}
+			}
+		}
 	}
 
 	// Discarded Fang
@@ -194,7 +216,7 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 	}
 
 	// Pious Prayer
-	if (defender_inv.artifact[(int)ARTIFACT::PIOUS_PRAYER] > 0) {
+	if (defender_inv.artifact[(int)ARTIFACT::PIOUS_PRAYER] > 0 && dist_to(attacker_motion.position, defender_motion.position) > 100) {
 		final_damage = max(1.f, final_damage - 3.f * defender_inv.artifact[(int)ARTIFACT::PIOUS_PRAYER]);
 	}
 
@@ -206,6 +228,17 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 	// High-Quality Fletching
 	if (attacker_inv.artifact[(int)ARTIFACT::HQ_FLETCHING] > 0 && dist_to(attacker_motion.position, defender_motion.position) > 100) {
 		final_damage *= 1.2 * attacker_inv.artifact[(int)ARTIFACT::HQ_FLETCHING];
+	}
+
+	// Rubber Mallet
+	if (attacker_inv.artifact[(int)ARTIFACT::KB_MALLET] > 0 && dist_to(attacker_motion.position, defender_motion.position) <= 100) {
+		float kb_dist = 50 + 50 * attacker_inv.artifact[(int)ARTIFACT::KB_MALLET];
+
+		if (!registry.knockbacks.has(defender)) {
+			KnockBack& knockback = registry.knockbacks.emplace(defender);
+			knockback.remaining_distance = kb_dist;
+			knockback.angle = atan2(defender_motion.position.y - attacker_motion.position.y, defender_motion.position.x - attacker_motion.position.x);
+		}
 	}
 
 	return final_damage;
@@ -226,6 +259,7 @@ void apply_status(Entity& target, StatusEffect& status) {
 void handle_status_ticks(Entity& entity, bool applied_from_turn_start) {
 	if (registry.statuses.has(entity)) {
 		StatusContainer& statusContainer = registry.statuses.get(entity);
+		Stats stats = registry.stats.get(entity);
 		// sort the statuses to ensure that percentage buffs get applied before flat buffs
 		statusContainer.sort_statuses_reverse();
 		// we iterate backwards so that removing elements will not mess up the rest of the loop
@@ -252,13 +286,15 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start) {
 					}
 					break;
 				case (StatusType::ATK_BUFF):
-					Stats stats = registry.stats.get(entity);
 					if (status.percentage && registry.stats.has(entity)) {
 						stats.atk *= 1 + status.value;
 					}
 					else {
 						stats.atk += status.value;
 					}
+					break;
+				case (StatusType::STUN):
+					registry.queueables.get(entity).doing_turn = false;
 					break;
 			}
 			// properly remove statuses that have expired, except for things with >=999 turns (we treat those as infinite)

@@ -19,7 +19,7 @@ public:
 	{
 	}
 private:
-	float knock_base_velocity = 200.f;
+	float knock_base_velocity = 500.f;
 	float knock_min_velocity = 10.f;
 	float knock_decel_threshold = 64.f;
 	

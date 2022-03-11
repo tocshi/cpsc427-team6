@@ -42,8 +42,8 @@ Entity TurnOrderSystem::getNextTurn() {
 	currentEntity = next;
 	// set doing_turn of the entity to true
 	// handle start-of-turn behaviour
-	handle_status_ticks(next, true);
 	registry.queueables.get(currentEntity).doing_turn = true;
+	handle_status_ticks(currentEntity, true);
 	return next;
 }
 

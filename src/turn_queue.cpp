@@ -102,6 +102,24 @@ void TurnQueue::removeEntity(Entity e) {
 		head = next;
 		return;
 	}
+	// if tail is the entity to be removed
+	if (tail->e == e) {
+		// if tail is the only one
+		if (tail == head) {
+			tail = NULL;
+			delete tail;
+			head = NULL;
+			return;
+		}
+		Node* prev = tail->prev;
+		// set the prev nodes next to be null
+		prev->next = NULL;
+		// delete tail
+		delete tail;
+		// set next to head
+		tail = prev;
+		return;
+	}
 	// iterate through queue
 	Node* current = head->next;
 	while (current) {

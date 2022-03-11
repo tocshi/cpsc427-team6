@@ -13,6 +13,7 @@ public:
 	Entity getNextTurn();
 	std::queue<Entity> getTurnOrder();
 	void loadTurnOrder(std::queue<Entity> queue);
+	void removeFromQueue(Entity e);
 
 private:
 	Entity currentEntity;

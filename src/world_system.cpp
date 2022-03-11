@@ -377,6 +377,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			logText(log_text);
 			SquishTimer& squish = registry.squishTimers.emplace(enemy);
 			squish.orig_scale = registry.motions.get(enemy).scale;
+
+			// remove from turn queue
+			turnOrderSystem.removeFromQueue(enemy);
 		}
 	}
 

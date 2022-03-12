@@ -55,6 +55,7 @@ public:
 	ComponentContainer<AnimationData> animations;
 	ComponentContainer<Sign> signs;
 	ComponentContainer<StatusContainer> statuses;
+	ComponentContainer<KnockBack> knockbacks;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -105,6 +106,7 @@ public:
 		registry_list.push_back(&collidables);
 		registry_list.push_back(&animations);
 		registry_list.push_back(&statuses);
+		registry_list.push_back(&knockbacks);
 	}
 
 	void clear_all_components() {

@@ -105,7 +105,7 @@ const int artifact_T1[] {
 const int artifact_T2[] {
 	(int)ARTIFACT::POISON_FANG,
 	//(int)ARTIFACT::GUIDE_HEALBUFF,
-	//(int)ARTIFACT::WINDBAG,
+	(int)ARTIFACT::WINDBAG,
 	//(int)ARTIFACT::SCOUT_STRIDE,
 	//(int)ARTIFACT::ART_CONSERVE,
 	//(int)ARTIFACT::SMOKE_POWDER
@@ -113,7 +113,7 @@ const int artifact_T2[] {
 const int artifact_T3[] {
 	(int)ARTIFACT::GLAD_HOPLON,
 	//(int)ARTIFACT::THUNDER_TWIG,
-	//(int)ARTIFACT::KB_MALLET,
+	(int)ARTIFACT::KB_MALLET,
 	//(int)ARTIFACT::ARCANE_SPECS,
 	//(int)ARTIFACT::ARCANE_FUNNEL,
 	//(int)ARTIFACT::BURRBAG
@@ -469,6 +469,11 @@ struct StatusContainer {
 			}
 		);
 	}
+};
+
+struct KnockBack {
+	float remaining_distance = 0; 
+	float angle = 0;
 };
 
 /**

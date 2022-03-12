@@ -46,6 +46,8 @@ const float PAUSE_BUTTON_BB_HEIGHT = 50.f;
 const float PAUSE_BUTTON_BB_WIDTH = 50.f;
 const float MODE_BB_WIDTH = 800.f;
 const float MODE_BB_HEIGHT = 100.f;
+const float POINTER_BB_WIDTH = 50.f;
+const float POINTER_BB_HEIGHT = 50.f;
 // want to make fog small so it can be rendered a lot TODO: this is a bad implementation and will need to be changed later to use shadows or drawing circles or something better
 const float FOG_BB_WIDTH = 0.6f * 100.f;
 const float FOG_BB_HEIGHT = 0.6f * 100.f;
@@ -113,6 +115,8 @@ Entity createCollectionButton(RenderSystem* renderer, vec2 pos);
 Entity createAttackModeText(RenderSystem* renderer, vec2 pos);
 // Move mode text
 Entity createMoveModeText(RenderSystem* renderer, vec2 pos);
+// Stylized pointer
+Entity createPointer(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture);
 // HP Bar 
 Entity createHPBar(RenderSystem* renderer, vec2 position);
 // MP Bar 

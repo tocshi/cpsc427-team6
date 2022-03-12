@@ -35,6 +35,7 @@ public:
 	ComponentContainer<ActionButton> actionButtons;
 	ComponentContainer<GuardButton> guardButtons;
 	ComponentContainer<Button> buttons;
+	ComponentContainer<Pointer> pointers;
 	ComponentContainer<MenuItem> menuItems;
 	ComponentContainer<ModeVisualization> modeVisualizationObjects;
 	ComponentContainer<EpRange> epRange;
@@ -98,6 +99,7 @@ public:
 		registry_list.push_back(&signs);
 		registry_list.push_back(&hidden);
 		registry_list.push_back(&hidables);
+		registry_list.push_back(&pointers);
 		// door in registry list 
 		registry_list.push_back(&door);
 		// add artifact to list

@@ -198,7 +198,30 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		doTurnOrderLogic();
 	}
 
-	
+	double mouseXpos, mouseYpos;
+	//getting cursor position
+	glfwGetCursorPos(window, &mouseXpos, &mouseYpos);
+	//printf("Cursor Position at (%f, %f)\n", xpos, ypos);
+
+	// remove previous stylized pointer
+	for (Entity pointer : registry.pointers.entities) {
+		registry.remove_all_components_of(pointer);
+	}
+	// render stylized pointers
+	if (mouseYpos > window_height_px - 200.f || mouseYpos < 100.f) {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
+	else if (current_game_state == GameStates::MOVEMENT_MENU) {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		createPointer(renderer, vec2(mouseXpos, mouseYpos), TEXTURE_ASSET_ID::MOVE_POINTER);
+	}
+	else if (current_game_state == GameStates::ATTACK_MENU) {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		createPointer(renderer, vec2(mouseXpos, mouseYpos), TEXTURE_ASSET_ID::ATTACK_POINTER);
+	}
+	else {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
 
 	// perform in-motion behaviour
 	if (get_is_player_turn() && player_move_click) {

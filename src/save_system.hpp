@@ -26,4 +26,5 @@ private:
 	json jsonifyMotion(Motion m);
 	json jsonifyStats(Stats s);
 	json jsonifyQueueable(Queueable q);
+	//json jsonify
 };

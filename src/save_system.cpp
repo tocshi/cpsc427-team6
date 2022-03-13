@@ -285,6 +285,9 @@ json SaveSystem::jsonifyEnemy(Entity enemy) {
 	// jsonify motion
 	Motion m = registry.motions.get(enemy);
 	enemyData["motion"] = jsonifyMotion(m);
+
+	enemyData["hit_by_enemy"] = e.hit_by_player;
 	return enemyData;
 }
+
 

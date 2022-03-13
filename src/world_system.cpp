@@ -773,12 +773,15 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (saveSystem.saveDataExists()) {
 			// remove entities to load in entities
 			removeForLoad();
+			printf("Removed for load\n");
 			// get saved game data
 			json gameData = saveSystem.getSaveData();
+			printf("getting gameData\n");
 			// load the entities in
 			std::queue<Entity> entities = loadFromData(gameData);
+			printf("load game data?\n");
 			turnOrderSystem.loadTurnOrder(entities);
-			saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc.
+			//saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc.
 		}
 
 		logText("Game state loaded!");
@@ -1280,10 +1283,14 @@ std::queue<Entity> WorldSystem::loadFromData(json data) {
 	for (auto& entity : entityList) {
 		Entity e;
 		if (entity["type"] == "player") {
+			printf("type is player successful... loading player\n");
 			e = loadPlayer(entity);
+			printf("loading player done \n");
 		}
 		else {
+			printf(" type is slime ... loading slime\n");
 			e = loadEnemy(entity);
+			printf("loading slime done 1293   \n ");
 		}
 		entities.push(e);
 	}
@@ -1295,12 +1302,13 @@ Entity WorldSystem::loadPlayer(json playerData) {
 	// create a player from the save data
 	// get player motion
 	Motion motion = loadMotion(playerData["motion"]);
-	
+	printf("line 1302 good\n");
 	// create player
 	Entity e = createPlayer(renderer, motion);
 
 	// get player component stuff
 	registry.players.get(e).attacked = playerData["player"]["attacked"];
+	printf("line 1309 \n");
 
 	// get queueable stuff
 	registry.queueables.get(e).doing_turn = playerData["queueable"]["doingTurn"];
@@ -1318,6 +1326,7 @@ Entity WorldSystem::loadPlayer(json playerData) {
 	registry.stats.get(e).speed = stats["speed"];
 	registry.stats.get(e).range = stats["range"];
 	registry.stats.get(e).chase = stats["chase"];
+	printf("line 1327 \n");
 	
 	return e;
 }
@@ -1325,7 +1334,9 @@ Entity WorldSystem::loadPlayer(json playerData) {
 Entity WorldSystem::loadEnemy(json enemyData) {
 	Entity e;
 	if (enemyData["type"] == "slime") {
+		printf("line 1337 sucessful \n ");
 		e = loadSlime(enemyData);
+		printf("slime is done loading line 1339\n");
 	}
 	return e;
 }
@@ -1333,17 +1344,23 @@ Entity WorldSystem::loadEnemy(json enemyData) {
 Entity WorldSystem::loadSlime(json slimeData) {
 	// get slime's motion
 	Motion motion = loadMotion(slimeData["motion"]);
+	printf("motion stats ok for slime 1347\n");
 
 	// create slime
 	Entity e = createEnemy(renderer, motion);
+	printf("created slime enemy good line 1351\n");
 
 	// set slimeEnemy data
-	json slimeEnemy = slimeData["slime"];
+	//json slimeEnemy = slimeData["slime"];
+	json slimeEnemy = slimeData["enemy"];
 	registry.enemies.get(e).state = slimeEnemy["state"];
+	printf("line 1357 slime state set \n");
 
 	// get queueable stuff
 	json queueable = slimeData["queueable"];
+	printf("get queable for slime 1360 \n");
 	registry.queueables.get(e).doing_turn = queueable["doingTurn"];
+	printf("sucess set queable for slime line 1362\n");
 
 	// get stats
 	json stats = slimeData["stats"];
@@ -1358,7 +1375,7 @@ Entity WorldSystem::loadSlime(json slimeData) {
 	registry.stats.get(e).speed = stats["speed"];
 	registry.stats.get(e).range = stats["range"];
 	registry.stats.get(e).chase = stats["chase"];
-
+	printf("slime is done setting all stats line 1377");
 	return e;
 }
 

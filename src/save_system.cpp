@@ -194,15 +194,22 @@ json SaveSystem::jsonifyStats(Stats s) {
 	json stats;
 	stats["hp"] = s.hp;
 	stats["maxHP"] = s.maxhp;
+
 	stats["ep"] = s.ep;
 	stats["maxEP"] = s.maxep;
+	
 	stats["mp"] = s.mp;
 	stats["maxMP"] = s.maxmp;
+	stats["mpregen"] = s.mpregen;
+	
 	stats["atk"] = s.atk;
 	stats["def"] = s.def;
+
 	stats["speed"] = s.speed;
 	stats["range"] = s.range;
 	stats["chase"] = s.chase;
+	stats["gaurd"] = s.guard;
+
 	return stats;
 }
 
@@ -228,6 +235,7 @@ json SaveSystem::jsonifyPlayer(Entity player) {
 	// save player component stuff
 	Player p = registry.players.get(player);
 	json pl;
+
 	pl["attacked"] = p.attacked;
 	playerData["player"] = pl;
 
@@ -246,12 +254,21 @@ json SaveSystem::jsonifyPlayer(Entity player) {
 	return playerData;
 }
 
+// add plantshooter 
 json SaveSystem::jsonifyEnemy(Entity enemy) {
 	json enemyData;
 	// save entity type
-	enemyData["type"] = "slime";
+	//enemyData["type"] = "slime";
 	
 	// save slime enemy component stuff
+	
+	if (registry.enemies.get(enemy).type == ENEMY_TYPE::SLIME) {
+		enemyData["type"] = "slime";
+	}
+	else if (registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER) {
+		enemyData["type"] = "plantShooter";
+	}
+
 	Enemy e = registry.enemies.get(enemy);
 	json enemyEnemy;
 	enemyEnemy["state"] = e.state;
@@ -268,6 +285,6 @@ json SaveSystem::jsonifyEnemy(Entity enemy) {
 	// jsonify motion
 	Motion m = registry.motions.get(enemy);
 	enemyData["motion"] = jsonifyMotion(m);
-
 	return enemyData;
 }
+

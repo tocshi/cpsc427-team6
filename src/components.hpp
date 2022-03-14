@@ -145,7 +145,7 @@ const int artifact_T4[] {
 	(int)ARTIFACT::THICK_TOME,
 	//(int)ARTIFACT::FUNGIFIER, // not blocked but effect takes some time to implement
 	//(int)ARTIFACT::LIVELY_BULB, // not blocked but effect takes some time to implement
-	//(int)ARTIFACT::MALEDICTION // blocked by stat calc system
+	//(int)ARTIFACT::MALEDICTION, // blocked by stat calc system
 	//(int)ARTIFACT::CHIMERARM // blocked by stat calc system and weapon generation
 };
 

@@ -7,24 +7,24 @@
 #include "world_init.hpp"
 #include "physics_system.hpp"
 
-void AISystem::step(Entity e, WorldSystem* world, RenderSystem* renderer)
+void AISystem::step(Entity e)
 {
 	for (Entity& player : registry.players.entities) {
 		if (registry.enemies.has(e)) {
 			ENEMY_TYPE enemy_type = registry.enemies.get(e).type;
 			switch(enemy_type) {
 				case ENEMY_TYPE::SLIME:
-					slime_logic(e, player, world, renderer);
+					slime_logic(e, player);
 					break;
 				case ENEMY_TYPE::PLANT_SHOOTER:
-					plant_shooter_logic(e, player, world, renderer);
+					plant_shooter_logic(e, player);
 					break;
 			}
 		}
 	}
 }
 
-void AISystem::slime_logic(Entity slime, Entity& player, WorldSystem* world, RenderSystem* renderer) {
+void AISystem::slime_logic(Entity slime, Entity& player) {
 	Motion& player_motion = registry.motions.get(player);
 	Stats& stats = registry.stats.get(slime);
 	float chaseRange = stats.range;
@@ -35,9 +35,9 @@ void AISystem::slime_logic(Entity slime, Entity& player, WorldSystem* world, Ren
 	// Perform melee attack if close enough
 	if (registry.enemies.get(slime).state == ENEMY_STATE::ATTACK) {
 		if (player_in_range(motion_struct.position, meleeRange)) {
-			createExplosion(renderer, player_motion.position);
-			Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
-			world->logText(deal_damage(slime, player, 100));
+			createExplosion(world.renderer, player_motion.position);
+			Mix_PlayChannel(-1, world.fire_explosion_sound, 0);
+			world.logText(deal_damage(slime, player, 100));
 			StatusEffect test_poison = StatusEffect(2, 2, StatusType::POISON, false, false);
 		}
 		registry.enemies.get(slime).state = ENEMY_STATE::AGGRO;
@@ -109,7 +109,7 @@ void AISystem::slime_logic(Entity slime, Entity& player, WorldSystem* world, Ren
 	}
 }
 
-void AISystem::plant_shooter_logic(Entity plant_shooter, Entity& player, WorldSystem* world, RenderSystem* renderer) {
+void AISystem::plant_shooter_logic(Entity plant_shooter, Entity& player) {
 	Motion& player_motion = registry.motions.get(player);
 	Stats& stats = registry.stats.get(plant_shooter);
 	float aggroRange = stats.range;
@@ -142,7 +142,7 @@ void AISystem::plant_shooter_logic(Entity plant_shooter, Entity& player, WorldSy
 			if (player_in_range(motion_struct.position, aggroRange)) {
 				// spawn projectile, etc
 				vec2 dir = normalize(player_motion.position - motion_struct.position);
-				createPlantProjectile(renderer, motion_struct.position, dir, plant_shooter);
+				createPlantProjectile(world.renderer, motion_struct.position, dir, plant_shooter);
 				registry.motions.get(plant_shooter).in_motion = true;
 			}
 			break;

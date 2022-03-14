@@ -1415,7 +1415,7 @@ void WorldSystem::doTurnOrderLogic() {
 		// perform end-of-movement attacks for enemies
 		else {
 			set_enemy_state_attack(currentTurnEntity);
-			aiSystem.step(currentTurnEntity, this, renderer);
+			aiSystem.step(currentTurnEntity);
 		}
 
 		// get next turn
@@ -1432,7 +1432,7 @@ void WorldSystem::doTurnOrderLogic() {
 
 	// if current turn entity is enemy and is still doing_turn call ai.step();
 	if (!registry.players.has(currentTurnEntity) && registry.queueables.get(currentTurnEntity).doing_turn) {
-		aiSystem.step(currentTurnEntity, this, renderer);
+		aiSystem.step(currentTurnEntity);
 
 		// now that ai did its step, set doing turn to false
 		registry.queueables.get(currentTurnEntity).doing_turn = false;

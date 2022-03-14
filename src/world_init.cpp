@@ -153,7 +153,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Slime";
 	stats.prefix = "the";
-	stats.maxhp = 25;
+	stats.maxhp = 28;
 	stats.hp = stats.maxhp;
 	stats.atk = 10;
 	stats.def = 3;
@@ -251,11 +251,10 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	// Initilalize stats
-	// hp = 20, atk = 8, queue = 7, def = 2, range = 400
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Plant Shooter";
 	stats.prefix = "the";
-	stats.maxhp = 20.f;
+	stats.maxhp = 24.f;
 	stats.hp = stats.maxhp;
 	stats.atk = 8.f;
 	stats.def = 2.f;
@@ -351,7 +350,7 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Caveling";
 	stats.prefix = "the";
-	stats.maxhp = 18;
+	stats.maxhp = 19;
 	stats.hp = stats.maxhp;
 	stats.atk = 6;
 	stats.def = 0;

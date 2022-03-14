@@ -580,7 +580,8 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
 
-	SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
+	//SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
+	SpawnData spawnData = createTiles(renderer, "debug_room.tmx");
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
@@ -678,12 +679,16 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 	if (enemySpawns.size() > 0) {
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
-			// Spawn either a slime or PlantShooter
-			if (ichoose(0, 1)) {
-				createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			// Spawn either a slime or PlantShooter or caveling
+			int roll = irand(4);
+			if (roll < 1) {
+				createCaveling(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			}
+			else if (roll < 2) {
+				createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 			}
 			else {
-				createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 			}
 		}
 	}

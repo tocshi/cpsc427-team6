@@ -352,7 +352,8 @@ enum class ENEMY_STATE {
 	AGGRO = IDLE + 1,
 	ATTACK = AGGRO + 1,
 	DEATH = ATTACK + 1,
-	STATE_COUNT = DEATH + 1
+	RETREAT = DEATH + 1,
+	STATE_COUNT = RETREAT + 1
 };
 
 enum class ENEMY_TYPE {

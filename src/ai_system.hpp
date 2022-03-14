@@ -16,7 +16,7 @@ public:
 	void step(Entity e);
 	void slime_logic(Entity slime, Entity& player);
 	void plant_shooter_logic(Entity plant_shooter, Entity& player);
-	void caveling_logic(Entity caveling, Entity& player);
+	void caveling_logic(Entity enemy, Entity& player);
 	bool player_in_range(vec2 position, float radius);
 };
 

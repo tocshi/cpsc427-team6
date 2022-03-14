@@ -19,6 +19,9 @@ void AISystem::step(Entity e)
 				case ENEMY_TYPE::PLANT_SHOOTER:
 					plant_shooter_logic(e, player);
 					break;
+				case ENEMY_TYPE::CAVELING:
+					caveling_logic(e, player);
+					break;
 			}
 		}
 	}
@@ -38,7 +41,6 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 			createExplosion(world.renderer, player_motion.position);
 			Mix_PlayChannel(-1, world.fire_explosion_sound, 0);
 			world.logText(deal_damage(slime, player, 100));
-			StatusEffect test_poison = StatusEffect(2, 2, StatusType::POISON, false, false);
 		}
 		registry.enemies.get(slime).state = ENEMY_STATE::AGGRO;
 		return;
@@ -87,21 +89,19 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 			Motion player_motion = registry.motions.get(player);
 
 			// move towards player
-			float dist = distance(motion_struct.position, player_motion.position);
-			vec2 direction = normalize(player_motion.position - motion_struct.position);
 			float slime_velocity = 180.f;
 			float angle = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
-			float x_component = cos(angle) * slime_velocity;
-			float y_component = sin(angle) * slime_velocity;
 
 			// Teleport if out of player sight range
-			motion_struct.destination = motion_struct.position + (direction * 120.f);
+			motion_struct.destination = { dirdist_extrapolate(motion_struct.position,
+				angle + degtorad(irandRange(-10, 10)), min(140.f , dist_to(motion_struct.position,
+				player_motion.position)) + irandRange(-20, -10)) };
 			if (!player_in_range(motion_struct.position, registry.stats.get(player).range) && !player_in_range(motion_struct.destination, registry.stats.get(player).range)) {
 				motion_struct.position = motion_struct.destination;
 				motion_struct.in_motion = false;
 			}
 			else {
-				motion_struct.velocity = { x_component, y_component };
+				motion_struct.velocity = slime_velocity * normalize(motion_struct.destination - motion_struct.position);
 				motion_struct.in_motion = true;
 			}
 		}
@@ -151,6 +151,104 @@ void AISystem::plant_shooter_logic(Entity plant_shooter, Entity& player) {
 			break;
 		default:
 			printf("Enemy State not supported\n");
+	}
+}
+
+
+void AISystem::caveling_logic(Entity enemy, Entity& player) {
+	Motion& player_motion = registry.motions.get(player);
+	Stats& stats = registry.stats.get(enemy);
+	float chaseRange = stats.range;
+	float meleeRange = 100.f;
+
+	Motion& motion_struct = registry.motions.get(enemy);
+
+	// Perform melee attack if close enough
+	if (registry.enemies.get(enemy).state == ENEMY_STATE::ATTACK) {
+		if (player_in_range(motion_struct.position, meleeRange)) {
+			int roll = irand(3);
+			if (roll < 2) {
+				createExplosion(world.renderer, player_motion.position);
+				Mix_PlayChannel(-1, world.fire_explosion_sound, 0);
+				world.logText(deal_damage(enemy, player, 30));
+				StatusEffect poison = StatusEffect(0.3 * stats.atk, 5, StatusType::POISON, false, false);
+				apply_status(player, poison);
+			}
+			else {
+				createExplosion(world.renderer, player_motion.position);
+				Mix_PlayChannel(-1, world.fire_explosion_sound, 0);
+				world.logText(deal_damage(enemy, player, 100));
+			}
+			
+		}
+		registry.enemies.get(enemy).state = ENEMY_STATE::AGGRO;
+		return;
+	}
+
+	// Determine enemy state
+	// check if player is in range and poisoned first
+	if (player_in_range(motion_struct.position, 500) && has_status(player, StatusType::POISON)) {
+		registry.enemies.get(enemy).state = ENEMY_STATE::RETREAT;
+	}
+	else if (player_in_range(motion_struct.position, chaseRange)) {
+		registry.enemies.get(enemy).state = ENEMY_STATE::AGGRO;
+	}
+	else {
+		registry.enemies.get(enemy).state = ENEMY_STATE::IDLE;
+	}
+
+	ENEMY_STATE state = registry.enemies.get(enemy).state;
+	// perform action based on state
+	float angle = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
+
+	switch (state) {
+	case ENEMY_STATE::RETREAT:
+
+		angle += M_PI + degtorad(irandRange(-30, 30));
+		motion_struct.destination = { dirdist_extrapolate(motion_struct.position, angle, min(300.f , 500.f - dist_to(motion_struct.position, player_motion.position) + irandRange(-50, 50)))};
+
+		// Teleport if out of player sight range
+		if (!player_in_range(motion_struct.position, registry.stats.get(player).range) && !player_in_range(motion_struct.destination, registry.stats.get(player).range)) {
+			// temp check
+			vec2 temp = motion_struct.position;
+			motion_struct.position = motion_struct.destination;
+			for (Entity solid : registry.solid.entities) {
+				if (collides_AABB(motion_struct, registry.motions.get(solid))) {
+					motion_struct.position = temp;
+					break;
+				}
+			}
+			motion_struct.in_motion = false;
+		}
+		else {
+			motion_struct.velocity = 180.f * normalize(motion_struct.destination - motion_struct.position);
+			motion_struct.in_motion = true;
+		}
+		break;
+	case ENEMY_STATE::AGGRO:
+		// move towards player
+		motion_struct.destination = { dirdist_extrapolate(motion_struct.position, 
+			angle + degtorad(irandRange(-10, 10)), max(20.f , dist_to(motion_struct.position, 
+			player_motion.position)) + irandRange (-90, -50))};
+
+		// Teleport if out of player sight range
+		if (!player_in_range(motion_struct.position, registry.stats.get(player).range) && !player_in_range(motion_struct.destination, registry.stats.get(player).range)) {
+			// temp check
+			vec2 temp = motion_struct.position;
+			motion_struct.position = motion_struct.destination;
+			for (Entity solid : registry.solid.entities) {
+				if (collides_AABB(motion_struct, registry.motions.get(solid))) {
+					motion_struct.position = temp;
+					break;
+				}
+			}
+			motion_struct.in_motion = false;
+		}
+		else {
+			motion_struct.velocity = 180.f * normalize(motion_struct.destination - motion_struct.position);
+			motion_struct.in_motion = true;
+		}
+		break;
 	}
 }
 

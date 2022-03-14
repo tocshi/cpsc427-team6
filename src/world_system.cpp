@@ -1441,10 +1441,9 @@ void WorldSystem::doTurnOrderLogic() {
 
 // Set attack state for enemies who attack after moving
 void set_enemy_state_attack(Entity enemy) {
-	if (registry.enemies.get(enemy).type == ENEMY_TYPE::SLIME) {
-		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
-	}
-	if (registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER) {
+	if (registry.enemies.get(enemy).type == ENEMY_TYPE::SLIME ||
+		registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER ||
+		registry.enemies.get(enemy).type == ENEMY_TYPE::CAVELING) {
 		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
 	}
 }

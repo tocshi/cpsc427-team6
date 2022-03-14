@@ -321,6 +321,58 @@ Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir, Entity 
 	return entity;
 }
 
+// Enemy slime (split into different enemies for future)
+Entity createCaveling(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 200;
+
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+
+	auto& enemy = registry.enemies.emplace(entity);
+	enemy.initialPosition = pos;
+	enemy.state = ENEMY_STATE::IDLE;
+	enemy.type = ENEMY_TYPE::CAVELING;
+	enemy.inv = registry.inventories.emplace(entity);
+
+	// Create caveling stats
+	auto& stats = registry.stats.emplace(entity);
+	stats.name = "Caveling";
+	stats.prefix = "the";
+	stats.maxhp = 18;
+	stats.hp = stats.maxhp;
+	stats.atk = 6;
+	stats.def = 0;
+	stats.speed = 15;
+	stats.range = 300;
+
+	registry.basestats.insert(entity, stats);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::CAVELING,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
+
+	// add enemy to queuables
+	registry.queueables.emplace(entity);
+
+	return entity;
+}
+
 // Boss
 Entity createBoss(RenderSystem* renderer, vec2 pos)
 {
@@ -432,7 +484,7 @@ Entity createEquipable(RenderSystem* renderer, vec2 pos)
 
 	// Create and (empty) EQUIPABLE component to be able to refer to all equipables
 	//registry.test.emplace(entity);
-	registry.equipables.emplace(entity); // TRY FOR EQUIPTMENT
+	registry.equipment.emplace(entity); // TRY FOR EQUIPTMENT
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::EQUIPABLE,

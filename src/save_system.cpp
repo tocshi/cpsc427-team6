@@ -251,6 +251,7 @@ json SaveSystem::jsonifyPlayer(Entity player) {
 	Motion player_motion = registry.motions.get(player);
 	playerData["motion"] = jsonifyMotion(player_motion);
 
+	playerData["invetory"] = jsonifyArtifacts(player);
 	return playerData;
 }
 
@@ -287,7 +288,23 @@ json SaveSystem::jsonifyEnemy(Entity enemy) {
 	enemyData["motion"] = jsonifyMotion(m);
 
 	enemyData["hit_by_enemy"] = e.hit_by_player;
+
 	return enemyData;
+}
+
+json SaveSystem::jsonifyArtifacts(Entity inv) {
+	//json inventoryData; 
+
+	Inventory i = registry.inventories.get(inv);
+	json inventory; 
+	inventory["armour"] = i.armour;
+	inventory["equipped"] = i.equipped;
+	inventory["weapon"] = i.weapon;
+	inventory["consumable"] = i.consumable;
+	inventory["artifact"] = i.artifact;
+	//inventoryData["inventory"] = inventory; 
+
+	return inventory; 
 }
 
 

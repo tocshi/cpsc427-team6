@@ -300,15 +300,22 @@ json SaveSystem::jsonifyInventory(Entity inv) {
 	//json inventoryData; 
 
 	Inventory i = registry.inventories.get(inv);
-	json inventory; 
-	inventory["armour"] = i.armour;
-	inventory["equipped"] = i.equipped;
-	inventory["weapon"] = i.weapon;
-	inventory["consumable"] = i.consumable;
+	json inventory;
 	inventory["artifact"] = i.artifact;
-	//inventoryData["inventory"] = inventory; 
-
+	inventory["consumble"] = i.consumable;	
+	inventory["equipped"]["Weapon"] = jsonifyEquiptment(i.equipped[0]);
+	inventory["equipped"]["Armour"] = jsonifyEquiptment(i.equipped[1]); 
 	return inventory; 
 }
 
+
+json SaveSystem::jsonifyEquiptment(Equipment e) {
+	json equipt; 
+	equipt["type"] = e.type;
+	equipt["attack"] = e.atk;
+	equipt["ep"] = e.ep;
+	equipt["mp"] = e.ep;
+	equipt["hp"] = e.mp;
+	return equipt;
+}
 

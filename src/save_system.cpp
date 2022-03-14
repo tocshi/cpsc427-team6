@@ -176,6 +176,11 @@ json SaveSystem::jsonifyEntities(std::queue<Entity> entities) {
 			changed = true;
 			entity = jsonifyEnemy(e);
 		}
+		else if (registry.interactables.has(e)) { // currently  no interactables ?
+			changed = true;
+			printf("yes");
+			entity = jsonifyChestItem(e);
+		}
 
 		// if something was actually jsonified put it into the array (removes nulls)
 		if (changed) {
@@ -318,4 +323,21 @@ json SaveSystem::jsonifyEquiptment(Equipment e) {
 	equipt["hp"] = e.mp;
 	return equipt;
 }
+
+json SaveSystem::jsonifyChestItem(Entity e) {
+	
+	Interactable c = registry.interactables.get(e);
+	json chest;
+
+	printf("%fl", c.type);
+
+	if (c.type == INTERACT_TYPE::CHEST) {
+
+		Motion m = registry.motions.get(e);
+		chest["chest"]["motions"] = jsonifyMotion(m);
+	}
+	return chest; 
+	
+}
+
 

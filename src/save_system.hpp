@@ -28,5 +28,6 @@ private:
 	json jsonifyQueueable(Queueable q);
 	json jsonifyInventory(Entity inv);
 	json jsonifyEquiptment(Equipment e);
+	json jsonifyChestItem(Entity chest);
 	//json jsonify
 };

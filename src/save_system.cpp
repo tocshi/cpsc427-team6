@@ -1,5 +1,6 @@
 #include "save_system.hpp"
 
+
 void saveToFile(json j) {
 	std::ofstream o(SAVE_DATA_PATH);
 	o << std::setw(4) << j << std::endl;
@@ -117,17 +118,31 @@ json SaveSystem::getSaveData() {
 	return j;
 }
 
-std::queue<Entity> SaveSystem::getSolidTile(std::queue<Entity> orignalqueue)
+std::queue<Entity> SaveSystem::getSolidTile(std::queue<Entity> originalqueue)
 {
 	std::queue<Entity> resultList;
-
+	printf("%d size of list beginning\n", originalqueue.size());
 	for (Entity collide : registry.collidables.entities) {
 
 		if (registry.solid.has(collide)) {
-			printf("has a solid + collid is may be a wall\n");
+			//printf("has a solid + collid is may be a wall\n");
+			originalqueue.push(collide); 
+		}
+		// code to check if it is in the entitylist 
+	}
+	// code to check if collide is in the entity list now 
+	int sizeOfList = originalqueue.size();
+	printf("%d entity list size \n:", sizeOfList);
+	int count = 0;
+	for (int i = 0; i < sizeOfList; i++) {
+		Entity e = originalqueue.front();
+		originalqueue.pop();
+		if (registry.collidables.has(e) && registry.solid.has(e)) {
+			printf(" solid component is stored in list\n");
+			count++;
 		}
 	}
-
+	printf("end of count %d \n: ", count);
 	return resultList;
 	//return std::queue<Entity>();
 }

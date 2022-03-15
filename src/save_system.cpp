@@ -99,7 +99,7 @@ void SaveSystem::readJsonFile() {
 void SaveSystem::saveGameState(std::queue<Entity> entities) {
 	json saveState;
 	std::queue<Entity> resultList;
-	resultList = getSolidTile(entities);
+	resultList = getSolidTileInteract(entities);
 	//saveState["entities"] = jsonifyEntities(entities);
 	saveState["entities"] = jsonifyEntities(resultList);
 
@@ -119,7 +119,7 @@ json SaveSystem::getSaveData() {
 	return j;
 }
 
-std::queue<Entity> SaveSystem::getSolidTile(std::queue<Entity> originalqueue)
+std::queue<Entity> SaveSystem::getSolidTileInteract(std::queue<Entity> originalqueue)
 {
 	
 	printf("%d size of list beginning\n", originalqueue.size());
@@ -153,6 +153,11 @@ std::queue<Entity> SaveSystem::getSolidTile(std::queue<Entity> originalqueue)
 		}
 	}
 	printf("end of count %d \n: ", count);*/
+	
+	for (Entity interact : registry.interactables.entities) {
+		originalqueue.push(interact); // add interact to queue
+	}
+	printf("%d size of list before after interact added \n:", originalqueue.size());
 	return originalqueue;
 }
 

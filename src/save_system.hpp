@@ -19,7 +19,7 @@ public:
 	void readJsonFile();
 	bool saveDataExists();
 	json getSaveData();
-	std::queue<Entity> getSolidTile(std::queue<Entity> orignalqueue); // puts solid/ collidables obj + tileMAp into the entitylist
+	std::queue<Entity> getSolidTileInteract(std::queue<Entity> orignalqueue); // puts solid/ collidables obj + tileMAp into the entitylist
 	
 private:
 	json jsonifyEntities(std::queue<Entity> entities);

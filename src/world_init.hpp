@@ -66,6 +66,8 @@ Entity createEnemy(RenderSystem* renderer, Motion m);
 Entity createPlantShooter(RenderSystem* renderer, vec2 pos);
 // Plant Projectile
 Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir, Entity owner);
+// Caveling
+Entity createCaveling(RenderSystem* renderer, vec2 pos);
 // Boss
 Entity createBoss(RenderSystem* renderer, vec2 pos);
 // Artifact

@@ -98,9 +98,10 @@ void SaveSystem::readJsonFile() {
 
 void SaveSystem::saveGameState(std::queue<Entity> entities) {
 	json saveState;
-	
-	saveState["entities"] = jsonifyEntities(entities);
-	getSolidTile(entities); // check if there are any before adding 
+	std::queue<Entity> resultList;
+	resultList = getSolidTile(entities);
+	//saveState["entities"] = jsonifyEntities(entities);
+	saveState["entities"] = jsonifyEntities(resultList);
 
 	saveToFile(saveState);
 }
@@ -120,18 +121,21 @@ json SaveSystem::getSaveData() {
 
 std::queue<Entity> SaveSystem::getSolidTile(std::queue<Entity> originalqueue)
 {
-	std::queue<Entity> resultList;
+	
 	printf("%d size of list beginning\n", originalqueue.size());
+	//int collideTotal = 0;
 	for (Entity collide : registry.collidables.entities) {
-
-		if (registry.solid.has(collide)) {
+		//int collideTotal++;
+		if (registry.solid.has(collide)) { // is solid + collidable
 			//printf("has a solid + collid is may be a wall\n");
 			originalqueue.push(collide); 
 		}
 		// code to check if it is in the entitylist 
 	}
+
+	//printf("%d collide total entities \n:", collideTotal); // how many collidable entites are there? 
 	// code to check if collide is in the entity list now 
-	int sizeOfList = originalqueue.size();
+	/*int sizeOfList = originalqueue.size();
 	printf("%d entity list size \n:", sizeOfList);
 	int count = 0;
 	for (int i = 0; i < sizeOfList; i++) {
@@ -142,9 +146,8 @@ std::queue<Entity> SaveSystem::getSolidTile(std::queue<Entity> originalqueue)
 			count++;
 		}
 	}
-	printf("end of count %d \n: ", count);
-	return resultList;
-	//return std::queue<Entity>();
+	printf("end of count %d \n: ", count);*/
+	return originalqueue;
 }
 
 json SaveSystem::jsonifyEntities(std::queue<Entity> entities) {
@@ -163,7 +166,7 @@ json SaveSystem::jsonifyEntities(std::queue<Entity> entities) {
 		else if (registry.enemies.has(e)) {
 			changed = true;
 			entity = jsonifyEnemy(e);
-			printf("123 working?? \n");
+			//printf("123 working?? \n");
 		}
 		else if (registry.interactables.has(e)) { // currently  no interactables ?
 			changed = true;
@@ -175,9 +178,10 @@ json SaveSystem::jsonifyEntities(std::queue<Entity> entities) {
 			printf("tile map entity \n");
 			entity = jsonifyTileMap(e);
 		}
-		else if (registry.solid.has(e)) { // collidable solid on map like the objects
+		else if (registry.solid.has(e) && registry.collidables.has(e)) { // collidable solid on map like the objects
 			changed = true;
-			printf("has solid components\n");
+			printf("181 has solid components\n");
+			entity = jsonifyCollideMap(e);
 		}
 
 		// if something was actually jsonified put it into the array (removes nulls)
@@ -356,13 +360,12 @@ json SaveSystem::jsonifyTileMap(Entity map) {
 	return tileMap; 
 }
 
-json SaveSystem::jsoniftCollideMap(Entity solid) {
+json SaveSystem::jsonifyCollideMap(Entity solidCollide) {
 
 	json collideMap;
-	json collideData; 
-	Motion m = registry.motions.get(solid);
-	collideData = jsonifyMotion(m);
+	json collideData;
+	Motion m = registry.motions.get(solidCollide);
+	collideMap["solidCollideWall"] = collideData;
 	
-	collideMap["solidMap"] = collideData;
-	return collideMap; 
+	return collideMap;
 }

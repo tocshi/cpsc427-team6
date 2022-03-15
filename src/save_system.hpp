@@ -32,6 +32,6 @@ private:
 	json jsonifyEquiptment(Equipment e);
 	json jsonifyChestItem(Entity chest);
 	json jsonifyTileMap(Entity map);
-	json jsoniftCollideMap(Entity solid); // things you colldie with like the wall etc. 
+	json jsonifyCollideMap(Entity solid); // things you colldie with like the wall etc. 
 	//json jsonify
 };

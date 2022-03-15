@@ -54,3 +54,6 @@ bool gl_has_errors();
 int irand(int i);
 int irandRange(int i, int j);
 int ichoose(int i, int j);
+vec2 dirdist_extrapolate(vec2 pos, float angle, float dist);
+float degtorad(float angle);
+float radtodeg(float angle);

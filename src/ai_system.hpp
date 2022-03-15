@@ -6,20 +6,17 @@
 #include "common.hpp"
 #include "world_init.hpp"
 
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// DON'T WORRY ABOUT THIS CLASS UNTIL ASSIGNMENT 3
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 // This is a hack to get logText() to work from ai_system
 // Source: trust me bro
-class WorldSystem;
+//class WorldSystem;
 
 class AISystem
 {
 public:
-	void step(Entity e, WorldSystem* world, RenderSystem* renderer);
-	void slime_logic(Entity slime, Entity& player, WorldSystem* world, RenderSystem* renderer);
-	void plant_shooter_logic(Entity plant_shooter, Entity& player, WorldSystem* world, RenderSystem* renderer);
+	void step(Entity e);
+	void slime_logic(Entity slime, Entity& player);
+	void plant_shooter_logic(Entity plant_shooter, Entity& player);
+	void caveling_logic(Entity enemy, Entity& player);
 	bool player_in_range(vec2 position, float radius);
 };
 

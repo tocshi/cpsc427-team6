@@ -40,6 +40,7 @@ class RenderSystem {
 			textures_path("enemy/slime.png"),
 			textures_path("enemy/plant_shooter/plant_shooter.png"),
 			textures_path("enemy/plant_shooter/projectile.png"),
+			textures_path("enemy/caveling.png"),
 			textures_path("boss.png"),
 			textures_path("artifact.png"),
 			textures_path("consumable.png"),

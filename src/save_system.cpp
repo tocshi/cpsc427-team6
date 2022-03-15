@@ -133,6 +133,12 @@ std::queue<Entity> SaveSystem::getSolidTile(std::queue<Entity> originalqueue)
 		// code to check if it is in the entitylist 
 	}
 
+	printf("%d size of list before tiles added \n:", originalqueue.size());
+	for (Entity tiles : registry.tileUVs.entities) { // push tiles into the entity list
+		 
+		originalqueue.push(tiles);
+	}
+	printf("%d size of list after tiles added \n:", originalqueue.size());
 	//printf("%d collide total entities \n:", collideTotal); // how many collidable entites are there? 
 	// code to check if collide is in the entity list now 
 	/*int sizeOfList = originalqueue.size();
@@ -175,12 +181,12 @@ json SaveSystem::jsonifyEntities(std::queue<Entity> entities) {
 		}
 		else if (registry.tileUVs.has(e)) { // not working :(??
 			changed = true;
-			printf("tile map entity \n");
+			//printf("tile map entity \n");
 			entity = jsonifyTileMap(e);
 		}
 		else if (registry.solid.has(e) && registry.collidables.has(e)) { // collidable solid on map like the objects
 			changed = true;
-			printf("181 has solid components\n");
+			//printf("181 has solid components\n");
 			entity = jsonifyCollideMap(e);
 		}
 

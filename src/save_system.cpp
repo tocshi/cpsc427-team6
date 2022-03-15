@@ -95,53 +95,25 @@ void SaveSystem::readJsonFile() {
 
 }
 
+std::queue<Entity> getSolidTile(std::queue<Entity> orignalqueue) {
+
+	std::queue<Entity> resultList; 
+	
+	for (Entity collide : registry.collidables.entities) {
+
+		if (registry.solid.has(collide)) {
+			printf("has a solid + collid is may be a wall\n");
+		}
+	}
+
+	return resultList; 
+
+}
 void SaveSystem::saveGameState(std::queue<Entity> entities) {
 	json saveState;
 	
-	// equipped items
-	json inventory;
-	
-	// Equipment items
-	for (Entity e : registry.equipment.entities) {
-		Equipment equipItem = registry.equipment.get(e);
-		printf("IN equiptable items");
-
-		/*
-		// item axe avilable add to stat
-		if (equipItem.axe) {
-			//printf("true has axe");
-			inventory["equiptment"]["axe"] = true;
-		}
-		if (equipItem.sword) {
-			inventory["equiptment"]["sword"]= true;
-
-		}
-		if (equipItem.wand) {
-			inventory["equiptment"]["wand"] = true;
-		}*/
-	}
-
-	for (Entity e : registry.consumables.entities) {
-		Consumable consumableItem = registry.consumables.get(e);
-
-		// available items in inventory
-		if (consumableItem.hp_potion) {
-			inventory["consumables"]["hp_potion"] = true;
-		}
-		if (consumableItem.magic_potion) {
-			inventory["consumables"]["mp_potion"] = true;
-		}
-	}
-
-	for (Entity e : registry.artifacts.entities) {
-		Artifact artifacts = registry.artifacts.get(e);
-		if (artifacts.artifact1) {
-			inventory["artifact_1"] = artifacts.artifact1;
-		}
-	}
-
 	saveState["entities"] = jsonifyEntities(entities);
-	saveState["inventory"] = inventory;
+	getSolidTile(entities); // check if there are any before adding 
 
 	saveToFile(saveState);
 }
@@ -175,11 +147,21 @@ json SaveSystem::jsonifyEntities(std::queue<Entity> entities) {
 		else if (registry.enemies.has(e)) {
 			changed = true;
 			entity = jsonifyEnemy(e);
+			printf("123 working?? \n");
 		}
 		else if (registry.interactables.has(e)) { // currently  no interactables ?
 			changed = true;
 			printf("yes");
 			entity = jsonifyChestItem(e);
+		}
+		else if (registry.tileUVs.has(e)) { // not working :(??
+			changed = true;
+			printf("tile map entity \n");
+			entity = jsonifyTileMap(e);
+		}
+		else if (registry.solid.has(e)) { // collidable solid on map like the objects
+			changed = true;
+			printf("has solid components\n");
 		}
 
 		// if something was actually jsonified put it into the array (removes nulls)
@@ -337,7 +319,34 @@ json SaveSystem::jsonifyChestItem(Entity e) {
 		chest["chest"]["motions"] = jsonifyMotion(m);
 	}
 	return chest; 
-	
 }
 
+// tile map json
+json SaveSystem::jsonifyTileMap(Entity map) {
 
+	// check for SOLID (map fixated components like walls)
+	// check for the tile map 
+
+	// Look at tilemap.cpp at createTileFromData functions for tileUV components and save
+	json tileMap;
+	if (registry.tileUVs.has(map)) {
+		TileUV tile = registry.tileUVs.get(map);
+		Motion m = registry.motions.get(map);
+		tileMap["Motions"] = jsonifyMotion(m);
+		tileMap["layerName"] = tile.layer;
+		tileMap["tileID"] = tile.tileID;
+	}
+
+	return tileMap; 
+}
+
+json SaveSystem::jsoniftCollideMap(Entity solid) {
+
+	json collideMap;
+	json collideData; 
+	Motion m = registry.motions.get(solid);
+	collideData = jsonifyMotion(m);
+	
+	collideMap["solidMap"] = collideData;
+	return collideMap; 
+}

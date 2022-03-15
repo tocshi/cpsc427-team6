@@ -19,6 +19,8 @@ public:
 	void readJsonFile();
 	bool saveDataExists();
 	json getSaveData();
+	std::queue<Entity> getSolidTile(std::queue<Entity> orignalqueue); // puts solid/ collidables obj + tileMAp into the entitylist
+	
 private:
 	json jsonifyEntities(std::queue<Entity> entities);
 	json jsonifyPlayer(Entity player);
@@ -29,5 +31,7 @@ private:
 	json jsonifyInventory(Entity inv);
 	json jsonifyEquiptment(Equipment e);
 	json jsonifyChestItem(Entity chest);
+	json jsonifyTileMap(Entity map);
+	json jsoniftCollideMap(Entity solid); // things you colldie with like the wall etc. 
 	//json jsonify
 };

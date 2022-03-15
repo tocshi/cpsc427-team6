@@ -83,6 +83,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	// add player to queuables
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 
 	return entity;
 }
@@ -119,6 +120,7 @@ Entity createPlayer(RenderSystem* renderer, Motion m)
 
 	// add player to queuables
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 
 	return entity;
 }
@@ -180,6 +182,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 
 	// add enemy to queuables
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 
 	return entity;
 }
@@ -227,6 +230,7 @@ Entity createEnemy(RenderSystem* renderer, Motion m)
 
 	// add enemy to queuables
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 
 	return entity;
 }
@@ -272,6 +276,7 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	enemy.type = ENEMY_TYPE::PLANT_SHOOTER;
 
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 	// registry.damageables.emplace(entity);
 	registry.renderRequests.insert(
 		entity,

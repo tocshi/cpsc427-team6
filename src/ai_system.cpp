@@ -142,7 +142,7 @@ void AISystem::plant_shooter_logic(Entity plant_shooter, Entity& player, WorldSy
 			if (player_in_range(motion_struct.position, aggroRange)) {
 				// spawn projectile, etc
 				vec2 dir = normalize(player_motion.position - motion_struct.position);
-				createPlantProjectile(renderer, motion_struct.position, dir, plant_shooter);
+				createPlantProjectile(renderer, motion_struct.position + (dir*motion_struct.scale), dir, plant_shooter);
 				registry.motions.get(plant_shooter).in_motion = true;
 			}
 			break;

@@ -115,8 +115,18 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 					// projectile hit wall
 					if (!target_valid) {
 						if (registry.projectileTimers.has(entity)) {
-							Entity& e = registry.projectileTimers.get(entity).owner;
-							motion_registry.get(e).in_motion = false;
+							Entity& player = registry.players.entities[0];
+							Motion& player_motion = motion_registry.get(player);
+							Entity& enemy = registry.projectileTimers.get(entity).owner;
+
+							// did it hit player?
+							if (collides(motion_registry.get(entity), motion_registry.get(player))) {
+								createExplosion(renderer, player_motion.position);
+								Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
+								world->logText(deal_damage(enemy, player, 100));
+							}
+
+							motion_registry.get(enemy).in_motion = false;
 							registry.remove_all_components_of(entity);
 							break;
 						}

@@ -95,20 +95,6 @@ void SaveSystem::readJsonFile() {
 
 }
 
-std::queue<Entity> getSolidTile(std::queue<Entity> orignalqueue) {
-
-	std::queue<Entity> resultList; 
-	
-	for (Entity collide : registry.collidables.entities) {
-
-		if (registry.solid.has(collide)) {
-			printf("has a solid + collid is may be a wall\n");
-		}
-	}
-
-	return resultList; 
-
-}
 void SaveSystem::saveGameState(std::queue<Entity> entities) {
 	json saveState;
 	
@@ -129,6 +115,21 @@ json SaveSystem::getSaveData() {
 	json j;
 	i >> j;
 	return j;
+}
+
+std::queue<Entity> SaveSystem::getSolidTile(std::queue<Entity> orignalqueue)
+{
+	std::queue<Entity> resultList;
+
+	for (Entity collide : registry.collidables.entities) {
+
+		if (registry.solid.has(collide)) {
+			printf("has a solid + collid is may be a wall\n");
+		}
+	}
+
+	return resultList;
+	//return std::queue<Entity>();
 }
 
 json SaveSystem::jsonifyEntities(std::queue<Entity> entities) {

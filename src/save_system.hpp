@@ -20,7 +20,7 @@ public:
 	bool saveDataExists();
 	json getSaveData();
 	std::queue<Entity> getSolidTileInteract(std::queue<Entity> orignalqueue); // puts solid/ collidables obj + tileMAp into the entitylist
-	
+	void SaveSystem::checkingEntityListHelper(std::queue<Entity> entities);// print function on console to check if types are in there
 private:
 	json jsonifyEntities(std::queue<Entity> entities);
 	json jsonifyPlayer(Entity player);

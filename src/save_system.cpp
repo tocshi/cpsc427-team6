@@ -139,28 +139,54 @@ std::queue<Entity> SaveSystem::getSolidTileInteract(std::queue<Entity> originalq
 		originalqueue.push(tiles);
 	}
 	printf("%d size of list after tiles added \n:", originalqueue.size());
-	//printf("%d collide total entities \n:", collideTotal); // how many collidable entites are there? 
-	// code to check if collide is in the entity list now 
-	/*int sizeOfList = originalqueue.size();
-	printf("%d entity list size \n:", sizeOfList);
-	int count = 0;
-	for (int i = 0; i < sizeOfList; i++) {
-		Entity e = originalqueue.front();
-		originalqueue.pop();
-		if (registry.collidables.has(e) && registry.solid.has(e)) {
-			printf(" solid component is stored in list\n");
-			count++;
-		}
-	}
-	printf("end of count %d \n: ", count);*/
+	
 	
 	for (Entity interact : registry.interactables.entities) {
 		originalqueue.push(interact); // add interact to queue
 	}
-	printf("%d size of list before after interact added \n:", originalqueue.size());
+	printf("%d size of list after interact added \n:", originalqueue.size());
+	checkingEntityListHelper(originalqueue); // print to check out if sum mataches
 	return originalqueue;
 }
 
+void SaveSystem::checkingEntityListHelper(std::queue<Entity> entities) {
+	//printf("%d collide total entities \n:", collideTotal); // how many collidable entites are there? 
+	// code to check if collide is in the entity list now 
+	int sizeOfList = entities.size();
+	printf("%d entity list size \n:", sizeOfList);
+	int countCollide = 0;
+	int countPlayer = 0;
+	int countEnemy = 0;
+	int countTileUV = 0;
+	int countInteract = 0; 
+	for (int i = 0; i < sizeOfList; i++) {
+		Entity e = entities.front();
+		entities.pop();
+		if (registry.collidables.has(e) && registry.solid.has(e)) {
+			//printf(" solid component is stored in list\n");
+			countCollide++;
+		}
+		if (registry.players.has(e)) {
+			//printf("player component is in list \n");
+			countPlayer++;
+		}
+		if (registry.enemies.has(e)) {
+			//printf("enemy component is in list \n");
+			countEnemy++;
+		}
+		// tile map too many components so.. 
+		if (registry.tileUVs.has(e)) {
+			countTileUV++; 
+		}
+	}
+	printf("end of count tiles %d \n: ", countTileUV);
+	printf("end of count player %d \n: ", countPlayer);
+	printf("end of count enemies %d \n: ", countEnemy);
+	printf("end of count solid collide walls %d \n: ", countCollide);
+	int totalSum = countCollide + countPlayer + countEnemy + countTileUV;
+	printf("%d total sum \n:", totalSum);
+	assert(totalSum, sizeOfList); 
+}
 json SaveSystem::jsonifyEntities(std::queue<Entity> entities) {
 	auto entityList = json::array();
 	// loop through all the entities in order of turn system and save them
@@ -279,11 +305,8 @@ json SaveSystem::jsonifyPlayer(Entity player) {
 // add plantshooter 
 json SaveSystem::jsonifyEnemy(Entity enemy) {
 	json enemyData;
-	// save entity type
-	//enemyData["type"] = "slime";
 	
-	// save slime enemy component stuff
-	
+	// check what type the enemy is and save it 
 	if (registry.enemies.get(enemy).type == ENEMY_TYPE::SLIME) {
 		enemyData["type"] = "slime";
 	}
@@ -342,7 +365,6 @@ json SaveSystem::jsonifyChestItem(Entity e) {
 	Interactable c = registry.interactables.get(e);
 	json chest;
 
-	printf("%fl", c.type);
 
 	if (c.type == INTERACT_TYPE::CHEST) {
 

@@ -50,7 +50,6 @@ const float MODE_BB_HEIGHT = 100.f;
 const float FOG_BB_WIDTH = 0.6f * 100.f;
 const float FOG_BB_HEIGHT = 0.6f * 100.f;
 
-
 // a red line for debugging purposes
 Entity createLine(vec2 position, vec2 size);
 // the background
@@ -67,6 +66,8 @@ Entity createEnemy(RenderSystem* renderer, Motion m);
 Entity createPlantShooter(RenderSystem* renderer, vec2 pos);
 // Plant Projectile
 Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir, Entity owner);
+// Caveling
+Entity createCaveling(RenderSystem* renderer, vec2 pos);
 // Boss
 Entity createBoss(RenderSystem* renderer, vec2 pos);
 // Artifact

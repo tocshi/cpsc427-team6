@@ -40,7 +40,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
 	motion.in_motion = false;
-	motion.movement_speed = 200;
+	motion.movement_speed = 400;
 	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 
 	// Create player stats
@@ -54,8 +54,22 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	stats.atk = 10;
 	stats.def = 2;
 	stats.speed = 10;
-	stats.range = 450;
+	stats.range = 400;
+
+	// For Artifact Testing
+	/*
+	stats.maxhp = 1000;
+	stats.hp = stats.maxhp;
+	stats.mp = 100;
+	stats.maxmp = 100;
+	stats.ep = 100;
+	stats.maxep = 100;
+	stats.atk = 100;
+	stats.def = 0;
+	stats.speed = 10;
+	stats.range = 400;*/
 	
+	registry.basestats.insert(entity, stats);
 
 	// Create and (empty) Player component to be able to refer to all players
 	auto& player = registry.players.emplace(entity);
@@ -69,6 +83,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	// add player to queuables
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 
 	return entity;
 }
@@ -105,6 +120,7 @@ Entity createPlayer(RenderSystem* renderer, Motion m)
 
 	// add player to queuables
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 
 	return entity;
 }
@@ -133,17 +149,29 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	enemy.initialPosition = pos;
 	enemy.state = ENEMY_STATE::IDLE;
 	enemy.type = ENEMY_TYPE::SLIME;
+	enemy.inv = registry.inventories.emplace(entity);
 
 	// Create slime stats
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Slime";
 	stats.prefix = "the";
-	stats.hp = 25;
-	stats.maxhp = 25;
+	stats.maxhp = 28;
+	stats.hp = stats.maxhp;
 	stats.atk = 10;
 	stats.def = 3;
 	stats.speed = 8;
 	stats.range = 250;
+
+	// For Artifact Testing
+	/*
+	stats.maxhp = 1000;
+	stats.hp = stats.maxhp;
+	stats.atk = 100;
+	stats.def = 0;
+	stats.speed = 8;
+	stats.range = 250;*/
+
+	registry.basestats.insert(entity, stats);
 
 	registry.renderRequests.insert(
 		entity,
@@ -154,6 +182,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 
 	// add enemy to queuables
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 
 	return entity;
 }
@@ -185,8 +214,8 @@ Entity createEnemy(RenderSystem* renderer, Motion m)
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Slime";
 	stats.prefix = "the";
-	stats.hp = 25;
 	stats.maxhp = 25;
+	stats.hp = stats.maxhp;
 	stats.atk = 10;
 	stats.def = 3;
 	stats.speed = 8;
@@ -201,6 +230,7 @@ Entity createEnemy(RenderSystem* renderer, Motion m)
 
 	// add enemy to queuables
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 
 	return entity;
 }
@@ -225,24 +255,27 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	// Initilalize stats
-	// hp = 20, atk = 8, queue = 7, def = 2, range = 400
-	auto& stat = registry.stats.emplace(entity);
-	stat.name = "Plant Shooter";
-	stat.prefix = "the";
-	stat.maxhp = 20.f;
-	stat.hp = stat.maxhp;
-	stat.atk = 8.f;
-	stat.def = 2.f;
-	stat.speed = 7.f;
-	stat.range = 400.f;
-	stat.chase = 0.f;
+	auto& stats = registry.stats.emplace(entity);
+	stats.name = "Plant Shooter";
+	stats.prefix = "the";
+	stats.maxhp = 24.f;
+	stats.hp = stats.maxhp;
+	stats.atk = 8.f;
+	stats.def = 2.f;
+	stats.speed = 7.f;
+	stats.range = 400.f;
+	stats.chase = 0.f;
+
+	registry.basestats.insert(entity, stats);
 
 	auto& enemy = registry.enemies.emplace(entity);
+	enemy.inv = registry.inventories.emplace(entity);
 	enemy.initialPosition = pos;
 	enemy.state = ENEMY_STATE::IDLE;
 	enemy.type = ENEMY_TYPE::PLANT_SHOOTER;
 
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 	// registry.damageables.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
@@ -288,6 +321,59 @@ Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir, Entity 
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
+
+	return entity;
+}
+
+// Enemy slime (split into different enemies for future)
+Entity createCaveling(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 200;
+
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+
+	auto& enemy = registry.enemies.emplace(entity);
+	enemy.initialPosition = pos;
+	enemy.state = ENEMY_STATE::IDLE;
+	enemy.type = ENEMY_TYPE::CAVELING;
+	enemy.inv = registry.inventories.emplace(entity);
+
+	// Create caveling stats
+	auto& stats = registry.stats.emplace(entity);
+	stats.name = "Caveling";
+	stats.prefix = "the";
+	stats.maxhp = 19;
+	stats.hp = stats.maxhp;
+	stats.atk = 6;
+	stats.def = 0;
+	stats.speed = 15;
+	stats.range = 300;
+
+	registry.basestats.insert(entity, stats);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::CAVELING,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
+
+	// add enemy to queuables
+	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 
 	return entity;
 }
@@ -403,7 +489,7 @@ Entity createEquipable(RenderSystem* renderer, vec2 pos)
 
 	// Create and (empty) EQUIPABLE component to be able to refer to all equipables
 	//registry.test.emplace(entity);
-	registry.equipables.emplace(entity); // TRY FOR EQUIPTMENT
+	registry.equipment.emplace(entity); // TRY FOR EQUIPTMENT
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::EQUIPABLE,
@@ -431,8 +517,10 @@ Entity createChest(RenderSystem* renderer, vec2 pos)
 
 	motion.scale = vec2({ CHEST_BB_WIDTH, CHEST_BB_HEIGHT });
 
-	// Create and (empty) CHEST component to be able to refer to all chests
-	registry.test.emplace(entity);
+	// Set interaction type
+	auto& interactable = registry.interactables.emplace(entity);
+	interactable.type = INTERACT_TYPE::CHEST;
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::CHEST,
@@ -508,6 +596,8 @@ Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::pair<std::s
 
 	Sign& sign = registry.signs.emplace(entity);
 	sign.messages = messages;
+
+	registry.interactables.emplace(entity);
 
 	return entity;
 }

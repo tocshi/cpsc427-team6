@@ -18,8 +18,14 @@ public:
 	PhysicsSystem()
 	{
 	}
+private:
+	float knock_base_velocity = 500.f;
+	float knock_min_velocity = 10.f;
+	float knock_decel_threshold = 64.f;
+	
 };
 
 float dist_to(const vec2 position1, const vec2 position2);
 
 bool collides_AABB(const Motion& motion1, const Motion& motion2);
+bool collides_circle(const Motion& motion1, const Motion& motion2);

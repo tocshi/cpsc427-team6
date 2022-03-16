@@ -23,10 +23,11 @@ public:
 	ComponentContainer<vec3> colors;
 	ComponentContainer<Damageable> damageables;
 	ComponentContainer<Consumable> consumables;
-	ComponentContainer<Equipable> equipables;
+	ComponentContainer<Equipment> equipment;
 	ComponentContainer<Guardable> guardables;
 	ComponentContainer<Interactable> interactables;
 	ComponentContainer<Stats> stats;
+	ComponentContainer<Stats> basestats;
 	ComponentContainer<Queueable> queueables;
 	ComponentContainer<Test> test;	// for testing
 	ComponentContainer<Solid> solid;
@@ -54,6 +55,7 @@ public:
 	ComponentContainer<AnimationData> animations;
 	ComponentContainer<Sign> signs;
 	ComponentContainer<StatusContainer> statuses;
+	ComponentContainer<KnockBack> knockbacks;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -71,10 +73,11 @@ public:
 		registry_list.push_back(&colors);
 		registry_list.push_back(&damageables);
 		registry_list.push_back(&consumables);
-		registry_list.push_back(&equipables);
+		registry_list.push_back(&equipment);
 		registry_list.push_back(&guardables);
 		registry_list.push_back(&interactables);
 		registry_list.push_back(&stats);
+		registry_list.push_back(&basestats);
 		registry_list.push_back(&queueables);
 		registry_list.push_back(&test);
 		registry_list.push_back(&solid);
@@ -103,6 +106,7 @@ public:
 		registry_list.push_back(&collidables);
 		registry_list.push_back(&animations);
 		registry_list.push_back(&statuses);
+		registry_list.push_back(&knockbacks);
 	}
 
 	void clear_all_components() {

@@ -2,6 +2,7 @@
 #include "common.hpp"
 #include <vector>
 #include <unordered_map>
+#include <map>
 #include "../ext/stb_image/stb_image.h"
 
 enum class PLAYER_ACTION {
@@ -18,20 +19,40 @@ enum class CONSUMABLE {
 	CONSUMABLE_COUNT = YELPOT + 1
 };
 
-enum class WEAPON {
-	STICK = 0,
-	BOW0 = STICK + 1,
-	SWORD0 = BOW0 + 1,
-	BLUNT0 = SWORD0 + 1,
-	BOW1 = BLUNT0 + 1,
-	SWORD1 = BOW1 + 1,
-	BLUNT1 = SWORD1 + 1,
-	WEAPON_COUNT = BLUNT1 + 1
+enum class EQUIPMENT {
+	ARMOUR = 0,
+	SHARP = ARMOUR + 1,
+	BLUNT = SHARP + 1,
+	RANGED = BLUNT + 1,
+	EQUIPMENT_COUNT = RANGED + 1
 };
 
-enum class ARMOUR {
-	FAMCLOTH = 0,
-	ARMOUR_COUNT = FAMCLOTH + 1
+enum class ATTACK {
+	NONE = 0,
+	ROUNDSLASH = NONE + 1,
+	SAPPING_STRIKE = ROUNDSLASH + 1,
+	PIERCING_THRUST = SAPPING_STRIKE + 1,
+	PARRYING_STANCE = PIERCING_THRUST + 1,
+	DISENGAGE = PARRYING_STANCE + 1,
+	TERMINUS_VERITAS = DISENGAGE + 1,
+	WILD_SWINGS = TERMINUS_VERITAS + 1,
+	ARMOURCRUSHER = WILD_SWINGS + 1,
+	DISORIENTING_BASH = ARMOURCRUSHER + 1,
+	TECTONIC_SLAM = DISORIENTING_BASH + 1,
+	FERVENT_CHARGE = TECTONIC_SLAM + 1,
+	PRIMAL_RAGE = FERVENT_CHARGE + 1,
+	SPREAD_SHOT = PRIMAL_RAGE + 1,
+	BINDING_ARROW = SPREAD_SHOT + 1,
+	LUMINOUS_ARROW = BINDING_ARROW + 1,
+	HOOK_SHOT = LUMINOUS_ARROW + 1,
+	FOCUSED_SHOT = HOOK_SHOT + 1,
+	SKYBORNE_RAIN = FOCUSED_SHOT + 1
+};
+
+//TODO: Fill this out
+// Attack name map
+const std::map <ATTACK, std::string>attack_names = {
+	{ATTACK::ROUNDSLASH, "Roundslash"}
 };
 
 enum class ARTIFACT {
@@ -40,8 +61,9 @@ enum class ARTIFACT {
 	PIOUS_PRAYER = GLAD_HOPLON + 1,
 	BLADE_POLISH = PIOUS_PRAYER + 1,
 	HQ_FLETCHING = BLADE_POLISH + 1,
-	HOMEMADE_MEAL = HQ_FLETCHING + 1,
-	THUNDER_TWIG = HOMEMADE_MEAL + 1,
+	MESSENGER_CAP = HQ_FLETCHING + 1,
+	WARM_CLOAK = MESSENGER_CAP + 1,
+	THUNDER_TWIG = WARM_CLOAK + 1,
 	LUCKY_CHIP = THUNDER_TWIG + 1,
 	GUIDE_HEALBUFF = LUCKY_CHIP + 1,
 	THICK_TOME = GUIDE_HEALBUFF + 1,
@@ -49,18 +71,104 @@ enum class ARTIFACT {
 	BLOOD_RUBY = GOLIATH_BELT + 1,
 	WINDBAG = BLOOD_RUBY + 1,
 	KB_MALLET = WINDBAG + 1,
-	WEAPON_UPGRADE = KB_MALLET + 1,
-	ARMOUR_UPGRADE = WEAPON_UPGRADE + 1,
-	ARTIFACT_COUNT = ARMOUR_UPGRADE + 1
+	ARCANE_SPECS = KB_MALLET + 1,
+	SCOUT_STRIDE = ARCANE_SPECS + 1,
+	ART_CONSERVE = SCOUT_STRIDE + 1,
+	ARCANE_FUNNEL = ART_CONSERVE + 1,
+	FUNGIFIER = ARCANE_FUNNEL + 1,
+	BURRBAG = FUNGIFIER + 1,
+	SMOKE_POWDER = BURRBAG + 1,
+	LIVELY_BULB = SMOKE_POWDER + 1,
+	MALEDICTION = LIVELY_BULB + 1,
+	CHIMERARM = MALEDICTION + 1,
+	ARTIFACT_COUNT = CHIMERARM + 1,
+};
+
+// Artifact name map
+const std::map <ARTIFACT, std::string>artifact_names = {
+	{ARTIFACT::POISON_FANG, "Discarded Fang"},
+	{ARTIFACT::GLAD_HOPLON, "Gladiator Hoplon"},
+	{ARTIFACT::PIOUS_PRAYER, "Pious Prayer"},
+	{ARTIFACT::BLADE_POLISH, "Blade Polish Kit"},
+	{ARTIFACT::HQ_FLETCHING, "High-Quality Fletching"},
+	{ARTIFACT::MESSENGER_CAP, "Messenger's Cap"},
+	{ARTIFACT::WARM_CLOAK, "Warm Cloak"},
+	{ARTIFACT::THUNDER_TWIG, "Thundering Twig"},
+	{ARTIFACT::LUCKY_CHIP, "Lucky Chip"},
+	{ARTIFACT::GUIDE_HEALBUFF, "Guide to Healthy Eating"},
+	{ARTIFACT::THICK_TOME, "Unnecessarily Thick Tome"},
+	{ARTIFACT::GOLIATH_BELT, "Goliath's Belt"},
+	{ARTIFACT::BLOOD_RUBY, "Blood Ruby"},
+	{ARTIFACT::WINDBAG, "Bag of Wind"},
+	{ARTIFACT::KB_MALLET, "Rubber Mallet"},
+	{ARTIFACT::ARCANE_SPECS, "Arcane Spectacles"},
+	{ARTIFACT::SCOUT_STRIDE, "Scouting Striders"},
+	{ARTIFACT::ART_CONSERVE, "The Art of Conservation"},
+	{ARTIFACT::ARCANE_FUNNEL, "Arcane Funnel"},
+	{ARTIFACT::FUNGIFIER, "Fungifier"},
+	{ARTIFACT::BURRBAG, "Burrbag"},
+	{ARTIFACT::SMOKE_POWDER, "Smoke Powder"},
+	{ARTIFACT::LIVELY_BULB, "Lively Bulb"},
+	{ARTIFACT::MALEDICTION, "Malediction"},
+	{ARTIFACT::CHIMERARM, "Chimera's Arm"}
+};
+
+// Artifact Rarity Arrays
+// Commented artifacts have not yet been completed!
+const int artifact_T1[] {
+	(int)ARTIFACT::PIOUS_PRAYER,
+	(int)ARTIFACT::BLADE_POLISH,
+	(int)ARTIFACT::HQ_FLETCHING,
+	//(int)ARTIFACT::MESSENGER_CAP, // blocked by stat calc system
+	//(int)ARTIFACT::WARM_CLOAK, // blocked by stat calc system
+	(int)ARTIFACT::GOLIATH_BELT,
+	(int)ARTIFACT::BLOOD_RUBY
+};
+const int artifact_T2[] {
+	(int)ARTIFACT::POISON_FANG,
+	//(int)ARTIFACT::GUIDE_HEALBUFF, // blocked by healing interactions and stat calc system
+	(int)ARTIFACT::WINDBAG,
+	//(int)ARTIFACT::SCOUT_STRIDE, // blocked by stat calc system
+	//(int)ARTIFACT::ART_CONSERVE, // blocked by stat calc system
+	//(int)ARTIFACT::SMOKE_POWDER // blocked by item pickup
+};
+const int artifact_T3[] {
+	(int)ARTIFACT::GLAD_HOPLON,
+	//(int)ARTIFACT::THUNDER_TWIG, // not blocked but effect takes some time to implement
+	(int)ARTIFACT::KB_MALLET,
+	//(int)ARTIFACT::ARCANE_SPECS, // blocked by stat calc system
+	//(int)ARTIFACT::ARCANE_FUNNEL, // blocked by mp usage system
+	//(int)ARTIFACT::BURRBAG // blocked by stat calc system
+};
+const int artifact_T4[] {
+	(int)ARTIFACT::LUCKY_CHIP,
+	(int)ARTIFACT::THICK_TOME,
+	//(int)ARTIFACT::FUNGIFIER, // not blocked but effect takes some time to implement
+	//(int)ARTIFACT::LIVELY_BULB, // not blocked but effect takes some time to implement
+	//(int)ARTIFACT::MALEDICTION, // blocked by stat calc system
+	//(int)ARTIFACT::CHIMERARM // blocked by stat calc system and weapon generation
+};
+
+
+// Equipment component
+struct Equipment
+{
+	EQUIPMENT type = EQUIPMENT::EQUIPMENT_COUNT;
+	ATTACK attacks[4] = { ATTACK::NONE, ATTACK::NONE, ATTACK::NONE, ATTACK::NONE };
+	float atk;
+	float def;
+	float speed;
+	float hp;
+	float mp;
+	float ep;
+	float range;
 };
 
 // Inventory component
 struct Inventory
 {
-	int equipped[2] = { -1, -1 };
+	Equipment equipped[2]; // [Weapon, Armour]
 	int consumable[static_cast<int>(CONSUMABLE::CONSUMABLE_COUNT)];
-	int weapon[static_cast<int>(WEAPON::WEAPON_COUNT)];
-	int armour[static_cast<int>(ARMOUR::ARMOUR_COUNT)];
 	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
 };
 
@@ -69,6 +177,10 @@ struct Player
 {
 	float s;
 	Inventory inv;
+	int gacha_pity;
+	int floor;
+	int room;
+	int total_rooms;
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
 
@@ -185,18 +297,20 @@ struct Consumable {
 
 };
 
-struct Equipable {
-	bool axe = true;
-	bool sword = true;
-	bool wand = true;
-};
-
 struct Guardable {
 
 };
 
+enum class INTERACT_TYPE {
+	CHEST = 0,
+	DOOR = CHEST + 1,
+	STAIRS = DOOR + 1,
+	SIGN = STAIRS + 1,
+	TYPE_COUNT = SIGN + 1
+};
+
 struct Interactable {
-	
+	INTERACT_TYPE type;
 };
 
 struct Stats {
@@ -208,8 +322,11 @@ struct Stats {
 	float maxhp = 100.f;
 	float mp    = 100.f;
 	float maxmp = 100.f;
+	float mpregen = 10.f;
 	float ep    = 100.f;
 	float maxep = 100.f;
+	float epratemove = 1.f;
+	float eprateatk = 1.f;
 	float atk   = 10.f;
 	float def   = 10.f;
 	float speed = 10.f;
@@ -235,20 +352,25 @@ enum class ENEMY_STATE {
 	AGGRO = IDLE + 1,
 	ATTACK = AGGRO + 1,
 	DEATH = ATTACK + 1,
-	STATE_COUNT = DEATH + 1
+	RETREAT = DEATH + 1,
+	STATE_COUNT = RETREAT + 1
 };
 
 enum class ENEMY_TYPE {
 	SLIME = 0,
 	PLANT_SHOOTER = SLIME + 1,
-	TYPE_COUNT = PLANT_SHOOTER + 1
+	CAVELING = PLANT_SHOOTER + 1,
+	KING_SLIME = CAVELING + 1,
+	TYPE_COUNT = KING_SLIME + 1
 };
 
 // simple component for all enemies
 struct Enemy {
 	vec2 initialPosition = { 0, 0 };
+	Inventory inv;
 	ENEMY_STATE state = ENEMY_STATE::STATE_COUNT;
 	ENEMY_TYPE type = ENEMY_TYPE::TYPE_COUNT;
+	bool hit_by_player = false;
 };
 
 struct ActionButton {
@@ -333,8 +455,22 @@ struct Sign {
 enum class StatusType {
 	POISON = 0,
 	STUN = POISON + 1,
-	ATK_BUFF = STUN + 1,
-	DEF_BUFF = ATK_BUFF + 1
+	BIND = STUN + 1,
+	ATK_BUFF = BIND + 1,
+	DEF_BUFF = ATK_BUFF + 1,
+	SPEED_BUFF = DEF_BUFF + 1,
+	FANG_POISON = SPEED_BUFF + 1,
+	INVINCIBLE = FANG_POISON + 1,
+	BURR_DEBUFF = INVINCIBLE + 1,
+	RANGE_BUFF = BURR_DEBUFF + 1,
+	WINDBAG_CD = RANGE_BUFF + 1,
+	MALEDICTION_CD = WINDBAG_CD + 1,
+	PIERCE_DEF = MALEDICTION_CD + 1,
+	PARRYING_STANCE = PIERCE_DEF + 1,
+	EP_REGEN = PARRYING_STANCE + 1,
+	ARCANE_FUNNEL = EP_REGEN + 1,
+	PRIMAL_RAGE = ARCANE_FUNNEL + 1,
+	FOCUSING = PRIMAL_RAGE + 1
 };
 
 struct StatusEffect {
@@ -371,6 +507,11 @@ struct StatusContainer {
 	}
 };
 
+struct KnockBack {
+	float remaining_distance = 0; 
+	float angle = 0;
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -401,7 +542,8 @@ enum class TEXTURE_ASSET_ID {
 	SLIME = PLAYER + 1,
 	PLANT_SHOOTER = SLIME + 1,
 	PLANT_PROJECTILE = PLANT_SHOOTER + 1,
-	BOSS = PLANT_PROJECTILE + 1,
+	CAVELING = PLANT_PROJECTILE + 1,
+	BOSS = CAVELING + 1,
 	ARTIFACT = BOSS + 1,
 	CONSUMABLE = ARTIFACT + 1,
 	EQUIPABLE = CONSUMABLE + 1,

@@ -34,6 +34,18 @@ bool collides_AABB(const Motion& motion1, const Motion& motion2) {
 		&& motion1.position.y + bounding_box_a.y/2 > motion2.position.y - bounding_box_b.y/2;
 }
 
+bool collides_circle(const Motion& motion1, const Motion& motion2) {
+	float angle = atan2(motion2.position.y - motion1.position.y, motion2.position.x - motion1.position.x);
+	vec2 motion1_edge = dirdist_extrapolate(motion1.position, angle, motion1.scale.x / 2);
+	vec2 motion2_edge = dirdist_extrapolate(motion2.position, angle - M_PI, motion2.scale.x / 2);
+	if (dist_to(motion1.position, motion2_edge) < dist_to(motion1.position, motion1_edge)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 float dist_to(const vec2 position1, const vec2 position2) {
 	return sqrt(pow(position2.x - position1.x, 2) + pow(position2.y - position1.y, 2));
 }
@@ -60,7 +72,7 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 		if (registry.projectileTimers.has(entity)) {
 			Entity player = registry.players.entities[0];
 			Motion& player_motion = motion_registry.get(player);
-			if (collides(motion_registry.get(entity), motion_registry.get(player))) {
+			if (collides_circle(motion_registry.get(entity), motion_registry.get(player))) {
 				// hit player
 				Entity enemy = registry.projectileTimers.get(entity).owner;
 				createExplosion(renderer, player_motion.position);
@@ -92,7 +104,14 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 					bool target_valid = true;
 					for (uint j = 0; j < motion_registry.size(); j++) {
 						if (j != i && registry.solid.has(motion_registry.entities[j])) {
-							if (collides_AABB(motion, motion_registry.components[j])) {
+							// differentiate between walls and non-walls
+							if (registry.enemies.has(motion_registry.entities[j]) || registry.players.has(motion_registry.entities[j])) {
+								if (collides_circle(motion, motion_registry.components[j])) {
+									target_valid = false;
+									break;
+								}
+							}
+							else if (collides_AABB(motion, motion_registry.components[j])) {
 								target_valid = false;
 								break;
 							}
@@ -115,8 +134,18 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 					// projectile hit wall
 					if (!target_valid) {
 						if (registry.projectileTimers.has(entity)) {
-							Entity& e = registry.projectileTimers.get(entity).owner;
-							motion_registry.get(e).in_motion = false;
+							Entity& player = registry.players.entities[0];
+							Motion& player_motion = motion_registry.get(player);
+							Entity& enemy = registry.projectileTimers.get(entity).owner;
+
+							// did it hit player?
+							if (collides_circle(motion_registry.get(entity), motion_registry.get(player))) {
+								createExplosion(renderer, player_motion.position);
+								Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
+								world->logText(deal_damage(enemy, player, 100));
+							}
+
+							motion_registry.get(enemy).in_motion = false;
 							registry.remove_all_components_of(entity);
 							break;
 						}
@@ -142,6 +171,71 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 					registry.remove_all_components_of(entity);
 				}
 			}
+		}
+	}
+
+	// Resolve knockback effects
+	for (int i = registry.knockbacks.size() - 1; i >= 0; i--) {
+		float step_seconds = elapsed_ms / 1000.f;
+		Entity entity_i = registry.knockbacks.entities[i];
+		if (!registry.motions.has(entity_i))
+			continue;
+		Motion& motion_i = registry.motions.get(entity_i);
+		KnockBack& knockback_i = registry.knockbacks.components[i];
+		if (knockback_i.remaining_distance < 0.01f) {
+			registry.knockbacks.remove(entity_i);
+			continue;
+		}
+		float vel_mag;
+		if (knockback_i.remaining_distance < knock_decel_threshold) {
+			float scaled_vel = knock_min_velocity + (knock_base_velocity - knock_min_velocity) * (1 - (knock_decel_threshold - knockback_i.remaining_distance) / knock_decel_threshold);
+			vel_mag = max(knock_min_velocity*step_seconds, scaled_vel * step_seconds);
+		}
+		else {
+			vel_mag = knock_base_velocity * step_seconds;
+		}
+		vel_mag = min(vel_mag, knock_base_velocity * step_seconds);
+		vec2 pos = motion_i.position;
+		vec2 velocity = vec2(vel_mag * cos(knockback_i.angle), vel_mag * sin(knockback_i.angle));
+
+		// perform angle sweep 
+		float original_angle = knockback_i.angle * 180/M_PI;
+		bool move_success = false;
+		for (int angle = 0; angle <= 60; angle += 10) {
+			for (int sign = -1; sign <= 1; sign += 2) {
+				float modified_angle = original_angle + angle * sign;
+				vec2 modified_velocity = { vel_mag * cos(modified_angle * M_PI / 180), vel_mag * sin(modified_angle * M_PI / 180) };
+				vec2 target_position = pos + modified_velocity;
+				motion_i.position = target_position;
+				bool target_valid = true;
+				for (uint j = 0; j < motion_registry.size(); j++) {
+					if (motion_registry.entities[j] != entity_i && registry.solid.has(motion_registry.entities[j])) {
+						// differentiate between walls and non-walls
+						if (registry.enemies.has(motion_registry.entities[j]) || registry.players.has(motion_registry.entities[j])) {
+							if (collides_circle(motion_i, motion_registry.components[j])) {
+								target_valid = false;
+								break;
+							}
+						}
+						else if (collides_AABB(motion_i, motion_registry.components[j])) {
+							target_valid = false;
+							break;
+						}
+					}
+				}
+				if (target_valid) {
+					move_success = true;
+					break;
+				}
+			}
+			if (move_success) {
+				knockback_i.remaining_distance -= vel_mag;
+				break;
+			}
+		}
+		if (!move_success) {
+			motion_i.position = pos;
+			registry.knockbacks.remove(entity_i);
 		}
 	}
 

@@ -1474,6 +1474,43 @@ Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
 	return inv;
 }
 
+void WorldSystem::loadTiles(json tileList) {
+	for (auto& tile : tileList) {
+		Entity e = Entity();
+
+		Motion& motion = registry.motions.emplace(e);
+		motion.position = { tile["motion"]["position_x"], tile["motion"]["position_y"] };
+		motion.scale = { tile["motion"]["scale"]["x"], tile["motion"]["scale"]["y"]};
+
+		json uvData = tile["tileUV"];
+		TileUV& tileUV = registry.tileUVs.emplace(e);
+		tileUV.layer = uvData["layer"];
+		tileUV.tileID = uvData["tileID"];
+		tileUV.uv_end = { uvData["uv_end"]["x"], uvData["uv_end"]["y"] };
+		tileUV.uv_start = { uvData["uv_start"]["x"], uvData["uv_start"]["y"] };
+
+		RenderRequest renderRequest = {
+		static_cast<TEXTURE_ASSET_ID>(tile["renderRequest"]["used_texture"]),
+		EFFECT_ASSET_ID::TEXTURED,
+		GEOMETRY_BUFFER_ID::TILEMAP,
+		static_cast<RENDER_LAYER_ID>(tile["renderRequest"]["used_layer"])
+		};
+		registry.renderRequests.insert(e, renderRequest);
+	}
+}
+
+void WorldSystem::loadCollidables(json collidablesList) {
+	for (auto& collidable : collidablesList) {
+		Entity entity = Entity();
+		json mData = collidable["motion"];
+		Motion& motion = registry.motions.emplace(entity);
+		motion.scale = { mData["scale"]["x"], mData["scale"]["y"]};
+		motion.position = { mData["position_x"], mData["position_y"] };
+		registry.solid.emplace(entity);
+		registry.collidables.emplace(entity);
+	}
+}
+
 void WorldSystem::logText(std::string msg) {
 	// (note: if we want to use createText in other applications, we can create a logged text entity)
 	// shift existing logged text upwards

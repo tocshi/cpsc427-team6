@@ -142,6 +142,12 @@ private:
 
 	// load inventory
 	Inventory loadInventory(Entity e, json inventoryData);
+
+	// load tiles
+	void loadTiles(json tileData);
+
+	// load collidables
+	void loadCollidables(json collidableData);
   
 	// do turn order logic
 	void doTurnOrderLogic();

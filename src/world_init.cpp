@@ -1197,7 +1197,7 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 	// set dd effect
 	std::vector<Entity> etVect;
 	bool hasET = false;
-	etVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 100.f), "EFFECT: ", 1.6f, vec3(0.0f)));
+	etVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 80.f), "EFFECT: ", 1.6f, vec3(0.0f)));
 	iter = artifact_effects.find(artifact);
 	if (iter != artifact_effects.end()) {
 		dd.effect = iter->second;
@@ -1207,7 +1207,7 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 			int iter = 1;
 			std::string effectLine = dd.effect.substr(0, 40);
 			while (renderNewLine) {
-				etVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 150.f + effectOffset), effectLine, 1.2f, vec3(0.0f)));
+				etVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 130.f + effectOffset), effectLine, 1.2f, vec3(0.0f)));
 				effectLine = dd.effect.substr(40 * iter);
 				effectOffset += 30.f;
 				if (effectLine.size() >= 40) {
@@ -1215,13 +1215,13 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 					iter++;
 				}
 				else {
-					etVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 150.f + effectOffset), effectLine, 1.2f, vec3(0.0f)));
+					etVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 130.f + effectOffset), effectLine, 1.2f, vec3(0.0f)));
 					renderNewLine = false;
 				}
 			}
 		}
 		else {
-			etVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 150.f), dd.effect, 1.2f, vec3(0.0f)));
+			etVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 130.f), dd.effect, 1.2f, vec3(0.0f)));
 		}
 		hasET = true;
 		// registry.descriptionDialogs.emplace(et);
@@ -1237,7 +1237,7 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 	dtVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 350.f), "DESCRIPTION: ", 1.6f, vec3(0.0f)));
 	if (iter != artifact_descriptions.end()) {
 		dd.description = iter->second;
-		if (dd.description.size() > 50) {
+		if (dd.description.size() > 40) {
 			bool renderNewLine = true;
 			float descOffset = 0.f;
 			int iter = 1;

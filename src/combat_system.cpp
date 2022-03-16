@@ -215,10 +215,10 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 		}
 	}
 
-	// Pious Prayer
-	if (defender_inv.artifact[(int)ARTIFACT::PIOUS_PRAYER] > 0 && dist_to(attacker_motion.position, defender_motion.position) > 100) {
-		final_damage = max(1.f, final_damage - 3.f * defender_inv.artifact[(int)ARTIFACT::PIOUS_PRAYER]);
-	}
+	//// Pious Prayer
+	//if (defender_inv.artifact[(int)ARTIFACT::PIOUS_PRAYER] > 0 && dist_to(attacker_motion.position, defender_motion.position) > 100) {
+	//	final_damage = max(1.f, final_damage - 3.f * defender_inv.artifact[(int)ARTIFACT::PIOUS_PRAYER]);
+	//}
 
 	// Blade Polish Kit
 	if (attacker_inv.artifact[(int)ARTIFACT::BLADE_POLISH] > 0 && dist_to(attacker_motion.position, defender_motion.position) <= 100) {

@@ -38,8 +38,7 @@ enum class ARMOUR {
 enum class ARTIFACT {
 	POISON_FANG = 0,
 	GLAD_HOPLON = POISON_FANG + 1,
-	PIOUS_PRAYER = GLAD_HOPLON + 1,
-	BLADE_POLISH = PIOUS_PRAYER + 1,
+	BLADE_POLISH = GLAD_HOPLON + 1,
 	HQ_FLETCHING = BLADE_POLISH + 1,
 	MESSENGER_CAP = HQ_FLETCHING + 1,
 	WARM_CLOAK = MESSENGER_CAP + 1,
@@ -60,13 +59,13 @@ enum class ARTIFACT {
 	SMOKE_POWDER = BURRBAG + 1,
 	LIVELY_BULB = SMOKE_POWDER + 1,
 	MALEDICTION = LIVELY_BULB + 1,
-	ARTIFACT_COUNT = MALEDICTION + 1
+	CHIMERARM = MALEDICTION + 1,
+	ARTIFACT_COUNT = CHIMERARM + 1
 };
 
 // Artifact Rarity Arrays
 // Commented artifacts have not yet been completed!
 const int artifact_T1[] {
-	(int)ARTIFACT::PIOUS_PRAYER,
 	(int)ARTIFACT::BLADE_POLISH,
 	(int)ARTIFACT::HQ_FLETCHING,
 	//(int)ARTIFACT::MESSENGER_CAP,
@@ -627,7 +626,6 @@ struct Pointer {
 const std::map <ARTIFACT, std::string>artifact_names = {
 	{ARTIFACT::POISON_FANG, "Discarded Fang"},
 	{ARTIFACT::GLAD_HOPLON, "Gladiator Hoplon"},
-	{ARTIFACT::PIOUS_PRAYER, "Pious Prayer"},
 	{ARTIFACT::BLADE_POLISH, "Blade Polish Kit"},
 	{ARTIFACT::HQ_FLETCHING, "High-Quality Fletching"},
 	{ARTIFACT::MESSENGER_CAP, "Messenger's Cap"},
@@ -648,14 +646,14 @@ const std::map <ARTIFACT, std::string>artifact_names = {
 	{ARTIFACT::BURRBAG, "Burrbag"},
 	{ARTIFACT::SMOKE_POWDER, "Smoke Powder"},
 	{ARTIFACT::LIVELY_BULB, "Lively Bulb"},
-	{ARTIFACT::MALEDICTION, "Malediction"}
+	{ARTIFACT::MALEDICTION, "Malediction"},
+	{ARTIFACT::CHIMERARM, "Chimera's Arm"}
 };
 
 // Artifact description map
 const std::map <ARTIFACT, std::string>artifact_descriptions = {
 	{ARTIFACT::POISON_FANG, "Even without the creature this fang originally belonged to, you still feel uneasy knowing there might be more of them out there."},
 	{ARTIFACT::GLAD_HOPLON, "You won't believe it! This man bested TWO lions! It's a miracle how he's still alive! Just what is his shield made of?!"},
-	{ARTIFACT::PIOUS_PRAYER, "test description"},
 	{ARTIFACT::BLADE_POLISH, "test description"},
 	{ARTIFACT::HQ_FLETCHING, "test description"},
 	{ARTIFACT::MESSENGER_CAP, "Wait, are you sure this came from a messenger?"},
@@ -676,14 +674,14 @@ const std::map <ARTIFACT, std::string>artifact_descriptions = {
 	{ARTIFACT::BURRBAG, "“Who even collects these?”"},
 	{ARTIFACT::SMOKE_POWDER, "“Come get it today! Our newly patented powder that, when thrown on the ground, produces a cloud of smoke that lets you slip out of sight far easier than ever before!”"},
 	{ARTIFACT::LIVELY_BULB, "You may have unintentionally allowed this plant to think you’re its parent. You also may have named it “Bobby”."},
-	{ARTIFACT::MALEDICTION, "“Your suffering…I want to savour it!”"}
+	{ARTIFACT::MALEDICTION, "“Your suffering…I want to savour it!”"},
+	{ARTIFACT::CHIMERARM, "A disfigured limb belonging to a monster of unknown origin. It seems to be wrapped in a strange aura that warps nearby weapons in an inexplicable way. You hear a strange voice from the back of your head saying that you can use it to create an armament of unparalleled power."}
 };
 
 // Artifact texture map
 const std::map <ARTIFACT, TEXTURE_ASSET_ID>artifact_textures = {
 	{ARTIFACT::POISON_FANG, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
 	{ARTIFACT::GLAD_HOPLON, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
-	{ARTIFACT::PIOUS_PRAYER, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
 	{ARTIFACT::BLADE_POLISH, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
 	{ARTIFACT::HQ_FLETCHING, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
 	{ARTIFACT::MESSENGER_CAP, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
@@ -704,14 +702,14 @@ const std::map <ARTIFACT, TEXTURE_ASSET_ID>artifact_textures = {
 	{ARTIFACT::BURRBAG, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
 	{ARTIFACT::SMOKE_POWDER, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
 	{ARTIFACT::LIVELY_BULB, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
-	{ARTIFACT::MALEDICTION, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER}
+	{ARTIFACT::MALEDICTION, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::CHIMERARM, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER}
 };
 
 // Artifact effect map
 const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::POISON_FANG, "Attacks have a 30% chance to inflict 15% (+10% per stack) ATK Poison DoT for 5 turns."},
 	{ARTIFACT::GLAD_HOPLON, "Take 15% (+10% multiplicative per stack) reduced damage from enemies that you attacked directly until your next turn."},
-	{ARTIFACT::PIOUS_PRAYER, "Take 3 (+3 per stack) reduced damage from enemies outside of melee range. Lowest damage taken per attack is 1."},
 	{ARTIFACT::BLADE_POLISH, "Melee attacks deal 20% (+20% per stack) additional damage."},
 	{ARTIFACT::HQ_FLETCHING, "Ranged attacks deal 20% (+20% per stack) additional damage."},
 	{ARTIFACT::MESSENGER_CAP, "10% (+5% per stack) of your base ATK stat is added onto your Speed stat."},
@@ -732,5 +730,6 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::BURRBAG, "At the start of each turn, leave a patch of burrs on the ground that last for 5 turns or until activated 1 (+1 per stack) times. Enemies that step over the burrs will take 40% ATK in damage and can move only 50% of their regular distance on their next turn."},
 	{ARTIFACT::SMOKE_POWDER, "Upon picking up an item, release a cloud of smoke that halves the aggro range of enemies within 150 (+100 per stack) units for 1 turn."},
 	{ARTIFACT::LIVELY_BULB, "Whenever you perform a Normal Attack, fire 1 (+1 per stack) seed projectile that deals 90% ATK damage towards the lowest HP enemy within your sight range."},
-	{ARTIFACT::MALEDICTION, "When you are attacked, all enemies in sight range will be affected with a curse that reduces their ATK by 40% for 3 turns. Has a 10 (-1 per stack) turn cooldown."}
+	{ARTIFACT::MALEDICTION, "When you are attacked, all enemies in sight range will be affected with a curse that reduces their ATK by 40% for 3 turns. Has a 10 (-1 per stack) turn cooldown."},
+	{ARTIFACT::CHIMERARM, "Your current weapon, and newly generated weapons will have +4 ATK (+4 ATK per stack), and its 2nd Attack Skill will become a random attack skill from any weapon type."}
 };

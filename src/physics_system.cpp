@@ -60,7 +60,7 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 		if (registry.projectileTimers.has(entity)) {
 			Entity player = registry.players.entities[0];
 			Motion& player_motion = motion_registry.get(player);
-			if (collides(motion_registry.get(entity), motion_registry.get(player))) {
+			if (collides_AABB(motion_registry.get(entity), motion_registry.get(player))) {
 				// hit player
 				Entity enemy = registry.projectileTimers.get(entity).owner;
 				createExplosion(renderer, player_motion.position);
@@ -120,7 +120,7 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 							Entity& enemy = registry.projectileTimers.get(entity).owner;
 
 							// did it hit player?
-							if (collides(motion_registry.get(entity), motion_registry.get(player))) {
+							if (collides_AABB(motion_registry.get(entity), motion_registry.get(player))) {
 								createExplosion(renderer, player_motion.position);
 								Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
 								world->logText(deal_damage(enemy, player, 100));

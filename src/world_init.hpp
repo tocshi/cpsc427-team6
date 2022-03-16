@@ -44,6 +44,14 @@ const float ACTIONS_BUTTON_BB_HEIGHT = 75.f;
 const float ACTIONS_BUTTON_BB_WIDTH = 300.f;
 const float PAUSE_BUTTON_BB_HEIGHT = 50.f;
 const float PAUSE_BUTTON_BB_WIDTH = 50.f;
+const float COLLECTION_MENU_BB_WIDTH = 800.f;
+const float COLLECTION_MENU_BB_HEIGHT = 700.f;
+const float ARTIFACT_CARD_BB_WIDTH = 600.f;
+const float ARTIFACT_CARD_BB_HEIGHT = 150.f;
+const float ARTIFACT_IMAGE_BB_WIDTH = 80.f;
+const float ARTIFACT_IMAGE_BB_HEIGHT = 80.f;
+const float DESCRIPTION_DIALOG_BB_WIDTH = 400.f;
+const float DESCRIPTION_DIALOG_BB_HEIGHT = 400.f;
 const float MODE_BB_WIDTH = 800.f;
 const float MODE_BB_HEIGHT = 100.f;
 const float POINTER_BB_WIDTH = 50.f;
@@ -143,3 +151,9 @@ Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale
 Entity createCampfire(RenderSystem* renderer, vec2 pos);
 // Animated explosion
 Entity createExplosion(RenderSystem* renderer, vec2 pos);
+// Collection menu
+Entity createCollectionMenu(RenderSystem* renderer, vec2 pos);
+// Artifact card
+Entity createArtifactIcon(RenderSystem* renderer, vec2 pos, ARTIFACT artifact);
+// Description Dialog (artifact version) - todo: add more definitions with other items (attacks etc.)
+Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifact);

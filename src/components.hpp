@@ -63,34 +63,6 @@ enum class ARTIFACT {
 	ARTIFACT_COUNT = MALEDICTION + 1
 };
 
-// Artifact name map
-const std::map <ARTIFACT, std::string>artifact_names = {
-	{ARTIFACT::POISON_FANG, "Discarded Fang"},
-	{ARTIFACT::GLAD_HOPLON, "Gladiator Hoplon"},
-	{ARTIFACT::PIOUS_PRAYER, "Pious Prayer"},
-	{ARTIFACT::BLADE_POLISH, "Blade Polish Kit"},
-	{ARTIFACT::HQ_FLETCHING, "High-Quality Fletching"},
-	{ARTIFACT::MESSENGER_CAP, "Messenger's Cap"},
-	{ARTIFACT::WARM_CLOAK, "Warm Cloak"},
-	{ARTIFACT::THUNDER_TWIG, "Thundering Twig"},
-	{ARTIFACT::LUCKY_CHIP, "Lucky Chip"},
-	{ARTIFACT::GUIDE_HEALBUFF, "Guide to Healthy Eating"},
-	{ARTIFACT::THICK_TOME, "Unnecessarily Thick Tome"},
-	{ARTIFACT::GOLIATH_BELT, "Goliath's Belt"},
-	{ARTIFACT::BLOOD_RUBY, "Blood Ruby"},
-	{ARTIFACT::WINDBAG, "Bag of Wind"},
-	{ARTIFACT::KB_MALLET, "Rubber Mallet"},
-	{ARTIFACT::ARCANE_SPECS, "Arcane Spectacles"},
-	{ARTIFACT::SCOUT_STRIDE, "Scouting Striders"},
-	{ARTIFACT::ART_CONSERVE, "The Art of Conservation"},
-	{ARTIFACT::ARCANE_FUNNEL, "Arcane Funnel"},
-	{ARTIFACT::FUNGIFIER, "Fungifier"},
-	{ARTIFACT::BURRBAG, "Burrbag"},
-	{ARTIFACT::SMOKE_POWDER, "Smoke Powder"},
-	{ARTIFACT::LIVELY_BULB, "Lively Bulb"},
-	{ARTIFACT::MALEDICTION, "Malediction"}
-};
-
 // Artifact Rarity Arrays
 // Commented artifacts have not yet been completed!
 const int artifact_T1[] {
@@ -124,6 +96,10 @@ const int artifact_T4[] {
 	//(int)ARTIFACT::FUNGIFIER,
 	//(int)ARTIFACT::LIVELY_BULB,
 	//(int)ARTIFACT::MALEDICTION
+};
+
+struct ArtifactIcon {
+	ARTIFACT artifact = ARTIFACT::ARTIFACT_COUNT;
 };
 
 // Inventory component
@@ -353,7 +329,11 @@ enum class BUTTON_ACTION_ID {
 	ACTIONS_CANCEL = ACTIONS_BACK + 1,
 	PAUSE = ACTIONS_CANCEL + 1,
 	COLLECTION = PAUSE + 1,
-	ACTION_COUNT = COLLECTION + 1
+	OPEN_DIALOG = COLLECTION + 1,
+	CLOSE_DIALOG = OPEN_DIALOG + 1,
+	SCROLL_DOWN = CLOSE_DIALOG + 1,
+	SCROLL_UP = SCROLL_DOWN + 1,
+	ACTION_COUNT = SCROLL_UP + 1
 };
 const int button_action_count = (int)BUTTON_ACTION_ID::ACTION_COUNT;
 
@@ -363,6 +343,13 @@ struct Button {
 
 struct MenuItem {
 
+};
+
+struct DescriptionDialog {
+	std::string title = "";
+	std::string effect = "";
+	std::string description = "";
+	std::string stats = "";
 };
 
 struct EpRange {
@@ -544,7 +531,10 @@ enum class TEXTURE_ASSET_ID {
 	MOVE_POINTER = ATTACK_POINTER + 1,
 	MENU_CLOSE =  MOVE_POINTER + 1,
 	COLLECTION_PANEL = MENU_CLOSE + 1,
-	TEXTURE_COUNT = COLLECTION_PANEL + 1
+	DESCRIPTION_DIALOG = COLLECTION_PANEL + 1,
+	ARTIFACT_PLACEHOLDER = DESCRIPTION_DIALOG + 1,
+	COLLECTION_SCROLL_ARROW = ARTIFACT_PLACEHOLDER + 1,
+	TEXTURE_COUNT = COLLECTION_SCROLL_ARROW + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -583,7 +573,9 @@ enum class RENDER_LAYER_ID {
 	RANDOM_WALLS = WALLS + 1,
 	EFFECT = RANDOM_WALLS + 1,
 	UI = EFFECT + 1,
-	UI_TOP = UI + 1,
+	ARTIFACT_ICONS = UI + 1,
+	DIALOG = ARTIFACT_ICONS + 1,
+	UI_TOP = DIALOG + 1,
 	DEBUG_LAYER = UI_TOP + 1,
 	LAYER_COUNT = DEBUG_LAYER + 1
 };
@@ -628,4 +620,144 @@ struct GuardButton {
 // stylized poiner
 struct Pointer {
 
+};
+
+// Artifact name map
+const std::map <ARTIFACT, std::string>artifact_names = {
+	{ARTIFACT::POISON_FANG, "Discarded Fang"},
+	{ARTIFACT::GLAD_HOPLON, "Gladiator Hoplon"},
+	{ARTIFACT::PIOUS_PRAYER, "Pious Prayer"},
+	{ARTIFACT::BLADE_POLISH, "Blade Polish Kit"},
+	{ARTIFACT::HQ_FLETCHING, "High-Quality Fletching"},
+	{ARTIFACT::MESSENGER_CAP, "Messenger's Cap"},
+	{ARTIFACT::WARM_CLOAK, "Warm Cloak"},
+	{ARTIFACT::THUNDER_TWIG, "Thundering Twig"},
+	{ARTIFACT::LUCKY_CHIP, "Lucky Chip"},
+	{ARTIFACT::GUIDE_HEALBUFF, "Guide to Healthy Eating"},
+	{ARTIFACT::THICK_TOME, "Unnecessarily Thick Tome"},
+	{ARTIFACT::GOLIATH_BELT, "Goliath's Belt"},
+	{ARTIFACT::BLOOD_RUBY, "Blood Ruby"},
+	{ARTIFACT::WINDBAG, "Bag of Wind"},
+	{ARTIFACT::KB_MALLET, "Rubber Mallet"},
+	{ARTIFACT::ARCANE_SPECS, "Arcane Spectacles"},
+	{ARTIFACT::SCOUT_STRIDE, "Scouting Striders"},
+	{ARTIFACT::ART_CONSERVE, "The Art of Conservation"},
+	{ARTIFACT::ARCANE_FUNNEL, "Arcane Funnel"},
+	{ARTIFACT::FUNGIFIER, "Fungifier"},
+	{ARTIFACT::BURRBAG, "Burrbag"},
+	{ARTIFACT::SMOKE_POWDER, "Smoke Powder"},
+	{ARTIFACT::LIVELY_BULB, "Lively Bulb"},
+	{ARTIFACT::MALEDICTION, "Malediction"}
+};
+
+// Artifact description map
+const std::map <ARTIFACT, std::string>artifact_descriptions = {
+	{ARTIFACT::POISON_FANG, "test description"},
+	{ARTIFACT::GLAD_HOPLON, "test description"},
+	{ARTIFACT::PIOUS_PRAYER, "test description"},
+	{ARTIFACT::BLADE_POLISH, "test description"},
+	{ARTIFACT::HQ_FLETCHING, "test description"},
+	{ARTIFACT::MESSENGER_CAP, "test description"},
+	{ARTIFACT::WARM_CLOAK, "test description"},
+	{ARTIFACT::THUNDER_TWIG, "test description"},
+	{ARTIFACT::LUCKY_CHIP, "test description"},
+	{ARTIFACT::GUIDE_HEALBUFF, "test description"},
+	{ARTIFACT::THICK_TOME, "test description"},
+	{ARTIFACT::GOLIATH_BELT, "test description"},
+	{ARTIFACT::BLOOD_RUBY, "test description"},
+	{ARTIFACT::WINDBAG, "test description"},
+	{ARTIFACT::KB_MALLET, "test description"},
+	{ARTIFACT::ARCANE_SPECS, "test description"},
+	{ARTIFACT::SCOUT_STRIDE, "test description"},
+	{ARTIFACT::ART_CONSERVE, "test description"},
+	{ARTIFACT::ARCANE_FUNNEL, "test description"},
+	{ARTIFACT::FUNGIFIER, "test description"},
+	{ARTIFACT::BURRBAG, "test description"},
+	{ARTIFACT::SMOKE_POWDER, "test description"},
+	{ARTIFACT::LIVELY_BULB, "test description"},
+	{ARTIFACT::MALEDICTION, "test description"}
+};
+
+// Artifact texture map
+const std::map <ARTIFACT, TEXTURE_ASSET_ID>artifact_textures = {
+	{ARTIFACT::POISON_FANG, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::GLAD_HOPLON, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::PIOUS_PRAYER, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::BLADE_POLISH, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::HQ_FLETCHING, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::MESSENGER_CAP, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::WARM_CLOAK, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::THUNDER_TWIG, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::LUCKY_CHIP, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::GUIDE_HEALBUFF, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::THICK_TOME, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::GOLIATH_BELT, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::BLOOD_RUBY, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::WINDBAG, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::KB_MALLET, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::ARCANE_SPECS, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::SCOUT_STRIDE, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::ART_CONSERVE, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::ARCANE_FUNNEL, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::FUNGIFIER, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::BURRBAG, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::SMOKE_POWDER, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::LIVELY_BULB, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::MALEDICTION, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER}
+};
+
+// Artifact stat map
+const std::map <ARTIFACT, std::string>artifact_stats = {
+	{ARTIFACT::POISON_FANG, "test stats"},
+	{ARTIFACT::GLAD_HOPLON, "test stats"},
+	{ARTIFACT::PIOUS_PRAYER, "test stats"},
+	{ARTIFACT::BLADE_POLISH, "test stats"},
+	{ARTIFACT::HQ_FLETCHING, "test stats"},
+	{ARTIFACT::MESSENGER_CAP, "test stats"},
+	{ARTIFACT::WARM_CLOAK, "test stats"},
+	{ARTIFACT::THUNDER_TWIG, "test stats"},
+	{ARTIFACT::LUCKY_CHIP, "test stats"},
+	{ARTIFACT::GUIDE_HEALBUFF, "test stats"},
+	{ARTIFACT::THICK_TOME, "test stats"},
+	{ARTIFACT::GOLIATH_BELT, "test stats"},
+	{ARTIFACT::BLOOD_RUBY, "test stats"},
+	{ARTIFACT::WINDBAG, "test stats"},
+	{ARTIFACT::KB_MALLET, "test stats"},
+	{ARTIFACT::ARCANE_SPECS, "test stats"},
+	{ARTIFACT::SCOUT_STRIDE, "test stats"},
+	{ARTIFACT::ART_CONSERVE, "test stats"},
+	{ARTIFACT::ARCANE_FUNNEL, "test stats"},
+	{ARTIFACT::FUNGIFIER, "test stats"},
+	{ARTIFACT::BURRBAG, "test stats"},
+	{ARTIFACT::SMOKE_POWDER, "test stats"},
+	{ARTIFACT::LIVELY_BULB, "test stats"},
+	{ARTIFACT::MALEDICTION, "test stats"}
+};
+
+// Artifact effect map
+const std::map <ARTIFACT, std::string>artifact_effects = {
+	{ARTIFACT::POISON_FANG, "test effects"},
+	{ARTIFACT::GLAD_HOPLON, "test effects"},
+	{ARTIFACT::PIOUS_PRAYER, "test effects"},
+	{ARTIFACT::BLADE_POLISH, "test effects"},
+	{ARTIFACT::HQ_FLETCHING, "test effects"},
+	{ARTIFACT::MESSENGER_CAP, "test effects"},
+	{ARTIFACT::WARM_CLOAK, "test effects"},
+	{ARTIFACT::THUNDER_TWIG, "test effects"},
+	{ARTIFACT::LUCKY_CHIP, "test effects"},
+	{ARTIFACT::GUIDE_HEALBUFF, "test effects"},
+	{ARTIFACT::THICK_TOME, "test effects"},
+	{ARTIFACT::GOLIATH_BELT, "test effects"},
+	{ARTIFACT::BLOOD_RUBY, "test effects"},
+	{ARTIFACT::WINDBAG, "test effects"},
+	{ARTIFACT::KB_MALLET, "test effects"},
+	{ARTIFACT::ARCANE_SPECS, "test effects"},
+	{ARTIFACT::SCOUT_STRIDE, "test effects"},
+	{ARTIFACT::ART_CONSERVE, "test effects"},
+	{ARTIFACT::ARCANE_FUNNEL, "test effects"},
+	{ARTIFACT::FUNGIFIER, "test effects"},
+	{ARTIFACT::BURRBAG, "test effects"},
+	{ARTIFACT::SMOKE_POWDER, "test effects"},
+	{ARTIFACT::LIVELY_BULB, "test effects"},
+	{ARTIFACT::MALEDICTION, "test effects"}
 };

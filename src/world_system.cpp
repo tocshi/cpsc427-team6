@@ -1013,8 +1013,15 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						set_gamestate(GameStates::BATTLE_MENU);
 						break;
 					case BUTTON_ACTION_ID::COLLECTION:
-						// TODO: add real functionality for this
-						logText("Collection Menu to be implemented later!");
+						// if the button is pressed again while the menu is already open, close the menu
+						if (current_game_state == GameStates::COLLECTION_MENU) {
+							set_gamestate(GameStates::BATTLE_MENU);
+						}
+						else {
+							// render the collection menu
+							createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f));
+							set_gamestate(GameStates::COLLECTION_MENU);
+						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_BACK:
 						// set gamestate back to normal
@@ -1036,6 +1043,24 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 						// create back button and move mode text
 						createBackButton(renderer, { 100.f , window_height_px - 60.f });
+						break;
+					case BUTTON_ACTION_ID::OPEN_DIALOG:
+						// remove all other description dialog components
+						for (Entity dd : registry.descriptionDialogs.entities) {
+							registry.remove_all_components_of(dd);
+						}
+
+						// get which icon was clicked
+						if (registry.artifactIcons.has(e)) {
+							ARTIFACT artifact = registry.artifactIcons.get(e).artifact;
+							createDescriptionDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f), artifact);
+						}
+						break;
+					case BUTTON_ACTION_ID::CLOSE_DIALOG:
+						// remove all description dialog components
+						for (Entity dd : registry.descriptionDialogs.entities) {
+							registry.remove_all_components_of(dd);
+						}
 						break;
 				}
 			}

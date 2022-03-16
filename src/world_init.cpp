@@ -691,7 +691,7 @@ Entity createMenuQuit(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::QUIT,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::UI });
+		 RENDER_LAYER_ID::UI_TOP });
 
 	return entity;
 }
@@ -895,7 +895,7 @@ Entity createCancelButton(RenderSystem* renderer, vec2 pos) {
 		{ TEXTURE_ASSET_ID::ACTIONS_CANCEL,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::UI });
+		 RENDER_LAYER_ID::UI_TOP });
 
 	return entity;
 }
@@ -1006,6 +1006,219 @@ Entity createCollectionButton(RenderSystem* renderer, vec2 pos) {
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+// Collection menu
+Entity createCollectionMenu(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ COLLECTION_MENU_BB_WIDTH, COLLECTION_MENU_BB_HEIGHT });
+
+	registry.menuItems.emplace(entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::COLLECTION_PANEL,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI });
+
+	// render the x button
+	auto close_entity = Entity();
+
+	Mesh& close_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(close_entity, &close_mesh);
+
+	registry.menuItems.emplace(close_entity);
+
+	Button& b = registry.buttons.emplace(close_entity);
+	b.action_taken = BUTTON_ACTION_ID::ACTIONS_CANCEL;
+
+	auto& close_motion = registry.motions.emplace(close_entity);
+	close_motion.angle = 0.f;
+	close_motion.velocity = { 0.f, 0.f };
+	close_motion.position = { pos.x  + (COLLECTION_MENU_BB_WIDTH / 2) - 60, pos.y - (COLLECTION_MENU_BB_HEIGHT / 2) + 50};
+
+	close_motion.scale = vec2({ PAUSE_BUTTON_BB_WIDTH / 1.5, PAUSE_BUTTON_BB_HEIGHT / 1.5});
+
+	registry.renderRequests.insert(
+		close_entity,
+		{ TEXTURE_ASSET_ID::MENU_CLOSE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI_TOP });
+
+	// render the artifact icons
+	float x_offset = 0.f;
+	float y_offset = 0.f;
+	for (int artifact = 0; artifact < (int)ARTIFACT::ARTIFACT_COUNT; artifact++) {
+		float next_x = pos.x - ((COLLECTION_MENU_BB_WIDTH / 2) - 124.f) + x_offset;
+		float next_y = pos.y - ((COLLECTION_MENU_BB_HEIGHT / 2) - 100) + y_offset;
+		if (next_x >= pos.x + (COLLECTION_MENU_BB_WIDTH / 2) - 200) {
+			x_offset = 0.f;
+			y_offset += 150.f;
+		}
+		else {
+			x_offset += (ARTIFACT_IMAGE_BB_WIDTH + 20.f);
+		}
+		createArtifactIcon(renderer, vec2(next_x, next_y),
+			static_cast<ARTIFACT>(artifact));
+	}
+
+	return entity;
+}
+
+// Artifact icon
+Entity createArtifactIcon(RenderSystem* renderer, vec2 pos, ARTIFACT artifact) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ ARTIFACT_IMAGE_BB_WIDTH, ARTIFACT_IMAGE_BB_HEIGHT });
+
+	registry.menuItems.emplace(entity);
+
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::OPEN_DIALOG;
+
+	ArtifactIcon& ai = registry.artifactIcons.emplace(entity);
+	ai.artifact = artifact;
+
+	// get artifact texture from map
+	auto iter = artifact_textures.find(artifact);
+	if (iter != artifact_textures.end()) {
+		// render the texture if one exists for the artifact
+		TEXTURE_ASSET_ID texture = iter->second;
+		registry.renderRequests.insert(
+			entity,
+			{ texture,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE,
+			 RENDER_LAYER_ID::ARTIFACT_ICONS });
+	}
+	else {
+		printf("ERROR: texture does not exist for artifact");
+	}
+
+	return entity;
+}
+
+// Description dialog
+Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifact) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ DESCRIPTION_DIALOG_BB_WIDTH, DESCRIPTION_DIALOG_BB_HEIGHT });
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::DESCRIPTION_DIALOG,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::DIALOG });
+
+	DescriptionDialog& dd = registry.descriptionDialogs.emplace(entity);
+
+	// set dd title
+	auto iter = artifact_names.find(artifact);
+	if (iter != artifact_names.end()) {
+		dd.title = iter->second;
+		// Entity tt = createText(renderer, vec2(pos.x, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 350.f), dd.title, 3.0f, vec3(0.0f));
+		// registry.descriptionDialogs.emplace(tt);
+	}
+	else {
+		printf("ERROR: name does not exist for artifact");
+	}
+
+	// set dd effect
+	iter = artifact_effects.find(artifact);
+	if (iter != artifact_effects.end()) {
+		dd.effect = iter->second;
+		// Entity et = createText(renderer, vec2(pos.x, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 250.f), dd.effect, 1.0f, vec3(0.0f));
+		// registry.descriptionDialogs.emplace(et);
+	}
+	else {
+		printf("ERROR: effect does not exist for artifact");
+	}
+
+	// set dd stats
+	iter = artifact_stats.find(artifact);
+	if (iter != artifact_stats.end()) {
+		dd.stats = iter->second;
+		// Entity st = createText(renderer, vec2(pos.x, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2+ 150.f), dd.stats, 1.0f, vec3(0.0f));
+		// registry.descriptionDialogs.emplace(st);
+	}
+	else {
+		printf("ERROR: stats do not exist for artifact");
+	}
+
+	// set dd description
+	iter = artifact_descriptions.find(artifact);
+	if (iter != artifact_descriptions.end()) {
+		dd.description = iter->second;
+		Entity dt = createText(renderer, vec2(window_width_px / 2 + 550.f, window_height_px - pos.y + 600.f), dd.description, 2.0f, vec3(0.0f));
+		registry.descriptionDialogs.emplace(dt);
+	}
+	else {
+		printf("ERROR: description does not exist for artifact");
+	}
+
+	// render the x button
+	auto close_entity = Entity();
+
+	Mesh& close_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(close_entity, &close_mesh);
+
+	auto& close_motion = registry.motions.emplace(close_entity);
+	close_motion.angle = 0.f;
+	close_motion.velocity = { 0.f, 0.f };
+	close_motion.position = { pos.x + (DESCRIPTION_DIALOG_BB_WIDTH / 2) - 60, 
+		pos.y - (DESCRIPTION_DIALOG_BB_HEIGHT / 2) + 50 };
+
+	close_motion.scale = vec2({ PAUSE_BUTTON_BB_WIDTH / 1.5, PAUSE_BUTTON_BB_HEIGHT / 1.5 });
+
+
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::CLOSE_DIALOG;
+
+	// need to add 'x' to descriptionDialogs so it is closed when the entire modal is closed
+	registry.descriptionDialogs.emplace(close_entity);
+
+	registry.renderRequests.insert(
+		close_entity,
+		{ TEXTURE_ASSET_ID::MENU_CLOSE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI_TOP });
 
 	return entity;
 }

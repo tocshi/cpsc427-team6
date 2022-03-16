@@ -745,6 +745,12 @@ bool WorldSystem::is_over() const {
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
+	// DEBUG: HEAL PLAYER
+	if (action == GLFW_RELEASE && key == GLFW_KEY_EQUAL) {
+		Stats& stat = registry.stats.get(player_main);
+		stat.hp = stat.maxhp;
+	}
+
 	// LOGGING TEXT TEST
 	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
 		for (Entity& enemy : registry.enemies.entities) {

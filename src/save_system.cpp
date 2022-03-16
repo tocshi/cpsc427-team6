@@ -145,7 +145,7 @@ std::queue<Entity> SaveSystem::getSolidTileInteract(std::queue<Entity> originalq
 		originalqueue.push(interact); // add interact to queue
 	}
 	printf("%d size of list after interact added \n:", originalqueue.size());
-	checkingEntityListHelper(originalqueue); // print to check out if sum mataches
+	//checkingEntityListHelper(originalqueue); // print to check out if sum mataches
 	return originalqueue;
 }
 

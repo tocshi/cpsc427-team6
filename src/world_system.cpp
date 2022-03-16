@@ -752,8 +752,15 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// Esc to go to mainMenu
-	if (action == GLFW_PRESS && GLFW_KEY_ESCAPE) {
+	
+	if (action == GLFW_PRESS && key== GLFW_KEY_ESCAPE) {
+		int w, h;
+		previous_game_state = GameStates::CUTSCENE;
 		logText("Escape Key Pressed");
+		set_gamestate(GameStates::MAIN_MENU);
+		glfwGetWindowSize(window, &w, &h);
+		restart_game();
+		printf("\n escaped pressed \n");
 	}
 
 	// SAVING THE GAME

@@ -5,7 +5,7 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
-#include<fstream>
+#include <fstream>
 
 #include "physics_system.hpp"
 #include "combat_system.hpp"
@@ -577,7 +577,8 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
 
-	SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
+	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	SpawnData spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
@@ -781,7 +782,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		// remove player
 		registry.remove_all_components_of(player_main);
 		// make new map
-		SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
+		std::string next_map = roomSystem.getRandomRoom(roomSystem.current_floor, false);
+		SpawnData spawnData = createTiles(renderer, next_map);
 		// load the player back
 		json gameData = saveSystem.getSaveData();
 		std::queue<Entity> queue = loadFromData(gameData);
@@ -801,6 +803,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		// Refill Player EP
 		stats.ep = stats.maxep;
+
+		spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
+		spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
 
 		remove_fog_of_war();
 		create_fog_of_war();
@@ -1219,6 +1224,7 @@ std::queue<Entity> WorldSystem::loadFromData(json data) {
 		Entity e;
 		if (entity["type"] == "player") {
 			e = loadPlayer(entity);
+			player_main = e;
 		}
 		else {
 			e = loadEnemy(entity);

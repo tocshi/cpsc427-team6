@@ -751,6 +751,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
+	// Esc to go to mainMenu
+	if (action == GLFW_PRESS && GLFW_KEY_ESCAPE) {
+		logText("Escape Key Pressed");
+	}
+
 	// SAVING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
 		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());

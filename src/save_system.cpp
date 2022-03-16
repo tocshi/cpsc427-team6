@@ -6,106 +6,6 @@ void saveToFile(json j) {
 	o << std::setw(4) << j << std::endl;
 }
 
-// similar function already written, but keep for now
-void setPlayer(json obj) {
-
-	float hp = obj["player"]["stats"]["hp"].get<float>();
-	float ep = obj["player"]["stats"]["ep"].get<float>();
-	float mp = obj["player"]["stats"]["mp"].get<float>();
-
-	// position
-	float posX = obj["player"]["motion"]["position_x"].get<float>();
-	float posY = obj["player"]["motion"]["position_y"].get<float>();
-	//angle
-	float angle = obj["player"]["motion"]["angle"].get<float>();
-	// veloicty 
-	float velx= obj["player"]["motion"]["velocity_x"].get<float>();
-	float vely = obj["player"]["motion"]["velocity_y"].get<float>();
-	
-	// dest
-	float destx = obj["player"]["motion"]["destination_x"].get<float>();
-	float desty = obj["player"]["motion"]["destination_y"].get<float>();
-	float movementSpeed = obj["player"]["motion"]["movement_speed"].get<float>();
-	bool in_motion = obj["player"]["motion"]["in_motion"].get < bool>();
-
-	// scale i
-
-	for (Entity e: registry.players.entities) {
-		// we are heading to a new room so EP is max
-		registry.stats.get(e).ep = registry.stats.get(e).maxep;
-		registry.stats.get(e).hp = hp;
-		registry.stats.get(e).mp = mp;
-
-		// setting the motion of the player 
-		registry.motions.get(e).angle = angle;
-		registry.motions.get(e).velocity = { velx,vely };
-		registry.motions.get(e).position = { posX,posY };
-		registry.motions.get(e).in_motion = in_motion;
-		registry.motions.get(e).movement_speed = movementSpeed;
-		registry.motions.get(e).destination = { destx,desty };
-	}
-}
-
-void setArtifacts(json obj) {
-	bool artifact = obj["inventory"]["artifact_1"].get<bool>();
-	for (Entity e : registry.artifacts.entities) {
-		registry.artifacts.get(e).artifact1 = artifact;
-
-	}
-}
-
-void setInventory(json obj) {
-	bool axe = obj["inventory"]["equiptment"]["axe"].get<bool>();
-	bool wand = obj["inventory"]["equiptment"]["wand"].get<bool>();
-	bool sword = obj["inventory"]["equiptment"]["sword"].get<bool>();
-
-	// consume 
-	bool hp_potion = obj["inventory"]["consumables"]["hp_potion"].get<bool>();
-	bool mp_potion= obj["inventory"]["consumables"]["mp_potion"].get<bool>();
-
-	for (Entity e : registry.equipment.entities) {
-		/*
-		registry.equipables.get(e).axe = axe;
-		registry.equipables.get(e).wand = wand;
-		registry.equipables.get(e).sword = sword;
-		*/
-	}
-
-	for (Entity e : registry.consumables.entities) {
-		registry.consumables.get(e).magic_potion = mp_potion;
-		registry.consumables.get(e).hp_potion = hp_potion;
-	}
-}
-void SaveSystem::readJsonFile() {
-	//reading data 
-	std::ifstream fileToRead(SAVE_DATA_PATH);
-	//json jf = json::parse(fileToRead);
-	json obj;
-	fileToRead >> obj;
-	//float x = obj["player"]["stats"]["hp"].get<float>();
-	//printf("%f", x);
-	printf("start the setting for saved data to new room");
-	// similar function written so use other one for now 
-	//setPlayer(obj);
-	setArtifacts(obj);
-	setInventory(obj);
-
-	printf("\n");
-	printf("DONE READING FILE");
-
-
-}
-
-void SaveSystem::saveGameState(std::queue<Entity> entities) {
-	json saveState;
-	std::queue<Entity> resultList;
-	resultList = getSolidTileInteract(entities);
-	//saveState["entities"] = jsonifyEntities(entities);
-	saveState["entities"] = jsonifyEntities(resultList);
-
-	saveToFile(saveState);
-}
-
 bool SaveSystem::saveDataExists() {
 	std::ifstream infile(SAVE_DATA_PATH);
 	return infile.good();
@@ -117,6 +17,19 @@ json SaveSystem::getSaveData() {
 	json j;
 	i >> j;
 	return j;
+}
+
+void SaveSystem::saveGameState(std::queue<Entity> entities) {
+	json saveState;
+	std::queue<Entity> resultList;
+	resultList = getSolidTileInteract(entities);
+	saveState["entities"] = jsonifyEntities(entities);
+	//saveState["entities"] = jsonifyEntities(resultList);
+	saveState["map"]["collidables"] = jsonifyCollidables();
+	saveState["map"]["interactables"] = jsonifyInteractables();
+	saveState["map"]["tiles"] = jsonifyTiles();
+
+	saveToFile(saveState);
 }
 
 std::queue<Entity> SaveSystem::getSolidTileInteract(std::queue<Entity> originalqueue)
@@ -145,48 +58,9 @@ std::queue<Entity> SaveSystem::getSolidTileInteract(std::queue<Entity> originalq
 		originalqueue.push(interact); // add interact to queue
 	}
 	printf("%d size of list after interact added \n:", originalqueue.size());
-	checkingEntityListHelper(originalqueue); // print to check out if sum mataches
 	return originalqueue;
 }
 
-void SaveSystem::checkingEntityListHelper(std::queue<Entity> entities) {
-	//printf("%d collide total entities \n:", collideTotal); // how many collidable entites are there? 
-	// code to check if collide is in the entity list now 
-	int sizeOfList = entities.size();
-	printf("%d entity list size \n:", sizeOfList);
-	int countCollide = 0;
-	int countPlayer = 0;
-	int countEnemy = 0;
-	int countTileUV = 0;
-	int countInteract = 0; 
-	for (int i = 0; i < sizeOfList; i++) {
-		Entity e = entities.front();
-		entities.pop();
-		if (registry.collidables.has(e) && registry.solid.has(e)) {
-			//printf(" solid component is stored in list\n");
-			countCollide++;
-		}
-		if (registry.players.has(e)) {
-			//printf("player component is in list \n");
-			countPlayer++;
-		}
-		if (registry.enemies.has(e)) {
-			//printf("enemy component is in list \n");
-			countEnemy++;
-		}
-		// tile map too many components so.. 
-		if (registry.tileUVs.has(e)) {
-			countTileUV++; 
-		}
-	}
-	printf("end of count tiles %d \n: ", countTileUV);
-	printf("end of count player %d \n: ", countPlayer);
-	printf("end of count enemies %d \n: ", countEnemy);
-	printf("end of count solid collide walls %d \n: ", countCollide);
-	int totalSum = countCollide + countPlayer + countEnemy + countTileUV;
-	printf("%d total sum \n:", totalSum);
-	assert(totalSum, sizeOfList); 
-}
 json SaveSystem::jsonifyEntities(std::queue<Entity> entities) {
 	auto entityList = json::array();
 	// loop through all the entities in order of turn system and save them
@@ -194,38 +68,15 @@ json SaveSystem::jsonifyEntities(std::queue<Entity> entities) {
 		Entity e = entities.front();
 		entities.pop();
 		json entity;
-		bool changed = false;
 		// check to see what type of entity it is
 		if (registry.players.has(e)) {
-			changed = true;
 			entity = jsonifyPlayer(e);
 		}
 		else if (registry.enemies.has(e)) {
-			changed = true;
 			entity = jsonifyEnemy(e);
 			//printf("123 working?? \n");
 		}
-		else if (registry.interactables.has(e)) { // currently  no interactables ?
-			changed = true;
-			printf("yes");
-			entity = jsonifyChestItem(e);
-		}
-		else if (registry.tileUVs.has(e)) { // not working :(??
-			changed = true;
-			//printf("tile map entity \n");
-			entity = jsonifyTileMap(e);
-		}
-		else if (registry.solid.has(e) && registry.collidables.has(e)) { // collidable solid on map like the objects
-			changed = true;
-			//printf("181 has solid components\n");
-			entity = jsonifyCollideMap(e);
-		}
-
-		// if something was actually jsonified put it into the array (removes nulls)
-		if (changed) {
-			// put entity json onto json array
-			entityList.push_back(entity);
-		}
+		entityList.push_back(entity);
 	}
 
 	return entityList;
@@ -255,7 +106,10 @@ json SaveSystem::jsonifyStats(Stats s) {
 	stats["speed"] = s.speed;
 	stats["range"] = s.range;
 	stats["chase"] = s.chase;
-	stats["gaurd"] = s.guard;
+	stats["guard"] = s.guard;
+
+	stats["epratemove"] = s.epratemove;
+	stats["eprateatk"] = s.eprateatk;
 
 	return stats;
 }
@@ -284,6 +138,10 @@ json SaveSystem::jsonifyPlayer(Entity player) {
 	json pl;
 
 	pl["attacked"] = p.attacked;
+	pl["gacha_pity"] = p.gacha_pity;
+	pl["floor"] = p.floor;
+	pl["room"] = p.room;
+	pl["total_rooms"] = p.total_rooms;
 	playerData["player"] = pl;
 
 	// jsonify queueable
@@ -298,25 +156,22 @@ json SaveSystem::jsonifyPlayer(Entity player) {
 	Motion player_motion = registry.motions.get(player);
 	playerData["motion"] = jsonifyMotion(player_motion);
 
-	playerData["invetory"] = jsonifyInventory(player);
+	playerData["inventory"] = jsonifyInventory(player);
 	return playerData;
 }
 
 // add plantshooter 
 json SaveSystem::jsonifyEnemy(Entity enemy) {
 	json enemyData;
-	
-	// check what type the enemy is and save it 
-	if (registry.enemies.get(enemy).type == ENEMY_TYPE::SLIME) {
-		enemyData["type"] = "slime";
-	}
-	else if (registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER) {
-		enemyData["type"] = "plantShooter";
-	}
+
+	enemyData["type"] = "enemy";
 
 	Enemy e = registry.enemies.get(enemy);
 	json enemyEnemy;
+	// save enemy component stuff
 	enemyEnemy["state"] = e.state;
+	enemyEnemy["hit_by_player"] = e.hit_by_player;
+	enemyEnemy["type"] = e.type;
 	enemyData["enemy"] = enemyEnemy;
 
 	// jsonify queueable stuff
@@ -331,7 +186,6 @@ json SaveSystem::jsonifyEnemy(Entity enemy) {
 	Motion m = registry.motions.get(enemy);
 	enemyData["motion"] = jsonifyMotion(m);
 
-	enemyData["hit_by_enemy"] = e.hit_by_player;
 	enemyData["inventory"] = jsonifyInventory(enemy);
 
 	return enemyData;
@@ -343,62 +197,91 @@ json SaveSystem::jsonifyInventory(Entity inv) {
 	Inventory i = registry.inventories.get(inv);
 	json inventory;
 	inventory["artifact"] = i.artifact;
-	inventory["consumble"] = i.consumable;	
-	inventory["equipped"]["Weapon"] = jsonifyEquiptment(i.equipped[0]);
-	inventory["equipped"]["Armour"] = jsonifyEquiptment(i.equipped[1]); 
+	inventory["consumable"] = i.consumable;	
+	inventory["equipped"]["weapon"] = jsonifyEquipment(i.equipped[0]);
+	inventory["equipped"]["armour"] = jsonifyEquipment(i.equipped[1]); 
 	return inventory; 
 }
 
 
-json SaveSystem::jsonifyEquiptment(Equipment e) {
+json SaveSystem::jsonifyEquipment(Equipment e) {
 	json equipt; 
 	equipt["type"] = e.type;
-	equipt["attack"] = e.atk;
+	equipt["atk"] = e.atk;
+	equipt["def"] = e.def;
+	equipt["speed"] = e.speed;
 	equipt["ep"] = e.ep;
 	equipt["mp"] = e.ep;
 	equipt["hp"] = e.mp;
+	equipt["range"] = e.range;
+	auto attacks = json::array();
+	for (ATTACK attack : e.attacks) {
+		attacks.push_back(attack);
+	}
+	equipt["attacks"] = attacks;
 	return equipt;
 }
 
-json SaveSystem::jsonifyChestItem(Entity e) {
-	
-	Interactable c = registry.interactables.get(e);
-	json chest;
-
-
-	if (c.type == INTERACT_TYPE::CHEST) {
-
-		Motion m = registry.motions.get(e);
-		chest["chest"]["motions"] = jsonifyMotion(m);
+json SaveSystem::jsonifyInteractables() {
+	auto interactablesList = json::array();
+	for (Entity entity : registry.interactables.entities) {
+		json interactableJson;
+		Interactable interactable = registry.interactables.get(entity);
+		interactableJson["type"] = interactable.type;
+		Motion m = registry.motions.get(entity);
+		interactableJson["motion"] = jsonifyMotion(m);
+		if (interactable.type == INTERACT_TYPE::SIGN) {
+			interactableJson["sign"] = jsonifySign(entity);
+		}
+		interactablesList.push_back(interactableJson);
 	}
-	return chest; 
+	return interactablesList;
 }
 
-// tile map json
-json SaveSystem::jsonifyTileMap(Entity map) {
-
-	// check for SOLID (map fixated components like walls)
-	// check for the tile map 
-
-	// Look at tilemap.cpp at createTileFromData functions for tileUV components and save
-	json tileMap;
-	if (registry.tileUVs.has(map)) {
-		TileUV tile = registry.tileUVs.get(map);
-		Motion m = registry.motions.get(map);
-		tileMap["Motions"] = jsonifyMotion(m);
-		tileMap["layerName"] = tile.layer;
-		tileMap["tileID"] = tile.tileID;
+json SaveSystem::jsonifyCollidables() {
+	// right now the only collidables are walls
+	auto collidablesList = json::array();
+	for (Entity entity : registry.collidables.entities) {
+		json collidableJson;
+		// check to see if solid, if not skip
+		if (!registry.solid.has(entity)) {
+			continue;
+		}
+		Motion m = registry.motions.get(entity);
+		collidableJson["motion"] = jsonifyMotion(m);
+		collidablesList.push_back(collidableJson);
 	}
-
-	return tileMap; 
+	return collidablesList;
 }
 
-json SaveSystem::jsonifyCollideMap(Entity solidCollide) {
+json SaveSystem::jsonifyTiles() {
+	auto tilesList = json::array();
+	for (Entity tile : registry.tileUVs.entities) {
+		json tileJson;
+		TileUV tileUV = registry.tileUVs.get(tile);
+		Motion m = registry.motions.get(tile);
+		tileJson["motion"] = jsonifyMotion(m);
+		tileJson["tileUV"]["layer"] = tileUV.layer;
+		tileJson["tileUV"]["tileID"] = tileUV.tileID;
+		tileJson["tileUV"]["uv_start"]["x"] = tileUV.uv_start.x;
+		tileJson["tileUV"]["uv_start"]["y"] = tileUV.uv_start.y;
+		tileJson["tileUV"]["uv_end"]["x"] = tileUV.uv_end.x;
+		tileJson["tileUV"]["uv_end"]["y"] = tileUV.uv_end.x;
+		tilesList.push_back(tileJson);
+	}
+	return tilesList;
+}
 
-	json collideMap;
-	json collideData;
-	Motion m = registry.motions.get(solidCollide);
-	collideMap["solidCollideWall"] = collideData;
-	
-	return collideMap;
+json SaveSystem::jsonifySign(Entity e) {
+	json signJson;
+	auto messageList = json::array();
+	Sign sign = registry.signs.get(e);
+	for (std::pair<std::string, int> message : sign.messages) {
+		json messageJson;
+		messageJson["message"] = message.first;
+		messageJson["number"] = message.second;
+		messageList.push_back(messageJson);
+	}
+	signJson["messages"] = messageList;
+	return signJson;
 }

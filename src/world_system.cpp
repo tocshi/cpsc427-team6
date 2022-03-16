@@ -790,10 +790,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			json gameData = saveSystem.getSaveData();
 			printf("getting gameData\n");
 			// load the entities in
-			std::queue<Entity> entities = loadFromData(gameData);
+			loadFromData(gameData);
 			printf("load game data?\n");
-			turnOrderSystem.loadTurnOrder(entities);
-			//saveSystem.readJsonFile(); // LOAD REST OF DATA FOR ARTIFACT etc.
 		}
 
 		logText("Game state loaded!");
@@ -813,8 +811,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
 		// load the player back
 		json gameData = saveSystem.getSaveData();
-		std::queue<Entity> queue = loadFromData(gameData);
-		turnOrderSystem.loadTurnOrder(queue);
+		loadFromData(gameData);
 		// get the player and set its position
 		std::random_shuffle(spawnData.playerSpawns.begin(), spawnData.playerSpawns.end());
 		Motion& motion = registry.motions.get(player_main);
@@ -1288,9 +1285,14 @@ void WorldSystem::removeForNewRoom() {
 	}
 }
 
-std::queue<Entity> WorldSystem::loadFromData(json data) {
+void WorldSystem::loadFromData(json data) {
 	// load player
 	json entityList = data["entities"];
+	json collidablesList = data["map"]["collidables"];
+	json interactablesList = data["map"]["interactables"];
+	json tilesList = data["map"]["tiles"];
+
+	// load enemies
 	std::queue<Entity> entities;
 	for (auto& entity : entityList) {
 		Entity e;
@@ -1300,106 +1302,176 @@ std::queue<Entity> WorldSystem::loadFromData(json data) {
 			printf("loading player done \n");
 		}
 		else {
-			printf(" type is slime ... loading slime\n");
+			printf(" type is enemy ... loading enemy\n");
 			e = loadEnemy(entity);
-			printf("loading slime done 1293   \n ");
+			printf("loading enemy done\n ");
 		}
 		entities.push(e);
 	}
-
-	return entities;
+	// put entities into turn order system
+	turnOrderSystem.loadTurnOrder(entities);
+	// load collidables
+	// load interactables
+	// load tiles
 }
 
 Entity WorldSystem::loadPlayer(json playerData) {
 	// create a player from the save data
-	// get player motion
-	Motion motion = loadMotion(playerData["motion"]);
-	printf("line 1302 good\n");
 	// create player
-	Entity e = createPlayer(renderer, motion);
+	Entity e = createPlayer(renderer, { 0, 0 });
+	player_main = e;
 
-	// get player component stuff
-	registry.players.get(e).attacked = playerData["player"]["attacked"];
-	printf("line 1309 \n");
+	// load motion
+	loadMotion(e, playerData["motion"]);
 
 	// get queueable stuff
-	registry.queueables.get(e).doing_turn = playerData["queueable"]["doingTurn"];
+	loadQueueable(e, playerData["queueable"]);
 
-	// get stats
-	json stats = playerData["stats"];
-	registry.stats.get(e).ep = stats["ep"];
-	registry.stats.get(e).maxep = stats["maxEP"];
-	registry.stats.get(e).hp = stats["hp"];
-	registry.stats.get(e).maxep = stats["maxHP"];
-	registry.stats.get(e).mp = stats["mp"];
-	registry.stats.get(e).maxmp = stats["maxMP"];
-	registry.stats.get(e).atk = stats["atk"];
-	registry.stats.get(e).def = stats["def"];
-	registry.stats.get(e).speed = stats["speed"];
-	registry.stats.get(e).range = stats["range"];
-	registry.stats.get(e).chase = stats["chase"];
-	printf("line 1327 \n");
+	// load stats
+	loadStats(e, playerData["stats"]);
+
+	// get inventory
+	Inventory inv = loadInventory(e, playerData["inventory"]);
+
+	// get player component stuff
+	loadPlayerComponent(e, playerData["player"], inv);
 	
 	return e;
 }
 
 Entity WorldSystem::loadEnemy(json enemyData) {
 	Entity e;
-	if (enemyData["type"] == "slime") {
-		printf("line 1337 sucessful \n ");
-		e = loadSlime(enemyData);
-		printf("slime is done loading line 1339\n");
+	if (enemyData["enemy"]["type"] == ENEMY_TYPE::SLIME) {
+		e = createEnemy(renderer, { 0, 0 });
 	}
+	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::PLANT_SHOOTER) {
+		e = createPlantShooter(renderer, { 0, 0 });
+	}
+	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::CAVELING) {
+		e = createCaveling(renderer, { 0, 0 });
+	}
+	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::KING_SLIME) {
+		e = createBoss(renderer, { 0, 0 });
+	}
+	// load motion
+	loadMotion(e, enemyData["motion"]);
+	// load queueable
+	loadQueueable(e, enemyData["queueable"]);
+	// load stats
+	loadStats(e, enemyData["stats"]);
+	// load inventory
+	Inventory inv = loadInventory(e, enemyData["inventory"]);
+	// load enemy component
+	loadEnemyComponent(e, enemyData["enemy"], inv);
 	return e;
 }
 
-Entity WorldSystem::loadSlime(json slimeData) {
-	// get slime's motion
-	Motion motion = loadMotion(slimeData["motion"]);
-	printf("motion stats ok for slime 1347\n");
+void WorldSystem::loadMotion(Entity e, json motionData) {
+	registry.motions.get(e).angle = motionData["angle"];
+	registry.motions.get(e).destination = { motionData["destination_x"], motionData["destination_y"] };
+	registry.motions.get(e).in_motion = motionData["in_motion"];
+	registry.motions.get(e).movement_speed = motionData["movement_speed"];
+	registry.motions.get(e).position = { motionData["position_x"], motionData["position_y"] };
+	registry.motions.get(e).velocity = { motionData["velocity_x"], motionData["velocity_y"] };
+}
 
-	// create slime
-	Entity e = createEnemy(renderer, motion);
-	printf("created slime enemy good line 1351\n");
-
-	// set slimeEnemy data
-	//json slimeEnemy = slimeData["slime"];
-	json slimeEnemy = slimeData["enemy"];
-	registry.enemies.get(e).state = slimeEnemy["state"];
-	printf("line 1357 slime state set \n");
-
-	// get queueable stuff
-	json queueable = slimeData["queueable"];
-	printf("get queable for slime 1360 \n");
-	registry.queueables.get(e).doing_turn = queueable["doingTurn"];
-	printf("sucess set queable for slime line 1362\n");
-
-	// get stats
-	json stats = slimeData["stats"];
-	registry.stats.get(e).ep = stats["ep"];
-	registry.stats.get(e).maxep = stats["maxEP"];
+void WorldSystem::loadStats(Entity e, json stats) {
 	registry.stats.get(e).hp = stats["hp"];
 	registry.stats.get(e).maxep = stats["maxHP"];
+
 	registry.stats.get(e).mp = stats["mp"];
 	registry.stats.get(e).maxmp = stats["maxMP"];
+	registry.stats.get(e).mpregen = stats["mpregen"];
+
+	registry.stats.get(e).ep = stats["ep"];
+	registry.stats.get(e).maxep = stats["maxEP"];
+
+	registry.stats.get(e).epratemove = stats["epratemove"];
+	registry.stats.get(e).eprateatk = stats["eprateatk"];
+	
 	registry.stats.get(e).atk = stats["atk"];
 	registry.stats.get(e).def = stats["def"];
 	registry.stats.get(e).speed = stats["speed"];
 	registry.stats.get(e).range = stats["range"];
 	registry.stats.get(e).chase = stats["chase"];
-	printf("slime is done setting all stats line 1377");
-	return e;
+
+	registry.stats.get(e).guard = stats["guard"];
 }
 
-Motion WorldSystem::loadMotion(json motionData) {
-	Motion m;
-	m.angle = motionData["angle"];
-	m.destination = { motionData["destination_x"], motionData["destination_y"] };
-	m.in_motion = motionData["in_motion"];
-	m.movement_speed = motionData["movement_speed"];
-	m.position = { motionData["position_x"], motionData["position_y"] };
-	m.velocity = { motionData["velocity_x"], motionData["velocity_y"] };
-	return m;
+void WorldSystem::loadQueueable(Entity e, json queueableData) {
+	registry.queueables.get(e).doing_turn = queueableData["doingTurn"];
+}
+
+void WorldSystem::loadEnemyComponent(Entity e, json enemyCompData, Inventory inv) {
+	registry.enemies.get(e).hit_by_player = enemyCompData["hit_by_player"];
+	registry.enemies.get(e).state = enemyCompData["state"];
+	registry.enemies.get(e).type = enemyCompData["type"];
+	registry.enemies.get(e).inv = inv;
+}
+
+void WorldSystem::loadPlayerComponent(Entity e, json playerCompData, Inventory inv) {
+	registry.players.get(e).attacked = playerCompData["attacked"];
+	registry.players.get(e).gacha_pity = playerCompData["gacha_pity"];
+	registry.players.get(e).floor = playerCompData["floor"];
+	registry.players.get(e).room = playerCompData["room"];
+	registry.players.get(e).total_rooms = playerCompData["total_rooms"];
+	registry.players.get(e).inv = inv;
+}
+
+Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
+	Inventory inv;
+	// get artifacts
+	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
+	int i = 0;
+	for (auto& artifact : inventoryData["artifact"]) {
+		inv.artifact[i] = artifact;
+		i++;
+	}
+
+	// get consumables
+	i = 0;
+	for (auto& consumable : inventoryData["consumable"]) {
+		inv.consumable[i] = consumable;
+		i++;
+	}
+	
+	// load weapon
+	json weaponJson = inventoryData["equipped"]["weapon"];
+	Equipment weapon;
+	weapon.atk = weaponJson["atk"];
+	weapon.def = weaponJson["def"];
+	weapon.ep = weaponJson["ep"];
+	weapon.hp = weaponJson["hp"];
+	weapon.mp = weaponJson["mp"];
+	weapon.range = weaponJson["range"];
+	weapon.speed = weaponJson["speed"];
+	weapon.type = weaponJson["type"];
+	i = 0;
+	for (auto& attack : weaponJson["attacks"]) {
+		weapon.attacks[i] = attack;
+		i++;
+	}
+	inv.equipped[0] = weapon;
+
+	// get armour
+	json armourJson = inventoryData["equipped"]["armour"];
+	Equipment armour;
+	armour.atk = armourJson["atk"];
+	armour.def = armourJson["def"];
+	armour.ep = armourJson["ep"];
+	armour.hp = armourJson["hp"];
+	armour.mp = armourJson["mp"];
+	armour.range = armourJson["range"];
+	armour.speed = armourJson["speed"];
+	armour.type = armourJson["type"];
+	i = 0;
+	for (auto& attack : armourJson["attacks"]) {
+		armour.attacks[i] = attack;
+		i++;
+	}
+	inv.equipped[1] = armour;
+
+	return inv;
 }
 
 void WorldSystem::logText(std::string msg) {

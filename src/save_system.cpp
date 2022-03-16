@@ -62,10 +62,12 @@ void setInventory(json obj) {
 	bool hp_potion = obj["inventory"]["consumables"]["hp_potion"].get<bool>();
 	bool mp_potion= obj["inventory"]["consumables"]["mp_potion"].get<bool>();
 
-	for (Entity e : registry.equipables.entities) {
+	for (Entity e : registry.equipment.entities) {
+		/*
 		registry.equipables.get(e).axe = axe;
 		registry.equipables.get(e).wand = wand;
 		registry.equipables.get(e).sword = sword;
+		*/
 	}
 
 	for (Entity e : registry.consumables.entities) {
@@ -100,10 +102,11 @@ void SaveSystem::saveGameState(std::queue<Entity> entities) {
 	json inventory;
 	
 	// Equipment items
-	for (Entity e : registry.equipables.entities) {
-		Equipable equipItem = registry.equipables.get(e);
+	for (Entity e : registry.equipment.entities) {
+		Equipment equipItem = registry.equipment.get(e);
 		printf("IN equiptable items");
 
+		/*
 		// item axe avilable add to stat
 		if (equipItem.axe) {
 			//printf("true has axe");
@@ -115,7 +118,7 @@ void SaveSystem::saveGameState(std::queue<Entity> entities) {
 		}
 		if (equipItem.wand) {
 			inventory["equiptment"]["wand"] = true;
-		}
+		}*/
 	}
 
 	for (Entity e : registry.consumables.entities) {

@@ -108,8 +108,8 @@ float calc_damage(Entity& attacker, Entity& defender, float multiplier)
 	}
 
 	// Blood Ruby
-	if (attacker_inv.artifact[(int)ARTIFACT::GOLIATH_BELT] > 0 && attacker_stats.hp <= attacker_stats.maxhp * 0.4) {
-		attacker_atk *= 1 + (0.2 * attacker_inv.artifact[(int)ARTIFACT::GOLIATH_BELT]);
+	if (attacker_inv.artifact[(int)ARTIFACT::BLOOD_RUBY] > 0 && attacker_stats.hp <= attacker_stats.maxhp * 0.4) {
+		attacker_atk *= 1 + (0.2 * attacker_inv.artifact[(int)ARTIFACT::BLOOD_RUBY]);
 	}
 
 	float final_damage = attacker_atk * multiplier / 100;
@@ -164,11 +164,12 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 							knockback.angle = atan2(enemy_motion.position.y - defender_motion.position.y, enemy_motion.position.x - defender_motion.position.x);
 						}
 						StatusEffect stun = StatusEffect(0, stun_duration, StatusType::STUN, false, true);
-						apply_status(attacker, stun);
+						apply_status(e, stun);
 						StatusEffect cd = StatusEffect(0, 15, StatusType::WINDBAG_CD, false, false);
 						apply_status(defender, cd);
 					}
 				}
+				world.logText("You are surrounded by a raging gust!");
 			}
 		}
 	}
@@ -222,12 +223,12 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 
 	// Blade Polish Kit
 	if (attacker_inv.artifact[(int)ARTIFACT::BLADE_POLISH] > 0 && dist_to(attacker_motion.position, defender_motion.position) <= 100) {
-		final_damage *= 1.2 * attacker_inv.artifact[(int)ARTIFACT::BLADE_POLISH];
+		final_damage *= 1 + 0.2 * attacker_inv.artifact[(int)ARTIFACT::BLADE_POLISH];
 	}
 
 	// High-Quality Fletching
 	if (attacker_inv.artifact[(int)ARTIFACT::HQ_FLETCHING] > 0 && dist_to(attacker_motion.position, defender_motion.position) > 100) {
-		final_damage *= 1.2 * attacker_inv.artifact[(int)ARTIFACT::HQ_FLETCHING];
+		final_damage *= 1 + 0.2 * attacker_inv.artifact[(int)ARTIFACT::HQ_FLETCHING];
 	}
 
 	// Rubber Mallet

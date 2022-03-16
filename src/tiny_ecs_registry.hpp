@@ -23,7 +23,7 @@ public:
 	ComponentContainer<vec3> colors;
 	ComponentContainer<Damageable> damageables;
 	ComponentContainer<Consumable> consumables;
-	ComponentContainer<Equipable> equipables;
+	ComponentContainer<Equipment> equipment;
 	ComponentContainer<Guardable> guardables;
 	ComponentContainer<Interactable> interactables;
 	ComponentContainer<Stats> stats;
@@ -76,7 +76,7 @@ public:
 		registry_list.push_back(&colors);
 		registry_list.push_back(&damageables);
 		registry_list.push_back(&consumables);
-		registry_list.push_back(&equipables);
+		registry_list.push_back(&equipment);
 		registry_list.push_back(&guardables);
 		registry_list.push_back(&interactables);
 		registry_list.push_back(&stats);

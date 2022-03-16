@@ -604,6 +604,7 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 void WorldSystem::spawn_game_entities() {
 
 	SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
+	//SpawnData spawnData = createTiles(renderer, "debug_room.tmx");
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
@@ -701,12 +702,16 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 	if (enemySpawns.size() > 0) {
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
-			// Spawn either a slime or PlantShooter
-			if (ichoose(0, 1)) {
-				createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			// Spawn either a slime or PlantShooter or caveling
+			int roll = irand(4);
+			if (roll < 1) {
+				createCaveling(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			}
+			else if (roll < 2) {
+				createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 			}
 			else {
-				createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 			}
 		}
 	}
@@ -763,6 +768,12 @@ bool WorldSystem::is_over() const {
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
+	// DEBUG: HEAL PLAYER
+	if (action == GLFW_RELEASE && key == GLFW_KEY_EQUAL) {
+		Stats& stat = registry.stats.get(player_main);
+		stat.hp = stat.maxhp;
+	}
+
 	// LOGGING TEXT TEST
 	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
 		for (Entity& enemy : registry.enemies.entities) {
@@ -1463,7 +1474,7 @@ void WorldSystem::doTurnOrderLogic() {
 		// perform end-of-movement attacks for enemies
 		else {
 			set_enemy_state_attack(currentTurnEntity);
-			aiSystem.step(currentTurnEntity, this, renderer);
+			aiSystem.step(currentTurnEntity);
 		}
 
 		// get next turn
@@ -1480,7 +1491,7 @@ void WorldSystem::doTurnOrderLogic() {
 
 	// if current turn entity is enemy and is still doing_turn call ai.step();
 	if (!registry.players.has(currentTurnEntity) && registry.queueables.get(currentTurnEntity).doing_turn) {
-		aiSystem.step(currentTurnEntity, this, renderer);
+		aiSystem.step(currentTurnEntity);
 
 		// now that ai did its step, set doing turn to false
 		registry.queueables.get(currentTurnEntity).doing_turn = false;
@@ -1489,10 +1500,9 @@ void WorldSystem::doTurnOrderLogic() {
 
 // Set attack state for enemies who attack after moving
 void set_enemy_state_attack(Entity enemy) {
-	if (registry.enemies.get(enemy).type == ENEMY_TYPE::SLIME) {
-		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
-	}
-	if (registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER) {
+	if (registry.enemies.get(enemy).type == ENEMY_TYPE::SLIME ||
+		registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER ||
+		registry.enemies.get(enemy).type == ENEMY_TYPE::CAVELING) {
 		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
 	}
 }

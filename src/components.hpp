@@ -19,20 +19,40 @@ enum class CONSUMABLE {
 	CONSUMABLE_COUNT = YELPOT + 1
 };
 
-enum class WEAPON {
-	STICK = 0,
-	BOW0 = STICK + 1,
-	SWORD0 = BOW0 + 1,
-	BLUNT0 = SWORD0 + 1,
-	BOW1 = BLUNT0 + 1,
-	SWORD1 = BOW1 + 1,
-	BLUNT1 = SWORD1 + 1,
-	WEAPON_COUNT = BLUNT1 + 1
+enum class EQUIPMENT {
+	ARMOUR = 0,
+	SHARP = ARMOUR + 1,
+	BLUNT = SHARP + 1,
+	RANGED = BLUNT + 1,
+	EQUIPMENT_COUNT = RANGED + 1
 };
 
-enum class ARMOUR {
-	FAMCLOTH = 0,
-	ARMOUR_COUNT = FAMCLOTH + 1
+enum class ATTACK {
+	NONE = 0,
+	ROUNDSLASH = NONE + 1,
+	SAPPING_STRIKE = ROUNDSLASH + 1,
+	PIERCING_THRUST = SAPPING_STRIKE + 1,
+	PARRYING_STANCE = PIERCING_THRUST + 1,
+	DISENGAGE = PARRYING_STANCE + 1,
+	TERMINUS_VERITAS = DISENGAGE + 1,
+	WILD_SWINGS = TERMINUS_VERITAS + 1,
+	ARMOURCRUSHER = WILD_SWINGS + 1,
+	DISORIENTING_BASH = ARMOURCRUSHER + 1,
+	TECTONIC_SLAM = DISORIENTING_BASH + 1,
+	FERVENT_CHARGE = TECTONIC_SLAM + 1,
+	PRIMAL_RAGE = FERVENT_CHARGE + 1,
+	SPREAD_SHOT = PRIMAL_RAGE + 1,
+	BINDING_ARROW = SPREAD_SHOT + 1,
+	LUMINOUS_ARROW = BINDING_ARROW + 1,
+	HOOK_SHOT = LUMINOUS_ARROW + 1,
+	FOCUSED_SHOT = HOOK_SHOT + 1,
+	SKYBORNE_RAIN = FOCUSED_SHOT + 1
+};
+
+//TODO: Fill this out
+// Attack name map
+const std::map <ATTACK, std::string>attack_names = {
+	{ATTACK::ROUNDSLASH, "Roundslash"}
 };
 
 enum class ARTIFACT {
@@ -68,33 +88,49 @@ enum class ARTIFACT {
 const int artifact_T1[] {
 	(int)ARTIFACT::BLADE_POLISH,
 	(int)ARTIFACT::HQ_FLETCHING,
-	//(int)ARTIFACT::MESSENGER_CAP,
-	//(int)ARTIFACT::WARM_CLOAK,
+	//(int)ARTIFACT::MESSENGER_CAP, // blocked by stat calc system
+	//(int)ARTIFACT::WARM_CLOAK, // blocked by stat calc system
 	(int)ARTIFACT::GOLIATH_BELT,
 	(int)ARTIFACT::BLOOD_RUBY
 };
 const int artifact_T2[] {
 	(int)ARTIFACT::POISON_FANG,
-	//(int)ARTIFACT::GUIDE_HEALBUFF,
+	//(int)ARTIFACT::GUIDE_HEALBUFF, // blocked by healing interactions and stat calc system
 	(int)ARTIFACT::WINDBAG,
-	//(int)ARTIFACT::SCOUT_STRIDE,
-	//(int)ARTIFACT::ART_CONSERVE,
-	//(int)ARTIFACT::SMOKE_POWDER
+	//(int)ARTIFACT::SCOUT_STRIDE, // blocked by stat calc system
+	//(int)ARTIFACT::ART_CONSERVE, // blocked by stat calc system
+	//(int)ARTIFACT::SMOKE_POWDER // blocked by item pickup
 };
 const int artifact_T3[] {
 	(int)ARTIFACT::GLAD_HOPLON,
-	//(int)ARTIFACT::THUNDER_TWIG,
+	//(int)ARTIFACT::THUNDER_TWIG, // not blocked but effect takes some time to implement
 	(int)ARTIFACT::KB_MALLET,
-	//(int)ARTIFACT::ARCANE_SPECS,
-	//(int)ARTIFACT::ARCANE_FUNNEL,
-	//(int)ARTIFACT::BURRBAG
+	//(int)ARTIFACT::ARCANE_SPECS, // blocked by stat calc system
+	//(int)ARTIFACT::ARCANE_FUNNEL, // blocked by mp usage system
+	//(int)ARTIFACT::BURRBAG // blocked by stat calc system
 };
 const int artifact_T4[] {
 	(int)ARTIFACT::LUCKY_CHIP,
 	(int)ARTIFACT::THICK_TOME,
-	//(int)ARTIFACT::FUNGIFIER,
-	//(int)ARTIFACT::LIVELY_BULB,
-	//(int)ARTIFACT::MALEDICTION
+	//(int)ARTIFACT::FUNGIFIER, // not blocked but effect takes some time to implement
+	//(int)ARTIFACT::LIVELY_BULB, // not blocked but effect takes some time to implement
+	//(int)ARTIFACT::MALEDICTION, // blocked by stat calc system
+	//(int)ARTIFACT::CHIMERARM // blocked by stat calc system and weapon generation
+};
+
+
+// Equipment component
+struct Equipment
+{
+	EQUIPMENT type = EQUIPMENT::EQUIPMENT_COUNT;
+	ATTACK attacks[4] = { ATTACK::NONE, ATTACK::NONE, ATTACK::NONE, ATTACK::NONE };
+	float atk;
+	float def;
+	float speed;
+	float hp;
+	float mp;
+	float ep;
+	float range;
 };
 
 struct ArtifactIcon {
@@ -104,10 +140,8 @@ struct ArtifactIcon {
 // Inventory component
 struct Inventory
 {
-	int equipped[2] = { -1, -1 };
+	Equipment equipped[2]; // [Weapon, Armour]
 	int consumable[static_cast<int>(CONSUMABLE::CONSUMABLE_COUNT)];
-	int weapon[static_cast<int>(WEAPON::WEAPON_COUNT)];
-	int armour[static_cast<int>(ARMOUR::ARMOUR_COUNT)];
 	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
 };
 
@@ -117,6 +151,9 @@ struct Player
 	float s;
 	Inventory inv;
 	int gacha_pity;
+	int floor;
+	int room;
+	int total_rooms;
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
 
@@ -233,12 +270,6 @@ struct Consumable {
 
 };
 
-struct Equipable {
-	bool axe = true;
-	bool sword = true;
-	bool wand = true;
-};
-
 struct Guardable {
 
 };
@@ -294,13 +325,16 @@ enum class ENEMY_STATE {
 	AGGRO = IDLE + 1,
 	ATTACK = AGGRO + 1,
 	DEATH = ATTACK + 1,
-	STATE_COUNT = DEATH + 1
+	RETREAT = DEATH + 1,
+	STATE_COUNT = RETREAT + 1
 };
 
 enum class ENEMY_TYPE {
 	SLIME = 0,
 	PLANT_SHOOTER = SLIME + 1,
-	TYPE_COUNT = PLANT_SHOOTER + 1
+	CAVELING = PLANT_SHOOTER + 1,
+	KING_SLIME = CAVELING + 1,
+	TYPE_COUNT = KING_SLIME + 1
 };
 
 // simple component for all enemies
@@ -492,7 +526,8 @@ enum class TEXTURE_ASSET_ID {
 	SLIME = PLAYER + 1,
 	PLANT_SHOOTER = SLIME + 1,
 	PLANT_PROJECTILE = PLANT_SHOOTER + 1,
-	BOSS = PLANT_PROJECTILE + 1,
+	CAVELING = PLANT_PROJECTILE + 1,
+	BOSS = CAVELING + 1,
 	ARTIFACT = BOSS + 1,
 	CONSUMABLE = ARTIFACT + 1,
 	EQUIPABLE = CONSUMABLE + 1,
@@ -657,24 +692,24 @@ const std::map <ARTIFACT, std::string>artifact_descriptions = {
 	{ARTIFACT::BLADE_POLISH, "test description"},
 	{ARTIFACT::HQ_FLETCHING, "test description"},
 	{ARTIFACT::MESSENGER_CAP, "Wait, are you sure this came from a messenger?"},
-	{ARTIFACT::WARM_CLOAK, "Hiking up the mountain, boot-deep in snow, with chilling winds rushing past…why does this imaginary scene feel so real?"},
+	{ARTIFACT::WARM_CLOAK, "Hiking up the mountain, boot-deep in snow, with chilling winds rushing pastï¿½why does this imaginary scene feel so real?"},
 	{ARTIFACT::THUNDER_TWIG, "test description"},
-	{ARTIFACT::LUCKY_CHIP, "“Why do you have this? Doesn’t that belong to the [REDACTED]? Well, I guess it’s too late to give it back to them now…”"},
-	{ARTIFACT::GUIDE_HEALBUFF, "“YOU EAT GOOD, YOU BECOME STRONG LIKE ME.”"},
+	{ARTIFACT::LUCKY_CHIP, "ï¿½Why do you have this? Doesnï¿½t that belong to the [REDACTED]? Well, I guess itï¿½s too late to give it back to them nowï¿½ï¿½"},
+	{ARTIFACT::GUIDE_HEALBUFF, "ï¿½YOU EAT GOOD, YOU BECOME STRONG LIKE ME.ï¿½"},
 	{ARTIFACT::THICK_TOME, "It is said that someone escaped death when a projectile aimed at them was stopped by a tome like this. Perhaps you may encounter a similar fortune by keeping it on your person."},
 	{ARTIFACT::GOLIATH_BELT, "test description"},
 	{ARTIFACT::BLOOD_RUBY, "test description"},
 	{ARTIFACT::WINDBAG, "How? How does a simple pouch hold such a strong gust of wind? How is this possible?"},
-	{ARTIFACT::KB_MALLET, "“Don’t worry, those aren’t real moles.”"},
-	{ARTIFACT::ARCANE_SPECS, "It’s engraved with the words “Property of Professor Hammond”. Putting them on somehow lets you see further into the darkness than usual."},
-	{ARTIFACT::SCOUT_STRIDE, "“Come get it today! Our newly patented boots that, when you sprint with them, lets you cover long distances far easier than ever before!”"},
-	{ARTIFACT::ART_CONSERVE, "The ideas in this book were originally meant for saving energy so you won’t need to eat as frequently, but somebody left notes about applying some of these concepts in close-quarters combat. How intriguing…"},
-	{ARTIFACT::ARCANE_FUNNEL, "It’s engraved with the words “Property of Professor Hammond”. It seems to be absorbing energy from fallen monsters. Don’t think about it too much, lest you wish to pity the poor creatures you’ve slain during your time here."},
-	{ARTIFACT::FUNGIFIER, "“What do you mean it wasn’t fungible?!”"},
-	{ARTIFACT::BURRBAG, "“Who even collects these?”"},
-	{ARTIFACT::SMOKE_POWDER, "“Come get it today! Our newly patented powder that, when thrown on the ground, produces a cloud of smoke that lets you slip out of sight far easier than ever before!”"},
-	{ARTIFACT::LIVELY_BULB, "You may have unintentionally allowed this plant to think you’re its parent. You also may have named it “Bobby”."},
-	{ARTIFACT::MALEDICTION, "“Your suffering…I want to savour it!”"},
+	{ARTIFACT::KB_MALLET, "ï¿½Donï¿½t worry, those arenï¿½t real moles.ï¿½"},
+	{ARTIFACT::ARCANE_SPECS, "Itï¿½s engraved with the words ï¿½Property of Professor Hammondï¿½. Putting them on somehow lets you see further into the darkness than usual."},
+	{ARTIFACT::SCOUT_STRIDE, "ï¿½Come get it today! Our newly patented boots that, when you sprint with them, lets you cover long distances far easier than ever before!ï¿½"},
+	{ARTIFACT::ART_CONSERVE, "The ideas in this book were originally meant for saving energy so you wonï¿½t need to eat as frequently, but somebody left notes about applying some of these concepts in close-quarters combat. How intriguingï¿½"},
+	{ARTIFACT::ARCANE_FUNNEL, "Itï¿½s engraved with the words ï¿½Property of Professor Hammondï¿½. It seems to be absorbing energy from fallen monsters. Donï¿½t think about it too much, lest you wish to pity the poor creatures youï¿½ve slain during your time here."},
+	{ARTIFACT::FUNGIFIER, "ï¿½What do you mean it wasnï¿½t fungible?!ï¿½"},
+	{ARTIFACT::BURRBAG, "ï¿½Who even collects these?ï¿½"},
+	{ARTIFACT::SMOKE_POWDER, "ï¿½Come get it today! Our newly patented powder that, when thrown on the ground, produces a cloud of smoke that lets you slip out of sight far easier than ever before!ï¿½"},
+	{ARTIFACT::LIVELY_BULB, "You may have unintentionally allowed this plant to think youï¿½re its parent. You also may have named it ï¿½Bobbyï¿½."},
+	{ARTIFACT::MALEDICTION, "ï¿½Your sufferingï¿½I want to savour it!ï¿½"},
 	{ARTIFACT::CHIMERARM, "A disfigured limb belonging to a monster of unknown origin. It seems to be wrapped in a strange aura that warps nearby weapons in an inexplicable way. You hear a strange voice from the back of your head saying that you can use it to create an armament of unparalleled power."}
 };
 

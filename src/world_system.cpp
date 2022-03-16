@@ -1,4 +1,3 @@
-// Header
 #include "world_system.hpp"
 #include "world_init.hpp"
 // stlib
@@ -113,6 +112,8 @@ GLFWwindow* WorldSystem::create_window() {
 	previous_game_state = current_game_state;
 	//printf("Previous Game State : Game state = MAIN_MENU");
 	//printf()
+	//current_game_state = GameStates::CUTSCENE;
+
 	current_game_state = GameStates::MAIN_MENU;
 	printf("previous state in Now %d \n", static_cast<int>(previous_game_state));
 
@@ -164,6 +165,9 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
 
+	//set_gamestate(GameStates::CUTSCENE);
+	// call custscene func
+	// cut_scene_start();
 	// Set all states to default
     restart_game();
 }
@@ -516,6 +520,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	return true;
 }
 
+// cutscene at the start of the game  --- -
+void WorldSystem::cut_scene_start() {
+
+	if (current_game_state == GameStates::CUTSCENE) {
+		printf("Cut Scene\n");
+	}	
+	printf("cut scene 123\n");
+	// set game state to cutscene 
+
+
+}
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
@@ -751,13 +766,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	// Esc to go to mainMenu
-	
+	// Esc to go to mainMenu only if previous game state is cutscene
 	if (action == GLFW_PRESS && key== GLFW_KEY_ESCAPE) {
 		int w, h;
-		previous_game_state = GameStates::CUTSCENE;
+		//previous_game_state = GameStates::CUTSCENE;
 		logText("Escape Key Pressed");
-		set_gamestate(GameStates::MAIN_MENU);
+		//set_gamestate(GameStates::MAIN_MENU);
 		glfwGetWindowSize(window, &w, &h);
 		restart_game();
 		printf("\n escaped pressed \n");

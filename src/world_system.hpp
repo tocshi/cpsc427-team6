@@ -33,7 +33,7 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer);
+	void init (RenderSystem* renderer);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -85,7 +85,10 @@ private:
 	void on_key(int key, int, int action, int mod);
 	void on_mouse(int button, int action, int mod);
 	void on_mouse_move(vec2 pos);
-
+	
+	// start of cut scene 
+	void cut_scene_start();
+	
 	// restart level
 	void restart_game();
 

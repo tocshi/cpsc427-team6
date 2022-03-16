@@ -786,8 +786,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		SpawnData spawnData = createTiles(renderer, next_map);
 		// load the player back
 		json gameData = saveSystem.getSaveData();
-		std::queue<Entity> queue = loadFromData(gameData);
-		turnOrderSystem.loadTurnOrder(queue);
+		for (auto entity : gameData["entities"]) {
+			Entity e;
+			if (entity["type"] == "player") {
+				player_main = loadPlayer(entity);
+				break;
+			}
+		}
 		// get the player and set its position
 		std::random_shuffle(spawnData.playerSpawns.begin(), spawnData.playerSpawns.end());
 		Motion& motion = registry.motions.get(player_main);
@@ -809,6 +814,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 		remove_fog_of_war();
 		create_fog_of_war();
+
+		// setup turn order system
+		turnOrderSystem.setUpTurnOrder();
+		// start first turn
+		turnOrderSystem.getNextTurn();
 	}
 
 	// Resetting game

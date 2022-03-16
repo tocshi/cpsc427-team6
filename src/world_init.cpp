@@ -1149,10 +1149,13 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 	DescriptionDialog& dd = registry.descriptionDialogs.emplace(entity);
 
 	// set dd title
+	Entity tt;
+	bool hasTT = false;
 	auto iter = artifact_names.find(artifact);
 	if (iter != artifact_names.end()) {
 		dd.title = iter->second;
-		// Entity tt = createText(renderer, vec2(pos.x, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 350.f), dd.title, 3.0f, vec3(0.0f));
+		tt = createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 350.f), dd.title, 3.0f, vec3(0.0f));
+		hasTT = true;
 		// registry.descriptionDialogs.emplace(tt);
 	}
 	else {
@@ -1160,10 +1163,13 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 	}
 
 	// set dd effect
+	Entity et;
+	bool hasET = false;
 	iter = artifact_effects.find(artifact);
 	if (iter != artifact_effects.end()) {
 		dd.effect = iter->second;
-		// Entity et = createText(renderer, vec2(pos.x, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 250.f), dd.effect, 1.0f, vec3(0.0f));
+		et = createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 250.f), dd.effect, 1.0f, vec3(0.0f));
+		hasET = true;
 		// registry.descriptionDialogs.emplace(et);
 	}
 	else {
@@ -1171,26 +1177,37 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 	}
 
 	// set dd stats
+	Entity st;
+	bool hasST = false;
 	iter = artifact_stats.find(artifact);
 	if (iter != artifact_stats.end()) {
 		dd.stats = iter->second;
-		// Entity st = createText(renderer, vec2(pos.x, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2+ 150.f), dd.stats, 1.0f, vec3(0.0f));
+		st = createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2+ 150.f), dd.stats, 1.0f, vec3(0.0f));
+		hasST = true;
 		// registry.descriptionDialogs.emplace(st);
 	}
 	else {
 		printf("ERROR: stats do not exist for artifact");
 	}
 
-	// set dd description
+	// // set dd description
+	Entity dt;
+	bool hasDT = false;
 	iter = artifact_descriptions.find(artifact);
 	if (iter != artifact_descriptions.end()) {
 		dd.description = iter->second;
-		Entity dt = createText(renderer, vec2(window_width_px / 2 + 550.f, window_height_px - pos.y + 600.f), dd.description, 2.0f, vec3(0.0f));
-		registry.descriptionDialogs.emplace(dt);
+		dt = createText(renderer, vec2(window_width_px / 2 + 550.f, window_height_px - pos.y + 600.f), dd.description, 2.0f, vec3(0.0f));
+		hasDT = true;
+		// registry.descriptionDialogs.emplace(dt);
 	}
 	else {
 		printf("ERROR: description does not exist for artifact");
 	}
+
+	if (hasTT) { registry.descriptionDialogs.emplace(tt); }
+	if (hasET) { registry.descriptionDialogs.emplace(et); }
+	if (hasST) { registry.descriptionDialogs.emplace(st); }
+	if (hasDT) { registry.descriptionDialogs.emplace(dt); }
 
 	// render the x button
 	auto close_entity = Entity();

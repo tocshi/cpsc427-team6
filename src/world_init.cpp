@@ -1148,13 +1148,45 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 
 	DescriptionDialog& dd = registry.descriptionDialogs.emplace(entity);
 
+	// render the artifact image on top
+	auto icon_entity = Entity();
+
+	Mesh& icon_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(icon_entity, &icon_mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& icon_motion = registry.motions.emplace(icon_entity);
+	icon_motion.angle = 0.f;
+	icon_motion.velocity = { 0.f, 0.f };
+	icon_motion.position = vec2(pos.x - DESCRIPTION_DIALOG_BB_WIDTH / 2 + 35.f, pos.y - DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 40.f);
+
+	icon_motion.scale = vec2({ ARTIFACT_IMAGE_BB_WIDTH / 1.5f, ARTIFACT_IMAGE_BB_HEIGHT / 1.5f });
+
+	registry.menuItems.emplace(icon_entity);
+
+	// get artifact texture from map
+	auto icon_iter = artifact_textures.find(artifact);
+	if (icon_iter != artifact_textures.end()) {
+		// render the texture if one exists for the artifact
+		TEXTURE_ASSET_ID icon_texture = icon_iter->second;
+		registry.renderRequests.insert(
+			icon_entity,
+			{ icon_texture,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE,
+			 RENDER_LAYER_ID::TEXT });
+	}
+	else {
+		printf("ERROR: texture does not exist for artifact");
+	}
+
 	// set dd title
 	Entity tt;
 	bool hasTT = false;
 	auto iter = artifact_names.find(artifact);
 	if (iter != artifact_names.end()) {
 		dd.title = iter->second;
-		tt = createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 350.f), dd.title, 3.0f, vec3(0.0f));
+		tt = createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2), dd.title, 2.0f, vec3(0.0f));
 		hasTT = true;
 		// registry.descriptionDialogs.emplace(tt);
 	}
@@ -1163,12 +1195,34 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 	}
 
 	// set dd effect
-	Entity et;
+	std::vector<Entity> etVect;
 	bool hasET = false;
+	etVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 100.f), "EFFECT: ", 1.6f, vec3(0.0f)));
 	iter = artifact_effects.find(artifact);
 	if (iter != artifact_effects.end()) {
 		dd.effect = iter->second;
-		et = createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 250.f), dd.effect, 1.0f, vec3(0.0f));
+		if (dd.effect.size() > 40) {
+			bool renderNewLine = true;
+			float effectOffset = 0.f;
+			int iter = 1;
+			std::string effectLine = dd.effect.substr(0, 40);
+			while (renderNewLine) {
+				etVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 150.f + effectOffset), effectLine, 1.2f, vec3(0.0f)));
+				effectLine = dd.effect.substr(40 * iter);
+				effectOffset += 30.f;
+				if (effectLine.size() >= 40) {
+					effectLine = dd.effect.substr(40 * iter, 40);
+					iter++;
+				}
+				else {
+					etVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 150.f + effectOffset), effectLine, 1.2f, vec3(0.0f)));
+					renderNewLine = false;
+				}
+			}
+		}
+		else {
+			etVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 150.f), dd.effect, 1.2f, vec3(0.0f)));
+		}
 		hasET = true;
 		// registry.descriptionDialogs.emplace(et);
 	}
@@ -1176,27 +1230,36 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 		printf("ERROR: effect does not exist for artifact");
 	}
 
-	// set dd stats
-	Entity st;
-	bool hasST = false;
-	iter = artifact_stats.find(artifact);
-	if (iter != artifact_stats.end()) {
-		dd.stats = iter->second;
-		st = createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2+ 150.f), dd.stats, 1.0f, vec3(0.0f));
-		hasST = true;
-		// registry.descriptionDialogs.emplace(st);
-	}
-	else {
-		printf("ERROR: stats do not exist for artifact");
-	}
-
-	// // set dd description
-	Entity dt;
+	// set dd description
+	std::vector<Entity> dtVect;
 	bool hasDT = false;
 	iter = artifact_descriptions.find(artifact);
+	dtVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 350.f), "DESCRIPTION: ", 1.6f, vec3(0.0f)));
 	if (iter != artifact_descriptions.end()) {
 		dd.description = iter->second;
-		dt = createText(renderer, vec2(window_width_px / 2 + 550.f, window_height_px - pos.y + 600.f), dd.description, 2.0f, vec3(0.0f));
+		if (dd.description.size() > 50) {
+			bool renderNewLine = true;
+			float descOffset = 0.f;
+			int iter = 1;
+			std::string descLine = dd.description.substr(0, 40);
+			while (renderNewLine) {
+				dtVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f + descOffset), descLine, 1.2f, vec3(0.0f)));
+				descLine = dd.description.substr(40 * iter);
+				descOffset += 30.f;
+				if (descLine.size() >= 40) {
+					descLine = dd.description.substr(40 * iter, 40);
+					iter++;
+				}
+				else {
+					dtVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f + descOffset), descLine, 1.2f, vec3(0.0f)));
+					renderNewLine = false;
+				}
+			}
+		}
+		else {
+			dtVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f), dd.description, 1.2f, vec3(0.0f)));
+		}
+		
 		hasDT = true;
 		// registry.descriptionDialogs.emplace(dt);
 	}
@@ -1204,10 +1267,19 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 		printf("ERROR: description does not exist for artifact");
 	}
 
+	// need to add new entities to descriptionDialogs at the end to avoid memory issues
+	registry.descriptionDialogs.emplace(icon_entity);
 	if (hasTT) { registry.descriptionDialogs.emplace(tt); }
-	if (hasET) { registry.descriptionDialogs.emplace(et); }
-	if (hasST) { registry.descriptionDialogs.emplace(st); }
-	if (hasDT) { registry.descriptionDialogs.emplace(dt); }
+	if (hasET) { 
+		for (Entity et : etVect) {
+			registry.descriptionDialogs.emplace(et);
+		}
+	}
+	if (hasDT) {
+		for (Entity dt : dtVect) {
+			registry.descriptionDialogs.emplace(dt);
+		}
+	}
 
 	// render the x button
 	auto close_entity = Entity();
@@ -1558,7 +1630,7 @@ Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 			EFFECT_ASSET_ID::TEXT,
 			GEOMETRY_BUFFER_ID::TEXTQUAD,
-			RENDER_LAYER_ID::UI_TOP });
+			RENDER_LAYER_ID::TEXT });
 
 	return entity;
 }

@@ -580,8 +580,8 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
 
-	//SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
-	SpawnData spawnData = createTiles(renderer, "debug_room.tmx");
+	SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
+	//SpawnData spawnData = createTiles(renderer, "debug_room.tmx");
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations

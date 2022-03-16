@@ -70,12 +70,12 @@ Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir, Entity 
 Entity createCaveling(RenderSystem* renderer, vec2 pos);
 // Boss
 Entity createBoss(RenderSystem* renderer, vec2 pos);
+// Equipment
+Entity createEquipment(RenderSystem* renderer, vec2 pos, EQUIPMENT type, int tier);
 // Artifact
 Entity createArtifact(RenderSystem* renderer, vec2 pos);
 // Item (consumable)
 Entity createConsumable(RenderSystem* renderer, vec2 pos);
-// Item (equipable)
-Entity createEquipable(RenderSystem* renderer, vec2 pos);
 // Chest
 Entity createChest(RenderSystem* renderer, vec2 pos);
 // Door

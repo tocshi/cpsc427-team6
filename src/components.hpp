@@ -46,7 +46,8 @@ enum class ATTACK {
 	LUMINOUS_ARROW = BINDING_ARROW + 1,
 	HOOK_SHOT = LUMINOUS_ARROW + 1,
 	FOCUSED_SHOT = HOOK_SHOT + 1,
-	SKYBORNE_RAIN = FOCUSED_SHOT + 1
+	SKYBORNE_RAIN = FOCUSED_SHOT + 1,
+	ATTACK_COUNT = SKYBORNE_RAIN + 1
 };
 
 //TODO: Fill this out
@@ -177,10 +178,10 @@ struct Player
 {
 	float s;
 	Inventory inv;
-	int gacha_pity;
-	int floor;
-	int room;
-	int total_rooms;
+	int gacha_pity = 0;
+	int floor = 0;
+	int room = 0;
+	int total_rooms = 0;
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
 

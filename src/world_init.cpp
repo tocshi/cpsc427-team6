@@ -404,6 +404,112 @@ Entity createBoss(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+// Generate Random Equipment
+Entity createEquipment(RenderSystem* renderer, vec2 pos, EQUIPMENT type, int tier)
+{
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 0;
+
+	motion.scale = vec2({ EQUIPABLE_BB_WIDTH, EQUIPABLE_BB_HEIGHT });
+
+	auto& equipment = registry.equipment.emplace(entity);
+	equipment.type = type;
+
+	// Create equipment random stats
+	float atkmod = 0.f;
+	float defmod = 0.f;
+	float speedmod = 0.f;
+	float hpmod = 0.f;
+	float mpmod = 0.f;
+	float netstat = -999.f;
+
+	while (netstat < (-2 + 2 * tier) || netstat >(1 + 2 * tier)) {
+		atkmod = irandRange(-4 + tier, 2 + tier);
+		defmod = irandRange(-4 + tier, 2 + tier);
+		speedmod = irandRange(-4 + tier, 2 + tier);
+		hpmod = irandRange(-20 + tier * 5, 10 + tier * 5);
+		mpmod = irandRange(-20 + tier * 5, 10 + tier * 5);
+		netstat = atkmod + defmod + speedmod + (hpmod / 5) + (mpmod / 5);
+	}
+
+	// Create base stats and attacks
+	if (type == EQUIPMENT::SHARP || type == EQUIPMENT::BLUNT || type == EQUIPMENT::RANGED) {
+		equipment.atk = 7 + 4 * tier;
+
+		// Create shuffled attack pool
+		std::vector<ATTACK> sharp_attacks = { ATTACK::SAPPING_STRIKE, ATTACK::PIERCING_THRUST, ATTACK::PARRYING_STANCE, ATTACK::DISENGAGE };
+		std::random_shuffle(std::begin(sharp_attacks), std::end(sharp_attacks));
+		std::vector<ATTACK> blunt_attacks = { ATTACK::ARMOURCRUSHER, ATTACK::DISORIENTING_BASH, ATTACK::TECTONIC_SLAM, ATTACK::FERVENT_CHARGE };
+		std::random_shuffle(std::begin(blunt_attacks), std::end(blunt_attacks));
+		std::vector<ATTACK> ranged_attacks = { ATTACK::BINDING_ARROW, ATTACK::LUMINOUS_ARROW, ATTACK::HOOK_SHOT, ATTACK::FOCUSED_SHOT };
+		std::random_shuffle(std::begin(ranged_attacks), std::end(ranged_attacks));
+		std::vector<ATTACK> combined_attacks;
+		combined_attacks.reserve(sharp_attacks.size() + blunt_attacks.size() + ranged_attacks.size());
+
+		switch (type) {
+		case EQUIPMENT::SHARP:
+			equipment.attacks[0] = ATTACK::ROUNDSLASH;
+			equipment.attacks[1] = sharp_attacks.back();
+			sharp_attacks.pop_back();
+			equipment.attacks[2] = sharp_attacks.back();
+			sharp_attacks.pop_back();
+			equipment.attacks[3] = ATTACK::TERMINUS_VERITAS;
+			break;
+		case EQUIPMENT::BLUNT:
+			equipment.attacks[0] = ATTACK::WILD_SWINGS;
+			equipment.attacks[1] = blunt_attacks.back();
+			blunt_attacks.pop_back();
+			equipment.attacks[2] = blunt_attacks.back();
+			blunt_attacks.pop_back();
+			equipment.attacks[3] = ATTACK::PRIMAL_RAGE;
+			break;
+		case EQUIPMENT::RANGED:
+			equipment.attacks[0] = ATTACK::SPREAD_SHOT;
+			equipment.attacks[1] = ranged_attacks.back();
+			ranged_attacks.pop_back();
+			equipment.attacks[2] = ranged_attacks.back();
+			ranged_attacks.pop_back();
+			equipment.attacks[3] = ATTACK::SKYBORNE_RAIN;
+			break;
+		}
+
+		// Check for Chimera's Arm and resolve effect
+		if (registry.inventories.get(registry.players.entities[0]).artifact[(int)ARTIFACT::CHIMERARM] > 0) {
+			equipment.atk += 4 * registry.inventories.get(registry.players.entities[0]).artifact[(int)ARTIFACT::CHIMERARM];
+			combined_attacks.insert(combined_attacks.end(), sharp_attacks.begin(), sharp_attacks.end());
+			combined_attacks.insert(combined_attacks.end(), blunt_attacks.begin(), blunt_attacks.end());
+			combined_attacks.insert(combined_attacks.end(), ranged_attacks.begin(), ranged_attacks.end());
+			equipment.attacks[1] = combined_attacks[irand(combined_attacks.size())];
+		}
+	}
+	else if (type == EQUIPMENT::ARMOUR) {
+		equipment.def = 0 + 2 * tier;
+	}
+
+	equipment.atk += atkmod;
+	equipment.def += defmod;
+	equipment.speed += speedmod;
+	equipment.hp += hpmod;
+	equipment.mp += mpmod;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::EQUIPABLE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
+
+	return entity;
+}
+
 // Artifact
 Entity createArtifact(RenderSystem* renderer, vec2 pos)
 {
@@ -457,36 +563,6 @@ Entity createConsumable(RenderSystem* renderer, vec2 pos)
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::CONSUMABLE,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
-	registry.hidables.emplace(entity);
-
-	return entity;
-}
-
-// Item (equipable)
-Entity createEquipable(RenderSystem* renderer, vec2 pos)
-{
-	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initilaize the position, scale, and physics components (more to be changed/added)
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.position = pos;
-
-	motion.scale = vec2({ EQUIPABLE_BB_WIDTH, EQUIPABLE_BB_HEIGHT });
-
-	// Create and (empty) EQUIPABLE component to be able to refer to all equipables
-	//registry.test.emplace(entity);
-	registry.equipment.emplace(entity); // TRY FOR EQUIPTMENT
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::EQUIPABLE,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);

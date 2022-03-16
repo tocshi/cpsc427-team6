@@ -77,6 +77,10 @@ public:
 	bool player_move_click = false;
 	bool is_ai_turn = false;
 
+	// C++ random number generator
+	std::default_random_engine rng;
+	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+
 	// log text
 	void logText(std::string msg);
 
@@ -146,10 +150,6 @@ private:
 	SaveSystem saveSystem;
 	TurnOrderSystem turnOrderSystem;
 	AISystem aiSystem;
-
-	// C++ random number generator
-	std::default_random_engine rng;
-	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 };
 
 // Set attack state for enemies that attack after moving

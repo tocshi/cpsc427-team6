@@ -783,6 +783,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
 		}
 	}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_3) {
+		for (Entity& p : registry.players.entities) {
+			Motion m = registry.motions.get(p);
+			Player player = registry.players.get(p);
+			Entity e = createEquipment(renderer, m.position, EQUIPMENT::SHARP, player.floor+4);
+			Equipment equip = registry.equipment.get(e);
+			printf("atk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\n", equip.atk, equip.def, equip.speed, equip.hp, equip.mp);
+			for (ATTACK a : equip.attacks) {
+				std::cout << "Attack: " << (int)a << std::endl;
+			}
+		}
+	}
 
 	// LOADING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_L && get_is_player_turn() ) {

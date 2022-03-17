@@ -811,10 +811,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// simulating a new room
 	if (action == GLFW_RELEASE && key == GLFW_KEY_N && get_is_player_turn()) {
-		// remove all entities for new room
-		removeForNewRoom();
 		// save game (should be just player stuff)
 		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+		// remove all entities for new room
+		removeForNewRoom();
 		// remove player
 		registry.remove_all_components_of(player_main);
 		// make new map
@@ -823,7 +823,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		// load the player back
 		json gameData = saveSystem.getSaveData();
 		for (auto entity : gameData["entities"]) {
-			Entity e;
 			if (entity["type"] == "player") {
 				player_main = loadPlayer(entity);
 				break;
@@ -855,6 +854,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		turnOrderSystem.setUpTurnOrder();
 		// start first turn
 		turnOrderSystem.getNextTurn();
+
+		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
 	}
 
 	// Resetting game
@@ -1348,7 +1349,7 @@ Entity WorldSystem::loadPlayer(json playerData) {
 	registry.stats.get(e).ep = stats["ep"];
 	registry.stats.get(e).maxep = stats["maxEP"];
 	registry.stats.get(e).hp = stats["hp"];
-	registry.stats.get(e).maxep = stats["maxHP"];
+	registry.stats.get(e).maxhp = stats["maxHP"];
 	registry.stats.get(e).mp = stats["mp"];
 	registry.stats.get(e).maxmp = stats["maxMP"];
 	registry.stats.get(e).atk = stats["atk"];

@@ -1132,6 +1132,24 @@ Entity createCollectionMenu(RenderSystem* renderer, vec2 pos) {
 		}
 		createArtifactIcon(renderer, vec2(next_x, next_y),
 			static_cast<ARTIFACT>(artifact));
+
+		// need to render the current count beside it
+		Inventory inv = registry.inventories.components[0];
+
+		int size = inv.artifact[(int)artifact];
+		std::string sizeStr = std::to_string(size);
+
+		std::vector<Entity> textVect;
+		textVect.push_back(createText(renderer, vec2((next_x + 30.f) * 2, (next_y + 40.f) * 2), "x", 1.2f, vec3(0.0f)));
+		textVect.push_back(createText(renderer, vec2((next_x + 45.f) * 2, (next_y + 40.f) * 2), sizeStr.substr(0, 1), 1.4f, vec3(0.0f)));
+		if (size > 9) {
+			// need to print two numbers		
+			textVect.push_back(createText(renderer, vec2((next_x + 60.f) * 2, (next_y + 40.f) * 2), sizeStr.substr(1, 1), 1.4f, vec3(0.0f)));
+		}
+
+		for (Entity text : textVect) {
+			registry.menuItems.emplace(text);
+		}
 	}
 
 	return entity;

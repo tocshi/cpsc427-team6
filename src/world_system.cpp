@@ -813,7 +813,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// simulating a new room
 	if (action == GLFW_RELEASE && key == GLFW_KEY_N && get_is_player_turn()) {
 		// save game (should be just player stuff)
-		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+		json playerData = saveSystem.jsonifyPlayer(player_main);
 		// remove all entities for new room
 		removeForNewRoom();
 		// remove player
@@ -822,13 +822,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		std::string next_map = roomSystem.getRandomRoom(roomSystem.current_floor, false);
 		SpawnData spawnData = createTiles(renderer, next_map);
 		// load the player back
-		json gameData = saveSystem.getSaveData();
-		for (auto entity : gameData["entities"]) {
-			if (entity["type"] == "player") {
-				player_main = loadPlayer(entity);
-				break;
-			}
-		}
+		player_main = loadPlayer(playerData);
 		// get the player and set its position
 		std::random_shuffle(spawnData.playerSpawns.begin(), spawnData.playerSpawns.end());
 		Motion& motion = registry.motions.get(player_main);
@@ -839,7 +833,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		motion.angle = 0.f;
 		motion.velocity = { 0.f, 0.f };
 		motion.in_motion = false;
-		motion.movement_speed = 200;
+		motion.movement_speed = 400;
 		motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 
 		// Refill Player EP

@@ -74,7 +74,15 @@ class RenderSystem {
 			textures_path("book.png"),
 			textures_path("roguelikeDungeon_transparent.png"),
 			textures_path("campfire.png"),
-			textures_path("explosion.png")
+			textures_path("explosion.png"),
+			textures_path("menu/normal_mode_pointer.png"),
+			textures_path("menu/attack_mode_sword.png"),
+			textures_path("menu/move_mode_arrow.png"),
+			textures_path("menu/close_cross.png"),
+			textures_path("menu/collection_panel.png"),
+			textures_path("menu/description_dialog.png"),
+			textures_path("menu/artifact_placeholder.png"),
+			textures_path("menu/scroll_arrow.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

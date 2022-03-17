@@ -537,24 +537,21 @@ void WorldSystem::cut_scene_start() {
 	// set gamestate to MAINMENU 
 
 	//printf("%d end entity list \n", resultList.size());
-	for (int i = 0; i < 4; i++) {
-	
-		if (current_game_state == GameStates::CUTSCENE && countCutScene == 0) {
+
+	if (current_game_state == GameStates::CUTSCENE && countCutScene == 0) {
 			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);
 			//resultList.push(testA);
 			printf("Cut Scene\n");
 			logText({ "Press ESC on your keyboard to Skip and go to main menu" });
 			//count++;
-		}
-		if (current_game_state == GameStates::CUTSCENE && countCutScene == 1) {
+	}
+	if (current_game_state == GameStates::CUTSCENE && countCutScene == 1) {
 			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE2);
 			printf("cutScene 2");
-		}
-		if (current_game_state == GameStates::CUTSCENE && countCutScene == 2) {
+	}
+	if (current_game_state == GameStates::CUTSCENE && countCutScene == 2) {
 			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE3);
 			printf("cutScene 3");
-		}
-		
 	}
 
 }
@@ -787,6 +784,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// LOGGING TEXT TEST
 	if (action == GLFW_PRESS && key == GLFW_KEY_X) {
 		countCutScene++;
+		cut_scene_start();
 		printf("start x is %d \n:", countCutScene);
 		printf("pressing X key \n");
 		if (current_game_state == GameStates::CUTSCENE && countCutScene == 3) {

@@ -148,6 +148,12 @@ private:
 
 	// load collidables
 	void loadCollidables(json collidableData);
+
+	// load interactables
+	void loadInteractables(json interactablesList);
+
+	// load a sign
+	void loadSign(Entity e, json signData);
   
 	// do turn order logic
 	void doTurnOrderLogic();

@@ -1334,6 +1334,7 @@ void WorldSystem::loadFromData(json data) {
 	// load collidables
 	loadCollidables(collidablesList);
 	// load interactables
+	loadInteractables(interactablesList);
 	// load tiles
 	loadTiles(tilesList);
 }
@@ -1390,12 +1391,14 @@ Entity WorldSystem::loadEnemy(json enemyData) {
 }
 
 void WorldSystem::loadMotion(Entity e, json motionData) {
-	registry.motions.get(e).angle = motionData["angle"];
-	registry.motions.get(e).destination = { motionData["destination_x"], motionData["destination_y"] };
-	registry.motions.get(e).in_motion = motionData["in_motion"];
-	registry.motions.get(e).movement_speed = motionData["movement_speed"];
-	registry.motions.get(e).position = { motionData["position_x"], motionData["position_y"] };
-	registry.motions.get(e).velocity = { motionData["velocity_x"], motionData["velocity_y"] };
+	Motion& m = registry.motions.get(e);
+	m.angle = motionData["angle"];
+	m.destination = { motionData["destination_x"], motionData["destination_y"] };
+	m.in_motion = motionData["in_motion"];
+	m.movement_speed = motionData["movement_speed"];
+	m.position = { motionData["position_x"], motionData["position_y"] };
+	m.velocity = { motionData["velocity_x"], motionData["velocity_y"] };
+	m.scale = { motionData["scale"]["x"], motionData["scale"]["y"] };
 }
 
 void WorldSystem::loadStats(Entity e, json stats) {
@@ -1532,6 +1535,62 @@ void WorldSystem::loadCollidables(json collidablesList) {
 		registry.solid.emplace(entity);
 		registry.collidables.emplace(entity);
 	}
+}
+
+void WorldSystem::loadInteractables(json interactablesList) {
+	for (auto& interactable : interactablesList) {
+		Entity e = Entity();
+
+		registry.motions.emplace(e);
+		loadMotion(e, interactable["motion"]);
+
+		Interactable& interact_component = registry.interactables.emplace(e);
+		interact_component.type = (INTERACT_TYPE)interactable["type"];
+
+		switch ((int)interactable["type"]) {
+		case 0: // chest
+			break;
+		case 1: // door
+			break;
+		case 2: // stairs
+			break;
+		case 3: // sign
+			loadSign(e, interactable["sign"]);
+		default:
+			break;
+		}
+	}
+}
+
+void WorldSystem::loadSign(Entity e, json signData) {
+	Sign& sign = registry.signs.emplace(e);
+	std::vector<std::pair<std::string, int>> msgs = std::vector<std::pair<std::string, int>>();
+	for (auto& msgData : signData["messages"]) {
+		msgs.push_back({ msgData["message"], msgData["number"] });
+	}
+	sign.messages = msgs;
+
+	AnimationData& anim = registry.animations.emplace(e);
+	anim.spritesheet_texture = TEXTURE_ASSET_ID::SIGN_GLOW_SPRITESHEET;
+	anim.frametime_ms = 200;
+	anim.frame_indices = { 0, 1, 2, 3, 4, 5, 6, 7 };
+	anim.spritesheet_columns = 8;
+	anim.spritesheet_rows = 1;
+	anim.spritesheet_width = 256;
+	anim.spritesheet_height = 32;
+	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(e, &mesh);
+
+	registry.renderRequests.insert(
+		e,
+		{ TEXTURE_ASSET_ID::SIGN_GLOW_SPRITESHEET,
+		EFFECT_ASSET_ID::TEXTURED,
+		GEOMETRY_BUFFER_ID::ANIMATION,
+		RENDER_LAYER_ID::SPRITE
+		});
 }
 
 void WorldSystem::logText(std::string msg) {

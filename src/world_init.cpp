@@ -1140,11 +1140,10 @@ Entity createCollectionMenu(RenderSystem* renderer, vec2 pos) {
 		std::string sizeStr = std::to_string(size);
 
 		std::vector<Entity> textVect;
-		textVect.push_back(createText(renderer, vec2((next_x + 30.f) * 2, (next_y + 40.f) * 2), "x", 1.2f, vec3(0.0f)));
-		textVect.push_back(createText(renderer, vec2((next_x + 45.f) * 2, (next_y + 40.f) * 2), sizeStr.substr(0, 1), 1.4f, vec3(0.0f)));
+		textVect.push_back(createText(renderer, vec2((next_x + 30.f) * 2, (next_y + 40.f) * 2), sizeStr.substr(0, 1), 1.4f, vec3(0.0f)));
 		if (size > 9) {
 			// need to print two numbers		
-			textVect.push_back(createText(renderer, vec2((next_x + 60.f) * 2, (next_y + 40.f) * 2), sizeStr.substr(1, 1), 1.4f, vec3(0.0f)));
+			textVect.push_back(createText(renderer, vec2((next_x + 45.f) * 2, (next_y + 40.f) * 2), sizeStr.substr(1, 1), 1.4f, vec3(0.0f)));
 		}
 
 		for (Entity text : textVect) {
@@ -1261,7 +1260,7 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 	auto iter = artifact_names.find(artifact);
 	if (iter != artifact_names.end()) {
 		dd.title = iter->second;
-		tt = createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2), dd.title, 2.0f, vec3(0.0f));
+		tt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2), dd.title, 2.0f, vec3(0.0f));
 		hasTT = true;
 		// registry.descriptionDialogs.emplace(tt);
 	}
@@ -1272,7 +1271,7 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 	// set dd effect
 	std::vector<Entity> etVect;
 	bool hasET = false;
-	etVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 80.f), "EFFECT: ", 1.6f, vec3(0.0f)));
+	etVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 80.f), "EFFECT: ", 1.6f, vec3(0.0f)));
 	iter = artifact_effects.find(artifact);
 	if (iter != artifact_effects.end()) {
 		dd.effect = iter->second;
@@ -1282,7 +1281,7 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 			int iter = 1;
 			std::string effectLine = dd.effect.substr(0, 40);
 			while (renderNewLine) {
-				etVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 130.f + effectOffset), effectLine, 1.2f, vec3(0.0f)));
+				etVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 130.f + effectOffset), effectLine, 1.2f, vec3(0.0f)));
 				effectLine = dd.effect.substr(40 * iter);
 				effectOffset += 30.f;
 				if (effectLine.size() >= 40) {
@@ -1290,7 +1289,7 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 					iter++;
 				}
 				else {
-					etVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 130.f + effectOffset), effectLine, 1.2f, vec3(0.0f)));
+					etVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 130.f + effectOffset), effectLine, 1.2f, vec3(0.0f)));
 					renderNewLine = false;
 				}
 			}
@@ -1309,7 +1308,7 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 	std::vector<Entity> dtVect;
 	bool hasDT = false;
 	iter = artifact_descriptions.find(artifact);
-	dtVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 350.f), "DESCRIPTION: ", 1.6f, vec3(0.0f)));
+	dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 350.f), "DESCRIPTION: ", 1.6f, vec3(0.0f)));
 	if (iter != artifact_descriptions.end()) {
 		dd.description = iter->second;
 		if (dd.description.size() > 40) {
@@ -1318,7 +1317,7 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 			int iter = 1;
 			std::string descLine = dd.description.substr(0, 40);
 			while (renderNewLine) {
-				dtVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f + descOffset), descLine, 1.2f, vec3(0.0f)));
+				dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f + descOffset), descLine, 1.2f, vec3(0.0f)));
 				descLine = dd.description.substr(40 * iter);
 				descOffset += 30.f;
 				if (descLine.size() >= 40) {
@@ -1326,13 +1325,13 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 					iter++;
 				}
 				else {
-					dtVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f + descOffset), descLine, 1.2f, vec3(0.0f)));
+					dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f + descOffset), descLine, 1.2f, vec3(0.0f)));
 					renderNewLine = false;
 				}
 			}
 		}
 		else {
-			dtVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f), dd.description, 1.2f, vec3(0.0f)));
+			dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f), dd.description, 1.2f, vec3(0.0f)));
 		}
 		
 		hasDT = true;
@@ -1706,6 +1705,34 @@ Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale
 			EFFECT_ASSET_ID::TEXT,
 			GEOMETRY_BUFFER_ID::TEXTQUAD,
 			RENDER_LAYER_ID::TEXT });
+
+	return entity;
+}
+
+// Dialog text
+Entity createDialogText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the text component
+	auto& text = registry.texts.emplace(entity);
+	text.message = msg;
+	text.position = pos;
+	text.scale = scale;
+	text.textColor = textColor;
+
+	// Create an (empty) TEXT component to be able to refer to all text
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::TEXT,
+			GEOMETRY_BUFFER_ID::TEXTQUAD,
+			RENDER_LAYER_ID::DIALOG_TEXT });
 
 	return entity;
 }

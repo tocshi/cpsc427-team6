@@ -530,28 +530,26 @@ void WorldSystem::cut_scene_start() {
 	//create cut scene 
 
 	// check when the left mouse is clicked move to next picture 
-// store it in a enity list and return the entity list and for each left click I can switch to the next entity scene
-//then once the entity list is 0, I will restart_game and set GameState::MAINMENU 
 
 	// on left click change scene to new one (x2)
 	// set gamestate to MAINMENU 
 
 	//printf("%d end entity list \n", resultList.size());
-
+	// checks how many times left click was one with countCutScene & makes sure the game state is CutScene 
 	if (current_game_state == GameStates::CUTSCENE && countCutScene == 0) {
 			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);
+			//createBackground(renderer, vec2(window_width_px / 2, window_height_px / 2));
+			//logText({ "Press ESC on your keyboard to Skip and go to main menu" });
 			//resultList.push(testA);
 			printf("Cut Scene\n");
-			logText({ "Press ESC on your keyboard to Skip and go to main menu" });
+			
 			//count++;
-	}
-	if (current_game_state == GameStates::CUTSCENE && countCutScene == 1) {
+	}else if (current_game_state == GameStates::CUTSCENE && countCutScene == 1) {
 			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE2);
-			printf("cutScene 2");
-	}
-	if (current_game_state == GameStates::CUTSCENE && countCutScene == 2) {
+			printf("cutScene 2\n");
+	}else if (current_game_state == GameStates::CUTSCENE && countCutScene == 2) {
 			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE3);
-			printf("cutScene 3");
+			printf("cutScene 3 \n");
 	}
 
 }
@@ -786,7 +784,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		countCutScene++;
 		cut_scene_start();
 		printf("start x is %d \n:", countCutScene);
-		printf("pressing X key \n");
 		if (current_game_state == GameStates::CUTSCENE && countCutScene == 3) {
 			set_gamestate(GameStates::MAIN_MENU);
 			printf("set to main_menu game state \n");
@@ -795,11 +792,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			restart_game();
 		}
 		else {
-			printf("noting to do you just pressed X button\n");
+			printf(" \n you just pressed X button\n");
 		}
-
-		
-		
 	}
 	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
 		for (Entity& enemy : registry.enemies.entities) {

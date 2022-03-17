@@ -1437,7 +1437,7 @@ Entity createPointer(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture)
 		{ texture,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::UI_TOP
+		 RENDER_LAYER_ID::CURSOR
 		});
 
 	return entity;

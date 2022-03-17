@@ -164,14 +164,12 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	// Playing background music indefinitely
 	Mix_PlayMusic(background_music, -1);
 	fprintf(stderr, "Loaded music\n");
-	 
+	printf("%d", countCutScene);
 	//set_gamestate(GameStates::CUTSCENE);
 	// call custscene func
 	cut_scene_start();
 	// Set all states to default  
-	if (current_game_state == GameStates::MAIN_MENU) {
-		restart_game();
-	}
+
    // restart_game();
 }
 
@@ -530,36 +528,34 @@ void WorldSystem::cut_scene_start() {
 	// set game state to cutscene 
 	set_gamestate(GameStates::CUTSCENE);
 	//create cut scene 
-	std::queue<Entity> resultList;
-	printf("%d start entity list \n", resultList.size());
-	
+
 	// check when the left mouse is clicked move to next picture 
 // store it in a enity list and return the entity list and for each left click I can switch to the next entity scene
 //then once the entity list is 0, I will restart_game and set GameState::MAINMENU 
 
-	//Entity testA = createBackground(renderer, vec2(window_width_px / 2, window_height_px / 2));
-	Entity testB = createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);
-	//Entity testC = createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE2);
-	//Entity testD = createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE3);
-	resultList.push(testB);
 	// on left click change scene to new one (x2)
 	// set gamestate to MAINMENU 
+
+	//printf("%d end entity list \n", resultList.size());
+	for (int i = 0; i < 4; i++) {
 	
-	printf("%d end entity list \n", resultList.size());
-	if (current_game_state == GameStates::CUTSCENE) {
-		printf("Cut Scene\n");
-
-	}	
-
-	if (GLFW_MOUSE_BUTTON_LEFT && GLFW_RELEASE) {
-		// create entity list
-		printf("clicked left");
+		if (current_game_state == GameStates::CUTSCENE && countCutScene == 0) {
+			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);
+			//resultList.push(testA);
+			printf("Cut Scene\n");
+			logText({ "Press ESC on your keyboard to Skip and go to main menu" });
+			//count++;
+		}
+		if (current_game_state == GameStates::CUTSCENE && countCutScene == 1) {
+			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE2);
+			printf("cutScene 2");
+		}
+		if (current_game_state == GameStates::CUTSCENE && countCutScene == 2) {
+			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE3);
+			printf("cutScene 3");
+		}
+		
 	}
-	printf("cut scene end\n");
-	// reset GS back to Main Menu
-	//set_gamestate(GameStates::MAIN_MENU); 
-	
-
 
 }
 // Reset the world state to its initial state
@@ -784,9 +780,29 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
+
+
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	// LOGGING TEXT TEST
+	if (action == GLFW_PRESS && key == GLFW_KEY_X) {
+		countCutScene++;
+		printf("start x is %d \n:", countCutScene);
+		printf("pressing X key \n");
+		if (current_game_state == GameStates::CUTSCENE && countCutScene == 3) {
+			set_gamestate(GameStates::MAIN_MENU);
+			printf("set to main_menu game state \n");
+			//countCutScene++;
+			//printf("%d countCutScene %d\n:", countCutScene);
+			restart_game();
+		}
+		else {
+			printf("noting to do you just pressed X button\n");
+		}
+
+		
+		
+	}
 	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
 		for (Entity& enemy : registry.enemies.entities) {
 			int test = irandRange(100,200);
@@ -938,7 +954,6 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	Camera camera = registry.cameras.get(active_camera_entity);
 	vec2 world_pos = {xpos + camera.position.x, ypos + camera.position.y};
 	//printf("World Position at (%f, %f)\n", world_pos.x, world_pos.y)
-
 
 	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
 

@@ -1254,6 +1254,9 @@ void WorldSystem::start_player_turn() {
 }
 
 void WorldSystem::removeForLoad() {
+	// empty queue
+	turnOrderSystem.emptyQueue();
+
 	// remove player for loading
 	registry.remove_all_components_of(player_main);
 
@@ -1261,6 +1264,24 @@ void WorldSystem::removeForLoad() {
 	for (Entity enemy : registry.enemies.entities) {
 		registry.remove_all_components_of(enemy);
 	}
+
+	
+	// remove collidables
+	for (Entity collidable : registry.collidables.entities) {
+		registry.remove_all_components_of(collidable);
+	}
+
+	// remove interactables
+	for (Entity interactable : registry.interactables.entities) {
+		registry.remove_all_components_of(interactable);
+	}
+
+	// remove tiles
+	for (Entity tileUV : registry.tileUVs.entities) {
+		registry.remove_all_components_of(tileUV);
+	}
+	
+	
 }
 
 void WorldSystem::removeForNewRoom() {
@@ -1311,8 +1332,10 @@ void WorldSystem::loadFromData(json data) {
 	// put entities into turn order system
 	turnOrderSystem.loadTurnOrder(entities);
 	// load collidables
+	loadCollidables(collidablesList);
 	// load interactables
 	// load tiles
+	loadTiles(tilesList);
 }
 
 Entity WorldSystem::loadPlayer(json playerData) {

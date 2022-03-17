@@ -84,6 +84,9 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	// add player to queuables
 	registry.queueables.emplace(entity);
 
+	// add status container to player
+	registry.statuses.emplace(entity);
+
 	return entity;
 }
 
@@ -145,6 +148,9 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	// add enemy to queuables
 	registry.queueables.emplace(entity);
 
+	// add status container to slime
+	registry.statuses.emplace(entity);
+
 	return entity;
 }
 
@@ -196,6 +202,9 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
+
+	// add status container to plantshooter
+	registry.statuses.emplace(entity);
 
 	return entity;
 }
@@ -287,6 +296,9 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 	// add enemy to queuables
 	registry.queueables.emplace(entity);
 
+	// add status container to caveling
+	registry.statuses.emplace(entity);
+
 	return entity;
 }
 
@@ -318,6 +330,9 @@ Entity createBoss(RenderSystem* renderer, vec2 pos)
 
 	// add boss to queuables
 	registry.queueables.emplace(entity);
+
+	// add status container to boss
+	registry.statuses.emplace(entity);
 
 	return entity;
 }

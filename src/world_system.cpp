@@ -1079,7 +1079,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 		// ensure it is the player's turn and they are not currently moving
 		if (get_is_player_turn() && !player_move_click && ypos < window_height_px - 200.f && ypos > 80.f) {
-			if (player_main) {
+			if (player_main && current_game_state >= GameStates::GAME_START) {
 				Player& player = registry.players.get(player_main);
 				Motion& player_motion = registry.motions.get(player_main);
 				Stats& player_stats = registry.stats.get(player_main);
@@ -1215,7 +1215,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	}
 
 
-	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_move_click) {
+	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_move_click && current_game_state >= GameStates::GAME_START) {
 		Motion& motion_struct = registry.motions.get(player_main);
 
 		// set velocity to the direction of the cursor, at a magnitude of player_velocity

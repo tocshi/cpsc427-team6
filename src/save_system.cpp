@@ -269,7 +269,7 @@ json SaveSystem::jsonifyTiles() {
 		tileJson["tileUV"]["uv_start"]["x"] = tileUV.uv_start.x;
 		tileJson["tileUV"]["uv_start"]["y"] = tileUV.uv_start.y;
 		tileJson["tileUV"]["uv_end"]["x"] = tileUV.uv_end.x;
-		tileJson["tileUV"]["uv_end"]["y"] = tileUV.uv_end.x;
+		tileJson["tileUV"]["uv_end"]["y"] = tileUV.uv_end.y;
 		tileJson["renderRequest"]["used_texture"] = (int)rr.used_texture;
 		tileJson["renderRequest"]["used_layer"] = (int)rr.used_layer;
 		tilesList.push_back(tileJson);

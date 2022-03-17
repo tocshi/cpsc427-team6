@@ -246,14 +246,8 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 }
 
 void apply_status(Entity& target, StatusEffect& status) {
-	if (!registry.statuses.has(target)) {
-		StatusContainer& statusContainer = registry.statuses.emplace(target);
-		statusContainer.statuses.push_back(status);
-	}
-	else {
-		StatusContainer& statusContainer = registry.statuses.get(target);
-		statusContainer.statuses.push_back(status);
-	}
+	StatusContainer& statusContainer = registry.statuses.get(target);
+	statusContainer.statuses.push_back(status);
 }
 
 // call this function once at turn start (2nd param=true), and once at turn end (2nd param=false)

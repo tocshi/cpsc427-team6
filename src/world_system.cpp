@@ -1134,7 +1134,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 		// ensure it is the player's turn and they are not currently moving
 		if (get_is_player_turn() && !player_move_click && ypos < window_height_px - 200.f && ypos > 80.f) {
-			if (player_main && current_game_state >= GameStates::GAME_START) {
+			if (player_main && current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE) {
 				Player& player = registry.players.get(player_main);
 				Motion& player_motion = registry.motions.get(player_main);
 				Stats& player_stats = registry.stats.get(player_main);
@@ -1271,7 +1271,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	}
 
 
-	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_move_click && current_game_state >= GameStates::GAME_START) {
+	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_move_click && current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE) {
 		Motion& motion_struct = registry.motions.get(player_main);
 
 		// set velocity to the direction of the cursor, at a magnitude of player_velocity
@@ -1286,7 +1286,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		player_move_click = true;
 	}
 	// check if left click works 
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE && !player_move_click && get_is_player_turn()) {
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE && !player_move_click && get_is_player_turn() && current_game_state == GameStates::CUTSCENE) {
 		printf("hello can you hear me?? credit Adele\n");
 	}
 }

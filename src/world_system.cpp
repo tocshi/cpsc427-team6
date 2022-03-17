@@ -1140,6 +1140,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				Stats& player_stats = registry.stats.get(player_main);
 
 				switch (current_game_state) {
+					
 				case GameStates::ATTACK_MENU:
 					// ensure player has clicked on an enemy
 					for (Entity en : registry.enemies.entities) {
@@ -1283,6 +1284,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		motion_struct.destination = { world_pos.x, world_pos.y };
 		motion_struct.in_motion = true;
 		player_move_click = true;
+	}
+	// check if left click works 
+	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE && !player_move_click && get_is_player_turn()) {
+		printf("hello can you hear me?? credit Adele\n");
 	}
 }
 

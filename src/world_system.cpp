@@ -209,18 +209,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 	// render stylized pointers
 	if (mouseYpos > window_height_px - 200.f || mouseYpos < 100.f) {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::NORMAL_POINTER);
 	}
 	else if (current_game_state == GameStates::MOVEMENT_MENU) {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-		createPointer(renderer, vec2(mouseXpos, mouseYpos), TEXTURE_ASSET_ID::MOVE_POINTER);
+		createPointer(renderer, vec2(mouseXpos, mouseYpos - POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::MOVE_POINTER);
 	}
 	else if (current_game_state == GameStates::ATTACK_MENU) {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-		createPointer(renderer, vec2(mouseXpos, mouseYpos), TEXTURE_ASSET_ID::ATTACK_POINTER);
+		createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::ATTACK_POINTER);
 	}
 	else {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::NORMAL_POINTER);
 	}
 
 	// perform in-motion behaviour

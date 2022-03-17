@@ -137,3 +137,6 @@ Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale
 Entity createCampfire(RenderSystem* renderer, vec2 pos);
 // Animated explosion
 Entity createExplosion(RenderSystem* renderer, vec2 pos);
+
+// cutscene
+Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID textureID);

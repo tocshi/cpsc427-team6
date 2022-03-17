@@ -1248,7 +1248,7 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 			{ icon_texture,
 			 EFFECT_ASSET_ID::TEXTURED,
 			 GEOMETRY_BUFFER_ID::SPRITE,
-			 RENDER_LAYER_ID::TEXT });
+			 RENDER_LAYER_ID::DIALOG_TEXT });
 	}
 	else {
 		printf("ERROR: texture does not exist for artifact");

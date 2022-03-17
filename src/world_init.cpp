@@ -83,6 +83,44 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	// add player to queuables
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
+
+	return entity;
+}
+
+// Player created with given motion component
+Entity createPlayer(RenderSystem* renderer, Motion m)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = m.angle;
+	motion.velocity = m.velocity;
+	motion.position = m.position;
+	motion.in_motion = m.in_motion;
+	motion.movement_speed = m.movement_speed;
+	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
+	motion.destination = m.destination;
+
+	// Create player stats
+	auto& stats = registry.stats.emplace(entity);
+
+	// Create and (empty) Player component to be able to refer to all players
+	registry.players.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::PLAYER,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	// add player to queuables
+	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 
 	return entity;
 }
@@ -117,7 +155,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Slime";
 	stats.prefix = "the";
-	stats.maxhp = 25;
+	stats.maxhp = 28;
 	stats.hp = stats.maxhp;
 	stats.atk = 10;
 	stats.def = 3;
@@ -144,6 +182,55 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 
 	// add enemy to queuables
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
+
+	return entity;
+}
+
+// Enemy slime with motion component as input
+Entity createEnemy(RenderSystem* renderer, Motion m)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = m.angle;
+	motion.velocity = m.velocity;
+	motion.position = m.position;
+	motion.in_motion = m.in_motion;
+	motion.movement_speed = m.movement_speed;
+	motion.destination = m.destination;
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+
+	auto& enemy = registry.enemies.emplace(entity);
+	enemy.state = ENEMY_STATE::IDLE;
+	enemy.type = ENEMY_TYPE::SLIME;
+
+	// Create slime stats
+	auto& stats = registry.stats.emplace(entity);
+	stats.name = "Slime";
+	stats.prefix = "the";
+	stats.maxhp = 25;
+	stats.hp = stats.maxhp;
+	stats.atk = 10;
+	stats.def = 3;
+	stats.speed = 8;
+	stats.range = 250;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SLIME,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
+
+	// add enemy to queuables
+	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 
 	return entity;
 }
@@ -168,11 +255,10 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	// Initilalize stats
-	// hp = 20, atk = 8, queue = 7, def = 2, range = 400
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Plant Shooter";
 	stats.prefix = "the";
-	stats.maxhp = 20.f;
+	stats.maxhp = 24.f;
 	stats.hp = stats.maxhp;
 	stats.atk = 8.f;
 	stats.def = 2.f;
@@ -189,6 +275,7 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	enemy.type = ENEMY_TYPE::PLANT_SHOOTER;
 
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 	// registry.damageables.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
@@ -268,7 +355,7 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Caveling";
 	stats.prefix = "the";
-	stats.maxhp = 18;
+	stats.maxhp = 19;
 	stats.hp = stats.maxhp;
 	stats.atk = 6;
 	stats.def = 0;
@@ -286,6 +373,7 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 
 	// add enemy to queuables
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 
 	return entity;
 }
@@ -468,9 +556,6 @@ Entity createDoor(RenderSystem* renderer, vec2 pos)
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
-	auto& interactable = registry.interactables.emplace(entity);
-	interactable.type = INTERACT_TYPE::DOOR;
-
 	return entity;
 }
 
@@ -512,8 +597,7 @@ Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::pair<std::s
 	Sign& sign = registry.signs.emplace(entity);
 	sign.messages = messages;
 
-	auto& interactable = registry.interactables.emplace(entity);
-	interactable.type = INTERACT_TYPE::SIGN;
+	registry.interactables.emplace(entity);
 
 	return entity;
 }
@@ -542,9 +626,6 @@ Entity createStair(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::STAIR,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
-
-	auto& interactable = registry.interactables.emplace(entity);
-	interactable.type = INTERACT_TYPE::STAIRS;
 
 	return entity;
 }

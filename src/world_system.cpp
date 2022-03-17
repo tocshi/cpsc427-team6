@@ -618,6 +618,7 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 void WorldSystem::spawn_game_entities() {
 
 	SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
+	//SpawnData spawnData = createTiles(renderer, "debug_room.tmx");
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
@@ -715,12 +716,16 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 	if (enemySpawns.size() > 0) {
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
-			// Spawn either a slime or PlantShooter
-			if (ichoose(0, 1)) {
-				createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			// Spawn either a slime or PlantShooter or caveling
+			int roll = irand(4);
+			if (roll < 1) {
+				createCaveling(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			}
+			else if (roll < 2) {
+				createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 			}
 			else {
-				createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 			}
 		}
 	}
@@ -779,6 +784,12 @@ bool WorldSystem::is_over() const {
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
+	// DEBUG: HEAL PLAYER
+	if (action == GLFW_RELEASE && key == GLFW_KEY_EQUAL) {
+		Stats& stat = registry.stats.get(player_main);
+		stat.hp = stat.maxhp;
+	}
+
 	// LOGGING TEXT TEST
 	if (action == GLFW_PRESS && key == GLFW_KEY_X) {
 		countCutScene++;
@@ -1123,7 +1134,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 		// ensure it is the player's turn and they are not currently moving
 		if (get_is_player_turn() && !player_move_click && ypos < window_height_px - 200.f && ypos > 80.f) {
-			if (player_main) {
+			if (player_main && current_game_state >= GameStates::GAME_START) {
 				Player& player = registry.players.get(player_main);
 				Motion& player_motion = registry.motions.get(player_main);
 				Stats& player_stats = registry.stats.get(player_main);
@@ -1259,7 +1270,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	}
 
 
-	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_move_click) {
+	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_move_click && current_game_state >= GameStates::GAME_START) {
 		Motion& motion_struct = registry.motions.get(player_main);
 
 		// set velocity to the direction of the cursor, at a magnitude of player_velocity
@@ -1569,7 +1580,7 @@ void WorldSystem::doTurnOrderLogic() {
 		// perform end-of-movement attacks for enemies
 		else {
 			set_enemy_state_attack(currentTurnEntity);
-			aiSystem.step(currentTurnEntity, this, renderer);
+			aiSystem.step(currentTurnEntity);
 		}
 
 		// get next turn
@@ -1586,7 +1597,7 @@ void WorldSystem::doTurnOrderLogic() {
 
 	// if current turn entity is enemy and is still doing_turn call ai.step();
 	if (!registry.players.has(currentTurnEntity) && registry.queueables.get(currentTurnEntity).doing_turn) {
-		aiSystem.step(currentTurnEntity, this, renderer);
+		aiSystem.step(currentTurnEntity);
 
 		// now that ai did its step, set doing turn to false
 		registry.queueables.get(currentTurnEntity).doing_turn = false;

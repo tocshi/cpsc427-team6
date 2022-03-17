@@ -58,8 +58,7 @@ const std::map <ATTACK, std::string>attack_names = {
 enum class ARTIFACT {
 	POISON_FANG = 0,
 	GLAD_HOPLON = POISON_FANG + 1,
-	PIOUS_PRAYER = GLAD_HOPLON + 1,
-	BLADE_POLISH = PIOUS_PRAYER + 1,
+	BLADE_POLISH = GLAD_HOPLON + 1,
 	HQ_FLETCHING = BLADE_POLISH + 1,
 	MESSENGER_CAP = HQ_FLETCHING + 1,
 	WARM_CLOAK = MESSENGER_CAP + 1,
@@ -81,42 +80,12 @@ enum class ARTIFACT {
 	LIVELY_BULB = SMOKE_POWDER + 1,
 	MALEDICTION = LIVELY_BULB + 1,
 	CHIMERARM = MALEDICTION + 1,
-	ARTIFACT_COUNT = CHIMERARM + 1,
-};
-
-// Artifact name map
-const std::map <ARTIFACT, std::string>artifact_names = {
-	{ARTIFACT::POISON_FANG, "Discarded Fang"},
-	{ARTIFACT::GLAD_HOPLON, "Gladiator Hoplon"},
-	{ARTIFACT::PIOUS_PRAYER, "Pious Prayer"},
-	{ARTIFACT::BLADE_POLISH, "Blade Polish Kit"},
-	{ARTIFACT::HQ_FLETCHING, "High-Quality Fletching"},
-	{ARTIFACT::MESSENGER_CAP, "Messenger's Cap"},
-	{ARTIFACT::WARM_CLOAK, "Warm Cloak"},
-	{ARTIFACT::THUNDER_TWIG, "Thundering Twig"},
-	{ARTIFACT::LUCKY_CHIP, "Lucky Chip"},
-	{ARTIFACT::GUIDE_HEALBUFF, "Guide to Healthy Eating"},
-	{ARTIFACT::THICK_TOME, "Unnecessarily Thick Tome"},
-	{ARTIFACT::GOLIATH_BELT, "Goliath's Belt"},
-	{ARTIFACT::BLOOD_RUBY, "Blood Ruby"},
-	{ARTIFACT::WINDBAG, "Bag of Wind"},
-	{ARTIFACT::KB_MALLET, "Rubber Mallet"},
-	{ARTIFACT::ARCANE_SPECS, "Arcane Spectacles"},
-	{ARTIFACT::SCOUT_STRIDE, "Scouting Striders"},
-	{ARTIFACT::ART_CONSERVE, "The Art of Conservation"},
-	{ARTIFACT::ARCANE_FUNNEL, "Arcane Funnel"},
-	{ARTIFACT::FUNGIFIER, "Fungifier"},
-	{ARTIFACT::BURRBAG, "Burrbag"},
-	{ARTIFACT::SMOKE_POWDER, "Smoke Powder"},
-	{ARTIFACT::LIVELY_BULB, "Lively Bulb"},
-	{ARTIFACT::MALEDICTION, "Malediction"},
-	{ARTIFACT::CHIMERARM, "Chimera's Arm"}
+	ARTIFACT_COUNT = CHIMERARM + 1
 };
 
 // Artifact Rarity Arrays
 // Commented artifacts have not yet been completed!
 const int artifact_T1[] {
-	(int)ARTIFACT::PIOUS_PRAYER,
 	(int)ARTIFACT::BLADE_POLISH,
 	(int)ARTIFACT::HQ_FLETCHING,
 	//(int)ARTIFACT::MESSENGER_CAP, // blocked by stat calc system
@@ -162,6 +131,10 @@ struct Equipment
 	float mp;
 	float ep;
 	float range;
+};
+
+struct ArtifactIcon {
+	ARTIFACT artifact = ARTIFACT::ARTIFACT_COUNT;
 };
 
 // Inventory component
@@ -389,7 +362,11 @@ enum class BUTTON_ACTION_ID {
 	ACTIONS_CANCEL = ACTIONS_BACK + 1,
 	PAUSE = ACTIONS_CANCEL + 1,
 	COLLECTION = PAUSE + 1,
-	ACTION_COUNT = COLLECTION + 1
+	OPEN_DIALOG = COLLECTION + 1,
+	CLOSE_DIALOG = OPEN_DIALOG + 1,
+	SCROLL_DOWN = CLOSE_DIALOG + 1,
+	SCROLL_UP = SCROLL_DOWN + 1,
+	ACTION_COUNT = SCROLL_UP + 1
 };
 const int button_action_count = (int)BUTTON_ACTION_ID::ACTION_COUNT;
 
@@ -399,6 +376,13 @@ struct Button {
 
 struct MenuItem {
 
+};
+
+struct DescriptionDialog {
+	std::string title = "";
+	std::string effect = "";
+	std::string description = "";
+	std::string stats = "";
 };
 
 struct EpRange {
@@ -577,7 +561,15 @@ enum class TEXTURE_ASSET_ID {
 	DUNGEON_TILESHEET = COLLECTION_BUTTON + 1,
 	CAMPFIRE_SPRITESHEET = DUNGEON_TILESHEET + 1,
 	EXPLOSION_SPRITESHEET = CAMPFIRE_SPRITESHEET + 1,
-	TEXTURE_COUNT = EXPLOSION_SPRITESHEET + 1
+	NORMAL_POINTER = EXPLOSION_SPRITESHEET + 1,
+	ATTACK_POINTER = NORMAL_POINTER + 1,
+	MOVE_POINTER = ATTACK_POINTER + 1,
+	MENU_CLOSE =  MOVE_POINTER + 1,
+	COLLECTION_PANEL = MENU_CLOSE + 1,
+	DESCRIPTION_DIALOG = COLLECTION_PANEL + 1,
+	ARTIFACT_PLACEHOLDER = DESCRIPTION_DIALOG + 1,
+	COLLECTION_SCROLL_ARROW = ARTIFACT_PLACEHOLDER + 1,
+	TEXTURE_COUNT = COLLECTION_SCROLL_ARROW + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -616,8 +608,13 @@ enum class RENDER_LAYER_ID {
 	RANDOM_WALLS = WALLS + 1,
 	EFFECT = RANDOM_WALLS + 1,
 	UI = EFFECT + 1,
-	UI_TOP = UI + 1,
-	DEBUG_LAYER = UI_TOP + 1,
+	ARTIFACT_ICONS = UI + 1,
+	TEXT = ARTIFACT_ICONS + 1,
+	DIALOG = TEXT + 1,
+	DIALOG_TEXT = DIALOG + 1,
+	UI_TOP = DIALOG_TEXT + 1,
+	CURSOR = UI_TOP + 1,
+	DEBUG_LAYER = CURSOR + 1,
 	LAYER_COUNT = DEBUG_LAYER + 1
 };
 const int layer_count = (int)RENDER_LAYER_ID::LAYER_COUNT;
@@ -656,4 +653,121 @@ struct GuardButton {
 
 	// which button action to take
 	BUTTON_ACTION_ID action = BUTTON_ACTION_ID::ACTIONS_GUARD;
+};
+
+// stylized poiner
+struct Pointer {
+
+};
+
+// Artifact name map
+const std::map <ARTIFACT, std::string>artifact_names = {
+	{ARTIFACT::POISON_FANG, "Discarded Fang"},
+	{ARTIFACT::GLAD_HOPLON, "Gladiator Hoplon"},
+	{ARTIFACT::BLADE_POLISH, "Blade Polish Kit"},
+	{ARTIFACT::HQ_FLETCHING, "High-Quality Fletching"},
+	{ARTIFACT::MESSENGER_CAP, "Messenger's Cap"},
+	{ARTIFACT::WARM_CLOAK, "Warm Cloak"},
+	{ARTIFACT::THUNDER_TWIG, "Thundering Twig"},
+	{ARTIFACT::LUCKY_CHIP, "Lucky Chip"},
+	{ARTIFACT::GUIDE_HEALBUFF, "Guide to Healthy Eating"},
+	{ARTIFACT::THICK_TOME, "Unnecessarily Thick Tome"},
+	{ARTIFACT::GOLIATH_BELT, "Goliath's Belt"},
+	{ARTIFACT::BLOOD_RUBY, "Blood Ruby"},
+	{ARTIFACT::WINDBAG, "Bag of Wind"},
+	{ARTIFACT::KB_MALLET, "Rubber Mallet"},
+	{ARTIFACT::ARCANE_SPECS, "Arcane Spectacles"},
+	{ARTIFACT::SCOUT_STRIDE, "Scouting Striders"},
+	{ARTIFACT::ART_CONSERVE, "The Art of Conservation"},
+	{ARTIFACT::ARCANE_FUNNEL, "Arcane Funnel"},
+	{ARTIFACT::FUNGIFIER, "Fungifier"},
+	{ARTIFACT::BURRBAG, "Burrbag"},
+	{ARTIFACT::SMOKE_POWDER, "Smoke Powder"},
+	{ARTIFACT::LIVELY_BULB, "Lively Bulb"},
+	{ARTIFACT::MALEDICTION, "Malediction"},
+	{ARTIFACT::CHIMERARM, "Chimera's Arm"}
+};
+
+// Artifact description map
+const std::map <ARTIFACT, std::string>artifact_descriptions = {
+	{ARTIFACT::POISON_FANG, "Even without the creature this fang originally belonged to, you still feel uneasy knowing there might be more of them out there."},
+	{ARTIFACT::GLAD_HOPLON, "You won't believe it! This man bested TWO lions! It's a miracle how he's still alive! Just what is his shield made of?!"},
+	{ARTIFACT::BLADE_POLISH, "test description"},
+	{ARTIFACT::HQ_FLETCHING, "test description"},
+	{ARTIFACT::MESSENGER_CAP, "Wait, are you sure this came from a messenger?"},
+	{ARTIFACT::WARM_CLOAK, "Hiking up the mountain, boot-deep in snow, with chilling winds rushing past�why does this imaginary scene feel so real?"},
+	{ARTIFACT::THUNDER_TWIG, "test description"},
+	{ARTIFACT::LUCKY_CHIP, "�Why do you have this? Doesn�t that belong to the [REDACTED]? Well, I guess it�s too late to give it back to them now��"},
+	{ARTIFACT::GUIDE_HEALBUFF, "�YOU EAT GOOD, YOU BECOME STRONG LIKE ME.�"},
+	{ARTIFACT::THICK_TOME, "It is said that someone escaped death when a projectile aimed at them was stopped by a tome like this. Perhaps you may encounter a similar fortune by keeping it on your person."},
+	{ARTIFACT::GOLIATH_BELT, "test description"},
+	{ARTIFACT::BLOOD_RUBY, "test description"},
+	{ARTIFACT::WINDBAG, "How? How does a simple pouch hold such a strong gust of wind? How is this possible?"},
+	{ARTIFACT::KB_MALLET, "�Don�t worry, those aren�t real moles.�"},
+	{ARTIFACT::ARCANE_SPECS, "It�s engraved with the words �Property of Professor Hammond�. Putting them on somehow lets you see further into the darkness than usual."},
+	{ARTIFACT::SCOUT_STRIDE, "�Come get it today! Our newly patented boots that, when you sprint with them, lets you cover long distances far easier than ever before!�"},
+	{ARTIFACT::ART_CONSERVE, "The ideas in this book were originally meant for saving energy so you won�t need to eat as frequently, but somebody left notes about applying some of these concepts in close-quarters combat. How intriguing�"},
+	{ARTIFACT::ARCANE_FUNNEL, "It�s engraved with the words �Property of Professor Hammond�. It seems to be absorbing energy from fallen monsters. Don�t think about it too much, lest you wish to pity the poor creatures you�ve slain during your time here."},
+	{ARTIFACT::FUNGIFIER, "�What do you mean it wasn�t fungible?!�"},
+	{ARTIFACT::BURRBAG, "�Who even collects these?�"},
+	{ARTIFACT::SMOKE_POWDER, "�Come get it today! Our newly patented powder that, when thrown on the ground, produces a cloud of smoke that lets you slip out of sight far easier than ever before!�"},
+	{ARTIFACT::LIVELY_BULB, "You may have unintentionally allowed this plant to think you�re its parent. You also may have named it �Bobby�."},
+	{ARTIFACT::MALEDICTION, "�Your suffering�I want to savour it!�"},
+	{ARTIFACT::CHIMERARM, "A disfigured limb belonging to a monster of unknown origin. It seems to be wrapped in a strange aura that warps nearby weapons in an inexplicable way. You hear a strange voice from the back of your head saying that you can use it to create an armament of unparalleled power."}
+};
+
+// Artifact texture map
+const std::map <ARTIFACT, TEXTURE_ASSET_ID>artifact_textures = {
+	{ARTIFACT::POISON_FANG, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::GLAD_HOPLON, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::BLADE_POLISH, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::HQ_FLETCHING, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::MESSENGER_CAP, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::WARM_CLOAK, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::THUNDER_TWIG, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::LUCKY_CHIP, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::GUIDE_HEALBUFF, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::THICK_TOME, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::GOLIATH_BELT, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::BLOOD_RUBY, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::WINDBAG, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::KB_MALLET, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::ARCANE_SPECS, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::SCOUT_STRIDE, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::ART_CONSERVE, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::ARCANE_FUNNEL, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::FUNGIFIER, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::BURRBAG, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::SMOKE_POWDER, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::LIVELY_BULB, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::MALEDICTION, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::CHIMERARM, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER}
+};
+
+// Artifact effect map
+const std::map <ARTIFACT, std::string>artifact_effects = {
+	{ARTIFACT::POISON_FANG, "Attacks have a 30% chance to inflict 15% (+10% per stack) ATK Poison DoT for 5 turns."},
+	{ARTIFACT::GLAD_HOPLON, "Take 15% (+10% multiplicative per stack) reduced damage from enemies that you attacked directly until your next turn."},
+	{ARTIFACT::BLADE_POLISH, "Melee attacks deal 20% (+20% per stack) additional damage."},
+	{ARTIFACT::HQ_FLETCHING, "Ranged attacks deal 20% (+20% per stack) additional damage."},
+	{ARTIFACT::MESSENGER_CAP, "10% (+5% per stack) of your base ATK stat is added onto your Speed stat."},
+	{ARTIFACT::WARM_CLOAK, "10% (+5% per stack) of your base ATK stat is added onto your DEF stat."},
+	{ARTIFACT::THUNDER_TWIG, "Attacks have a 15% (+15% per stack) chance to summon a lightning bolt that deals 60% ATK damage in a small AoE."},
+	{ARTIFACT::LUCKY_CHIP, "7% (+7% additive) chance for your attack to deal 777% damage. 7 % (+7 % additive) chance to reduce incoming damage by 777. Lowest damage taken per attack is 1."},
+	{ARTIFACT::GUIDE_HEALBUFF, "Health-restoring items and interactables grant a 30% (+30% per stack) ATK buff for 5 turns."},
+	{ARTIFACT::THICK_TOME, "Upon taking lethal damage, survive with 1 HP and gain 3 turns of invincibility. This artifact is consumed when this effect activates."},
+	{ARTIFACT::GOLIATH_BELT, "test effects"},
+	{ARTIFACT::BLOOD_RUBY, "When HP is below 40%, increases ATK by 20% (+20% per stack)."},
+	{ARTIFACT::WINDBAG, "Upon taking damage that puts you below 25% (+5% per stack) HP, release an AoE that knocks back nearby enemies by 300 units, and stuns them for 3 (+1 per stack) turns. Has a 15 turn cooldown."},
+	{ARTIFACT::KB_MALLET, "When attacking an enemy within melee range, knock back struck enemies by 100 units (+ 50 units per stack)."},
+	{ARTIFACT::ARCANE_SPECS, "Gain 50 (+50 per stack) units of sight range."},
+	{ARTIFACT::SCOUT_STRIDE, "Consume 10% (+10% multiplicative per stack) less EP when moving."},
+	{ARTIFACT::ART_CONSERVE, "Consume 10% (+10% multiplicative per stack) less EP when attacking."},
+	{ARTIFACT::ARCANE_FUNNEL, "Upon defeating an enemy, gain a buff that doubles your MP regeneration for 1 (+1 per stack) turns."},
+	{ARTIFACT::FUNGIFIER, "Upon defeating an enemy, an explosive mushroom is dropped at their location. When an enemy steps on the mushroom, or after 3 turns, the mushroom explodes, dealing 130% (+130% per stack) ATK in damage in a small AoE."},
+	{ARTIFACT::BURRBAG, "At the start of each turn, leave a patch of burrs on the ground that last for 5 turns or until activated 1 (+1 per stack) times. Enemies that step over the burrs will take 40% ATK in damage and can move only 50% of their regular distance on their next turn."},
+	{ARTIFACT::SMOKE_POWDER, "Upon picking up an item, release a cloud of smoke that halves the aggro range of enemies within 150 (+100 per stack) units for 1 turn."},
+	{ARTIFACT::LIVELY_BULB, "Whenever you perform a Normal Attack, fire 1 (+1 per stack) seed projectile that deals 90% ATK damage towards the lowest HP enemy within your sight range."},
+	{ARTIFACT::MALEDICTION, "When you are attacked, all enemies in sight range will be affected with a curse that reduces their ATK by 40% for 3 turns. Has a 10 (-1 per stack) turn cooldown."},
+	{ARTIFACT::CHIMERARM, "Your current weapon, and newly generated weapons will have +4 ATK (+4 ATK per stack), and its 2nd Attack Skill will become a random attack skill from any weapon type."}
 };

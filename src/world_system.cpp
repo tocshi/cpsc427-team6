@@ -198,7 +198,32 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		doTurnOrderLogic();
 	}
 
-	
+	double mouseXpos, mouseYpos;
+	//getting cursor position
+	glfwGetCursorPos(window, &mouseXpos, &mouseYpos);
+	//printf("Cursor Position at (%f, %f)\n", xpos, ypos);
+
+	// remove previous stylized pointer
+	for (Entity pointer : registry.pointers.entities) {
+		registry.remove_all_components_of(pointer);
+	}
+	// render stylized pointers
+	if (mouseYpos > window_height_px - 200.f || mouseYpos < 100.f) {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::NORMAL_POINTER);
+	}
+	else if (current_game_state == GameStates::MOVEMENT_MENU) {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		createPointer(renderer, vec2(mouseXpos, mouseYpos - POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::MOVE_POINTER);
+	}
+	else if (current_game_state == GameStates::ATTACK_MENU) {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::ATTACK_POINTER);
+	}
+	else {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::NORMAL_POINTER);
+	}
 
 	// perform in-motion behaviour
 	if (get_is_player_turn() && player_move_click) {
@@ -1001,8 +1026,15 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						set_gamestate(GameStates::BATTLE_MENU);
 						break;
 					case BUTTON_ACTION_ID::COLLECTION:
-						// TODO: add real functionality for this
-						logText("Collection Menu to be implemented later!");
+						// if the button is pressed again while the menu is already open, close the menu
+						if (current_game_state == GameStates::COLLECTION_MENU) {
+							set_gamestate(GameStates::BATTLE_MENU);
+						}
+						else {
+							// render the collection menu
+							createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f));
+							set_gamestate(GameStates::COLLECTION_MENU);
+						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_BACK:
 						// set gamestate back to normal
@@ -1024,6 +1056,24 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 						// create back button and move mode text
 						createBackButton(renderer, { 100.f , window_height_px - 60.f });
+						break;
+					case BUTTON_ACTION_ID::OPEN_DIALOG:
+						// remove all other description dialog components
+						for (Entity dd : registry.descriptionDialogs.entities) {
+							registry.remove_all_components_of(dd);
+						}
+
+						// get which icon was clicked
+						if (registry.artifactIcons.has(e)) {
+							ARTIFACT artifact = registry.artifactIcons.get(e).artifact;
+							createDescriptionDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f), artifact);
+						}
+						break;
+					case BUTTON_ACTION_ID::CLOSE_DIALOG:
+						// remove all description dialog components
+						for (Entity dd : registry.descriptionDialogs.entities) {
+							registry.remove_all_components_of(dd);
+						}
 						break;
 				}
 			}

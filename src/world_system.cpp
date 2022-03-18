@@ -55,7 +55,6 @@ namespace {
 	}
 }
 
-// bool current_game_state; (previious)
 // In start menu (CHANGE TO INT TO SEE IF IT WORKS)
 // CUTSCENE IS null
 GameStates current_game_state;
@@ -146,7 +145,6 @@ GLFWwindow* WorldSystem::create_window() {
 	// Music and volumes
 	Mix_VolumeMusic(10);
 	background_music = Mix_LoadMUS(audio_path("bgm/caves0.wav").c_str());
-	
 	menu_music = Mix_LoadMUS(audio_path("bgm/menu0.wav").c_str());
 	cutscene_music= Mix_LoadMUS(audio_path("bgm/dream0.wav").c_str());
 
@@ -545,7 +543,6 @@ void WorldSystem::cut_scene_start() {
 	// set game state to cutscene 
 	player_move_click = false;
 	
-	
 	registry.list_all_components();
 	printf("CUT SCENE STARTING \n");
 	while (registry.cameras.entities.size() > 0)
@@ -555,7 +552,6 @@ void WorldSystem::cut_scene_start() {
 	active_camera_entity = createCamera({ 0, 0 });
 
 	registry.list_all_components();
-
 
 	set_gamestate(GameStates::CUTSCENE);
 	//create cut scene 
@@ -567,7 +563,6 @@ void WorldSystem::cut_scene_start() {
 	if (current_game_state == GameStates::CUTSCENE && countCutScene == 0) {
 			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);
 			printf("Cut Scene\n");
-			
 	}else if (current_game_state == GameStates::CUTSCENE && countCutScene == 1) {
 			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE2);
 			printf("cutScene 2\n");
@@ -974,7 +969,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 		// check if left click works 
 		
-	if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT && !player_move_click && current_game_state == GameStates::CUTSCENE) {
+	if (action == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_LEFT && !player_move_click && current_game_state == GameStates::CUTSCENE) {
 		countCutScene++;
 		printf("start cutscenecount is %d \n:", countCutScene);
 		
@@ -1649,7 +1644,7 @@ void set_enemy_state_attack(Entity enemy) {
 	}
 }
 
-// Set attack state for enemies who attack after moving
+// Set game state
 void set_gamestate(GameStates state) {
 	previous_game_state = current_game_state;
 	current_game_state = state;

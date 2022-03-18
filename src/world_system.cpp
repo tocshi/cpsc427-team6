@@ -20,8 +20,8 @@ WorldSystem::WorldSystem()
 	rng = std::default_random_engine(std::random_device()());
 }
 
-WorldSystem::~WorldSystem() {
-	// Destroy music components
+void WorldSystem::destroyMusic() {
+
 	if (background_music != nullptr)
 		Mix_FreeMusic(background_music);
 	if (fire_explosion_sound != nullptr)
@@ -36,6 +36,11 @@ WorldSystem::~WorldSystem() {
 		Mix_FreeMusic(cutscene_music);
 	Mix_CloseAudio();
 
+}
+
+WorldSystem::~WorldSystem() {
+	// Destroy music components
+	destroyMusic();
 	// Destroy all created components
 	registry.clear_all_components();
 
@@ -558,18 +563,11 @@ void WorldSystem::cut_scene_start() {
 	// check when the left mouse is clicked move to next picture 
 
 	// on left click change scene to new one (x2)
-	// set gamestate to MAINMENU 
-
-	//printf("%d end entity list \n", resultList.size());
 	// checks how many times left click was one with countCutScene & makes sure the game state is CutScene 
 	if (current_game_state == GameStates::CUTSCENE && countCutScene == 0) {
 			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);
-			//createBackground(renderer, vec2(window_width_px / 2, window_height_px / 2));
-			//logText({ "Press ESC on your keyboard to Skip and go to main menu" });
-			//resultList.push(testA);
 			printf("Cut Scene\n");
 			
-			//count++;
 	}else if (current_game_state == GameStates::CUTSCENE && countCutScene == 1) {
 			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE2);
 			printf("cutScene 2\n");
@@ -582,6 +580,7 @@ void WorldSystem::cut_scene_start() {
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
+
 	registry.list_all_components();
 	printf("Restarting\n");
 
@@ -611,6 +610,10 @@ void WorldSystem::restart_game() {
 	// restart the game on the menu screen
 	//current_game_state = true;
 	set_gamestate(GameStates::MAIN_MENU);
+
+	if (current_game_state == GameStates::MAIN_MENU) {
+		Mix_PlayMusic(menu_music, 1);
+	}
 
 	/*if (current_game_state != GameStates::MAIN_MENU) {
 		//current_game_state = GameStates::MAIN_MENU;
@@ -978,12 +981,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		cut_scene_start();
 		if (current_game_state == GameStates::CUTSCENE && countCutScene == 3) {
 			set_gamestate(GameStates::MAIN_MENU);
-			if (current_game_state == GameStates::MAIN_MENU) {
-				Mix_PlayMusic(menu_music, 1);
-			}
 			printf("set to main_menu game state \n");
-			//countCutScene++;
-			//printf("%d countCutScene %d\n:", countCutScene);
 			restart_game();
 		}
 		else {

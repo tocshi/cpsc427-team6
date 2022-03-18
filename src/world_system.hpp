@@ -38,6 +38,9 @@ public:
 	// Releases all associated resources
 	~WorldSystem();
 
+	// free music 
+	void destroyMusic();
+
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
 

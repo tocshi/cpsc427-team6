@@ -21,7 +21,7 @@ public:
 	std::queue<Entity> getSolidTileInteract(std::queue<Entity> orignalqueue); // puts solid/ collidables obj + tileMAp into the entitylist
 private:
 	json jsonifyEntities(std::queue<Entity> entities);
-	json jsonifyPlayer(Entity player);
+  json jsonifyPlayer(Entity player);
 	json jsonifyEnemy(Entity enemy);
 	json jsonifyMotion(Motion m);
 	json jsonifyStats(Stats s);

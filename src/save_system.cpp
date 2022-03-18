@@ -163,7 +163,6 @@ json SaveSystem::jsonifyPlayer(Entity player) {
 
 	// jsonify statuses
 	playerData["statuses"] = jsonifyStatus(player);
-
 	return playerData;
 }
 
@@ -198,7 +197,7 @@ json SaveSystem::jsonifyEnemy(Entity enemy) {
 
 	// jsonify statuses
 	enemyData["statuses"] = jsonifyStatus(enemy);
-
+  
 	return enemyData;
 }
 

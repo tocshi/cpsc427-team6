@@ -66,6 +66,8 @@ public:
 	Mix_Chunk* error_sound;
 	Mix_Chunk* footstep_sound;
 
+	Mix_Music* menu_music;
+	Mix_Music* cutscene_music;
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;

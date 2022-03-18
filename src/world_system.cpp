@@ -30,6 +30,10 @@ WorldSystem::~WorldSystem() {
 		Mix_FreeChunk(error_sound);
 	if (footstep_sound != nullptr)
 		Mix_FreeChunk(footstep_sound);
+	if (menu_music != nullptr)
+		Mix_FreeMusic(menu_music);
+	if (cutscene_music != nullptr)
+		Mix_FreeMusic(cutscene_music);
 	Mix_CloseAudio();
 
 	// Destroy all created components
@@ -137,6 +141,11 @@ GLFWwindow* WorldSystem::create_window() {
 	// Music and volumes
 	Mix_VolumeMusic(10);
 	background_music = Mix_LoadMUS(audio_path("bgm/caves0.wav").c_str());
+	
+	menu_music = Mix_LoadMUS(audio_path("bgm/menu0.wav").c_str());
+	cutscene_music= Mix_LoadMUS(audio_path("bgm/dream0.wav").c_str());
+
+
 
 	// Sounds and volumes
 	fire_explosion_sound = Mix_LoadWAV(audio_path("feedback/fire_explosion.wav").c_str());
@@ -147,13 +156,15 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(footstep_sound, 14);
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr 
-		|| error_sound == nullptr || footstep_sound == nullptr) {
+		|| error_sound == nullptr || footstep_sound == nullptr|| menu_music == nullptr || cutscene_music == nullptr ) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
 			audio_path("bgm/caves0.wav").c_str(),
+			audio_path("bgm/menu0.wav").c_str(), //add
+			audio_path("bgm/dream0.wav").c_str(), //add
 			audio_path("feedback/fire_explosion.wav").c_str(),
 			audio_path("feedback/error.wav").c_str(),
 			audio_path("feedback/footstep.wav").c_str());
-		return nullptr;
+		return nullptr; 
 	}
 
 	return window;
@@ -162,7 +173,8 @@ GLFWwindow* WorldSystem::create_window() {
 void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 	// Playing background music indefinitely
-	Mix_PlayMusic(background_music, -1);
+
+	Mix_PlayMusic(cutscene_music, 1);
 	fprintf(stderr, "Loaded music\n");
 	printf("%d", countCutScene);
 	//set_gamestate(GameStates::CUTSCENE);
@@ -966,6 +978,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		cut_scene_start();
 		if (current_game_state == GameStates::CUTSCENE && countCutScene == 3) {
 			set_gamestate(GameStates::MAIN_MENU);
+			if (current_game_state == GameStates::MAIN_MENU) {
+				Mix_PlayMusic(menu_music, 1);
+			}
 			printf("set to main_menu game state \n");
 			//countCutScene++;
 			//printf("%d countCutScene %d\n:", countCutScene);
@@ -1002,6 +1017,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 					case BUTTON_ACTION_ID::MENU_START: 
 						set_gamestate(GameStates::GAME_START);
+						if (current_game_state != GameStates::CUTSCENE || current_game_state != GameStates::MAIN_MENU) {
+							Mix_PlayMusic(background_music, -1);
+						}
 						spawn_game_entities();
 						// spawn the actions bar
 						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });

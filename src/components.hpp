@@ -496,6 +496,10 @@ struct KnockBack {
 	float angle = 0;
 };
 
+struct Icon {
+
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -569,7 +573,8 @@ enum class TEXTURE_ASSET_ID {
 	DESCRIPTION_DIALOG = COLLECTION_PANEL + 1,
 	ARTIFACT_PLACEHOLDER = DESCRIPTION_DIALOG + 1,
 	COLLECTION_SCROLL_ARROW = ARTIFACT_PLACEHOLDER + 1,
-	TEXTURE_COUNT = COLLECTION_SCROLL_ARROW + 1
+	TURN_UI = COLLECTION_SCROLL_ARROW + 1,
+	TEXTURE_COUNT = TURN_UI + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

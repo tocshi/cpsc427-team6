@@ -195,6 +195,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// if not in menu do turn order logic (!current_game_state)
 	if (current_game_state < GameStates::CUTSCENE && current_game_state >= GameStates::GAME_START) {
+		update_turn_ui();
 		doTurnOrderLogic();
 	}
 
@@ -656,6 +657,7 @@ void WorldSystem::spawn_game_entities() {
 	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war();
+	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
 }
 
 // render ep range around the given position
@@ -1786,6 +1788,32 @@ void remove_status(Entity e, StatusType status, int number) {
 			statuses.statuses.erase(statuses.statuses.begin() + index);
 			number--;
 			index++;
+		}
+	}
+	return;
+}
+
+void WorldSystem::update_turn_ui() {
+	// clear icon registry
+	for (Entity e : registry.icons.entities) {
+		registry.remove_all_components_of(e);
+	}
+
+	Motion& turn_ui_motion = registry.motions.get(turnUI);
+	vec2 position = turn_ui_motion.position;
+	vec2 startPos = vec2(turn_ui_motion.scale[0]/2.f, 0.f);
+	vec2 offset = vec2(0.f);
+
+	// get queue
+	std::queue<Entity> queue = turnOrderSystem.getTurnOrder();
+
+	for (int count = 0; !queue.empty() && count < 5; queue.pop()) {
+		Entity e = queue.front();
+		if (!registry.hidden.has(e)) {
+			offset[0] = 48.f*count + 32.f;
+			TEXTURE_ASSET_ID texture_id = registry.renderRequests.get(e).used_texture;
+			createIcon(renderer, position - startPos + offset, texture_id);
+			count++;
 		}
 	}
 	return;

@@ -83,6 +83,7 @@ class RenderSystem {
 			textures_path("menu/description_dialog.png"),
 			textures_path("menu/artifact_placeholder.png"),
 			textures_path("menu/scroll_arrow.png"),
+			textures_path("turn_ui.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

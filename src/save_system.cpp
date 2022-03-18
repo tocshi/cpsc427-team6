@@ -125,6 +125,8 @@ json SaveSystem::jsonifyMotion(Motion m) {
 	motion["destination_y"] = m.destination.y;
 	motion["movement_speed"] = m.movement_speed;
 	motion["in_motion"] = m.in_motion;
+	motion["scale"]["x"] = m.scale.x;
+	motion["scale"]["y"] = m.scale.y;
 	return motion;
 }
 
@@ -260,13 +262,16 @@ json SaveSystem::jsonifyTiles() {
 		json tileJson;
 		TileUV tileUV = registry.tileUVs.get(tile);
 		Motion m = registry.motions.get(tile);
+		RenderRequest rr = registry.renderRequests.get(tile);
 		tileJson["motion"] = jsonifyMotion(m);
 		tileJson["tileUV"]["layer"] = tileUV.layer;
 		tileJson["tileUV"]["tileID"] = tileUV.tileID;
 		tileJson["tileUV"]["uv_start"]["x"] = tileUV.uv_start.x;
 		tileJson["tileUV"]["uv_start"]["y"] = tileUV.uv_start.y;
 		tileJson["tileUV"]["uv_end"]["x"] = tileUV.uv_end.x;
-		tileJson["tileUV"]["uv_end"]["y"] = tileUV.uv_end.x;
+		tileJson["tileUV"]["uv_end"]["y"] = tileUV.uv_end.y;
+		tileJson["renderRequest"]["used_texture"] = (int)rr.used_texture;
+		tileJson["renderRequest"]["used_layer"] = (int)rr.used_layer;
 		tilesList.push_back(tileJson);
 	}
 	return tilesList;

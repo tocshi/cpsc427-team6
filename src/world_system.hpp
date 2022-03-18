@@ -16,6 +16,7 @@
 #include "turn_order_system.hpp"
 #include "ai_system.hpp"
 #include "game_state.hpp"
+#include "room_system.hpp"
 
 #include <../ext/json/single_include/nlohmann/json.hpp>
 
@@ -150,6 +151,18 @@ private:
 
 	// load inventory
 	Inventory loadInventory(Entity e, json inventoryData);
+
+	// load tiles
+	void loadTiles(json tileData);
+
+	// load collidables
+	void loadCollidables(json collidableData);
+
+	// load interactables
+	void loadInteractables(json interactablesList);
+
+	// load a sign
+	void loadSign(Entity e, json signData);
   
 	// do turn order logic
 	void doTurnOrderLogic();
@@ -163,6 +176,7 @@ private:
 	SaveSystem saveSystem;
 	TurnOrderSystem turnOrderSystem;
 	AISystem aiSystem;
+	RoomSystem roomSystem;
 
 	// C++ random number generator
 	std::default_random_engine rng;

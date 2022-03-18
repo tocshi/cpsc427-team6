@@ -570,6 +570,13 @@ void WorldSystem::cut_scene_start() {
 	
 	registry.list_all_components();
 	printf("CUT SCENE STARTING \n");
+
+	while (registry.motions.entities.size() > 0)
+		registry.remove_all_components_of(registry.motions.entities.back());
+
+	while (registry.texts.entities.size() > 0)
+		registry.remove_all_components_of(registry.texts.entities.back());
+
 	while (registry.cameras.entities.size() > 0)
 		registry.remove_all_components_of(registry.cameras.entities.back());
 
@@ -587,13 +594,19 @@ void WorldSystem::cut_scene_start() {
 	// checks how many times left click was one with countCutScene & makes sure the game state is CutScene 
 	if (current_game_state == GameStates::CUTSCENE && countCutScene == 0) {
 			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);
+			printf("%d the cutscene 1 and cutscene count is \n", countCutScene);
 			printf("Cut Scene\n");
-	}else if (current_game_state == GameStates::CUTSCENE && countCutScene == 1) {
+	}
+	if (current_game_state == GameStates::CUTSCENE && countCutScene == 1) {
 			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE2);
 			printf("cutScene 2\n");
-	}else if (current_game_state == GameStates::CUTSCENE && countCutScene == 2) {
+			printf("%d the cutscene 2 and cutscene count is \n", countCutScene);
+	}
+	
+	if (current_game_state == GameStates::CUTSCENE && countCutScene == 2) {
 			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE3);
 			printf("cutScene 3 \n");
+			printf("%d the cutscene 3 and cutscene count is \n", countCutScene);
 	}
 
 }
@@ -1006,7 +1019,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		
 	if (action == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_LEFT && !player_move_click && current_game_state == GameStates::CUTSCENE) {
 		countCutScene++;
-		printf("start cutscenecount is %d \n:", countCutScene);
+		printf("start cutscenecount is %d \n", countCutScene);
 		
 		cut_scene_start();
 		if (current_game_state == GameStates::CUTSCENE && countCutScene == 3) {

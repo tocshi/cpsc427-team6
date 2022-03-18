@@ -255,6 +255,7 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start) {
 	if (registry.statuses.has(entity)) {
 		StatusContainer& statusContainer = registry.statuses.get(entity);
 		Stats stats = registry.stats.get(entity);
+		Stats basestats = registry.basestats.get(entity);
 		// sort the statuses to ensure that percentage buffs get applied before flat buffs
 		statusContainer.sort_statuses_reverse();
 		// we iterate backwards so that removing elements will not mess up the rest of the loop
@@ -282,7 +283,7 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start) {
 					break;
 				case (StatusType::ATK_BUFF):
 					if (status.percentage && registry.stats.has(entity)) {
-						stats.atk *= 1 + status.value;
+						stats.atk += basestats.atk * status.value;
 					}
 					else {
 						stats.atk += status.value;
@@ -301,4 +302,79 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start) {
 			}
 		}
 	}
+}
+
+// Reset entity stats to base stats
+void reset_stats(Entity& entity) {
+	Stats& stats = registry.stats.get(entity);
+	Stats basestats = registry.basestats.get(entity);
+
+	stats = basestats;
+}
+
+// Calculate entity stats based on inv + effects
+void calc_stats(Entity& entity) {
+	Stats& stats = registry.stats.get(entity);
+	Stats basestats = registry.basestats.get(entity);
+	Inventory inv = registry.inventories.get(entity);
+
+	// Artifact Effects
+}
+
+// Equip an item
+void equip_item(Entity& entity, Equipment& equipment) {
+	Stats& basestats = registry.basestats.get(entity);
+	Inventory& inv = registry.inventories.get(entity);
+	int slot = 0;
+
+	switch (equipment.type) {
+	case EQUIPMENT::SHARP:
+	case EQUIPMENT::BLUNT: 
+	case EQUIPMENT::RANGED:
+		slot = 0;
+		break;
+	case EQUIPMENT::ARMOUR:
+		slot = 1;
+		break;
+	default:
+		break;
+	}
+	unequip_item(entity, slot);
+	inv.equipped[slot] = equipment;
+
+	// set base stats
+	basestats.atk += inv.equipped[slot].atk;
+	basestats.def += inv.equipped[slot].def;
+	basestats.speed += inv.equipped[slot].speed;
+	basestats.hp += inv.equipped[slot].hp;
+	basestats.mp += inv.equipped[slot].mp;
+	basestats.ep += inv.equipped[slot].ep;
+	basestats.range += inv.equipped[slot].range;
+
+	// recalculate stats based on new equipment basestats
+	reset_stats(entity);
+	calc_stats(entity);
+}
+
+// Unequip an item (does not remove from inventory)
+Equipment unequip_item(Entity& entity, int slot) {
+	Stats& basestats = registry.basestats.get(entity);
+	Inventory& inv = registry.inventories.get(entity);
+
+	Equipment equip = inv.equipped[slot];
+
+	// set base stats
+	basestats.atk -= inv.equipped[slot].atk;
+	basestats.def -= inv.equipped[slot].def;
+	basestats.speed -= inv.equipped[slot].speed;
+	basestats.hp -= inv.equipped[slot].hp;
+	basestats.mp -= inv.equipped[slot].mp;
+	basestats.ep -= inv.equipped[slot].ep;
+	basestats.range -= inv.equipped[slot].range;
+
+	// recalculate stats based on new equipment basestats
+	reset_stats(entity);
+	calc_stats(entity);
+
+	return equip;
 }

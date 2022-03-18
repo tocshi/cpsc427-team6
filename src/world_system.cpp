@@ -526,6 +526,20 @@ void WorldSystem::cut_scene_start() {
 
 	//create entity for background pic
 	// set game state to cutscene 
+	player_move_click = false;
+	
+	
+	registry.list_all_components();
+	printf("CUT SCENE STARTING \n");
+	while (registry.cameras.entities.size() > 0)
+		registry.remove_all_components_of(registry.cameras.entities.back());
+
+	// Add a camera entity
+	active_camera_entity = createCamera({ 0, 0 });
+
+	registry.list_all_components();
+
+
 	set_gamestate(GameStates::CUTSCENE);
 	//create cut scene 
 
@@ -790,22 +804,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		stat.hp = stat.maxhp;
 	}
 
-	// LOGGING TEXT TEST
-	if (action == GLFW_PRESS && key == GLFW_KEY_X) {
-		countCutScene++;
-		cut_scene_start();
-		printf("start x is %d \n:", countCutScene);
-		if (current_game_state == GameStates::CUTSCENE && countCutScene == 3) {
-			set_gamestate(GameStates::MAIN_MENU);
-			printf("set to main_menu game state \n");
-			//countCutScene++;
-			//printf("%d countCutScene %d\n:", countCutScene);
-			restart_game();
-		}
-		else {
-			printf(" \n you just pressed X button\n");
-		}
-	}
+
 	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
 		for (Entity& enemy : registry.enemies.entities) {
 			int test = irandRange(100,200);
@@ -916,7 +915,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
         restart_game();
 	}
 
-	// Resetting game
+	// Resetting game // LOGGING TEXT TEST
 	if (action == GLFW_RELEASE && key == GLFW_KEY_T) {
 		printf("GAME STATE LOG START ============\n");
 		printf("Previous game state is: %i\n", static_cast<int>(previous_game_state));
@@ -957,6 +956,25 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	Camera camera = registry.cameras.get(active_camera_entity);
 	vec2 world_pos = {xpos + camera.position.x, ypos + camera.position.y};
 	//printf("World Position at (%f, %f)\n", world_pos.x, world_pos.y)
+
+		// check if left click works 
+		
+	if (action == GLFW_PRESS && button == GLFW_MOUSE_BUTTON_LEFT && !player_move_click && current_game_state == GameStates::CUTSCENE) {
+		countCutScene++;
+		printf("start cutscenecount is %d \n:", countCutScene);
+		
+		cut_scene_start();
+		if (current_game_state == GameStates::CUTSCENE && countCutScene == 3) {
+			set_gamestate(GameStates::MAIN_MENU);
+			printf("set to main_menu game state \n");
+			//countCutScene++;
+			//printf("%d countCutScene %d\n:", countCutScene);
+			restart_game();
+		}
+		else {
+			printf(" \n you just pressed left mouse button\n");
+		}
+	}
 
 	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
 
@@ -1285,10 +1303,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		motion_struct.in_motion = true;
 		player_move_click = true;
 	}
-	// check if left click works 
-	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE && !player_move_click && get_is_player_turn() && current_game_state == GameStates::CUTSCENE) {
-		printf("hello can you hear me?? credit Adele\n");
-	}
+
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {

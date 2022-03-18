@@ -88,3 +88,7 @@ void TurnOrderSystem::loadTurnOrder(std::queue<Entity> queue) {
 void TurnOrderSystem::removeFromQueue(Entity e) {
 	turnQueue.removeEntity(e);
 }
+
+void TurnOrderSystem::emptyQueue() {
+	turnQueue.emptyQueue();
+}

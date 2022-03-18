@@ -16,6 +16,7 @@
 #include "turn_order_system.hpp"
 #include "ai_system.hpp"
 #include "game_state.hpp"
+#include "room_system.hpp"
 
 #include <../ext/json/single_include/nlohmann/json.hpp>
 
@@ -173,6 +174,7 @@ private:
 	SaveSystem saveSystem;
 	TurnOrderSystem turnOrderSystem;
 	AISystem aiSystem;
+	RoomSystem roomSystem;
 
 	// C++ random number generator
 	std::default_random_engine rng;

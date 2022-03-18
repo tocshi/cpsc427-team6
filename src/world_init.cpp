@@ -87,7 +87,6 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	// add status container to player
 	registry.statuses.emplace(entity);
-=======
 	return entity;
 }
 
@@ -152,7 +151,6 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 
 	// add status container to slime
 	registry.statuses.emplace(entity);
-=======
 	return entity;
 }
 

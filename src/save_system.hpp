@@ -32,5 +32,6 @@ private:
 	json jsonifyTiles();
 	json jsonifyCollidables();
 	json jsonifySign(Entity e);
+	json jsonifyStatus(Entity e);
 	//json jsonify
 };

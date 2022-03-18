@@ -143,6 +143,9 @@ private:
 	// load inventory
 	Inventory loadInventory(Entity e, json inventoryData);
 
+	// load statuses
+	void loadStatuses(Entity e, json statusData);
+
 	// load tiles
 	void loadTiles(json tileData);
 

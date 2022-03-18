@@ -1359,6 +1359,9 @@ Entity WorldSystem::loadPlayer(json playerData) {
 
 	// get player component stuff
 	loadPlayerComponent(e, playerData["player"], inv);
+
+	// load player statuses
+	loadStatuses(e, playerData["statuses"]);
 	
 	return e;
 }
@@ -1387,6 +1390,8 @@ Entity WorldSystem::loadEnemy(json enemyData) {
 	Inventory inv = loadInventory(e, enemyData["inventory"]);
 	// load enemy component
 	loadEnemyComponent(e, enemyData["enemy"], inv);
+	// load enemy statuses
+	loadStatuses(e, enemyData["statuses"]);
 	return e;
 }
 
@@ -1498,6 +1503,18 @@ Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
 	inv.equipped[1] = armour;
 
 	return inv;
+}
+
+void WorldSystem::loadStatuses(Entity e, json statuses) {
+	StatusContainer& statusContainer = registry.statuses.get(e);
+	for (auto& status : statuses) {
+		float value = status["value"];
+		int turns_remaining = status["turn_remaining"];
+		StatusType effect = status["effect"];
+		bool percentage = status["percentage"];
+		bool apply_at_turn_start = status["apply_at_turn_start"];
+		statusContainer.statuses.push_back(StatusEffect(value, turns_remaining, effect, percentage, apply_at_turn_start));
+	}
 }
 
 void WorldSystem::loadTiles(json tileList) {

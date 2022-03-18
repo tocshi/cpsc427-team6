@@ -158,7 +158,12 @@ json SaveSystem::jsonifyPlayer(Entity player) {
 	Motion player_motion = registry.motions.get(player);
 	playerData["motion"] = jsonifyMotion(player_motion);
 
+	// jsonify inventory
 	playerData["inventory"] = jsonifyInventory(player);
+
+	// jsonify statuses
+	playerData["statuses"] = jsonifyStatus(player);
+
 	return playerData;
 }
 
@@ -188,7 +193,11 @@ json SaveSystem::jsonifyEnemy(Entity enemy) {
 	Motion m = registry.motions.get(enemy);
 	enemyData["motion"] = jsonifyMotion(m);
 
+	// jsonify inventory
 	enemyData["inventory"] = jsonifyInventory(enemy);
+
+	// jsonify statuses
+	enemyData["statuses"] = jsonifyStatus(enemy);
 
 	return enemyData;
 }
@@ -222,6 +231,21 @@ json SaveSystem::jsonifyEquipment(Equipment e) {
 	}
 	equipt["attacks"] = attacks;
 	return equipt;
+}
+
+json SaveSystem::jsonifyStatus(Entity e) {
+	json statusArrayJson = json::array();
+	StatusContainer sc = registry.statuses.get(e);
+	for (StatusEffect status : sc.statuses) {
+		json statusJson;
+		statusJson["value"] = status.value;
+		statusJson["turns_remaining"] = status.turns_remaining;
+		statusJson["effect"] = status.effect;
+		statusJson["percentage"] = status.percentage;
+		statusJson["apply_at_turn_start"] = status.apply_at_turn_start;
+		statusArrayJson.push_back(statusJson);
+	}
+	return statusArrayJson;
 }
 
 json SaveSystem::jsonifyInteractables() {

@@ -1796,3 +1796,37 @@ Entity createExplosion(RenderSystem* renderer, vec2 pos) {
 
 	return entity;
 }
+
+Entity createTurnUI(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 256.f, 64.f };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TURN_UI,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id) {
+	auto entity = Entity();
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 64.f, 64.f };
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture_id,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::UI_TOP });
+
+	return entity;
+}

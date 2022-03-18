@@ -656,6 +656,7 @@ void WorldSystem::spawn_game_entities() {
 	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war();
+	createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
 }
 
 // render ep range around the given position

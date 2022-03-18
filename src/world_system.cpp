@@ -1430,6 +1430,9 @@ Entity WorldSystem::loadPlayer(json playerData) {
 
 	// get player component stuff
 	loadPlayerComponent(e, playerData["player"], inv);
+
+	// load player statuses
+	loadStatuses(e, playerData["statuses"]);
 	
 	return e;
 }
@@ -1458,6 +1461,8 @@ Entity WorldSystem::loadEnemy(json enemyData) {
 	Inventory inv = loadInventory(e, enemyData["inventory"]);
 	// load enemy component
 	loadEnemyComponent(e, enemyData["enemy"], inv);
+	// load enemy statuses
+	loadStatuses(e, enemyData["statuses"]);
 	return e;
 }
 
@@ -1571,6 +1576,18 @@ Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
 	return inv;
 }
 
+void WorldSystem::loadStatuses(Entity e, json statuses) {
+	StatusContainer& statusContainer = registry.statuses.get(e);
+	for (auto& status : statuses) {
+		float value = status["value"];
+		int turns_remaining = status["turn_remaining"];
+		StatusType effect = status["effect"];
+		bool percentage = status["percentage"];
+		bool apply_at_turn_start = status["apply_at_turn_start"];
+		statusContainer.statuses.push_back(StatusEffect(value, turns_remaining, effect, percentage, apply_at_turn_start));
+	}
+}
+
 void WorldSystem::loadTiles(json tileList) {
 	for (auto& tile : tileList) {
 		Entity e = Entity();
@@ -1620,7 +1637,7 @@ void WorldSystem::loadInteractables(json interactablesList) {
 
 		switch ((int)interactable["type"]) {
 		case 0: // chest
-			break;
+			loadChest(e);
 		case 1: // door
 			break;
 		case 2: // stairs
@@ -1662,6 +1679,18 @@ void WorldSystem::loadSign(Entity e, json signData) {
 		GEOMETRY_BUFFER_ID::ANIMATION,
 		RENDER_LAYER_ID::SPRITE
 		});
+}
+
+void WorldSystem::loadChest(Entity e) {
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(e, &mesh);
+
+	registry.renderRequests.insert(
+		e,
+		{ TEXTURE_ASSET_ID::CHEST,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(e);
 }
 
 void WorldSystem::logText(std::string msg) {

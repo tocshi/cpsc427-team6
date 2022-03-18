@@ -144,6 +144,9 @@ private:
 	// load inventory
 	Inventory loadInventory(Entity e, json inventoryData);
 
+	// load statuses
+	void loadStatuses(Entity e, json statusData);
+
 	// load tiles
 	void loadTiles(json tileData);
 
@@ -155,6 +158,9 @@ private:
 
 	// load a sign
 	void loadSign(Entity e, json signData);
+
+	// load a chest
+	void loadChest(Entity e);
   
 	// do turn order logic
 	void doTurnOrderLogic();

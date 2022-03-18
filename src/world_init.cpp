@@ -152,7 +152,6 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 
 	// add status container to slime
 	registry.statuses.emplace(entity);
-
 	return entity;
 }
 

@@ -1627,7 +1627,7 @@ void WorldSystem::loadInteractables(json interactablesList) {
 
 		switch ((int)interactable["type"]) {
 		case 0: // chest
-			break;
+			loadChest(e);
 		case 1: // door
 			break;
 		case 2: // stairs
@@ -1669,6 +1669,18 @@ void WorldSystem::loadSign(Entity e, json signData) {
 		GEOMETRY_BUFFER_ID::ANIMATION,
 		RENDER_LAYER_ID::SPRITE
 		});
+}
+
+void WorldSystem::loadChest(Entity e) {
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(e, &mesh);
+
+	registry.renderRequests.insert(
+		e,
+		{ TEXTURE_ASSET_ID::CHEST,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(e);
 }
 
 void WorldSystem::logText(std::string msg) {

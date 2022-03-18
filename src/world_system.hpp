@@ -157,6 +157,9 @@ private:
 
 	// load a sign
 	void loadSign(Entity e, json signData);
+
+	// load a chest
+	void loadChest(Entity e);
   
 	// do turn order logic
 	void doTurnOrderLogic();

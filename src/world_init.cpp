@@ -83,6 +83,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	// add player to queuables
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 
 	// add status container to player
 	registry.statuses.emplace(entity);
@@ -120,7 +121,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Slime";
 	stats.prefix = "the";
-	stats.maxhp = 25;
+	stats.maxhp = 28;
 	stats.hp = stats.maxhp;
 	stats.atk = 10;
 	stats.def = 3;
@@ -147,10 +148,10 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 
 	// add enemy to queuables
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 
 	// add status container to slime
 	registry.statuses.emplace(entity);
-
 	return entity;
 }
 
@@ -174,11 +175,10 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
 
 	// Initilalize stats
-	// hp = 20, atk = 8, queue = 7, def = 2, range = 400
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Plant Shooter";
 	stats.prefix = "the";
-	stats.maxhp = 20.f;
+	stats.maxhp = 24.f;
 	stats.hp = stats.maxhp;
 	stats.atk = 8.f;
 	stats.def = 2.f;
@@ -195,6 +195,7 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	enemy.type = ENEMY_TYPE::PLANT_SHOOTER;
 
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 	// registry.damageables.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
@@ -277,7 +278,7 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Caveling";
 	stats.prefix = "the";
-	stats.maxhp = 18;
+	stats.maxhp = 19;
 	stats.hp = stats.maxhp;
 	stats.atk = 6;
 	stats.def = 0;
@@ -295,6 +296,7 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 
 	// add enemy to queuables
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 
 	// add status container to caveling
 	registry.statuses.emplace(entity);
@@ -682,7 +684,7 @@ Entity createMenuQuit(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::QUIT,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::UI });
+		 RENDER_LAYER_ID::UI_TOP });
 
 	return entity;
 }
@@ -886,7 +888,7 @@ Entity createCancelButton(RenderSystem* renderer, vec2 pos) {
 		{ TEXTURE_ASSET_ID::ACTIONS_CANCEL,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::UI });
+		 RENDER_LAYER_ID::UI_TOP });
 
 	return entity;
 }
@@ -1001,6 +1003,325 @@ Entity createCollectionButton(RenderSystem* renderer, vec2 pos) {
 	return entity;
 }
 
+// Collection menu
+Entity createCollectionMenu(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ COLLECTION_MENU_BB_WIDTH, COLLECTION_MENU_BB_HEIGHT });
+
+	registry.menuItems.emplace(entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::COLLECTION_PANEL,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI });
+
+	// render the x button
+	auto close_entity = Entity();
+
+	Mesh& close_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(close_entity, &close_mesh);
+
+	registry.menuItems.emplace(close_entity);
+
+	Button& b = registry.buttons.emplace(close_entity);
+	b.action_taken = BUTTON_ACTION_ID::ACTIONS_CANCEL;
+
+	auto& close_motion = registry.motions.emplace(close_entity);
+	close_motion.angle = 0.f;
+	close_motion.velocity = { 0.f, 0.f };
+	close_motion.position = { pos.x  + (COLLECTION_MENU_BB_WIDTH / 2) - 60, pos.y - (COLLECTION_MENU_BB_HEIGHT / 2) + 50};
+
+	close_motion.scale = vec2({ PAUSE_BUTTON_BB_WIDTH / 1.5, PAUSE_BUTTON_BB_HEIGHT / 1.5});
+
+	registry.renderRequests.insert(
+		close_entity,
+		{ TEXTURE_ASSET_ID::MENU_CLOSE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI_TOP });
+
+	// render the artifact icons
+	float x_offset = 0.f;
+	float y_offset = 0.f;
+	for (int artifact = 0; artifact < (int)ARTIFACT::ARTIFACT_COUNT; artifact++) {
+		float next_x = pos.x - ((COLLECTION_MENU_BB_WIDTH / 2) - 124.f) + x_offset;
+		float next_y = pos.y - ((COLLECTION_MENU_BB_HEIGHT / 2) - 100) + y_offset;
+		if (next_x >= pos.x + (COLLECTION_MENU_BB_WIDTH / 2) - 200) {
+			x_offset = 0.f;
+			y_offset += 150.f;
+		}
+		else {
+			x_offset += (ARTIFACT_IMAGE_BB_WIDTH + 20.f);
+		}
+		createArtifactIcon(renderer, vec2(next_x, next_y),
+			static_cast<ARTIFACT>(artifact));
+
+		// need to render the current count beside it
+		Inventory inv = registry.inventories.components[0];
+
+		int size = inv.artifact[(int)artifact];
+		std::string sizeStr = std::to_string(size);
+
+		std::vector<Entity> textVect;
+		textVect.push_back(createText(renderer, vec2((next_x + 30.f) * 2, (next_y + 40.f) * 2), sizeStr.substr(0, 1), 1.4f, vec3(0.0f)));
+		if (size > 9) {
+			// need to print two numbers		
+			textVect.push_back(createText(renderer, vec2((next_x + 45.f) * 2, (next_y + 40.f) * 2), sizeStr.substr(1, 1), 1.4f, vec3(0.0f)));
+		}
+
+		for (Entity text : textVect) {
+			registry.menuItems.emplace(text);
+		}
+	}
+
+	return entity;
+}
+
+// Artifact icon
+Entity createArtifactIcon(RenderSystem* renderer, vec2 pos, ARTIFACT artifact) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ ARTIFACT_IMAGE_BB_WIDTH, ARTIFACT_IMAGE_BB_HEIGHT });
+
+	registry.menuItems.emplace(entity);
+
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::OPEN_DIALOG;
+
+	ArtifactIcon& ai = registry.artifactIcons.emplace(entity);
+	ai.artifact = artifact;
+
+	// get artifact texture from map
+	auto iter = artifact_textures.find(artifact);
+	if (iter != artifact_textures.end()) {
+		// render the texture if one exists for the artifact
+		TEXTURE_ASSET_ID texture = iter->second;
+		registry.renderRequests.insert(
+			entity,
+			{ texture,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE,
+			 RENDER_LAYER_ID::ARTIFACT_ICONS });
+	}
+	else {
+		printf("ERROR: texture does not exist for artifact");
+	}
+
+	return entity;
+}
+
+// Description dialog
+Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifact) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ DESCRIPTION_DIALOG_BB_WIDTH, DESCRIPTION_DIALOG_BB_HEIGHT });
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::DESCRIPTION_DIALOG,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::DIALOG });
+
+	DescriptionDialog& dd = registry.descriptionDialogs.emplace(entity);
+
+	// render the artifact image on top
+	auto icon_entity = Entity();
+
+	Mesh& icon_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(icon_entity, &icon_mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& icon_motion = registry.motions.emplace(icon_entity);
+	icon_motion.angle = 0.f;
+	icon_motion.velocity = { 0.f, 0.f };
+	icon_motion.position = vec2(pos.x - DESCRIPTION_DIALOG_BB_WIDTH / 2 + 35.f, pos.y - DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 40.f);
+
+	icon_motion.scale = vec2({ ARTIFACT_IMAGE_BB_WIDTH / 1.5f, ARTIFACT_IMAGE_BB_HEIGHT / 1.5f });
+
+	registry.menuItems.emplace(icon_entity);
+
+	// get artifact texture from map
+	auto icon_iter = artifact_textures.find(artifact);
+	if (icon_iter != artifact_textures.end()) {
+		// render the texture if one exists for the artifact
+		TEXTURE_ASSET_ID icon_texture = icon_iter->second;
+		registry.renderRequests.insert(
+			icon_entity,
+			{ icon_texture,
+			 EFFECT_ASSET_ID::TEXTURED,
+			 GEOMETRY_BUFFER_ID::SPRITE,
+			 RENDER_LAYER_ID::DIALOG_TEXT });
+	}
+	else {
+		printf("ERROR: texture does not exist for artifact");
+	}
+
+	// set dd title
+	Entity tt;
+	bool hasTT = false;
+	auto iter = artifact_names.find(artifact);
+	if (iter != artifact_names.end()) {
+		dd.title = iter->second;
+		tt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2), dd.title, 2.0f, vec3(0.0f));
+		hasTT = true;
+		// registry.descriptionDialogs.emplace(tt);
+	}
+	else {
+		printf("ERROR: name does not exist for artifact");
+	}
+
+	// set dd effect
+	std::vector<Entity> etVect;
+	bool hasET = false;
+	etVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 80.f), "EFFECT: ", 1.6f, vec3(0.0f)));
+	iter = artifact_effects.find(artifact);
+	if (iter != artifact_effects.end()) {
+		dd.effect = iter->second;
+		if (dd.effect.size() > 40) {
+			bool renderNewLine = true;
+			float effectOffset = 0.f;
+			int iter = 1;
+			std::string effectLine = dd.effect.substr(0, 40);
+			while (renderNewLine) {
+				etVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 130.f + effectOffset), effectLine, 1.2f, vec3(0.0f)));
+				effectLine = dd.effect.substr(40 * iter);
+				effectOffset += 30.f;
+				if (effectLine.size() >= 40) {
+					effectLine = dd.effect.substr(40 * iter, 40);
+					iter++;
+				}
+				else {
+					etVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 130.f + effectOffset), effectLine, 1.2f, vec3(0.0f)));
+					renderNewLine = false;
+				}
+			}
+		}
+		else {
+			etVect.push_back(createText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 130.f), dd.effect, 1.2f, vec3(0.0f)));
+		}
+		hasET = true;
+		// registry.descriptionDialogs.emplace(et);
+	}
+	else {
+		printf("ERROR: effect does not exist for artifact");
+	}
+
+	// set dd description
+	std::vector<Entity> dtVect;
+	bool hasDT = false;
+	iter = artifact_descriptions.find(artifact);
+	dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 350.f), "DESCRIPTION: ", 1.6f, vec3(0.0f)));
+	if (iter != artifact_descriptions.end()) {
+		dd.description = iter->second;
+		if (dd.description.size() > 40) {
+			bool renderNewLine = true;
+			float descOffset = 0.f;
+			int iter = 1;
+			std::string descLine = dd.description.substr(0, 40);
+			while (renderNewLine) {
+				dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f + descOffset), descLine, 1.2f, vec3(0.0f)));
+				descLine = dd.description.substr(40 * iter);
+				descOffset += 30.f;
+				if (descLine.size() >= 40) {
+					descLine = dd.description.substr(40 * iter, 40);
+					iter++;
+				}
+				else {
+					dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f + descOffset), descLine, 1.2f, vec3(0.0f)));
+					renderNewLine = false;
+				}
+			}
+		}
+		else {
+			dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f), dd.description, 1.2f, vec3(0.0f)));
+		}
+		
+		hasDT = true;
+		// registry.descriptionDialogs.emplace(dt);
+	}
+	else {
+		printf("ERROR: description does not exist for artifact");
+	}
+
+	// need to add new entities to descriptionDialogs at the end to avoid memory issues
+	registry.descriptionDialogs.emplace(icon_entity);
+	if (hasTT) { registry.descriptionDialogs.emplace(tt); }
+	if (hasET) { 
+		for (Entity et : etVect) {
+			registry.descriptionDialogs.emplace(et);
+		}
+	}
+	if (hasDT) {
+		for (Entity dt : dtVect) {
+			registry.descriptionDialogs.emplace(dt);
+		}
+	}
+
+	// render the x button
+	auto close_entity = Entity();
+
+	Mesh& close_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(close_entity, &close_mesh);
+
+	auto& close_motion = registry.motions.emplace(close_entity);
+	close_motion.angle = 0.f;
+	close_motion.velocity = { 0.f, 0.f };
+	close_motion.position = { pos.x + (DESCRIPTION_DIALOG_BB_WIDTH / 2) - 60, 
+		pos.y - (DESCRIPTION_DIALOG_BB_HEIGHT / 2) + 50 };
+
+	close_motion.scale = vec2({ PAUSE_BUTTON_BB_WIDTH / 1.5, PAUSE_BUTTON_BB_HEIGHT / 1.5 });
+
+
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::CLOSE_DIALOG;
+
+	// need to add 'x' to descriptionDialogs so it is closed when the entire modal is closed
+	registry.descriptionDialogs.emplace(close_entity);
+
+	registry.renderRequests.insert(
+		close_entity,
+		{ TEXTURE_ASSET_ID::MENU_CLOSE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI_TOP });
+
+	return entity;
+}
+
 // Menu title
 Entity createMenuTitle(RenderSystem* renderer, vec2 pos)
 {
@@ -1025,6 +1346,35 @@ Entity createMenuTitle(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::TITLE,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
+// stylized cursor
+Entity createPointer(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ POINTER_BB_WIDTH, POINTER_BB_HEIGHT });
+
+	registry.pointers.emplace(entity);
+	registry.renderRequests.insert(
+		entity,
+		{ texture,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::CURSOR
+		});
 
 	return entity;
 }
@@ -1290,7 +1640,35 @@ Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 			EFFECT_ASSET_ID::TEXT,
 			GEOMETRY_BUFFER_ID::TEXTQUAD,
-			RENDER_LAYER_ID::UI_TOP });
+			RENDER_LAYER_ID::TEXT });
+
+	return entity;
+}
+
+// Dialog text
+Entity createDialogText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the text component
+	auto& text = registry.texts.emplace(entity);
+	text.message = msg;
+	text.position = pos;
+	text.scale = scale;
+	text.textColor = textColor;
+
+	// Create an (empty) TEXT component to be able to refer to all text
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::TEXT,
+			GEOMETRY_BUFFER_ID::TEXTQUAD,
+			RENDER_LAYER_ID::DIALOG_TEXT });
 
 	return entity;
 }

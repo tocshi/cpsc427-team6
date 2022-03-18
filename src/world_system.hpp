@@ -83,6 +83,8 @@ public:
 	bool player_move_click = false;
 	bool is_ai_turn = false;
 
+	Entity turnUI;
+
 	// log text
 	void logText(std::string msg);
 
@@ -152,6 +154,9 @@ private:
 	// load inventory
 	Inventory loadInventory(Entity e, json inventoryData);
 
+	// load statuses
+	void loadStatuses(Entity e, json statusData);
+
 	// load tiles
 	void loadTiles(json tileData);
 
@@ -163,12 +168,18 @@ private:
 
 	// load a sign
 	void loadSign(Entity e, json signData);
+
+	// load a chest
+	void loadChest(Entity e);
   
 	// do turn order logic
 	void doTurnOrderLogic();
 
 	// handle end of player's turn
 	void handle_end_player_turn(Entity player);
+
+	// udate turn UI
+	void update_turn_ui();
 
 	// OpenGL window handle
 	GLFWwindow* window;

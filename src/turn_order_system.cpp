@@ -1,3 +1,5 @@
+#pragma once
+
 #include "turn_order_system.hpp"
 #include "combat_system.hpp"
 

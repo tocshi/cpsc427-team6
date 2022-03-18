@@ -1444,7 +1444,7 @@
    </group>
   </group>
  </group>
- <objectgroup id="77" name="item" visible="0">
+ <objectgroup id="77" name="item">
   <properties>
    <property name="max" type="int" value="8"/>
    <property name="min" type="int" value="6"/>
@@ -1486,7 +1486,7 @@
    <point/>
   </object>
  </objectgroup>
- <objectgroup id="75" name="player" visible="0">
+ <objectgroup id="75" name="player">
   <object id="63" x="696" y="101">
    <point/>
   </object>
@@ -1524,7 +1524,7 @@
    <point/>
   </object>
  </objectgroup>
- <objectgroup id="76" name="enemy" visible="0">
+ <objectgroup id="76" name="enemy">
   <properties>
    <property name="max" type="int" value="16"/>
    <property name="min" type="int" value="12"/>

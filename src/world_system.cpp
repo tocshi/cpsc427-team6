@@ -198,7 +198,32 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		doTurnOrderLogic();
 	}
 
-	
+	double mouseXpos, mouseYpos;
+	//getting cursor position
+	glfwGetCursorPos(window, &mouseXpos, &mouseYpos);
+	//printf("Cursor Position at (%f, %f)\n", xpos, ypos);
+
+	// remove previous stylized pointer
+	for (Entity pointer : registry.pointers.entities) {
+		registry.remove_all_components_of(pointer);
+	}
+	// render stylized pointers
+	if (mouseYpos > window_height_px - 200.f || mouseYpos < 100.f) {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::NORMAL_POINTER);
+	}
+	else if (current_game_state == GameStates::MOVEMENT_MENU) {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		createPointer(renderer, vec2(mouseXpos, mouseYpos - POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::MOVE_POINTER);
+	}
+	else if (current_game_state == GameStates::ATTACK_MENU) {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::ATTACK_POINTER);
+	}
+	else {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+		createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::NORMAL_POINTER);
+	}
 
 	// perform in-motion behaviour
 	if (get_is_player_turn() && player_move_click) {
@@ -581,6 +606,7 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 void WorldSystem::spawn_game_entities() {
 
 	SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
+	//SpawnData spawnData = createTiles(renderer, "debug_room.tmx");
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
@@ -678,12 +704,16 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 	if (enemySpawns.size() > 0) {
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
-			// Spawn either a slime or PlantShooter
-			if (ichoose(0, 1)) {
-				createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			// Spawn either a slime or PlantShooter or caveling
+			int roll = irand(4);
+			if (roll < 1) {
+				createCaveling(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			}
+			else if (roll < 2) {
+				createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 			}
 			else {
-				createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 			}
 		}
 	}
@@ -740,6 +770,12 @@ bool WorldSystem::is_over() const {
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
+	// DEBUG: HEAL PLAYER
+	if (action == GLFW_RELEASE && key == GLFW_KEY_EQUAL) {
+		Stats& stat = registry.stats.get(player_main);
+		stat.hp = stat.maxhp;
+	}
+
 	// LOGGING TEXT TEST
 	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
 		for (Entity& enemy : registry.enemies.entities) {
@@ -990,8 +1026,15 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						set_gamestate(GameStates::BATTLE_MENU);
 						break;
 					case BUTTON_ACTION_ID::COLLECTION:
-						// TODO: add real functionality for this
-						logText("Collection Menu to be implemented later!");
+						// if the button is pressed again while the menu is already open, close the menu
+						if (current_game_state == GameStates::COLLECTION_MENU) {
+							set_gamestate(GameStates::BATTLE_MENU);
+						}
+						else {
+							// render the collection menu
+							createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f));
+							set_gamestate(GameStates::COLLECTION_MENU);
+						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_BACK:
 						// set gamestate back to normal
@@ -1013,6 +1056,24 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 						// create back button and move mode text
 						createBackButton(renderer, { 100.f , window_height_px - 60.f });
+						break;
+					case BUTTON_ACTION_ID::OPEN_DIALOG:
+						// remove all other description dialog components
+						for (Entity dd : registry.descriptionDialogs.entities) {
+							registry.remove_all_components_of(dd);
+						}
+
+						// get which icon was clicked
+						if (registry.artifactIcons.has(e)) {
+							ARTIFACT artifact = registry.artifactIcons.get(e).artifact;
+							createDescriptionDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f), artifact);
+						}
+						break;
+					case BUTTON_ACTION_ID::CLOSE_DIALOG:
+						// remove all description dialog components
+						for (Entity dd : registry.descriptionDialogs.entities) {
+							registry.remove_all_components_of(dd);
+						}
 						break;
 				}
 			}
@@ -1058,7 +1119,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 		// ensure it is the player's turn and they are not currently moving
 		if (get_is_player_turn() && !player_move_click && ypos < window_height_px - 200.f && ypos > 80.f) {
-			if (player_main) {
+			if (player_main && current_game_state >= GameStates::GAME_START) {
 				Player& player = registry.players.get(player_main);
 				Motion& player_motion = registry.motions.get(player_main);
 				Stats& player_stats = registry.stats.get(player_main);
@@ -1194,7 +1255,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	}
 
 
-	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_move_click) {
+	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_move_click && current_game_state >= GameStates::GAME_START) {
 		Motion& motion_struct = registry.motions.get(player_main);
 
 		// set velocity to the direction of the cursor, at a magnitude of player_velocity
@@ -1640,7 +1701,7 @@ void WorldSystem::doTurnOrderLogic() {
 		// perform end-of-movement attacks for enemies
 		else {
 			set_enemy_state_attack(currentTurnEntity);
-			aiSystem.step(currentTurnEntity, this, renderer);
+			aiSystem.step(currentTurnEntity);
 		}
 
 		// get next turn
@@ -1657,7 +1718,7 @@ void WorldSystem::doTurnOrderLogic() {
 
 	// if current turn entity is enemy and is still doing_turn call ai.step();
 	if (!registry.players.has(currentTurnEntity) && registry.queueables.get(currentTurnEntity).doing_turn) {
-		aiSystem.step(currentTurnEntity, this, renderer);
+		aiSystem.step(currentTurnEntity);
 
 		// now that ai did its step, set doing turn to false
 		registry.queueables.get(currentTurnEntity).doing_turn = false;

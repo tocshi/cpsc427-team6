@@ -35,6 +35,9 @@ public:
 	ComponentContainer<ActionButton> actionButtons;
 	ComponentContainer<GuardButton> guardButtons;
 	ComponentContainer<Button> buttons;
+	ComponentContainer<Pointer> pointers;
+	ComponentContainer<DescriptionDialog> descriptionDialogs;
+	ComponentContainer<ArtifactIcon> artifactIcons;
 	ComponentContainer<MenuItem> menuItems;
 	ComponentContainer<ModeVisualization> modeVisualizationObjects;
 	ComponentContainer<EpRange> epRange;
@@ -85,6 +88,7 @@ public:
 		registry_list.push_back(&actionButtons);
 		registry_list.push_back(&guardButtons);
 		registry_list.push_back(&buttons);
+		registry_list.push_back(&artifactIcons);
 		registry_list.push_back(&modeVisualizationObjects);
 		registry_list.push_back(&menuItems);
 		registry_list.push_back(&epRange);
@@ -98,6 +102,8 @@ public:
 		registry_list.push_back(&signs);
 		registry_list.push_back(&hidden);
 		registry_list.push_back(&hidables);
+		registry_list.push_back(&pointers);
+		registry_list.push_back(&descriptionDialogs);
 		// door in registry list 
 		registry_list.push_back(&door);
 		// add artifact to list

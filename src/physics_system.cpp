@@ -34,6 +34,18 @@ bool collides_AABB(const Motion& motion1, const Motion& motion2) {
 		&& motion1.position.y + bounding_box_a.y/2 > motion2.position.y - bounding_box_b.y/2;
 }
 
+bool collides_circle(const Motion& motion1, const Motion& motion2) {
+	float angle = atan2(motion2.position.y - motion1.position.y, motion2.position.x - motion1.position.x);
+	vec2 motion1_edge = dirdist_extrapolate(motion1.position, angle, motion1.scale.x / 2);
+	vec2 motion2_edge = dirdist_extrapolate(motion2.position, angle - M_PI, motion2.scale.x / 2);
+	if (dist_to(motion1.position, motion2_edge) < dist_to(motion1.position, motion1_edge)) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 float dist_to(const vec2 position1, const vec2 position2) {
 	return sqrt(pow(position2.x - position1.x, 2) + pow(position2.y - position1.y, 2));
 }
@@ -60,7 +72,7 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 		if (registry.projectileTimers.has(entity)) {
 			Entity player = registry.players.entities[0];
 			Motion& player_motion = motion_registry.get(player);
-			if (collides(motion_registry.get(entity), motion_registry.get(player))) {
+			if (collides_circle(motion_registry.get(entity), motion_registry.get(player))) {
 				// hit player
 				Entity enemy = registry.projectileTimers.get(entity).owner;
 				createExplosion(renderer, player_motion.position);
@@ -92,7 +104,14 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 					bool target_valid = true;
 					for (uint j = 0; j < motion_registry.size(); j++) {
 						if (j != i && registry.solid.has(motion_registry.entities[j])) {
-							if (collides_AABB(motion, motion_registry.components[j])) {
+							// differentiate between walls and non-walls
+							if (registry.enemies.has(motion_registry.entities[j]) || registry.players.has(motion_registry.entities[j])) {
+								if (collides_circle(motion, motion_registry.components[j])) {
+									target_valid = false;
+									break;
+								}
+							}
+							else if (collides_AABB(motion, motion_registry.components[j])) {
 								target_valid = false;
 								break;
 							}
@@ -115,8 +134,18 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 					// projectile hit wall
 					if (!target_valid) {
 						if (registry.projectileTimers.has(entity)) {
-							Entity& e = registry.projectileTimers.get(entity).owner;
-							motion_registry.get(e).in_motion = false;
+							Entity& player = registry.players.entities[0];
+							Motion& player_motion = motion_registry.get(player);
+							Entity& enemy = registry.projectileTimers.get(entity).owner;
+
+							// did it hit player?
+							if (collides_circle(motion_registry.get(entity), motion_registry.get(player))) {
+								createExplosion(renderer, player_motion.position);
+								Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
+								world->logText(deal_damage(enemy, player, 100));
+							}
+
+							motion_registry.get(enemy).in_motion = false;
 							registry.remove_all_components_of(entity);
 							break;
 						}
@@ -180,8 +209,15 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 				motion_i.position = target_position;
 				bool target_valid = true;
 				for (uint j = 0; j < motion_registry.size(); j++) {
-					if (j != i && registry.solid.has(motion_registry.entities[j])) {
-						if (collides_AABB(motion_i, motion_registry.components[j])) {
+					if (motion_registry.entities[j] != entity_i && registry.solid.has(motion_registry.entities[j])) {
+						// differentiate between walls and non-walls
+						if (registry.enemies.has(motion_registry.entities[j]) || registry.players.has(motion_registry.entities[j])) {
+							if (collides_circle(motion_i, motion_registry.components[j])) {
+								target_valid = false;
+								break;
+							}
+						}
+						else if (collides_AABB(motion_i, motion_registry.components[j])) {
 							target_valid = false;
 							break;
 						}

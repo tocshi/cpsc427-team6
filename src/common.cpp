@@ -82,3 +82,18 @@ int ichoose(int i, int j) {
 		return j;
 	}
 }
+
+// extrapolate position
+vec2 dirdist_extrapolate(vec2 pos, float angle, float dist) {
+	return { pos.x + (dist * cos(angle)), pos.y + (dist * sin(angle)) };
+}
+
+// to radians
+float degtorad(float angle) {
+	return angle * (M_PI / 180);
+}
+
+// to deg
+float radtodeg(float angle) {
+	return angle * (180 / M_PI);
+}

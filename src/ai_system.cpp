@@ -7,6 +7,42 @@
 #include "world_init.hpp"
 #include "physics_system.hpp"
 
+// check adjacent points and set a goal direction
+vec2 simple_path_find(vec2 start, vec2 end, Entity enemy) {
+	bool in_the_way = false;
+	vec2 direction = vec2(0.0);
+	float tolerance = 30;
+	// check if enemy in the way
+	for (Entity e : registry.enemies.entities) {
+		if (e == enemy) {
+			continue;
+		}
+		Motion& enemy_motion = registry.motions.get(e);
+		vec2 enemy_pos = enemy_motion.position;
+		float A = distance(start, enemy_pos);
+		float B = distance(enemy_pos, end);
+		float C = distance(start, end);
+		if (A + B >= C - tolerance && A + B <= C + tolerance) {
+			in_the_way = true;
+			break;
+		} else {
+			in_the_way = false;
+		}
+	}
+	if (in_the_way) {
+		// perpendicular slope
+		vec2 inverse_slope = normalize(vec2(end[1]-start[1], end[0]-start[0])) * vec2(100);
+		vec2 pointA = end + inverse_slope;
+		vec2 pointB = end - inverse_slope;
+		vec2 trueDir = end-start;
+		direction = (distance(start, pointA) - 30 <= distance(start, pointB)) ? pointA - start : pointB - start;
+	}
+	else {
+		direction = end - start;
+	}
+	return normalize(direction);
+}
+
 void AISystem::step(Entity e)
 {
 	for (Entity& player : registry.players.entities) {
@@ -101,7 +137,8 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 				motion_struct.in_motion = false;
 			}
 			else {
-				motion_struct.velocity = slime_velocity * normalize(motion_struct.destination - motion_struct.position);
+				vec2 direction = simple_path_find(motion_struct.position, player_motion.position, slime);
+				motion_struct.velocity = slime_velocity * direction;
 				motion_struct.in_motion = true;
 			}
 		}
@@ -142,7 +179,7 @@ void AISystem::plant_shooter_logic(Entity plant_shooter, Entity& player) {
 			if (player_in_range(motion_struct.position, aggroRange)) {
 				// spawn projectile, etc
 				vec2 dir = normalize(player_motion.position - motion_struct.position);
-				createPlantProjectile(world.renderer, motion_struct.position, dir, plant_shooter);
+				createPlantProjectile(world.renderer, motion_struct.position + (dir*motion_struct.scale), dir, plant_shooter);
 				registry.motions.get(plant_shooter).in_motion = true;
 			}
 			break;

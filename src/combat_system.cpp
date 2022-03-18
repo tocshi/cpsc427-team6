@@ -216,10 +216,10 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 		}
 	}
 
-	// Pious Prayer
-	if (defender_inv.artifact[(int)ARTIFACT::PIOUS_PRAYER] > 0 && dist_to(attacker_motion.position, defender_motion.position) > 100) {
-		final_damage = max(1.f, final_damage - 3.f * defender_inv.artifact[(int)ARTIFACT::PIOUS_PRAYER]);
-	}
+	//// Pious Prayer
+	//if (defender_inv.artifact[(int)ARTIFACT::PIOUS_PRAYER] > 0 && dist_to(attacker_motion.position, defender_motion.position) > 100) {
+	//	final_damage = max(1.f, final_damage - 3.f * defender_inv.artifact[(int)ARTIFACT::PIOUS_PRAYER]);
+	//}
 
 	// Blade Polish Kit
 	if (attacker_inv.artifact[(int)ARTIFACT::BLADE_POLISH] > 0 && dist_to(attacker_motion.position, defender_motion.position) <= 100) {
@@ -246,14 +246,8 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 }
 
 void apply_status(Entity& target, StatusEffect& status) {
-	if (!registry.statuses.has(target)) {
-		StatusContainer& statusContainer = registry.statuses.emplace(target);
-		statusContainer.statuses.push_back(status);
-	}
-	else {
-		StatusContainer& statusContainer = registry.statuses.get(target);
-		statusContainer.statuses.push_back(status);
-	}
+	StatusContainer& statusContainer = registry.statuses.get(target);
+	statusContainer.statuses.push_back(status);
 }
 
 // call this function once at turn start (2nd param=true), and once at turn end (2nd param=false)

@@ -779,7 +779,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// LOGGING TEXT TEST
 	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
 		for (Entity& enemy : registry.enemies.entities) {
-			int test = irandRange(100,200);
+			int test = irandRange(100, 200);
 			std::string log_message = deal_damage(enemy, player_main, test);
 
 			logText(log_message);
@@ -793,8 +793,68 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		logText("Game state saved!");
 	}
 
-	// DEBUG: Testing artifact/stacking
+	///////////////////////////
+	// menu hotkeys
+	///////////////////////////
 	if (action == GLFW_RELEASE && key == GLFW_KEY_1) {
+		// attack
+		if (current_game_state == GameStates::BATTLE_MENU) {
+			attackAction();
+		}
+	}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_2) {
+		// move
+		if (current_game_state == GameStates::BATTLE_MENU) {
+			moveAction();
+		}
+	}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_3) {
+		// end turn/ guard
+		if (current_game_state == GameStates::BATTLE_MENU) {
+			for (Entity e : registry.guardButtons.entities) {
+				if (!registry.guardButtons.has(e)) {
+						continue;
+				}
+				// perform action based on button ENUM
+				BUTTON_ACTION_ID action = registry.guardButtons.get(e).action;
+
+				switch (action) {
+				case BUTTON_ACTION_ID::ACTIONS_GUARD:
+					logText("You brace yourself...");
+					registry.stats.get(player_main).guard = true;
+					handle_end_player_turn(player_main);
+					break;
+				case BUTTON_ACTION_ID::ACTIONS_END_TURN:
+					handle_end_player_turn(player_main);
+					break;
+				}
+			}
+		}
+	}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_4) {
+		// item
+		if (current_game_state == GameStates::BATTLE_MENU) {
+			itemAction();
+		}
+	}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
+		// pause menu
+		// close the menu if pressed again
+		if (current_game_state == GameStates::PAUSE_MENU) {
+			set_gamestate(GameStates::BATTLE_MENU);
+		}
+		else {
+			set_gamestate(GameStates::PAUSE_MENU);
+			// render quit button
+			createMenuQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 });
+
+			// render cancel button
+			createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f });
+		}
+	}
+
+	// DEBUG: Testing artifact/stacking
+	if (action == GLFW_RELEASE && key == GLFW_KEY_8) {
 		int give = (int)ARTIFACT::KB_MALLET;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
@@ -804,7 +864,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
 		}
 	}
-	if (action == GLFW_RELEASE && key == GLFW_KEY_2) {
+	if (action == GLFW_RELEASE && key == GLFW_KEY_9) {
 		int give = (int)ARTIFACT::WINDBAG;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
@@ -965,49 +1025,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 					case BUTTON_ACTION_ID::ACTIONS_ATTACK:
-						if (current_game_state != GameStates::ENEMY_TURN) {
-							// set player action to attack
-							Player& player = registry.players.get(player_main);
-							player.action = PLAYER_ACTION::ATTACKING;
-
-							// hide all action buttons
-							for (Entity ab : registry.actionButtons.entities) {
-								registry.remove_all_components_of(ab);
-							}
-							hideGuardButton = true;
-
-							// set game state to attack menu
-							set_gamestate(GameStates::ATTACK_MENU);
-
-							// create back button and attack mode text
-							createBackButton(renderer, { window_width_px - 100.f , window_height_px - 100.f });
-							createAttackModeText(renderer, { window_width_px - 100.f, 200.f });
-						}
+						attackAction();
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_MOVE:
-						if (current_game_state != GameStates::ENEMY_TURN) {
-							// set player action to move
-							Player& player = registry.players.get(player_main);
-							Stats stats = registry.stats.get(player_main);
-							player.action = PLAYER_ACTION::MOVING;
-
-							// hide all action buttons
-							for (Entity ab : registry.actionButtons.entities) {
-								registry.remove_all_components_of(ab);
-							}
-							hideGuardButton = true;
-
-							// show ep range
-							Motion motion = registry.motions.get(player_main);
-							create_ep_range(stats.ep, motion.movement_speed, motion.position);
-
-							// set game state to move menu
-							set_gamestate(GameStates::MOVEMENT_MENU);
-
-							// create back button and move mode text
-							createBackButton(renderer, { window_width_px - 100.f , window_height_px - 100.f });
-							createMoveModeText(renderer, { window_width_px - 100.f, 350.f });
-						}
+						moveAction();
 						break;
 					case BUTTON_ACTION_ID::PAUSE:
 						// TODO: pause enimies if it is their turn
@@ -1022,8 +1043,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_CANCEL:
-						// inMenu = false;
-						set_gamestate(GameStates::BATTLE_MENU);
+						cancelAction();
 						break;
 					case BUTTON_ACTION_ID::COLLECTION:
 						// if the button is pressed again while the menu is already open, close the menu
@@ -1037,25 +1057,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_BACK:
-						// set gamestate back to normal
-						set_gamestate(GameStates::BATTLE_MENU);
-
+						backAction();
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_ITEM:
-						// TODO: add real functionality for this
-						logText("Items Menu to be implemented later!");
-
-						// hide all action buttons
-						for (Entity ab : registry.actionButtons.entities) {
-							registry.remove_all_components_of(ab);
-						}
-						hideGuardButton = true;
-
-						// set game state to move menu
-						set_gamestate(GameStates::ITEM_MENU);
-
-						// create back button and move mode text
-						createBackButton(renderer, { window_width_px - 100.f , window_height_px -100.f });
+						itemAction();
 						break;
 					case BUTTON_ACTION_ID::OPEN_DIALOG:
 						// remove all other description dialog components
@@ -1542,4 +1547,71 @@ void remove_status(Entity e, StatusType status, int number) {
 		}
 	}
 	return;
+}
+
+void WorldSystem::handleActionButtonPress() {
+	// hide all action buttons
+	for (Entity ab : registry.actionButtons.entities) {
+		registry.remove_all_components_of(ab);
+	}
+	hideGuardButton = true;
+
+	// create back button and move mode text
+	createBackButton(renderer, { window_width_px - 100.f , window_height_px - 100.f });
+}
+
+void WorldSystem::moveAction() {
+	if (current_game_state != GameStates::ENEMY_TURN) {
+		// set player action to move
+		Player& player = registry.players.get(player_main);
+		Stats stats = registry.stats.get(player_main);
+		player.action = PLAYER_ACTION::MOVING;
+
+		handleActionButtonPress();
+
+		// show ep range
+		Motion motion = registry.motions.get(player_main);
+		create_ep_range(stats.ep, motion.movement_speed, motion.position);
+
+		// set game state to move menu
+		set_gamestate(GameStates::MOVEMENT_MENU);
+
+		createMoveModeText(renderer, { window_width_px - 100.f, 350.f });
+	}
+}
+
+void WorldSystem::attackAction() {
+	if (current_game_state != GameStates::ENEMY_TURN) {
+		// set player action to attack
+		Player& player = registry.players.get(player_main);
+		player.action = PLAYER_ACTION::ATTACKING;
+
+		handleActionButtonPress();
+
+		// set game state to attack menu
+		set_gamestate(GameStates::ATTACK_MENU);
+
+		createAttackModeText(renderer, { window_width_px - 100.f, 200.f });
+	}
+}
+
+void WorldSystem::backAction() {
+	// set gamestate back to normal
+	set_gamestate(GameStates::BATTLE_MENU);
+
+}
+
+void WorldSystem::itemAction() {
+	// TODO: add real functionality for this
+	logText("Items Menu to be implemented later!");
+	
+	handleActionButtonPress();
+
+	// set game state to move menu
+	set_gamestate(GameStates::ITEM_MENU);
+}
+
+void WorldSystem::cancelAction() {
+	// inMenu = false;
+	set_gamestate(GameStates::BATTLE_MENU);
 }

@@ -140,6 +140,24 @@ private:
 	// handle end of player's turn
 	void handle_end_player_turn(Entity player);
 
+	// item action
+	void itemAction();
+
+	// attack action
+	void attackAction();
+
+	// move action
+	void moveAction();
+
+	// cacnel action
+	void cancelAction();
+
+	// back action
+	void backAction();
+
+	// action button helper
+	void handleActionButtonPress();
+
 	// OpenGL window handle
 	GLFWwindow* window;
 

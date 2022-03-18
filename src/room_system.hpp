@@ -3,6 +3,7 @@
 #include "common.hpp"
 #include <array>
 #include <map>
+#include "tiny_ecs_registry.hpp"
 
 enum class Floors {
 	FLOOR1 = 0,
@@ -13,6 +14,10 @@ const int floor_count = (int)Floors::FLOOR_COUNT;
 class RoomSystem {
 public:
 	std::string getRandomRoom(Floors floor, bool repeat_allowed);
+	void updateObjective(ObjectiveType type, int quantity);
+	void setObjective(ObjectiveType type, int quantity);
+	void setRandomObjective();
+
 	Floors current_floor = Floors::FLOOR1;
 private:
 	const std::map<Floors, std::vector<std::string>> floor_map_data = {
@@ -23,4 +28,5 @@ private:
 	};
 
 	int current_room_idx = 0;
+	Objective current_objective;
 };

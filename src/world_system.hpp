@@ -168,6 +168,9 @@ private:
 	// handle end of player's turn
 	void handle_end_player_turn(Entity player);
 
+	// generate and setup a new room
+	void generateNewRoom(Floors floor, bool repeat_allowed);
+
 	// OpenGL window handle
 	GLFWwindow* window;
 

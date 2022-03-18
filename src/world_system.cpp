@@ -405,6 +405,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			// remove from turn queue
 			turnOrderSystem.removeFromQueue(enemy);
+			roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
 		}
 	}
 
@@ -656,6 +657,8 @@ void WorldSystem::spawn_game_entities() {
 	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war();
+
+	roomSystem.setRandomObjective();
 }
 
 // render ep range around the given position
@@ -837,45 +840,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// simulating a new room
 	if (action == GLFW_RELEASE && key == GLFW_KEY_N && get_is_player_turn()) {
-		// save game (should be just player stuff)
-		json playerData = saveSystem.jsonifyPlayer(player_main);
-		// remove all entities for new room
-		removeForNewRoom();
-		// remove player
-		registry.remove_all_components_of(player_main);
-		// make new map
-		std::string next_map = roomSystem.getRandomRoom(roomSystem.current_floor, false);
-		SpawnData spawnData = createTiles(renderer, next_map);
-		// load the player back
-		player_main = loadPlayer(playerData);
-		// get the player and set its position
-		std::random_shuffle(spawnData.playerSpawns.begin(), spawnData.playerSpawns.end());
-		Motion& motion = registry.motions.get(player_main);
-		Stats& stats = registry.stats.get(player_main);
-		// set random position
-		motion.position = { spawnData.playerSpawns[0].x, spawnData.playerSpawns[0].y };
-		// set everything else in motion to default
-		motion.angle = 0.f;
-		motion.velocity = { 0.f, 0.f };
-		motion.in_motion = false;
-		motion.movement_speed = 400;
-		motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
-
-		// Refill Player EP
-		stats.ep = stats.maxep;
-
-		spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
-		spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
-
-		remove_fog_of_war();
-		create_fog_of_war();
-
-		// setup turn order system
-		turnOrderSystem.setUpTurnOrder();
-		// start first turn
-		turnOrderSystem.getNextTurn();
-
-		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+		generateNewRoom(roomSystem.current_floor, false);
 	}
 
 	// Resetting game
@@ -1789,4 +1754,48 @@ void remove_status(Entity e, StatusType status, int number) {
 		}
 	}
 	return;
+}
+
+void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
+	// save game (should be just player stuff)
+	json playerData = saveSystem.jsonifyPlayer(player_main);
+	// remove all entities for new room
+	removeForNewRoom();
+	// remove player
+	registry.remove_all_components_of(player_main);
+	// make new map
+	std::string next_map = roomSystem.getRandomRoom(floor, repeat_allowed);
+	SpawnData spawnData = createTiles(renderer, next_map);
+	// load the player back
+	player_main = loadPlayer(playerData);
+	// get the player and set its position
+	std::random_shuffle(spawnData.playerSpawns.begin(), spawnData.playerSpawns.end());
+	Motion& motion = registry.motions.get(player_main);
+	Stats& stats = registry.stats.get(player_main);
+	// set random position
+	motion.position = { spawnData.playerSpawns[0].x, spawnData.playerSpawns[0].y };
+	// set everything else in motion to default
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.in_motion = false;
+	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
+
+	// Refill Player EP
+	stats.ep = stats.maxep;
+
+	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
+	spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
+
+	remove_fog_of_war();
+	create_fog_of_war();
+
+	// setup turn order system
+	turnOrderSystem.setUpTurnOrder();
+	// start first turn
+	turnOrderSystem.getNextTurn();
+
+	// create an objective
+	roomSystem.setRandomObjective();
+
+	saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
 }

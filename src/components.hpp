@@ -496,6 +496,26 @@ struct KnockBack {
 	float angle = 0;
 };
 
+enum class ObjectiveType {
+	KILL_ENEMIES = 0,
+	ACTIVATE_SWITCHES = KILL_ENEMIES + 1,
+	DESTROY_SPAWNER = ACTIVATE_SWITCHES + 1,
+	SURVIVE_TURNS = DESTROY_SPAWNER + 1,
+	OBJECTIVE_COUNT = SURVIVE_TURNS + 1
+};
+const int objective_count = (int)ObjectiveType::OBJECTIVE_COUNT;
+
+struct Objective {
+	ObjectiveType type;
+	int remaining_count;
+	bool completed = false;
+};
+
+struct SessionStatistics {
+	int rooms_cleared = 0;
+	int enemies_defeated = 0;
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture

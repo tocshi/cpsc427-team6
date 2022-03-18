@@ -164,4 +164,4 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 // Turn UI
 Entity createTurnUI(RenderSystem* renderer, vec2 pos);
 // Icon
-Entity createIcon(RenderSystem* renderer, vec2 pos);
+Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id);

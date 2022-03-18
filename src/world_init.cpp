@@ -1819,7 +1819,7 @@ Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id)
 
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
-	motion.scale = { 64.f, 64.f };
+	motion.scale = { 48.f, 48.f };
 
 	registry.icons.emplace(entity);
 

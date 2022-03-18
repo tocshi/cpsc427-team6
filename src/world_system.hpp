@@ -77,6 +77,8 @@ public:
 	bool player_move_click = false;
 	bool is_ai_turn = false;
 
+	Entity turnUI;
+
 	// log text
 	void logText(std::string msg);
 
@@ -139,6 +141,9 @@ private:
 
 	// handle end of player's turn
 	void handle_end_player_turn(Entity player);
+
+	// udate turn UI
+	void update_turn_ui();
 
 	// OpenGL window handle
 	GLFWwindow* window;

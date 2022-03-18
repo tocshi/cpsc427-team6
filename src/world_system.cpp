@@ -208,7 +208,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.remove_all_components_of(pointer);
 	}
 	// render stylized pointers
-	if (mouseYpos > window_height_px - 200.f || mouseYpos < 100.f) {
+	if (mouseXpos > window_width_px - 200.f || mouseYpos < 100.f) {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 		createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::NORMAL_POINTER);
 	}
@@ -276,10 +276,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (registry.actionButtons.entities.size() < 4) {
 			// bring back all of the buttons
-			createMoveButton(renderer, { window_width_px - 1400.f, window_height_px - 50.f });
-			createAttackButton(renderer, { window_width_px - 1000.f, window_height_px - 50.f });
-			createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
-			createItemButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
+			createAttackButton(renderer, { window_width_px - 100.f, 200.f });
+			createMoveButton(renderer, { window_width_px - 100.f, 350.f });
+			createGuardButton(renderer, { window_width_px - 100.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+			createItemButton(renderer, { window_width_px - 100.f, 650.f });
 		}
 		
 		// hide all the visulaiztion tools
@@ -322,7 +322,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(gb);
 			}
 			// add end turn button
-			createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_END_TURN, TEXTURE_ASSET_ID::ACTIONS_END_TURN);
+			createGuardButton(renderer, { window_width_px - 100.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_END_TURN, TEXTURE_ASSET_ID::ACTIONS_END_TURN);
 		}
 		else if (!hideGuardButton) {
 			// remove guard button
@@ -330,7 +330,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(gb);
 			}
 			// add end turn button
-			createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+			createGuardButton(renderer, { window_width_px - 100.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
 		}
 
 		// update player motion
@@ -582,9 +582,9 @@ void WorldSystem::restart_game() {
 	//current_game_state = GameStates::MAIN_MENU;
 	//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
 
-	createMenuStart(renderer, { window_width_px / 2, 500.f });
-	createMenuQuit(renderer, { window_width_px / 2, 850.f });
-	createMenuTitle(renderer, { window_width_px / 2, 200.f });
+	createMenuStart(renderer, { window_width_px / 2, 400.f });
+	createMenuQuit(renderer, { window_width_px / 2, 600.f });
+	createMenuTitle(renderer, { window_width_px / 2, 150.f });
 }
 
 void WorldSystem::handle_end_player_turn(Entity player) {
@@ -947,10 +947,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						spawn_game_entities();
 						// spawn the actions bar
 						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
-						createMoveButton(renderer, { window_width_px - 1400.f, window_height_px - 50.f });
-						createAttackButton(renderer, { window_width_px - 1000.f, window_height_px - 50.f });
-						createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
-						createItemButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
+						createAttackButton(renderer, { window_width_px - 100.f, 200.f });
+						createMoveButton(renderer, { window_width_px - 100.f, 350.f });
+						createGuardButton(renderer, { window_width_px - 100.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+						createItemButton(renderer, { window_width_px - 100.f, 650.f });
 
 						// spawn the collection and pause buttons
 						createPauseButton(renderer, { window_width_px - 80.f, 50.f });
@@ -980,8 +980,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							set_gamestate(GameStates::ATTACK_MENU);
 
 							// create back button and attack mode text
-							createBackButton(renderer, { 100.f , window_height_px - 60.f });
-							createAttackModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
+							createBackButton(renderer, { window_width_px - 100.f , window_height_px - 100.f });
+							createAttackModeText(renderer, { window_width_px - 100.f, 200.f });
 						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_MOVE:
@@ -1005,8 +1005,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							set_gamestate(GameStates::MOVEMENT_MENU);
 
 							// create back button and move mode text
-							createBackButton(renderer, { 100.f , window_height_px - 60.f });
-							createMoveModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
+							createBackButton(renderer, { window_width_px - 100.f , window_height_px - 100.f });
+							createMoveModeText(renderer, { window_width_px - 100.f, 350.f });
 						}
 						break;
 					case BUTTON_ACTION_ID::PAUSE:
@@ -1055,7 +1055,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						set_gamestate(GameStates::ITEM_MENU);
 
 						// create back button and move mode text
-						createBackButton(renderer, { 100.f , window_height_px - 60.f });
+						createBackButton(renderer, { window_width_px - 100.f , window_height_px -100.f });
 						break;
 					case BUTTON_ACTION_ID::OPEN_DIALOG:
 						// remove all other description dialog components
@@ -1118,7 +1118,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		///////////////////////////
 
 		// ensure it is the player's turn and they are not currently moving
-		if (get_is_player_turn() && !player_move_click && ypos < window_height_px - 200.f && ypos > 80.f) {
+		if (get_is_player_turn() && !player_move_click && xpos < window_width_px - 200.f && ypos > 100.f) {
 			if (player_main && current_game_state >= GameStates::GAME_START) {
 				Player& player = registry.players.get(player_main);
 				Motion& player_motion = registry.motions.get(player_main);

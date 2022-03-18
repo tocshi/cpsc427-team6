@@ -5,7 +5,7 @@
 #include <cassert>
 #include <sstream>
 #include <iostream>
-#include<fstream>
+#include <fstream>
 
 #include "physics_system.hpp"
 #include "combat_system.hpp"
@@ -606,8 +606,8 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
 
-	SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
-	// SpawnData spawnData = createTiles(renderer, "debug_room.tmx");
+	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	SpawnData spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
@@ -839,17 +839,17 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// simulating a new room
 	if (action == GLFW_RELEASE && key == GLFW_KEY_N && get_is_player_turn()) {
+		// save game (should be just player stuff)
+		json playerData = saveSystem.jsonifyPlayer(player_main);
 		// remove all entities for new room
 		removeForNewRoom();
-		// save game (should be just player stuff)
-		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
 		// remove player
 		registry.remove_all_components_of(player_main);
 		// make new map
-		SpawnData spawnData = createTiles(renderer, "map1_random.tmx");
+		std::string next_map = roomSystem.getRandomRoom(roomSystem.current_floor, false);
+		SpawnData spawnData = createTiles(renderer, next_map);
 		// load the player back
-		json gameData = saveSystem.getSaveData();
-		loadFromData(gameData);
+		player_main = loadPlayer(playerData);
 		// get the player and set its position
 		std::random_shuffle(spawnData.playerSpawns.begin(), spawnData.playerSpawns.end());
 		Motion& motion = registry.motions.get(player_main);
@@ -860,14 +860,24 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		motion.angle = 0.f;
 		motion.velocity = { 0.f, 0.f };
 		motion.in_motion = false;
-		motion.movement_speed = 200;
+		motion.movement_speed = 400;
 		motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 
 		// Refill Player EP
 		stats.ep = stats.maxep;
 
+		spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
+		spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
+
 		remove_fog_of_war();
 		create_fog_of_war();
+
+		// setup turn order system
+		turnOrderSystem.setUpTurnOrder();
+		// start first turn
+		turnOrderSystem.getNextTurn();
+
+		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
 	}
 
 	// Resetting game
@@ -1383,7 +1393,7 @@ void WorldSystem::loadFromData(json data) {
 		if (entity["type"] == "player") {
 			printf("type is player successful... loading player\n");
 			e = loadPlayer(entity);
-			printf("loading player done \n");
+			player_main = e;
 		}
 		else {
 			printf(" type is enemy ... loading enemy\n");

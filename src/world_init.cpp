@@ -1821,6 +1821,8 @@ Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id)
 	motion.position = pos;
 	motion.scale = { 64.f, 64.f };
 
+	registry.icons.emplace(entity);
+
 	registry.renderRequests.insert(
 		entity,
 		{ texture_id,

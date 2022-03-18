@@ -117,7 +117,7 @@ private:
 	void removeForNewRoom();
 
 	// load entities from saved data
-	std::queue<Entity> loadFromData(json data);
+	void loadFromData(json data);
 
 	// load player from data
 	Entity loadPlayer(json playerData);
@@ -125,14 +125,41 @@ private:
 	// load enemies from data
 	Entity loadEnemy(json enemyData);
 
-	// load a slime from data
-	Entity loadSlime(json slimeData);
-
 	// load motion data
-	Motion loadMotion(json motionData);
+	void loadMotion(Entity e, json motionData);
 
 	// load stats data
-	Stats loadStats(json statsData);
+	void loadStats(Entity e, json statsData);
+
+	// load queueable data
+	void loadQueueable(Entity e, json queueableData);
+
+	// load enemy component
+	void loadEnemyComponent(Entity e, json enemyCompData, Inventory inv);
+
+	// load player component
+	void loadPlayerComponent(Entity e, json playerCompData, Inventory inv);
+
+	// load inventory
+	Inventory loadInventory(Entity e, json inventoryData);
+
+	// load statuses
+	void loadStatuses(Entity e, json statusData);
+
+	// load tiles
+	void loadTiles(json tileData);
+
+	// load collidables
+	void loadCollidables(json collidableData);
+
+	// load interactables
+	void loadInteractables(json interactablesList);
+
+	// load a sign
+	void loadSign(Entity e, json signData);
+
+	// load a chest
+	void loadChest(Entity e);
   
 	// do turn order logic
 	void doTurnOrderLogic();

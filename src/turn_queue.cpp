@@ -187,3 +187,9 @@ void TurnQueue::restructure() {
 		push(es.entity);
 	}
 }
+
+void TurnQueue::emptyQueue() {
+	while (head) {
+		removeEntity(head->e);
+	}
+}

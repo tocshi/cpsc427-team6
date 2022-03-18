@@ -16,14 +16,21 @@ class SaveSystem
 {
 public:
 	void saveGameState(std::queue<Entity> entities);
-	void readJsonFile();
 	bool saveDataExists();
 	json getSaveData();
+	std::queue<Entity> getSolidTileInteract(std::queue<Entity> orignalqueue); // puts solid/ collidables obj + tileMAp into the entitylist
+	json jsonifyPlayer(Entity player);
 private:
 	json jsonifyEntities(std::queue<Entity> entities);
-	json jsonifyPlayer(Entity player);
 	json jsonifyEnemy(Entity enemy);
 	json jsonifyMotion(Motion m);
 	json jsonifyStats(Stats s);
 	json jsonifyQueueable(Queueable q);
+	json jsonifyInventory(Entity inv);
+	json jsonifyEquipment(Equipment e);
+	json jsonifyInteractables();
+	json jsonifyTiles();
+	json jsonifyCollidables();
+	json jsonifySign(Entity e);
+	//json jsonify
 };

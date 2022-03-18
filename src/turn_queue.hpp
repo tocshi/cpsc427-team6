@@ -32,6 +32,7 @@ public:
 	void putBackEntity(Entity entity);
 	int size();
 	void restructure();
+	void emptyQueue();
 private:
 	Node* head;
 	Node* tail;

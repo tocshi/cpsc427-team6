@@ -34,10 +34,13 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer);
+	void init (RenderSystem* renderer);
 
 	// Releases all associated resources
 	~WorldSystem();
+
+	// free music 
+	void destroyMusic();
 
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
@@ -67,6 +70,8 @@ public:
 	Mix_Chunk* error_sound;
 	Mix_Chunk* footstep_sound;
 
+	Mix_Music* menu_music;
+	Mix_Music* cutscene_music;
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
@@ -88,7 +93,10 @@ private:
 	void on_key(int key, int, int action, int mod);
 	void on_mouse(int button, int action, int mod);
 	void on_mouse_move(vec2 pos);
-
+	
+	// start of cut scene 
+	void cut_scene_start();
+	
 	// restart level
 	void restart_game();
 
@@ -184,6 +192,7 @@ private:
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+	int countCutScene = 0;
 };
 
 // Set attack state for enemies that attack after moving

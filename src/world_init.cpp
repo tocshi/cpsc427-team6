@@ -621,6 +621,33 @@ Entity createBackground(RenderSystem* renderer, vec2 position)
 		 RENDER_LAYER_ID::BG
 		});
 
+	return entity;   
+}
+
+// create entity for cutScene
+Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID tID) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ window_width_px, window_height_px });
+
+	registry.renderRequests.insert(
+		entity,
+		{
+		 tID, // textureAssetID
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::CUTSCENE
+
+		}
+	);
 	return entity;
 }
 

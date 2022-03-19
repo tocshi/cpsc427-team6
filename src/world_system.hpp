@@ -66,6 +66,7 @@ public:
 	Mix_Chunk* fire_explosion_sound;
 	Mix_Chunk* error_sound;
 	Mix_Chunk* footstep_sound;
+	Mix_Chunk* door_sound;
 
 	// Game state
 	RenderSystem* renderer;
@@ -80,6 +81,8 @@ public:
 
 	// log text
 	void logText(std::string msg);
+
+	void spawn_doors_random_location(int quantity);
 
 private:
 	// Input callback functions
@@ -178,6 +181,8 @@ private:
 	TurnOrderSystem turnOrderSystem;
 	AISystem aiSystem;
 	RoomSystem roomSystem;
+
+	SpawnData spawnData;
 
 	// C++ random number generator
 	std::default_random_engine rng;

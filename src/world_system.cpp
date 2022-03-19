@@ -31,6 +31,8 @@ WorldSystem::~WorldSystem() {
 		Mix_FreeChunk(error_sound);
 	if (footstep_sound != nullptr)
 		Mix_FreeChunk(footstep_sound);
+	if (door_sound != nullptr)
+		Mix_FreeChunk(door_sound);
 	Mix_CloseAudio();
 
 	// Destroy all created components
@@ -143,15 +145,19 @@ GLFWwindow* WorldSystem::create_window() {
 	error_sound = Mix_LoadWAV(audio_path("feedback/error.wav").c_str());
 	Mix_VolumeChunk(error_sound, 13);
 	footstep_sound = Mix_LoadWAV(audio_path("feedback/footstep.wav").c_str());
-	Mix_VolumeChunk(footstep_sound, 14);
+	Mix_VolumeChunk(footstep_sound, 32);
+	door_sound = Mix_LoadWAV(audio_path("feedback/door_open.wav").c_str());
+	Mix_VolumeChunk(door_sound, 32);
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr 
-		|| error_sound == nullptr || footstep_sound == nullptr) {
-		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
+		|| error_sound == nullptr || footstep_sound == nullptr 
+		|| door_sound == nullptr) {
+		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n %s\n make sure the data directory is present",
 			audio_path("bgm/caves0.wav").c_str(),
 			audio_path("feedback/fire_explosion.wav").c_str(),
 			audio_path("feedback/error.wav").c_str(),
-			audio_path("feedback/footstep.wav").c_str());
+			audio_path("feedback/footstep.wav").c_str(),
+			audio_path("feedback/door_open.wav").c_str());
 		return nullptr;
 	}
 
@@ -413,13 +419,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	assert(registry.screenStates.components.size() <= 1);
     ScreenState &screen = registry.screenStates.components[0];
 
-    float min_counter_ms = 3000.f;
+    float min_death_counter_ms = 3000.f;
 	for (Entity entity : registry.deathTimers.entities) {
 		// progress timer
 		DeathTimer& counter = registry.deathTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
-		if(counter.counter_ms < min_counter_ms){
-		    min_counter_ms = counter.counter_ms;
+		if(counter.counter_ms < min_death_counter_ms){
+		    min_death_counter_ms = counter.counter_ms;
 		}
 
 		// restart the game once the death timer expired
@@ -430,17 +436,30 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			return true;
 		}
 	}
+
+	float min_room_counter_ms = 1000.f;
+	for (Entity entity : registry.roomTransitions.entities) {
+		// progress timer
+		RoomTransitionTimer& counter = registry.roomTransitions.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if (counter.counter_ms < min_room_counter_ms) {
+			min_room_counter_ms = counter.counter_ms;
+		}
+
+		// restart the game once the death timer expired
+		if (counter.counter_ms < 0) {
+			generateNewRoom(counter.floor, counter.repeat_allowed);
+			return true;
+		}
+	}
 	// reduce window brightness if any of the present chickens is dying
-	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
+	screen.darken_screen_factor = max(1 - min_death_counter_ms / 3000, 1 - min_room_counter_ms / 1000);
 
 	// Projectile Timers
 	for (Entity entity : registry.projectileTimers.entities) {
 		// progress timer
 		ProjectileTimer& counter = registry.projectileTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
-		if(counter.counter_ms < min_counter_ms){
-		    min_counter_ms = counter.counter_ms;
-		}
 
 		// remove text once the text timer has expired
 		if (counter.counter_ms < 0) {
@@ -454,9 +473,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// progress timer
 		TextTimer& counter = registry.textTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
-		if(counter.counter_ms < min_counter_ms){
-		    min_counter_ms = counter.counter_ms;
-		}
 
 		// remove text once the text timer has expired
 		if (counter.counter_ms < 0) {
@@ -607,7 +623,7 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 void WorldSystem::spawn_game_entities() {
 
 	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	SpawnData spawnData = createTiles(renderer, next_map);
+	spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
@@ -727,11 +743,10 @@ void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int
 	std::random_shuffle(itemSpawns.begin(), itemSpawns.end());
 	if (itemSpawns.size() > 0) {
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(itemSpawns.size()));
-		Entity& player = registry.players.entities[0];
-		Motion& motion = registry.motions.get(player);
+		Motion& motion = registry.motions.get(player_main);
 		int range = 0;
-		if (registry.stats.has(player)) {
-			range = registry.stats.get(player).range;
+		if (registry.stats.has(player_main)) {
+			range = registry.stats.get(player_main).range;
 		}
 
 		int spawned = 0;
@@ -745,6 +760,33 @@ void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int
 				}
 			}
 			createChest(renderer, { itemSpawns[i].x, itemSpawns[i].y });
+			spawned++;
+			i++;
+		}
+	}
+}
+
+// spawn door entities in random locations
+void WorldSystem::spawn_doors_random_location(int quantity) {
+	std::random_shuffle(spawnData.playerSpawns.begin(), spawnData.playerSpawns.end());
+	if (spawnData.playerSpawns.size() > 0) {
+		Motion& motion = registry.motions.get(player_main);
+		int range = 0;
+		if (registry.stats.has(player_main)) {
+			range = registry.stats.get(player_main).range;
+		}
+
+		int spawned = 0;
+		int i = 0;
+		while (spawned < quantity && i < spawnData.playerSpawns.size()) {
+			// temporary, later we can also randomize the item types
+			if (range > 0) {
+				if (dist_to(motion.position, spawnData.playerSpawns[i]) <= range) {
+					i++;
+					continue;
+				}
+			}
+			createDoor(renderer, { spawnData.playerSpawns[i].x, spawnData.playerSpawns[i].y });
 			spawned++;
 			i++;
 		}
@@ -840,7 +882,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// simulating a new room
 	if (action == GLFW_RELEASE && key == GLFW_KEY_N && get_is_player_turn()) {
-		generateNewRoom(roomSystem.current_floor, false);
+		if (!registry.roomTransitions.has(player_main)) {
+			RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
+			transition.floor = roomSystem.current_floor;
+		}
 	}
 
 	// Resetting game
@@ -1184,6 +1229,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							if (registry.signs.has(entity)) {
 								Sign& sign = registry.signs.get(entity);
 								sign.playing = true;
+							}
+							else if (interactable.type == INTERACT_TYPE::DOOR && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+								if (!registry.roomTransitions.has(player_main)) {
+									RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
+									transition.floor = roomSystem.current_floor;
+								}
 							}
 							else if (interactable.type == INTERACT_TYPE::CHEST && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
 								
@@ -1765,7 +1816,7 @@ void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
 	registry.remove_all_components_of(player_main);
 	// make new map
 	std::string next_map = roomSystem.getRandomRoom(floor, repeat_allowed);
-	SpawnData spawnData = createTiles(renderer, next_map);
+	spawnData = createTiles(renderer, next_map);
 	// load the player back
 	player_main = loadPlayer(playerData);
 	// get the player and set its position
@@ -1798,4 +1849,8 @@ void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
 	roomSystem.setRandomObjective();
 
 	saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+
+	assert(registry.screenStates.components.size() <= 1);
+	ScreenState& screen = registry.screenStates.components[0];
+	screen.darken_screen_factor = 0;
 }

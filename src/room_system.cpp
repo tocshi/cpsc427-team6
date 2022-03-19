@@ -31,10 +31,13 @@ void RoomSystem::setObjective(ObjectiveType type, int quantity) {
 		world.logText("Kill " + std::to_string(quantity) + " enemies to proceed!");
 		break;
 	case ObjectiveType::ACTIVATE_SWITCHES:
+		world.logText("Find and activate " + std::to_string(quantity) + " switches to proceed!");
 		break;
 	case ObjectiveType::DESTROY_SPAWNER:
+		world.logText("Find and destroy the enemy hive!");
 		break;
 	case ObjectiveType::SURVIVE_TURNS:
+		world.logText("Survive " + std::to_string(quantity) + " turns to proceed!");
 		break;
 	default:
 		break;
@@ -61,8 +64,8 @@ void RoomSystem::setRandomObjective() {
 	default:
 		break;
 	}
-	setObjective(objective_type, quantity);
-	//setObjective(ObjectiveType::KILL_ENEMIES, 2);
+	//setObjective(objective_type, quantity);
+	setObjective(ObjectiveType::KILL_ENEMIES, 1);
 }
 
 void RoomSystem::updateObjective(ObjectiveType type, int quantity) {
@@ -72,8 +75,9 @@ void RoomSystem::updateObjective(ObjectiveType type, int quantity) {
 	if (current_objective.remaining_count == 0) {
 		if (!current_objective.completed) {
 			current_objective.completed = true;
-			world.logText("Objective completed!");
-			// TODO: do things like spawn the doors
+			world.logText("You hear the sounds of several doors opening in the distance...");
+			world.spawn_doors_random_location(3);
+			Mix_PlayChannel(-1, world.door_sound, 0);
 		}
 	}
 }

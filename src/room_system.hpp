@@ -5,12 +5,6 @@
 #include <map>
 #include "tiny_ecs_registry.hpp"
 
-enum class Floors {
-	FLOOR1 = 0,
-	FLOOR_COUNT = FLOOR1 + 1
-};
-const int floor_count = (int)Floors::FLOOR_COUNT;
-
 class RoomSystem {
 public:
 	std::string getRandomRoom(Floors floor, bool repeat_allowed);

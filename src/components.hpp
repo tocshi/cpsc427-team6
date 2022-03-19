@@ -516,6 +516,18 @@ struct SessionStatistics {
 	int enemies_defeated = 0;
 };
 
+enum class Floors {
+	FLOOR1 = 0,
+	FLOOR_COUNT = FLOOR1 + 1
+};
+const int floor_count = (int)Floors::FLOOR_COUNT;
+
+struct RoomTransitionTimer {
+	float counter_ms = 1000;
+	Floors floor;
+	bool repeat_allowed = false; // whether the next room is allowed to use the same map file as the current
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture

@@ -485,6 +485,7 @@ Entity createDoor(RenderSystem* renderer, vec2 pos)
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
+	registry.solid.emplace(entity);
 	auto& interactable = registry.interactables.emplace(entity);
 	interactable.type = INTERACT_TYPE::DOOR;
 

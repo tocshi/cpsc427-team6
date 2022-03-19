@@ -83,6 +83,10 @@ class RenderSystem {
 			textures_path("menu/description_dialog.png"),
 			textures_path("menu/artifact_placeholder.png"),
 			textures_path("menu/scroll_arrow.png"),
+			textures_path("cutscene1.png"), // add for cutscenes 
+			textures_path("cutscene2.png"),
+			textures_path("cutscene3.png"),
+			textures_path("turn_ui.png"),
 			textures_path("switch_default.png"),
 			textures_path("switch_active.png"),
 	};

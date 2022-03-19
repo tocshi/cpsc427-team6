@@ -59,6 +59,7 @@ public:
 	ComponentContainer<Sign> signs;
 	ComponentContainer<StatusContainer> statuses;
 	ComponentContainer<KnockBack> knockbacks;
+	ComponentContainer<Icon> icons;
 	ComponentContainer<RoomTransitionTimer> roomTransitions;
 	ComponentContainer<FadeInTimer> fadeins;
 	ComponentContainer<LoadingTimer> loadingTimers;
@@ -117,6 +118,7 @@ public:
 		registry_list.push_back(&animations);
 		registry_list.push_back(&statuses);
 		registry_list.push_back(&knockbacks);
+		registry_list.push_back(&icons);
 		registry_list.push_back(&roomTransitions);
 		registry_list.push_back(&fadeins);
 		registry_list.push_back(&loadingTimers);

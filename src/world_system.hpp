@@ -34,10 +34,13 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer);
+	void init (RenderSystem* renderer);
 
 	// Releases all associated resources
 	~WorldSystem();
+
+	// free music 
+	void destroyMusic();
 
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
@@ -69,6 +72,8 @@ public:
 	Mix_Chunk* door_sound;
 	Mix_Chunk* switch_sound;
 
+	Mix_Music* menu_music;
+	Mix_Music* cutscene_music;
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
@@ -79,6 +84,8 @@ public:
 	bool is_player_turn = true;
 	bool player_move_click = false;
 	bool is_ai_turn = false;
+
+	Entity turnUI;
 
 	// log text
 	void logText(std::string msg);
@@ -91,7 +98,10 @@ private:
 	void on_key(int key, int, int action, int mod);
 	void on_mouse(int button, int action, int mod);
 	void on_mouse_move(vec2 pos);
-
+	
+	// start of cut scene 
+	void cut_scene_start();
+	
 	// restart level
 	void restart_game();
 
@@ -176,6 +186,9 @@ private:
 	// generate and setup a new room
 	void generateNewRoom(Floors floor, bool repeat_allowed);
 
+	// udate turn UI
+	void update_turn_ui();
+
 	// OpenGL window handle
 	GLFWwindow* window;
 
@@ -189,6 +202,7 @@ private:
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+	int countCutScene = 0;
 };
 
 // Set attack state for enemies that attack after moving

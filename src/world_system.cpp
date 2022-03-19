@@ -1042,10 +1042,14 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 					case BUTTON_ACTION_ID::ACTIONS_ATTACK:
-						attackAction();
+						if (current_game_state == GameStates::BATTLE_MENU) {
+							attackAction();
+						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_MOVE:
-						moveAction();
+						if (current_game_state == GameStates::BATTLE_MENU) {
+							moveAction();
+						}
 						break;
 					case BUTTON_ACTION_ID::PAUSE:
 						// TODO: pause enimies if it is their turn
@@ -1074,10 +1078,14 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_BACK:
-						backAction();
+						if (current_game_state != GameStates::PAUSE_MENU && current_game_state != GameStates::COLLECTION_MENU) {
+							backAction();
+						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_ITEM:
-						itemAction();
+						if (current_game_state == GameStates::BATTLE_MENU) {
+							itemAction();
+						}
 						break;
 					case BUTTON_ACTION_ID::OPEN_DIALOG:
 						// remove all other description dialog components
@@ -1122,7 +1130,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		///////////////////////////
 		// logic for guard button presses
 		///////////////////////////
-		if (current_game_state != GameStates::ENEMY_TURN) {
+		if (current_game_state == GameStates::BATTLE_MENU) {
 			for (Entity e : registry.guardButtons.entities) {
 				if (!registry.motions.has(e)) {
 					continue;
@@ -1296,18 +1304,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 
 	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_move_click && current_game_state >= GameStates::GAME_START) {
-		Motion& motion_struct = registry.motions.get(player_main);
-
-		// set velocity to the direction of the cursor, at a magnitude of player_velocity
-		float speed = motion_struct.movement_speed;
-		float angle = atan2(world_pos.y - motion_struct.position.y, world_pos.x - motion_struct.position.x);
-		float x_component = cos(angle) * speed;
-		float y_component = sin(angle) * speed;
-		motion_struct.velocity = { x_component, y_component};
-		//motion_struct.angle = angle + (0.5 * M_PI);
-		motion_struct.destination = { world_pos.x, world_pos.y };
-		motion_struct.in_motion = true;
-		player_move_click = true;
+		if (current_game_state == GameStates::ATTACK_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ITEM_MENU) {
+			backAction();
+		}
 	}
 }
 

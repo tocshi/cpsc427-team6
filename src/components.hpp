@@ -523,9 +523,17 @@ enum class Floors {
 const int floor_count = (int)Floors::FLOOR_COUNT;
 
 struct RoomTransitionTimer {
-	float counter_ms = 1000;
+	float counter_ms = 750.f;
 	Floors floor;
 	bool repeat_allowed = false; // whether the next room is allowed to use the same map file as the current
+};
+
+struct LoadingTimer {
+	float counter_ms = 250.f; // We use it to wait some amount of time or until a long step has passed
+};
+
+struct FadeInTimer {
+	float counter_ms = 750.f;
 };
 
 /**

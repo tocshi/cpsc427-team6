@@ -437,7 +437,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	float min_room_counter_ms = 1000.f;
+	float min_room_counter_ms = 750.f;
 	for (Entity entity : registry.roomTransitions.entities) {
 		// progress timer
 		RoomTransitionTimer& counter = registry.roomTransitions.get(entity);
@@ -446,14 +446,46 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			min_room_counter_ms = counter.counter_ms;
 		}
 
-		// restart the game once the death timer expired
 		if (counter.counter_ms < 0) {
+			registry.roomTransitions.remove(entity);
 			generateNewRoom(counter.floor, counter.repeat_allowed);
 			return true;
 		}
 	}
 	// reduce window brightness if any of the present chickens is dying
-	screen.darken_screen_factor = max(1 - min_death_counter_ms / 3000, 1 - min_room_counter_ms / 1000);
+	screen.darken_screen_factor = max(1 - min_death_counter_ms / 3000, 1 - min_room_counter_ms / 750);
+
+	float max_fadein_counter_ms = 0.f;
+	for (Entity entity : registry.fadeins.entities) {
+		// progress timer
+		FadeInTimer& counter = registry.fadeins.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if (counter.counter_ms > max_fadein_counter_ms) {
+			max_fadein_counter_ms = counter.counter_ms;
+		}
+
+		if (counter.counter_ms < 0) {
+			registry.fadeins.remove(entity);
+		}
+	}
+	screen.darken_screen_factor = max(max_fadein_counter_ms/750, screen.darken_screen_factor);
+
+	if (registry.loadingTimers.size() > 0) {
+		screen.darken_screen_factor = 1;
+	}
+
+	for (Entity entity : registry.loadingTimers.entities) {
+		LoadingTimer& counter = registry.loadingTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if (counter.counter_ms < 0) {
+			registry.loadingTimers.remove(entity);
+			if (registry.loadingTimers.size() == 0) {
+				registry.fadeins.emplace(entity);
+			}
+		}
+	}
+
+	
 
 	// Projectile Timers
 	for (Entity entity : registry.projectileTimers.entities) {
@@ -1850,7 +1882,7 @@ void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
 
 	saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
 
-	assert(registry.screenStates.components.size() <= 1);
-	ScreenState& screen = registry.screenStates.components[0];
-	screen.darken_screen_factor = 0;
+	if (!registry.loadingTimers.has(player_main)) {
+		registry.loadingTimers.emplace(player_main);
+	}
 }

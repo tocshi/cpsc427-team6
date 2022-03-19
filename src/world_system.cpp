@@ -1690,7 +1690,7 @@ void WorldSystem::loadPlayerComponent(Entity e, json playerCompData, Inventory i
 }
 
 Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
-	Inventory inv;
+	Inventory& inv = registry.inventories.get(e);
 	// get artifacts
 	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
 	int i = 0;

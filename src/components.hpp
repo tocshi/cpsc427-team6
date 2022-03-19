@@ -201,7 +201,7 @@ struct Equipment
 	float ep = 0;
 	float range = 0;
 
-	Spritesheet spritesheet;
+	int sprite = 0;
 };
 
 struct ArtifactIcon {
@@ -634,7 +634,8 @@ enum class RENDER_LAYER_ID {
 	FLOOR = BG + 1,
 	FLOOR_DECO = FLOOR + 1,
 	SPRITE = FLOOR_DECO + 1,
-	WALLS = SPRITE + 1,
+	PLAYER = SPRITE + 1,
+	WALLS = PLAYER + 1,
 	RANDOM_WALLS = WALLS + 1,
 	EFFECT = RANDOM_WALLS + 1,
 	UI = EFFECT + 1,

@@ -57,11 +57,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 					prev_animdata = anim;
 			}
 		}
-		else if (render_request.used_geometry == GEOMETRY_BUFFER_ID::SPRITESHEET && registry.equipment.has(entity)) {
-			Equipment& equip = registry.equipment.get(entity);
-			if (equip.spritesheet.texture != prev_spritesheet.texture || equip.spritesheet.index != prev_spritesheet.index) {
-				updateSpritesheetTexCoords(equip.spritesheet);
-				prev_spritesheet = equip.spritesheet;
+		else if (render_request.used_geometry == GEOMETRY_BUFFER_ID::SPRITESHEET && registry.spritesheets.has(entity)) {
+			Spritesheet& spritesheet = registry.spritesheets.get(entity);
+			if (spritesheet.texture != prev_spritesheet.texture || spritesheet.index != prev_spritesheet.index) {
+				updateSpritesheetTexCoords(spritesheet);
+				prev_spritesheet = spritesheet;
 			}
 		}
 

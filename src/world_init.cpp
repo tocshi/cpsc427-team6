@@ -74,12 +74,12 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	Equipment weapon = {};
 	weapon.type = EQUIPMENT::BLUNT;
-	weapon.sprite = 0;
+	//weapon.sprite = 0;
 	weapon.atk = 10;
 
 	Equipment armour = {};
 	armour.type = EQUIPMENT::ARMOUR;
-	armour.sprite = 2;
+	//armour.sprite = 2;
 	armour.def = 2;
 
 	equip_item(entity, weapon);
@@ -331,6 +331,14 @@ Entity createBoss(RenderSystem* renderer, vec2 pos)
 
 // Generate Random Equipment
 Equipment createEquipment(EQUIPMENT type, int tier) {
+	Spritesheet spritesheet = Spritesheet();
+	spritesheet.texture = TEXTURE_ASSET_ID::EQUIPMENT;
+	spritesheet.width = 96;
+	spritesheet.height = 144;
+	spritesheet.columns = 6;
+	spritesheet.rows = 9;
+	spritesheet.frame_size = { 16, 16 };
+
 	Equipment equipment = {};
 	equipment.type = type;
 
@@ -373,7 +381,7 @@ Equipment createEquipment(EQUIPMENT type, int tier) {
 			equipment.attacks[2] = sharp_attacks.back();
 			sharp_attacks.pop_back();
 			equipment.attacks[3] = ATTACK::TERMINUS_VERITAS;
-			equipment.sprite = irandRange(1, 7) * 6;
+			spritesheet.index = irandRange(1, 7) * 6;
 			break;
 		case EQUIPMENT::BLUNT:
 			equipment.attacks[0] = ATTACK::WILD_SWINGS;
@@ -382,7 +390,7 @@ Equipment createEquipment(EQUIPMENT type, int tier) {
 			equipment.attacks[2] = blunt_attacks.back();
 			blunt_attacks.pop_back();
 			equipment.attacks[3] = ATTACK::PRIMAL_RAGE;
-			equipment.sprite = irandRange(1, 7) * 6 + 1;
+			spritesheet.index = irandRange(1, 7) * 6 + 1;
 			break;
 		case EQUIPMENT::RANGED:
 			equipment.attacks[0] = ATTACK::SPREAD_SHOT;
@@ -391,7 +399,7 @@ Equipment createEquipment(EQUIPMENT type, int tier) {
 			equipment.attacks[2] = ranged_attacks.back();
 			ranged_attacks.pop_back();
 			equipment.attacks[3] = ATTACK::SKYBORNE_RAIN;
-			equipment.sprite = irandRange(1, 7) * 6 + 3;
+			spritesheet.index = irandRange(1, 7) * 6 + 3;
 			break;
 		}
 
@@ -406,7 +414,7 @@ Equipment createEquipment(EQUIPMENT type, int tier) {
 	}
 	else if (type == EQUIPMENT::ARMOUR) {
 		equipment.def = 0 + 2 * tier;
-		equipment.sprite = irandRange(1, 7) * 6 + 2;
+		spritesheet.index = irandRange(1, 7) * 6 + 2;
 	}
 
 	equipment.atk += atkmod;
@@ -414,6 +422,8 @@ Equipment createEquipment(EQUIPMENT type, int tier) {
 	equipment.speed += speedmod;
 	equipment.hp += hpmod;
 	equipment.mp += mpmod;
+
+	equipment.spritesheet = spritesheet;
 
 	return equipment;
 }
@@ -442,7 +452,7 @@ Entity createEquipmentEntity(RenderSystem* renderer, vec2 pos, Equipment equipme
 		entity,
 		{ TEXTURE_ASSET_ID::EQUIPMENT,
 		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
+		 GEOMETRY_BUFFER_ID::SPRITESHEET });
 	registry.hidables.emplace(entity);
 
 	return entity;

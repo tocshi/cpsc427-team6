@@ -54,7 +54,14 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			AnimationData& anim = registry.animations.get(entity);
 			if (anim.spritesheet_texture != prev_animdata.spritesheet_texture || anim.current_frame != prev_animdata.current_frame) {
 				updateAnimTexCoords(anim);
-				prev_animdata = anim;
+					prev_animdata = anim;
+			}
+		}
+		else if (render_request.used_geometry == GEOMETRY_BUFFER_ID::SPRITESHEET && registry.equipment.has(entity)) {
+			Equipment& equip = registry.equipment.get(entity);
+			if (equip.spritesheet.texture != prev_spritesheet.texture || equip.spritesheet.index != prev_spritesheet.index) {
+				updateSpritesheetTexCoords(equip.spritesheet);
+				prev_spritesheet = equip.spritesheet;
 			}
 		}
 
@@ -506,4 +513,30 @@ void RenderSystem::updateAnimTexCoords(AnimationData& anim) {
 	// Counterclockwise as it's the default opengl front winding direction.
 	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::ANIMATION, textured_vertices, textured_indices);
+}
+
+void RenderSystem::updateSpritesheetTexCoords(Spritesheet& spritesheet) {
+	//////////////////////////
+	// Initialize sprite
+	// The position corresponds to the center of the texture.
+	if (spritesheet.width == 0 || spritesheet.height == 0)
+		return;
+	float start_x = (spritesheet.frame_size.x * (spritesheet.index % spritesheet.columns)) / spritesheet.width;
+	float start_y = (spritesheet.frame_size.y * (spritesheet.index / spritesheet.columns)) / spritesheet.height;
+	float end_x = start_x + (spritesheet.frame_size.x / spritesheet.width);
+	float end_y = start_y + (spritesheet.frame_size.y / spritesheet.height);
+
+	std::vector<TexturedVertex> textured_vertices(4);
+	textured_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
+	textured_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
+	textured_vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
+	textured_vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
+	textured_vertices[0].texcoord = { start_x, end_y };
+	textured_vertices[1].texcoord = { end_x, end_y };
+	textured_vertices[2].texcoord = { end_x, start_y };
+	textured_vertices[3].texcoord = { start_x, start_y };
+
+	// Counterclockwise as it's the default opengl front winding direction.
+	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::SPRITESHEET, textured_vertices, textured_indices);
 }

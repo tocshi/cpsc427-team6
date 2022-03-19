@@ -64,7 +64,7 @@ float ep_resolution = 2000.f;
 // move audio timer
 float move_audio_timer_ms = 200.f;
 
-// hide guard buttons
+// button toggles
 bool hideGuardButton = false;
 
 // World initialization
@@ -316,7 +316,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 
 		// change guard button to end turn if ep is not full
-		if (ep < maxep && !hideGuardButton) {
+		if ((p.attacked || p.moved) && !hideGuardButton) {
 			// remove guard button
 			for (Entity gb : registry.guardButtons.entities) {
 				registry.remove_all_components_of(gb);
@@ -338,7 +338,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Stats& player_stats = registry.stats.get(player);
 		if (player_motion.in_motion) {
 			if (ep <= 0) {
-				handle_end_player_turn(player);
+				player_motion.destination = player_motion.position;
+				set_gamestate(GameStates::BATTLE_MENU);
 			}
 			else { 
 				ep -= 0.06f * player_stats.epratemove * elapsed_ms_since_last_update; 
@@ -593,6 +594,7 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 	player_motion.velocity = { 0.f, 0.f };
 	player_motion.in_motion = false;
 	p.attacked = false;
+	p.moved = false;
 
 	set_is_player_turn(false);
 	player_move_click = false;
@@ -1010,6 +1012,11 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_MOVE:
+						if (registry.stats.get(player_main).ep <= 0) {
+							logText("Cannot move with 0 EP!");
+							Mix_PlayChannel(-1, error_sound, 0);
+							break;
+						}
 						if (current_game_state != GameStates::ENEMY_TURN) {
 							// set player action to move
 							Player& player = registry.players.get(player_main);
@@ -1165,7 +1172,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							if (!player.attacked) {
 
 								// only attack if have enough ep and is close enough
-								if (player_stats.ep >= 0.5 * player_stats.maxep && dist_to(player_motion.position, m.position) <= 100.f) {
+								if (player_stats.ep >= 50 && dist_to(player_motion.position, m.position) <= 100.f) {
 
 									// show explosion animation
 									createExplosion(renderer, { enemyX, enemyY });
@@ -1182,10 +1189,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									}
 						
 									// lower ep
-									player_stats.ep -= 0.5 * player_stats.maxep;
+									player_stats.ep -= 50;
 									player.attacked = true;
 								}
-								else if (player_stats.ep < 0.5 * player_stats.maxep) {
+								else if (player_stats.ep < 50) {
 									logText("Not enough EP to attack!");
 									// play error sound
 									Mix_PlayChannel(-1, error_sound, 0);
@@ -1218,7 +1225,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						motion_struct.destination = { world_pos.x, world_pos.y };
 						motion_struct.in_motion = true;
 						player_move_click = true;
-
+						player.moved = true;
 					}
 					break;
 				default:
@@ -1354,12 +1361,10 @@ bool WorldSystem::get_is_ai_turn() {
 void WorldSystem::start_player_turn() {
 	// get player stats
 	float& maxep = registry.stats.get(player_main).maxep;
-	float& hp = registry.stats.get(player_main).hp;
-	float& mp = registry.stats.get(player_main).mp;
 	float& ep = registry.stats.get(player_main).ep;
 
 	if (registry.stats.get(player_main).guard) {
-	//	ep = maxep * 1.5f;
+		ep = maxep * 1.5f;
 		registry.stats.get(player_main).guard = false;
 	}
 	else {

@@ -160,8 +160,9 @@ struct Player
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
 
-	// true if the player has already attacked that turn
+	// true if the player has already attacked or moved that turn
 	bool attacked = false;
+	bool moved = false;
 };
 
 // Mode visualization objects
@@ -454,7 +455,8 @@ enum class StatusType {
 	INVINCIBLE = FANG_POISON + 1,
 	BURR_DEBUFF = INVINCIBLE + 1,
 	RANGE_BUFF = BURR_DEBUFF + 1,
-	WINDBAG_CD = RANGE_BUFF + 1,
+	SMOKE_CD = RANGE_BUFF + 1,
+	WINDBAG_CD = SMOKE_CD + 1,
 	MALEDICTION_CD = WINDBAG_CD + 1,
 	PIERCE_DEF = MALEDICTION_CD + 1,
 	PARRYING_STANCE = PIERCE_DEF + 1,

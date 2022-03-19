@@ -251,7 +251,8 @@ void apply_status(Entity& target, StatusEffect& status) {
 }
 
 // call this function once at turn start (2nd param=true), and once at turn end (2nd param=false)
-void handle_status_ticks(Entity& entity, bool applied_from_turn_start) {
+// set stats_only to true if you're using this for mid-turn stat recalculation
+void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stats_only) {
 	if (registry.statuses.has(entity)) {
 		StatusContainer& statusContainer = registry.statuses.get(entity);
 		Stats stats = registry.stats.get(entity);
@@ -294,7 +295,7 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start) {
 					break;
 			}
 			// properly remove statuses that have expired, except for things with >=999 turns (we treat those as infinite)
-			if (status.turns_remaining <= 999) {
+			if (status.turns_remaining <= 999 && !stats_only) {
 				status.turns_remaining--;
 			}
 			if (status.turns_remaining <= 0) {
@@ -324,6 +325,7 @@ void calc_stats(Entity& entity) {
 	Stats basestats = registry.basestats.get(entity);
 	Inventory inv = registry.inventories.get(entity);
 
+	handle_status_ticks(entity, true, true);
 	// Artifact Effects
 }
 

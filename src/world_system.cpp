@@ -265,6 +265,23 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// todo: add key 5
+	if (registry.keyIcons.entities.size() < 4) {
+		if (current_game_state == GameStates::ATTACK_MENU) {
+			// need to move everything down one in attack menu
+			createKeyIcon(renderer, { window_width_px - 60.f, 300.f }, TEXTURE_ASSET_ID::KEY_ICON_1);
+			// createKeyIcon(renderer, { window_width_px - 60.f, 450.f }, TEXTURE_ASSET_ID::KEY_ICON_2);
+			// createKeyIcon(renderer, { window_width_px - 60.f, 600.f }, TEXTURE_ASSET_ID::KEY_ICON_3);
+			// createKeyIcon(renderer, { window_width_px - 60.f, 750.f }, TEXTURE_ASSET_ID::KEY_ICON_4);
+		}
+		else if (current_game_state == GameStates::BATTLE_MENU) {
+			createKeyIcon(renderer, { window_width_px - 60.f, 150.f }, TEXTURE_ASSET_ID::KEY_ICON_1);
+			createKeyIcon(renderer, { window_width_px - 60.f, 300.f }, TEXTURE_ASSET_ID::KEY_ICON_2);
+			createKeyIcon(renderer, { window_width_px - 60.f, 450.f }, TEXTURE_ASSET_ID::KEY_ICON_3);
+			createKeyIcon(renderer, { window_width_px - 60.f, 600.f }, TEXTURE_ASSET_ID::KEY_ICON_4);
+		}
+	}
+
 	// If started, remove menu entities, and spawn game entities
 	//if(!current_game_state) (
 	//current_game_state > GameStates::CUTSCENE || current_game_state <GameStates::SPLASH_SCREEN
@@ -280,14 +297,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			createMoveButton(renderer, { window_width_px - 125.f, 350.f });
 			createGuardButton(renderer, { window_width_px - 125.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
 			createItemButton(renderer, { window_width_px - 125.f, 650.f });
-		}
-
-		// todo: add key 5
-		if (registry.keyIcons.entities.size() < 4) {
-			createKeyIcon(renderer, { window_width_px - 60.f, 150.f }, TEXTURE_ASSET_ID::KEY_ICON_1);
-			createKeyIcon(renderer, { window_width_px - 60.f, 300.f }, TEXTURE_ASSET_ID::KEY_ICON_2);
-			createKeyIcon(renderer, { window_width_px - 60.f, 450.f }, TEXTURE_ASSET_ID::KEY_ICON_3);
-			createKeyIcon(renderer, { window_width_px - 60.f, 600.f }, TEXTURE_ASSET_ID::KEY_ICON_4);
 		}
 		
 		// hide all the visulaiztion tools
@@ -1088,6 +1097,24 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							registry.remove_all_components_of(dd);
 						}
 						break;
+					case BUTTON_ACTION_ID::OPEN_ATTACK_DIALOG:
+						// remove all other attack dialog components
+						for (Entity ad : registry.attackDialogs.entities) {
+							registry.remove_all_components_of(ad);
+						}
+
+						// get which icon was clicked
+						if (registry.attackCards.has(e)) {
+							ATTACK attack = registry.attackCards.get(e).attack;
+							createAttackDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f), attack);
+						}
+						break;
+					case BUTTON_ACTION_ID::CLOSE_ATTACK_DIALOG:
+						// remove all attack dialog components
+						for (Entity ad : registry.attackDialogs.entities) {
+							registry.remove_all_components_of(ad);
+						}
+						break;
 				}
 			}
 		}
@@ -1559,10 +1586,8 @@ void remove_status(Entity e, StatusType status, int number) {
 
 void WorldSystem::handleActionButtonPress() {
 	// hide all the hotkeys if not in attack mode
-	if (current_game_state != GameStates::ATTACK_MENU) {
-		for (Entity ki : registry.keyIcons.entities) {
-			registry.remove_all_components_of(ki);
-		}
+	for (Entity ki : registry.keyIcons.entities) {
+		registry.remove_all_components_of(ki);
 	}
 
 	// hide all action buttons
@@ -1601,16 +1626,26 @@ void WorldSystem::attackAction() {
 		Player& player = registry.players.get(player_main);
 		player.action = PLAYER_ACTION::ATTACKING;
 
-		
-
 		// set game state to attack menu
 		set_gamestate(GameStates::ATTACK_MENU);
 		handleActionButtonPress();
 		createAttackModeText(renderer, { window_width_px - 125.f, 200.f });
+		// render attack types TODO: add other attack types
+		createAttackCard(renderer, { window_width_px - 125.f, 350.f }, ATTACK::NONE);
 	}
 }
 
 void WorldSystem::backAction() {
+	// hide all attack cards
+	for (Entity ac : registry.attackCards.entities) {
+		registry.remove_all_components_of(ac);
+	}
+
+	// hide all the hotkeys if not in attack mode
+	for (Entity ki : registry.keyIcons.entities) {
+		registry.remove_all_components_of(ki);
+	}
+
 	// set gamestate back to normal
 	set_gamestate(GameStates::BATTLE_MENU);
 

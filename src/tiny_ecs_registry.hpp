@@ -60,6 +60,8 @@ public:
 	ComponentContainer<Sign> signs;
 	ComponentContainer<StatusContainer> statuses;
 	ComponentContainer<KnockBack> knockbacks;
+	ComponentContainer<AttackCard> attackCards;
+	ComponentContainer<AttackDialog> attackDialogs;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -115,6 +117,8 @@ public:
 		registry_list.push_back(&animations);
 		registry_list.push_back(&statuses);
 		registry_list.push_back(&knockbacks);
+		registry_list.push_back(&attackCards);
+		registry_list.push_back(&attackDialogs);
 	}
 
 	void clear_all_components() {

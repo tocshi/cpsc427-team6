@@ -164,3 +164,7 @@ Entity createCollectionMenu(RenderSystem* renderer, vec2 pos);
 Entity createArtifactIcon(RenderSystem* renderer, vec2 pos, ARTIFACT artifact);
 // Description Dialog (artifact version) - todo: add more definitions with other items (attacks etc.)
 Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifact);
+// Attack card
+Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack);
+// Attack type dialog
+Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack);

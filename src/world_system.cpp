@@ -1388,6 +1388,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								
 								// TODO: make a more graceful chest destruction kthx
 								registry.remove_all_components_of(entity);
+								break;
 							}
 							else if (interactable.type == INTERACT_TYPE::ITEM_CHEST && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
 								Player player = registry.players.get(player_main);
@@ -1408,6 +1409,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 								// TODO: make a more graceful chest destruction kthx
 								registry.remove_all_components_of(entity);
+								break;
 							}
 							// Pickup item behaviour
 							else if (interactable.type == INTERACT_TYPE::PICKUP && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
@@ -1423,6 +1425,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									createEquipmentEntity(renderer, player_motion.position, prev);
 								}
 								registry.remove_all_components_of(entity);
+								break;
 							}
 						}
 					}

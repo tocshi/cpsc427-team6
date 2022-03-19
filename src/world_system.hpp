@@ -69,6 +69,8 @@ public:
 	Mix_Chunk* fire_explosion_sound;
 	Mix_Chunk* error_sound;
 	Mix_Chunk* footstep_sound;
+	Mix_Chunk* door_sound;
+	Mix_Chunk* switch_sound;
 
 	Mix_Music* menu_music;
 	Mix_Music* cutscene_music;
@@ -87,6 +89,9 @@ public:
 
 	// log text
 	void logText(std::string msg);
+
+	void spawn_doors_random_location(int quantity);
+	void spawn_switches_random_location(int quantity);
 
 private:
 	// Input callback functions
@@ -171,12 +176,21 @@ private:
 
 	// load a chest
 	void loadChest(Entity e);
+
+	// load a door
+	void loadDoor(Entity e);
+
+	// load a switch
+	void loadSwitch(Entity e, json switchData);
   
 	// do turn order logic
 	void doTurnOrderLogic();
 
 	// handle end of player's turn
 	void handle_end_player_turn(Entity player);
+
+	// generate and setup a new room
+	void generateNewRoom(Floors floor, bool repeat_allowed);
 
 	// udate turn UI
 	void update_turn_ui();
@@ -188,6 +202,8 @@ private:
 	TurnOrderSystem turnOrderSystem;
 	AISystem aiSystem;
 	RoomSystem roomSystem;
+
+	SpawnData spawnData;
 
 	// C++ random number generator
 	std::default_random_engine rng;

@@ -279,7 +279,8 @@ enum class INTERACT_TYPE {
 	DOOR = CHEST + 1,
 	STAIRS = DOOR + 1,
 	SIGN = STAIRS + 1,
-	TYPE_COUNT = SIGN + 1
+	SWITCH = SIGN + 1,
+	TYPE_COUNT = SWITCH + 1
 };
 
 struct Interactable {
@@ -496,6 +497,50 @@ struct KnockBack {
 	float angle = 0;
 };
 
+enum class ObjectiveType {
+	KILL_ENEMIES = 0,
+	ACTIVATE_SWITCHES = KILL_ENEMIES + 1,
+	DESTROY_SPAWNER = ACTIVATE_SWITCHES + 1,
+	SURVIVE_TURNS = DESTROY_SPAWNER + 1,
+	OBJECTIVE_COUNT = SURVIVE_TURNS + 1
+};
+const int objective_count = (int)ObjectiveType::OBJECTIVE_COUNT;
+
+struct Objective {
+	ObjectiveType type;
+	int remaining_count;
+	bool completed = false;
+};
+
+struct SessionStatistics {
+	int rooms_cleared = 0;
+	int enemies_defeated = 0;
+};
+
+enum class Floors {
+	FLOOR1 = 0,
+	FLOOR_COUNT = FLOOR1 + 1
+};
+const int floor_count = (int)Floors::FLOOR_COUNT;
+
+struct RoomTransitionTimer {
+	float counter_ms = 750.f;
+	Floors floor;
+	bool repeat_allowed = false; // whether the next room is allowed to use the same map file as the current
+};
+
+struct LoadingTimer {
+	float counter_ms = 250.f; // We use it to wait some amount of time or until a long step has passed
+};
+
+struct FadeInTimer {
+	float counter_ms = 750.f;
+};
+
+struct Switch {
+	bool activated = false;
+};
+
 struct Icon {
 
 };
@@ -577,8 +622,9 @@ enum class TEXTURE_ASSET_ID {
 	CUTSCENE2 = CUTSCENE1 + 1,
 	CUTSCENE3 = CUTSCENE2 + 1,
 	TURN_UI = CUTSCENE3+1,
-	TEXTURE_COUNT = TURN_UI + 1
-	
+	SWITCH_DEFAULT = TURN_UI + 1,
+	SWITCH_ACTIVE = SWITCH_DEFAULT + 1,
+	TEXTURE_COUNT = SWITCH_ACTIVE + 1
 };
 
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;

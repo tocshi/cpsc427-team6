@@ -485,6 +485,7 @@ Entity createDoor(RenderSystem* renderer, vec2 pos)
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
+	registry.solid.emplace(entity);
 	auto& interactable = registry.interactables.emplace(entity);
 	interactable.type = INTERACT_TYPE::DOOR;
 
@@ -1792,6 +1793,36 @@ Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id)
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_LAYER_ID::UI_TOP });
+
+	return entity;
+}
+
+Entity createSwitch(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ SWITCH_BB_WIDTH, SWITCH_BB_HEIGHT });
+
+	// Create and (empty) DOOR component to be able to refer to all doors
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SWITCH_DEFAULT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		RENDER_LAYER_ID::FLOOR_DECO});
+
+	auto& interactable = registry.interactables.emplace(entity);
+	interactable.type = INTERACT_TYPE::SWITCH;
+	registry.switches.emplace(entity);
 
 	return entity;
 }

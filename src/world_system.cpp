@@ -34,6 +34,10 @@ void WorldSystem::destroyMusic() {
 		Mix_FreeMusic(menu_music);
 	if (cutscene_music != nullptr)
 		Mix_FreeMusic(cutscene_music);
+	if (door_sound != nullptr)
+		Mix_FreeChunk(door_sound);
+	if (switch_sound != nullptr)
+		Mix_FreeChunk(switch_sound);
 	Mix_CloseAudio();
 
 }
@@ -156,18 +160,27 @@ GLFWwindow* WorldSystem::create_window() {
 	error_sound = Mix_LoadWAV(audio_path("feedback/error.wav").c_str());
 	Mix_VolumeChunk(error_sound, 13);
 	footstep_sound = Mix_LoadWAV(audio_path("feedback/footstep.wav").c_str());
-	Mix_VolumeChunk(footstep_sound, 14);
+	Mix_VolumeChunk(footstep_sound, 24);
+	door_sound = Mix_LoadWAV(audio_path("feedback/door_open.wav").c_str());
+	Mix_VolumeChunk(door_sound, 32);
+	switch_sound = Mix_LoadWAV(audio_path("feedback/switch_click.wav").c_str());
+	Mix_VolumeChunk(switch_sound, 32);
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr 
-		|| error_sound == nullptr || footstep_sound == nullptr|| menu_music == nullptr || cutscene_music == nullptr ) {
-		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
+		|| error_sound == nullptr || footstep_sound == nullptr
+		|| menu_music == nullptr || cutscene_music == nullptr 
+		|| door_sound == nullptr || switch_sound == nullptr) {
+		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n make sure the data directory is present",
 			audio_path("bgm/caves0.wav").c_str(),
 			audio_path("bgm/menu0.wav").c_str(), //add
 			audio_path("bgm/dream0.wav").c_str(), //add
 			audio_path("feedback/fire_explosion.wav").c_str(),
 			audio_path("feedback/error.wav").c_str(),
-			audio_path("feedback/footstep.wav").c_str());
-		return nullptr; 
+			audio_path("feedback/footstep.wav").c_str(),
+			audio_path("feedback/door_open.wav").c_str(),
+			audio_path("feedback/switch_click.wav").c_str()
+		);
+		return nullptr;
 	}
 
 	return window;
@@ -426,6 +439,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			// remove from turn queue
 			turnOrderSystem.removeFromQueue(enemy);
+			roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
 		}
 	}
 
@@ -433,13 +447,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	assert(registry.screenStates.components.size() <= 1);
     ScreenState &screen = registry.screenStates.components[0];
 
-    float min_counter_ms = 3000.f;
+    float min_death_counter_ms = 3000.f;
 	for (Entity entity : registry.deathTimers.entities) {
 		// progress timer
 		DeathTimer& counter = registry.deathTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
-		if(counter.counter_ms < min_counter_ms){
-		    min_counter_ms = counter.counter_ms;
+		if(counter.counter_ms < min_death_counter_ms){
+		    min_death_counter_ms = counter.counter_ms;
 		}
 
 		// restart the game once the death timer expired
@@ -450,17 +464,62 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			return true;
 		}
 	}
+
+	float min_room_counter_ms = 750.f;
+	for (Entity entity : registry.roomTransitions.entities) {
+		// progress timer
+		RoomTransitionTimer& counter = registry.roomTransitions.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if (counter.counter_ms < min_room_counter_ms) {
+			min_room_counter_ms = counter.counter_ms;
+		}
+
+		if (counter.counter_ms < 0) {
+			registry.roomTransitions.remove(entity);
+			generateNewRoom(counter.floor, counter.repeat_allowed);
+			return true;
+		}
+	}
 	// reduce window brightness if any of the present chickens is dying
-	screen.darken_screen_factor = 1 - min_counter_ms / 3000;
+	screen.darken_screen_factor = max(1 - min_death_counter_ms / 3000, 1 - min_room_counter_ms / 750);
+
+	float max_fadein_counter_ms = 0.f;
+	for (Entity entity : registry.fadeins.entities) {
+		// progress timer
+		FadeInTimer& counter = registry.fadeins.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if (counter.counter_ms > max_fadein_counter_ms) {
+			max_fadein_counter_ms = counter.counter_ms;
+		}
+
+		if (counter.counter_ms < 0) {
+			registry.fadeins.remove(entity);
+		}
+	}
+	screen.darken_screen_factor = max(max_fadein_counter_ms/750, screen.darken_screen_factor);
+
+	if (registry.loadingTimers.size() > 0) {
+		screen.darken_screen_factor = 1;
+	}
+
+	for (Entity entity : registry.loadingTimers.entities) {
+		LoadingTimer& counter = registry.loadingTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if (counter.counter_ms < 0) {
+			registry.loadingTimers.remove(entity);
+			if (registry.loadingTimers.size() == 0) {
+				registry.fadeins.emplace(entity);
+			}
+		}
+	}
+
+	
 
 	// Projectile Timers
 	for (Entity entity : registry.projectileTimers.entities) {
 		// progress timer
 		ProjectileTimer& counter = registry.projectileTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
-		if(counter.counter_ms < min_counter_ms){
-		    min_counter_ms = counter.counter_ms;
-		}
 
 		// remove text once the text timer has expired
 		if (counter.counter_ms < 0) {
@@ -474,9 +533,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// progress timer
 		TextTimer& counter = registry.textTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
-		if(counter.counter_ms < min_counter_ms){
-		    min_counter_ms = counter.counter_ms;
-		}
 
 		// remove text once the text timer has expired
 		if (counter.counter_ms < 0) {
@@ -681,7 +737,7 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 void WorldSystem::spawn_game_entities() {
 
 	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	SpawnData spawnData = createTiles(renderer, next_map);
+	spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
@@ -732,6 +788,8 @@ void WorldSystem::spawn_game_entities() {
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war();
 	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
+
+	roomSystem.setRandomObjective();
 }
 
 // render ep range around the given position
@@ -800,11 +858,10 @@ void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int
 	std::random_shuffle(itemSpawns.begin(), itemSpawns.end());
 	if (itemSpawns.size() > 0) {
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(itemSpawns.size()));
-		Entity& player = registry.players.entities[0];
-		Motion& motion = registry.motions.get(player);
+		Motion& motion = registry.motions.get(player_main);
 		int range = 0;
-		if (registry.stats.has(player)) {
-			range = registry.stats.get(player).range;
+		if (registry.stats.has(player_main)) {
+			range = registry.stats.get(player_main).range;
 		}
 
 		int spawned = 0;
@@ -820,6 +877,42 @@ void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int
 			createChest(renderer, { itemSpawns[i].x, itemSpawns[i].y });
 			spawned++;
 			i++;
+		}
+	}
+}
+
+// spawn door entities in random locations
+void WorldSystem::spawn_doors_random_location(int quantity) {
+	std::random_shuffle(spawnData.playerSpawns.begin(), spawnData.playerSpawns.end());
+	if (spawnData.playerSpawns.size() > 0) {
+		Motion& motion = registry.motions.get(player_main);
+		int range = 0;
+		if (registry.stats.has(player_main)) {
+			range = registry.stats.get(player_main).range;
+		}
+
+		int spawned = 0;
+		int i = 0;
+		while (spawned < quantity && i < spawnData.playerSpawns.size()) {
+			// temporary, later we can also randomize the item types
+			if (range > 0) {
+				if (dist_to(motion.position, spawnData.playerSpawns[i]) <= range) {
+					i++;
+					continue;
+				}
+			}
+			createDoor(renderer, { spawnData.playerSpawns[i].x, spawnData.playerSpawns[i].y });
+			spawned++;
+			i++;
+		}
+	}
+}
+
+void WorldSystem::spawn_switches_random_location(int quantity) {
+	std::random_shuffle(spawnData.enemySpawns.begin(), spawnData.enemySpawns.end());
+	if (spawnData.enemySpawns.size() > 0) {
+		for (int i = 0; i < quantity; i++) {
+			createSwitch(renderer, { spawnData.enemySpawns[i].x, spawnData.enemySpawns[i].y });
 		}
 	}
 }
@@ -926,45 +1019,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// simulating a new room
 	if (action == GLFW_RELEASE && key == GLFW_KEY_N && get_is_player_turn()) {
-		// save game (should be just player stuff)
-		json playerData = saveSystem.jsonifyPlayer(player_main);
-		// remove all entities for new room
-		removeForNewRoom();
-		// remove player
-		registry.remove_all_components_of(player_main);
-		// make new map
-		std::string next_map = roomSystem.getRandomRoom(roomSystem.current_floor, false);
-		SpawnData spawnData = createTiles(renderer, next_map);
-		// load the player back
-		player_main = loadPlayer(playerData);
-		// get the player and set its position
-		std::random_shuffle(spawnData.playerSpawns.begin(), spawnData.playerSpawns.end());
-		Motion& motion = registry.motions.get(player_main);
-		Stats& stats = registry.stats.get(player_main);
-		// set random position
-		motion.position = { spawnData.playerSpawns[0].x, spawnData.playerSpawns[0].y };
-		// set everything else in motion to default
-		motion.angle = 0.f;
-		motion.velocity = { 0.f, 0.f };
-		motion.in_motion = false;
-		motion.movement_speed = 400;
-		motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
-
-		// Refill Player EP
-		stats.ep = stats.maxep;
-
-		spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
-		spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
-
-		remove_fog_of_war();
-		create_fog_of_war();
-
-		// setup turn order system
-		turnOrderSystem.setUpTurnOrder();
-		// start first turn
-		turnOrderSystem.getNextTurn();
-
-		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+		if (!registry.roomTransitions.has(player_main)) {
+			RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
+			transition.floor = roomSystem.current_floor;
+		}
 	}
 
 	// Resetting game
@@ -1330,6 +1388,23 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								Sign& sign = registry.signs.get(entity);
 								sign.playing = true;
 							}
+							else if (interactable.type == INTERACT_TYPE::DOOR && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+								if (!registry.roomTransitions.has(player_main)) {
+									RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
+									transition.floor = roomSystem.current_floor;
+								}
+							}
+							else if (interactable.type == INTERACT_TYPE::SWITCH && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+								Switch& switch_component = registry.switches.get(entity);
+								if (!switch_component.activated) {
+									switch_component.activated = true;
+									RenderRequest& rr = registry.renderRequests.get(entity);
+									rr.used_texture = TEXTURE_ASSET_ID::SWITCH_ACTIVE;
+									Mix_PlayChannel(-1, switch_sound, 0);
+									roomSystem.updateObjective(ObjectiveType::ACTIVATE_SWITCHES, 1);
+									break;
+								}
+							}
 							else if (interactable.type == INTERACT_TYPE::CHEST && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
 								
 								// use gacha system to determine loot
@@ -1366,6 +1441,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 								// TODO: make a more graceful chest destruction kthx
 								registry.remove_all_components_of(entity);
+								break;
 							}
 						}
 					}
@@ -1485,6 +1561,11 @@ void WorldSystem::removeForNewRoom() {
 	// remove animations
 	for (Entity animation : registry.animations.entities) {
 		registry.remove_all_components_of(animation);
+	}
+
+	// remove interactables
+	for (Entity interactable : registry.interactables.entities) {
+		registry.remove_all_components_of(interactable);
 	}
 }
 
@@ -1749,12 +1830,18 @@ void WorldSystem::loadInteractables(json interactablesList) {
 		switch ((int)interactable["type"]) {
 		case 0: // chest
 			loadChest(e);
+			break;
 		case 1: // door
+			loadDoor(e);
 			break;
 		case 2: // stairs
 			break;
 		case 3: // sign
 			loadSign(e, interactable["sign"]);
+			break;
+		case 4: // switch
+			loadSwitch(e, interactable["switch"]);
+			break;
 		default:
 			break;
 		}
@@ -1802,6 +1889,34 @@ void WorldSystem::loadChest(Entity e) {
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(e);
+}
+
+void WorldSystem::loadDoor(Entity e) {
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(e, &mesh);
+
+	registry.renderRequests.insert(
+		e,
+		{ TEXTURE_ASSET_ID::DOOR,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+}
+
+void WorldSystem::loadSwitch(Entity e, json switchData) {
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(e, &mesh);
+
+	Switch& switch_component = registry.switches.emplace(e);
+	switch_component.activated = switchData["activated"];
+
+	RenderRequest rr = { TEXTURE_ASSET_ID::SWITCH_DEFAULT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::FLOOR_DECO };
+	if (switch_component.activated) {
+		rr.used_texture = TEXTURE_ASSET_ID::SWITCH_ACTIVE;
+	}
+	registry.renderRequests.insert(e, rr);
 }
 
 void WorldSystem::logText(std::string msg) {
@@ -1900,6 +2015,54 @@ void remove_status(Entity e, StatusType status, int number) {
 		}
 	}
 	return;
+}
+
+void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
+	// save game (should be just player stuff)
+	json playerData = saveSystem.jsonifyPlayer(player_main);
+	// remove all entities for new room
+	removeForNewRoom();
+	// remove player
+	registry.remove_all_components_of(player_main);
+	// make new map
+	std::string next_map = roomSystem.getRandomRoom(floor, repeat_allowed);
+	spawnData = createTiles(renderer, next_map);
+	// load the player back
+	player_main = loadPlayer(playerData);
+	// get the player and set its position
+	std::random_shuffle(spawnData.playerSpawns.begin(), spawnData.playerSpawns.end());
+	Motion& motion = registry.motions.get(player_main);
+	Stats& stats = registry.stats.get(player_main);
+	// set random position
+	motion.position = { spawnData.playerSpawns[0].x, spawnData.playerSpawns[0].y };
+	// set everything else in motion to default
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.in_motion = false;
+	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
+
+	// Refill Player EP
+	stats.ep = stats.maxep;
+
+	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
+	spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
+
+	remove_fog_of_war();
+	create_fog_of_war();
+
+	// setup turn order system
+	turnOrderSystem.setUpTurnOrder();
+	// start first turn
+	turnOrderSystem.getNextTurn();
+
+	// create an objective
+	roomSystem.setRandomObjective();
+
+	saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+
+	if (!registry.loadingTimers.has(player_main)) {
+		registry.loadingTimers.emplace(player_main);
+	}
 }
 
 void WorldSystem::update_turn_ui() {

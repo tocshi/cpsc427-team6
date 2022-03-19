@@ -5,7 +5,9 @@
 #include <map>
 
 enum class Floors {
-	FLOOR1 = 0,
+	DEBUG = 0,
+	TUTORIAL = DEBUG + 1,
+	FLOOR1 = TUTORIAL + 1,
 	FLOOR_COUNT = FLOOR1 + 1
 };
 const int floor_count = (int)Floors::FLOOR_COUNT;
@@ -17,9 +19,13 @@ public:
 private:
 	const std::map<Floors, std::vector<std::string>> floor_map_data = {
 		{
+			Floors::DEBUG,
+			{"debug_room.tmx"}
+		},
+		{
 			Floors::FLOOR1, 
 			{"map1.tmx", "map2.tmx", "map3.tmx"}
-		},
+		}
 	};
 
 	int current_room_idx = 0;

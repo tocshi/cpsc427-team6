@@ -309,7 +309,13 @@ void reset_stats(Entity& entity) {
 	Stats& stats = registry.stats.get(entity);
 	Stats basestats = registry.basestats.get(entity);
 
+	float current_hp = stats.hp;
+	float current_mp = stats.mp;
+	float current_ep = stats.ep;
 	stats = basestats;
+	stats.hp = current_hp;
+	stats.mp = current_mp;
+	stats.ep = current_ep;
 }
 
 // Calculate entity stats based on inv + effects
@@ -321,8 +327,8 @@ void calc_stats(Entity& entity) {
 	// Artifact Effects
 }
 
-// Equip an item
-void equip_item(Entity& entity, Equipment& equipment) {
+// Equip an item (returns unequipped item)
+Equipment equip_item(Entity& entity, Equipment& equipment) {
 	Stats& basestats = registry.basestats.get(entity);
 	Inventory& inv = registry.inventories.get(entity);
 	int slot = 0;
@@ -339,9 +345,11 @@ void equip_item(Entity& entity, Equipment& equipment) {
 	default:
 		break;
 	}
+
+	Equipment prev = {};
 	// weird nullguard, source: trust me bro
 	if (inv.equipped[slot].type != EQUIPMENT::EQUIPMENT_COUNT) {
-		unequip_item(entity, slot);
+		prev = unequip_item(entity, slot);
 	}
 	inv.equipped[slot] = equipment;
 
@@ -349,14 +357,16 @@ void equip_item(Entity& entity, Equipment& equipment) {
 	basestats.atk += inv.equipped[slot].atk;
 	basestats.def += inv.equipped[slot].def;
 	basestats.speed += inv.equipped[slot].speed;
-	basestats.hp += inv.equipped[slot].hp;
-	basestats.mp += inv.equipped[slot].mp;
-	basestats.ep += inv.equipped[slot].ep;
+	basestats.maxhp += inv.equipped[slot].hp;
+	basestats.maxmp += inv.equipped[slot].mp;
+	basestats.maxep += inv.equipped[slot].ep;
 	basestats.range += inv.equipped[slot].range;
 
 	// recalculate stats based on new equipment basestats
 	reset_stats(entity);
 	calc_stats(entity);
+
+	return prev;
 }
 
 // Unequip an item (does not remove from inventory)
@@ -370,9 +380,9 @@ Equipment unequip_item(Entity& entity, int slot) {
 	basestats.atk -= inv.equipped[slot].atk;
 	basestats.def -= inv.equipped[slot].def;
 	basestats.speed -= inv.equipped[slot].speed;
-	basestats.hp -= inv.equipped[slot].hp;
-	basestats.mp -= inv.equipped[slot].mp;
-	basestats.ep -= inv.equipped[slot].ep;
+	basestats.maxhp -= inv.equipped[slot].hp;
+	basestats.maxmp -= inv.equipped[slot].mp;
+	basestats.maxep -= inv.equipped[slot].ep;
 	basestats.range -= inv.equipped[slot].range;
 
 	// recalculate stats based on new equipment basestats

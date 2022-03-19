@@ -278,11 +278,13 @@ struct Guardable {
 };
 
 enum class INTERACT_TYPE {
-	CHEST = 0,
-	DOOR = CHEST + 1,
+	ARTIFACT_CHEST = 0,
+	ITEM_CHEST = ARTIFACT_CHEST + 1,
+	DOOR = ITEM_CHEST + 1,
 	STAIRS = DOOR + 1,
 	SIGN = STAIRS + 1,
-	TYPE_COUNT = SIGN + 1
+	PICKUP = SIGN + 1,
+	TYPE_COUNT = PICKUP + 1
 };
 
 struct Interactable {
@@ -420,11 +422,13 @@ struct TextTimer
 
 // temp struct for artifacts
 struct Artifact {
-	bool artifact1 = true; 
+	ARTIFACT type;
 };
+
 struct Door {
 	bool collidedWithDoor = false; 
 };
+
 struct TileUV {
 	std::string layer;
 	int tileID = 0;
@@ -709,7 +713,7 @@ const std::map <ARTIFACT, std::string>artifact_descriptions = {
 	{ARTIFACT::KB_MALLET, "�Don�t worry, those aren�t real moles.�"},
 	{ARTIFACT::ARCANE_SPECS, "It�s engraved with the words �Property of Professor Hammond�. Putting them on somehow lets you see further into the darkness than usual."},
 	{ARTIFACT::SCOUT_STRIDE, "�Come get it today! Our newly patented boots that, when you sprint with them, lets you cover long distances far easier than ever before!�"},
-	{ARTIFACT::ART_CONSERVE, "The ideas in this book were originally meant for saving energy so you won�t need to eat as frequently, but somebody left notes about applying some of these concepts in close-quarters combat. How intriguing�"},
+	{ARTIFACT::ART_CONSERVE, "The ideas in this scroll were originally meant for saving energy so you won�t need to eat as frequently, but somebody left notes about applying some of these concepts in close-quarters combat. How intriguing�"},
 	{ARTIFACT::ARCANE_FUNNEL, "It�s engraved with the words �Property of Professor Hammond�. It seems to be absorbing energy from fallen monsters. Don�t think about it too much, lest you wish to pity the poor creatures you�ve slain during your time here."},
 	{ARTIFACT::FUNGIFIER, "�What do you mean it wasn�t fungible?!�"},
 	{ARTIFACT::BURRBAG, "�Who even collects these?�"},
@@ -759,7 +763,7 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::LUCKY_CHIP, "7% (+7% additive) chance for your attack to deal 777% damage. 7 % (+7 % additive) chance to reduce incoming damage by 777. Lowest damage taken per attack is 1."},
 	{ARTIFACT::GUIDE_HEALBUFF, "Health-restoring items and interactables grant a 30% (+30% per stack) ATK buff for 5 turns."},
 	{ARTIFACT::THICK_TOME, "Upon taking lethal damage, survive with 1 HP and gain 3 turns of invincibility. This artifact is consumed when this effect activates."},
-	{ARTIFACT::GOLIATH_BELT, "test effects"},
+	{ARTIFACT::GOLIATH_BELT, "When HP is above 80%, increases ATK by 20% (+20% per stack)."},
 	{ARTIFACT::BLOOD_RUBY, "When HP is below 40%, increases ATK by 20% (+20% per stack)."},
 	{ARTIFACT::WINDBAG, "Upon taking damage that puts you below 25% (+5% per stack) HP, release an AoE that knocks back nearby enemies by 300 units, and stuns them for 3 (+1 per stack) turns. Has a 15 turn cooldown."},
 	{ARTIFACT::KB_MALLET, "When attacking an enemy within melee range, knock back struck enemies by 100 units (+ 50 units per stack)."},

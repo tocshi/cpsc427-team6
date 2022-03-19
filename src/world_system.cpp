@@ -355,16 +355,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			
 			switch (render_struct.used_texture) {
 			case TEXTURE_ASSET_ID::HPFILL:
-				motion_struct.scale = { (hp / maxhp) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
-				motion_struct.position[0] = 150.f - 150.f*(1.f - (hp / maxhp));	// original pos (full bar) - (1-multiplier)
+				motion_struct.scale = { min(STAT_BB_WIDTH, (hp / maxhp) * STAT_BB_WIDTH), STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - min(1.f, (hp / maxhp)));	// original pos (full bar) - (1-multiplier)
 				break;
 			case TEXTURE_ASSET_ID::MPFILL:
-				motion_struct.scale = { (mp / maxmp) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
-				motion_struct.position[0] = 150.f - 150.f*(1.f - (mp / maxmp));	// original pos (full bar) - (1-multiplier)
+				motion_struct.scale = { min(STAT_BB_WIDTH, (mp / maxmp) * STAT_BB_WIDTH), STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - min(1.f, (mp / maxmp)));	// original pos (full bar) - (1-multiplier)
 				break;
 			case TEXTURE_ASSET_ID::EPFILL:
-				motion_struct.scale = { (ep / maxep) * STAT_BB_WIDTH, STAT_BB_HEIGHT };
-				motion_struct.position[0] = 150.f - 150.f*(1.f - (ep / maxep));	// original pos (full bar) - (1-multiplier)
+				motion_struct.scale = { min(STAT_BB_WIDTH, (ep / maxep) * STAT_BB_WIDTH), STAT_BB_HEIGHT };
+				motion_struct.position[0] = 150.f - 150.f*(1.f - min(1.f, (ep / maxep)));	// original pos (full bar) - (1-multiplier)
 				break;
 			}
 
@@ -605,7 +605,9 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
 
+	// Switch between debug and regular room
 	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 	SpawnData spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
@@ -741,7 +743,13 @@ void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int
 					continue;
 				}
 			}
-			createChest(renderer, { itemSpawns[i].x, itemSpawns[i].y });
+			float roll = irand(100);
+			if (roll < 30) {
+				createChest(renderer, { itemSpawns[i].x, itemSpawns[i].y }, false);
+			}
+			else {
+				createChest(renderer, { itemSpawns[i].x, itemSpawns[i].y }, true);
+			}
 			spawned++;
 			i++;
 		}
@@ -779,7 +787,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// LOGGING TEXT TEST
 	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
 		auto& stats = registry.stats.get(player_main);
-		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\n", stats.atk, stats.def, stats.speed, stats.hp, stats.mp);
+		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp);
 	}
 
 	// SAVING THE GAME
@@ -813,8 +821,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		for (Entity& p : registry.players.entities) {
 			Motion m = registry.motions.get(p);
 			Player player = registry.players.get(p);
-			Entity e = createEquipment(renderer, m.position, EQUIPMENT::SHARP, player.floor);
-			Equipment equip = registry.equipment.get(e);
+			Equipment equip = createEquipment(EQUIPMENT::SHARP, player.floor);
+			createEquipmentEntity(renderer, m.position, equip);
 			printf("atk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\n", equip.atk, equip.def, equip.speed, equip.hp, equip.mp);
 			for (ATTACK a : equip.attacks) {
 				std::cout << "Attack: " << (int)a << std::endl;
@@ -1227,7 +1235,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								Sign& sign = registry.signs.get(entity);
 								sign.playing = true;
 							}
-							else if (interactable.type == INTERACT_TYPE::CHEST && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+							// Chest behaviour
+							else if (interactable.type == INTERACT_TYPE::ARTIFACT_CHEST && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
 								
 								// use gacha system to determine loot
 								int pity = registry.players.get(player_main).gacha_pity;
@@ -1255,13 +1264,47 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									registry.players.get(player_main).gacha_pity++;
 								}
 								
-								Inventory& inv = registry.inventories.get(player_main);
-								inv.artifact[loot]++;
+								createArtifact(renderer, motion.position, (ARTIFACT)loot);
 
 								std::string name = artifact_names.at((ARTIFACT)loot);
 								logText("You open the chest and find " + name + "!");
+								
+								// TODO: make a more graceful chest destruction kthx
+								registry.remove_all_components_of(entity);
+							}
+							else if (interactable.type == INTERACT_TYPE::ITEM_CHEST && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+								Player player = registry.players.get(player_main);
+								EQUIPMENT type;
+
+								// choose equipment
+								if (ichoose(0, 1)) {
+									type = EQUIPMENT::SHARP;
+								}
+								else {
+									type = EQUIPMENT::ARMOUR;
+								}
+
+								Equipment equip = createEquipment(type, player.floor);
+								createEquipmentEntity(renderer, motion.position, equip);
+
+								logText("You open the chest and find some equipment!");
 
 								// TODO: make a more graceful chest destruction kthx
+								registry.remove_all_components_of(entity);
+							}
+							// Pickup item behaviour
+							else if (interactable.type == INTERACT_TYPE::PICKUP && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+								Inventory& inv = registry.inventories.get(player_main);
+								Motion& player_motion = registry.motions.get(player_main);
+								if (registry.artifacts.has(entity)) {
+									ARTIFACT artifact = registry.artifacts.get(entity).type;
+									inv.artifact[(int)artifact]++;
+								}
+								if (registry.equipment.has(entity)) {
+									Equipment equipment = registry.equipment.get(entity);
+									Equipment prev = equip_item(player_main, equipment);
+									createEquipmentEntity(renderer, player_motion.position, prev);
+								}
 								registry.remove_all_components_of(entity);
 							}
 						}

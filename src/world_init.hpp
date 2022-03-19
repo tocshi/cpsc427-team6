@@ -14,12 +14,8 @@ const float PLANT_PROJECTILE_BB_WIDTH = 16.f;
 const float PLANT_PROJECTILE_BB_HEIGHT = 16.f;
 const float BOSS_BB_WIDTH = 0.6f * 150.f;
 const float BOSS_BB_HEIGHT = 0.6f * 150.f;
-const float ARTIFACT_BB_WIDTH = 0.6f * 150.f;
-const float ARTIFACT_BB_HEIGHT = 0.6f * 150.f;
-const float CONSUMABLE_BB_WIDTH = 0.6f * 150.f;
-const float CONSUMABLE_BB_HEIGHT = 0.6f * 150.f;
-const float EQUIPABLE_BB_WIDTH = 0.6f * 150.f;
-const float EQUIPABLE_BB_HEIGHT = 0.6f * 150.f;
+const float PICKUP_BB_WIDTH = 64.f;
+const float PICKUP_BB_HEIGHT = 64.f;
 const float CHEST_BB_WIDTH = 0.6f * 150.f;
 const float CHEST_BB_HEIGHT = 0.6f * 150.f;
 const float DOOR_BB_WIDTH = 0.6f * 150.f;
@@ -77,13 +73,14 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos);
 // Boss
 Entity createBoss(RenderSystem* renderer, vec2 pos);
 // Equipment
-Entity createEquipment(RenderSystem* renderer, vec2 pos, EQUIPMENT type, int tier);
+Equipment createEquipment(EQUIPMENT type, int tier);
+Entity createEquipmentEntity(RenderSystem* renderer, vec2 pos, Equipment equipment);
 // Artifact
-Entity createArtifact(RenderSystem* renderer, vec2 pos);
+Entity createArtifact(RenderSystem* renderer, vec2 pos, ARTIFACT type);
 // Item (consumable)
 Entity createConsumable(RenderSystem* renderer, vec2 pos);
 // Chest
-Entity createChest(RenderSystem* renderer, vec2 pos);
+Entity createChest(RenderSystem* renderer, vec2 pos, bool isArtifact);
 // Door
 Entity createDoor(RenderSystem* renderer, vec2 pos);
 // Sign

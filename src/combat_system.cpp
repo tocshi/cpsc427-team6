@@ -248,6 +248,10 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 void apply_status(Entity& target, StatusEffect& status) {
 	StatusContainer& statusContainer = registry.statuses.get(target);
 	statusContainer.statuses.push_back(status);
+
+	// recalculate stats for entity
+	reset_stats(target);
+	calc_stats(target);
 }
 
 // call this function once at turn start (2nd param=true), and once at turn end (2nd param=false)
@@ -255,7 +259,7 @@ void apply_status(Entity& target, StatusEffect& status) {
 void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stats_only) {
 	if (registry.statuses.has(entity)) {
 		StatusContainer& statusContainer = registry.statuses.get(entity);
-		Stats stats = registry.stats.get(entity);
+		Stats& stats = registry.stats.get(entity);
 		Stats basestats = registry.basestats.get(entity);
 		// sort the statuses to ensure that percentage buffs get applied before flat buffs
 		statusContainer.sort_statuses_reverse();
@@ -298,8 +302,10 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 			if (status.turns_remaining <= 999 && !stats_only) {
 				status.turns_remaining--;
 			}
-			if (status.turns_remaining <= 0) {
+			if (status.turns_remaining <= 0 && !stats_only) {
 				statusContainer.statuses.erase(statusContainer.statuses.begin() + i);
+				reset_stats(entity);
+				calc_stats(entity);
 			}
 		}
 	}

@@ -910,14 +910,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_Q) {
 		for (Entity& p : registry.players.entities) {
-			Motion m = registry.motions.get(p);
-			Player player = registry.players.get(p);
-			Equipment equip = createEquipment(EQUIPMENT::SHARP, player.floor);
-			createEquipmentEntity(renderer, m.position, equip);
-			printf("atk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\n", equip.atk, equip.def, equip.speed, equip.hp, equip.mp);
-			for (ATTACK a : equip.attacks) {
-				std::cout << "Attack: " << (int)a << std::endl;
-			}
+			StatusEffect test = StatusEffect(20, 5, StatusType::ATK_BUFF, false, true);
+			apply_status(p, test);
 		}
 	}
 

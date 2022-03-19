@@ -1749,7 +1749,7 @@ void WorldSystem::loadStatuses(Entity e, json statuses) {
 	StatusContainer& statusContainer = registry.statuses.get(e);
 	for (auto& status : statuses) {
 		float value = status["value"];
-		int turns_remaining = status["turn_remaining"];
+		int turns_remaining = status["turns_remaining"];
 		StatusType effect = status["effect"];
 		bool percentage = status["percentage"];
 		bool apply_at_turn_start = status["apply_at_turn_start"];

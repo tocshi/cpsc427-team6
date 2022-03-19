@@ -259,6 +259,9 @@ json SaveSystem::jsonifyInteractables() {
 		if (interactable.type == INTERACT_TYPE::SIGN) {
 			interactableJson["sign"] = jsonifySign(entity);
 		}
+		else if (interactable.type == INTERACT_TYPE::SWITCH) {
+			interactableJson["switch"] = jsonifySwitch(entity);
+		}
 		interactablesList.push_back(interactableJson);
 	}
 	return interactablesList;
@@ -313,4 +316,12 @@ json SaveSystem::jsonifySign(Entity e) {
 	}
 	signJson["messages"] = messageList;
 	return signJson;
+}
+
+json SaveSystem::jsonifySwitch(Entity e) {
+	Switch s = registry.switches.get(e);
+
+	json switchJson;
+	switchJson["activated"] = s.activated;
+	return switchJson;
 }

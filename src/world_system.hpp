@@ -176,6 +176,12 @@ private:
 
 	// load a chest
 	void loadChest(Entity e);
+
+	// load a door
+	void loadDoor(Entity e);
+
+	// load a switch
+	void loadSwitch(Entity e, json switchData);
   
 	// do turn order logic
 	void doTurnOrderLogic();

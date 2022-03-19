@@ -1830,12 +1830,18 @@ void WorldSystem::loadInteractables(json interactablesList) {
 		switch ((int)interactable["type"]) {
 		case 0: // chest
 			loadChest(e);
+			break;
 		case 1: // door
+			loadDoor(e);
 			break;
 		case 2: // stairs
 			break;
 		case 3: // sign
 			loadSign(e, interactable["sign"]);
+			break;
+		case 4: // switch
+			loadSwitch(e, interactable["switch"]);
+			break;
 		default:
 			break;
 		}
@@ -1883,6 +1889,34 @@ void WorldSystem::loadChest(Entity e) {
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(e);
+}
+
+void WorldSystem::loadDoor(Entity e) {
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(e, &mesh);
+
+	registry.renderRequests.insert(
+		e,
+		{ TEXTURE_ASSET_ID::DOOR,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+}
+
+void WorldSystem::loadSwitch(Entity e, json switchData) {
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(e, &mesh);
+
+	Switch& switch_component = registry.switches.emplace(e);
+	switch_component.activated = switchData["activated"];
+
+	RenderRequest rr = { TEXTURE_ASSET_ID::SWITCH_DEFAULT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::FLOOR_DECO };
+	if (switch_component.activated) {
+		rr.used_texture = TEXTURE_ASSET_ID::SWITCH_ACTIVE;
+	}
+	registry.renderRequests.insert(e, rr);
 }
 
 void WorldSystem::logText(std::string msg) {

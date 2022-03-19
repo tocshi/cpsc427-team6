@@ -1,4 +1,3 @@
-// Header
 #include "world_system.hpp"
 #include "world_init.hpp"
 // stlib
@@ -21,8 +20,8 @@ WorldSystem::WorldSystem()
 	rng = std::default_random_engine(std::random_device()());
 }
 
-WorldSystem::~WorldSystem() {
-	// Destroy music components
+void WorldSystem::destroyMusic() {
+
 	if (background_music != nullptr)
 		Mix_FreeMusic(background_music);
 	if (fire_explosion_sound != nullptr)
@@ -31,8 +30,17 @@ WorldSystem::~WorldSystem() {
 		Mix_FreeChunk(error_sound);
 	if (footstep_sound != nullptr)
 		Mix_FreeChunk(footstep_sound);
+	if (menu_music != nullptr)
+		Mix_FreeMusic(menu_music);
+	if (cutscene_music != nullptr)
+		Mix_FreeMusic(cutscene_music);
 	Mix_CloseAudio();
 
+}
+
+WorldSystem::~WorldSystem() {
+	// Destroy music components
+	destroyMusic();
 	// Destroy all created components
 	registry.clear_all_components();
 
@@ -47,7 +55,6 @@ namespace {
 	}
 }
 
-// bool current_game_state; (previious)
 // In start menu (CHANGE TO INT TO SEE IF IT WORKS)
 // CUTSCENE IS null
 GameStates current_game_state;
@@ -113,6 +120,8 @@ GLFWwindow* WorldSystem::create_window() {
 	previous_game_state = current_game_state;
 	//printf("Previous Game State : Game state = MAIN_MENU");
 	//printf()
+	//current_game_state = GameStates::CUTSCENE;
+
 	current_game_state = GameStates::MAIN_MENU;
 	printf("previous state in Now %d \n", static_cast<int>(previous_game_state));
 
@@ -136,6 +145,10 @@ GLFWwindow* WorldSystem::create_window() {
 	// Music and volumes
 	Mix_VolumeMusic(10);
 	background_music = Mix_LoadMUS(audio_path("bgm/caves0.wav").c_str());
+	menu_music = Mix_LoadMUS(audio_path("bgm/menu0.wav").c_str());
+	cutscene_music= Mix_LoadMUS(audio_path("bgm/dream0.wav").c_str());
+
+
 
 	// Sounds and volumes
 	fire_explosion_sound = Mix_LoadWAV(audio_path("feedback/fire_explosion.wav").c_str());
@@ -146,13 +159,15 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(footstep_sound, 14);
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr 
-		|| error_sound == nullptr || footstep_sound == nullptr) {
+		|| error_sound == nullptr || footstep_sound == nullptr|| menu_music == nullptr || cutscene_music == nullptr ) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
 			audio_path("bgm/caves0.wav").c_str(),
+			audio_path("bgm/menu0.wav").c_str(), //add
+			audio_path("bgm/dream0.wav").c_str(), //add
 			audio_path("feedback/fire_explosion.wav").c_str(),
 			audio_path("feedback/error.wav").c_str(),
 			audio_path("feedback/footstep.wav").c_str());
-		return nullptr;
+		return nullptr; 
 	}
 
 	return window;
@@ -161,11 +176,16 @@ GLFWwindow* WorldSystem::create_window() {
 void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 	// Playing background music indefinitely
-	Mix_PlayMusic(background_music, -1);
-	fprintf(stderr, "Loaded music\n");
 
-	// Set all states to default
-    restart_game();
+	Mix_PlayMusic(cutscene_music, 1);
+	fprintf(stderr, "Loaded music\n");
+	printf("%d", countCutScene);
+	//set_gamestate(GameStates::CUTSCENE);
+	// call custscene func
+	cut_scene_start();
+	// Set all states to default  
+
+   // restart_game();
 }
 
 // Update our game world
@@ -195,6 +215,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// if not in menu do turn order logic (!current_game_state)
 	if (current_game_state < GameStates::CUTSCENE && current_game_state >= GameStates::GAME_START) {
+		update_turn_ui();
 		doTurnOrderLogic();
 	}
 
@@ -542,9 +563,59 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	return true;
 }
 
+// cutscene at the start of the game  --- -
+void WorldSystem::cut_scene_start() {
+
+	//create entity for background pic
+	// set game state to cutscene 
+	player_move_click = false;
+	
+	registry.list_all_components();
+	printf("CUT SCENE STARTING \n");
+
+	while (registry.motions.entities.size() > 0)
+		registry.remove_all_components_of(registry.motions.entities.back());
+
+	while (registry.texts.entities.size() > 0)
+		registry.remove_all_components_of(registry.texts.entities.back());
+
+	while (registry.cameras.entities.size() > 0)
+		registry.remove_all_components_of(registry.cameras.entities.back());
+
+	// Add a camera entity
+	active_camera_entity = createCamera({ 0, 0 });
+
+	registry.list_all_components();
+
+	set_gamestate(GameStates::CUTSCENE);
+	//create cut scene 
+
+	// check when the left mouse is clicked move to next picture 
+
+	// on left click change scene to new one (x2)
+	// checks how many times left click was one with countCutScene & makes sure the game state is CutScene 
+	if (current_game_state == GameStates::CUTSCENE && countCutScene == 0) {
+			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);
+			printf("%d the cutscene 1 and cutscene count is \n", countCutScene);
+			printf("Cut Scene\n");
+	}
+	if (current_game_state == GameStates::CUTSCENE && countCutScene == 1) {
+			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE2);
+			printf("cutScene 2\n");
+			printf("%d the cutscene 2 and cutscene count is \n", countCutScene);
+	}
+	
+	if (current_game_state == GameStates::CUTSCENE && countCutScene == 2) {
+			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE3);
+			printf("cutScene 3 \n");
+			printf("%d the cutscene 3 and cutscene count is \n", countCutScene);
+	}
+
+}
 // Reset the world state to its initial state
 void WorldSystem::restart_game() {
 	// Debugging for memory/component leaks
+
 	registry.list_all_components();
 	printf("Restarting\n");
 
@@ -574,6 +645,10 @@ void WorldSystem::restart_game() {
 	// restart the game on the menu screen
 	//current_game_state = true;
 	set_gamestate(GameStates::MAIN_MENU);
+
+	if (current_game_state == GameStates::MAIN_MENU) {
+		Mix_PlayMusic(menu_music, 1);
+	}
 
 	/*if (current_game_state != GameStates::MAIN_MENU) {
 		//current_game_state = GameStates::MAIN_MENU;
@@ -660,6 +735,7 @@ void WorldSystem::spawn_game_entities() {
 	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war();
+	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
 }
 
 // render ep range around the given position
@@ -778,6 +854,8 @@ bool WorldSystem::is_over() const {
 	return bool(glfwWindowShouldClose(window));
 }
 
+
+
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
 	// DEBUG: HEAL PLAYER
@@ -786,10 +864,21 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		stat.hp = stat.maxhp;
 	}
 
-	// LOGGING TEXT TEST
+
 	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
 		auto& stats = registry.stats.get(player_main);
 		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp);
+	}
+
+	// Esc to go to mainMenu only if previous game state is cutscene
+	if (action == GLFW_PRESS && key== GLFW_KEY_ESCAPE && current_game_state == GameStates::CUTSCENE) {
+		int w, h;
+		//previous_game_state = GameStates::CUTSCENE;
+		//logText("Escape Key Pressed");
+		//set_gamestate(GameStates::MAIN_MENU);
+		glfwGetWindowSize(window, &w, &h);
+		restart_game();
+		printf("\n escaped pressed \n");
 	}
 
 	// SAVING THE GAME
@@ -903,7 +992,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
         restart_game();
 	}
 
-	// Resetting game
+	// Resetting game // LOGGING TEXT TEST
 	if (action == GLFW_RELEASE && key == GLFW_KEY_T) {
 		printf("GAME STATE LOG START ============\n");
 		printf("Previous game state is: %i\n", static_cast<int>(previous_game_state));
@@ -943,7 +1032,24 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	// get cursor position relative to world
 	Camera camera = registry.cameras.get(active_camera_entity);
 	vec2 world_pos = {xpos + camera.position.x, ypos + camera.position.y};
-	//printf("World Position at (%f, %f)\n", world_pos.x, world_pos.y);
+	//printf("World Position at (%f, %f)\n", world_pos.x, world_pos.y)
+
+		// check if left click works 
+		
+	if (action == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_LEFT && !player_move_click && current_game_state == GameStates::CUTSCENE) {
+		countCutScene++;
+		printf("start cutscenecount is %d \n", countCutScene);
+		
+		cut_scene_start();
+		if (current_game_state == GameStates::CUTSCENE && countCutScene == 3) {
+			set_gamestate(GameStates::MAIN_MENU);
+			printf("set to main_menu game state \n");
+			restart_game();
+		}
+		else {
+			printf(" \n you just pressed left mouse button\n");
+		}
+	}
 
 	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
 
@@ -971,6 +1077,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 					case BUTTON_ACTION_ID::MENU_START: 
 						set_gamestate(GameStates::GAME_START);
+						if (current_game_state != GameStates::CUTSCENE || current_game_state != GameStates::MAIN_MENU) {
+							Mix_PlayMusic(background_music, -1);
+						}
 						spawn_game_entities();
 						// spawn the actions bar
 						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
@@ -1151,12 +1260,13 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 		// ensure it is the player's turn and they are not currently moving
 		if (get_is_player_turn() && !player_move_click && ypos < window_height_px - 200.f && ypos > 80.f) {
-			if (player_main && current_game_state >= GameStates::GAME_START) {
+			if (player_main && current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE) {
 				Player& player = registry.players.get(player_main);
 				Motion& player_motion = registry.motions.get(player_main);
 				Stats& player_stats = registry.stats.get(player_main);
 
 				switch (current_game_state) {
+					
 				case GameStates::ATTACK_MENU:
 					// ensure player has clicked on an enemy
 					for (Entity en : registry.enemies.entities) {
@@ -1322,7 +1432,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	}
 
 
-	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_move_click && current_game_state >= GameStates::GAME_START) {
+	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_move_click && current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE) {
 		Motion& motion_struct = registry.motions.get(player_main);
 
 		// set velocity to the direction of the cursor, at a magnitude of player_velocity
@@ -1336,6 +1446,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		motion_struct.in_motion = true;
 		player_move_click = true;
 	}
+
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
@@ -1485,6 +1596,9 @@ Entity WorldSystem::loadPlayer(json playerData) {
 
 	// get player component stuff
 	loadPlayerComponent(e, playerData["player"], inv);
+
+	// load player statuses
+	loadStatuses(e, playerData["statuses"]);
 	
 	return e;
 }
@@ -1513,6 +1627,8 @@ Entity WorldSystem::loadEnemy(json enemyData) {
 	Inventory inv = loadInventory(e, enemyData["inventory"]);
 	// load enemy component
 	loadEnemyComponent(e, enemyData["enemy"], inv);
+	// load enemy statuses
+	loadStatuses(e, enemyData["statuses"]);
 	return e;
 }
 
@@ -1626,6 +1742,18 @@ Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
 	return inv;
 }
 
+void WorldSystem::loadStatuses(Entity e, json statuses) {
+	StatusContainer& statusContainer = registry.statuses.get(e);
+	for (auto& status : statuses) {
+		float value = status["value"];
+		int turns_remaining = status["turn_remaining"];
+		StatusType effect = status["effect"];
+		bool percentage = status["percentage"];
+		bool apply_at_turn_start = status["apply_at_turn_start"];
+		statusContainer.statuses.push_back(StatusEffect(value, turns_remaining, effect, percentage, apply_at_turn_start));
+	}
+}
+
 void WorldSystem::loadTiles(json tileList) {
 	for (auto& tile : tileList) {
 		Entity e = Entity();
@@ -1675,7 +1803,7 @@ void WorldSystem::loadInteractables(json interactablesList) {
 
 		switch ((int)interactable["type"]) {
 		case 0: // chest
-			break;
+			loadChest(e);
 		case 1: // door
 			break;
 		case 2: // stairs
@@ -1717,6 +1845,18 @@ void WorldSystem::loadSign(Entity e, json signData) {
 		GEOMETRY_BUFFER_ID::ANIMATION,
 		RENDER_LAYER_ID::SPRITE
 		});
+}
+
+void WorldSystem::loadChest(Entity e) {
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(e, &mesh);
+
+	registry.renderRequests.insert(
+		e,
+		{ TEXTURE_ASSET_ID::CHEST,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(e);
 }
 
 void WorldSystem::logText(std::string msg) {
@@ -1782,7 +1922,7 @@ void set_enemy_state_attack(Entity enemy) {
 	}
 }
 
-// Set attack state for enemies who attack after moving
+// Set game state
 void set_gamestate(GameStates state) {
 	previous_game_state = current_game_state;
 	current_game_state = state;
@@ -1812,6 +1952,32 @@ void remove_status(Entity e, StatusType status, int number) {
 			statuses.statuses.erase(statuses.statuses.begin() + index);
 			number--;
 			index++;
+		}
+	}
+	return;
+}
+
+void WorldSystem::update_turn_ui() {
+	// clear icon registry
+	for (Entity e : registry.icons.entities) {
+		registry.remove_all_components_of(e);
+	}
+
+	Motion& turn_ui_motion = registry.motions.get(turnUI);
+	vec2 position = turn_ui_motion.position;
+	vec2 startPos = vec2(turn_ui_motion.scale[0]/2.f, 0.f);
+	vec2 offset = vec2(0.f);
+
+	// get queue
+	std::queue<Entity> queue = turnOrderSystem.getTurnOrder();
+
+	for (int count = 0; !queue.empty() && count < 5; queue.pop()) {
+		Entity e = queue.front();
+		if (!registry.hidden.has(e)) {
+			offset[0] = 48.f*count + 32.f;
+			TEXTURE_ASSET_ID texture_id = registry.renderRequests.get(e).used_texture;
+			createIcon(renderer, position - startPos + offset, texture_id);
+			count++;
 		}
 	}
 	return;

@@ -154,3 +154,10 @@ Entity createCollectionMenu(RenderSystem* renderer, vec2 pos);
 Entity createArtifactIcon(RenderSystem* renderer, vec2 pos, ARTIFACT artifact);
 // Description Dialog (artifact version) - todo: add more definitions with other items (attacks etc.)
 Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifact);
+// cutscene
+Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID textureID);
+// Turn UI
+Entity createTurnUI(RenderSystem* renderer, vec2 pos);
+// Icon
+Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id);
+

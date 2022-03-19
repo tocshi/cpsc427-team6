@@ -34,10 +34,13 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer);
+	void init (RenderSystem* renderer);
 
 	// Releases all associated resources
 	~WorldSystem();
+
+	// free music 
+	void destroyMusic();
 
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
@@ -67,6 +70,8 @@ public:
 	Mix_Chunk* error_sound;
 	Mix_Chunk* footstep_sound;
 
+	Mix_Music* menu_music;
+	Mix_Music* cutscene_music;
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
@@ -82,6 +87,8 @@ public:
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
+	Entity turnUI;
+
 	// log text
 	void logText(std::string msg);
 
@@ -90,7 +97,10 @@ private:
 	void on_key(int key, int, int action, int mod);
 	void on_mouse(int button, int action, int mod);
 	void on_mouse_move(vec2 pos);
-
+	
+	// start of cut scene 
+	void cut_scene_start();
+	
 	// restart level
 	void restart_game();
 
@@ -148,6 +158,9 @@ private:
 	// load inventory
 	Inventory loadInventory(Entity e, json inventoryData);
 
+	// load statuses
+	void loadStatuses(Entity e, json statusData);
+
 	// load tiles
 	void loadTiles(json tileData);
 
@@ -159,12 +172,18 @@ private:
 
 	// load a sign
 	void loadSign(Entity e, json signData);
+
+	// load a chest
+	void loadChest(Entity e);
   
 	// do turn order logic
 	void doTurnOrderLogic();
 
 	// handle end of player's turn
 	void handle_end_player_turn(Entity player);
+
+	// udate turn UI
+	void update_turn_ui();
 
 	// OpenGL window handle
 	GLFWwindow* window;
@@ -173,7 +192,8 @@ private:
 	TurnOrderSystem turnOrderSystem;
 	AISystem aiSystem;
 	RoomSystem roomSystem;
-	
+
+	int countCutScene = 0;
 };
 
 // Set attack state for enemies that attack after moving

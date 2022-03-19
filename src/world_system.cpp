@@ -1307,6 +1307,16 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		if (current_game_state == GameStates::ATTACK_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ITEM_MENU) {
 			backAction();
 		}
+		// close all dialogs and menus
+		// remove all description dialog components
+		for (Entity dd : registry.descriptionDialogs.entities) {
+			registry.remove_all_components_of(dd);
+		}
+		// remove all attack dialog components
+		for (Entity ad : registry.attackDialogs.entities) {
+			registry.remove_all_components_of(ad);
+		}
+		cancelAction();
 	}
 }
 

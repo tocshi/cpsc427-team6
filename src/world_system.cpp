@@ -778,13 +778,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// LOGGING TEXT TEST
 	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
-		for (Entity& enemy : registry.enemies.entities) {
-			int test = irandRange(100,200);
-			std::string log_message = deal_damage(enemy, player_main, test);
-
-			logText(log_message);
-			printf("testing combat with 10 ATK and %d multiplier\n", test);
-		}
+		auto& stats = registry.stats.get(player_main);
+		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\n", stats.atk, stats.def, stats.speed, stats.hp, stats.mp);
 	}
 
 	// SAVING THE GAME
@@ -814,11 +809,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
 		}
 	}
-	if (action == GLFW_RELEASE && key == GLFW_KEY_3) {
+	if (action == GLFW_RELEASE && key == GLFW_KEY_Q) {
 		for (Entity& p : registry.players.entities) {
 			Motion m = registry.motions.get(p);
 			Player player = registry.players.get(p);
-			Entity e = createEquipment(renderer, m.position, EQUIPMENT::SHARP, player.floor+4);
+			Entity e = createEquipment(renderer, m.position, EQUIPMENT::SHARP, player.floor);
 			Equipment equip = registry.equipment.get(e);
 			printf("atk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\n", equip.atk, equip.def, equip.speed, equip.hp, equip.mp);
 			for (ATTACK a : equip.attacks) {

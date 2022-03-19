@@ -44,7 +44,7 @@ class RenderSystem {
 			textures_path("boss.png"),
 			textures_path("artifact.png"),
 			textures_path("consumable.png"),
-			textures_path("equipable.png"),
+			textures_path("item/equipment.png"),
 			textures_path("chest.png"),
 			textures_path("door.png"),
 			textures_path("sign.png"),

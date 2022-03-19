@@ -125,13 +125,14 @@ struct Equipment
 {
 	EQUIPMENT type = EQUIPMENT::EQUIPMENT_COUNT;
 	ATTACK attacks[4] = { ATTACK::NONE, ATTACK::NONE, ATTACK::NONE, ATTACK::NONE };
-	float atk;
-	float def;
-	float speed;
-	float hp;
-	float mp;
-	float ep;
-	float range;
+	int sprite = 0;
+	float atk = 0;
+	float def = 0;
+	float speed = 0;
+	float hp = 0;
+	float mp = 0;
+	float ep = 0;
+	float range = 0;
 };
 
 struct ArtifactIcon {
@@ -141,7 +142,8 @@ struct ArtifactIcon {
 // Inventory component
 struct Inventory
 {
-	Equipment equipped[2]; // [Weapon, Armour]
+	Equipment e = {};
+	Equipment equipped[2] = {e, e}; // [Weapon, Armour]
 	int consumable[static_cast<int>(CONSUMABLE::CONSUMABLE_COUNT)];
 	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
 };
@@ -152,7 +154,7 @@ struct Player
 	float s;
 	Inventory inv;
 	int gacha_pity = 0;
-	int floor = 0;
+	int floor = 1; // TODO: turn this back to 0 when tutorial is implemented
 	int room = 0;
 	int total_rooms = 0;
 	// current action taking (count acts as no current action being taken)
@@ -531,8 +533,8 @@ enum class TEXTURE_ASSET_ID {
 	BOSS = CAVELING + 1,
 	ARTIFACT = BOSS + 1,
 	CONSUMABLE = ARTIFACT + 1,
-	EQUIPABLE = CONSUMABLE + 1,
-	CHEST = EQUIPABLE + 1,
+	EQUIPMENT = CONSUMABLE + 1,
+	CHEST = EQUIPMENT + 1,
 	DOOR = CHEST + 1,
 	SIGN = DOOR + 1,
 	SIGN_GLOW_SPRITESHEET = SIGN + 1,

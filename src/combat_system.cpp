@@ -339,7 +339,10 @@ void equip_item(Entity& entity, Equipment& equipment) {
 	default:
 		break;
 	}
-	unequip_item(entity, slot);
+	// weird nullguard, source: trust me bro
+	if (inv.equipped[slot].type != EQUIPMENT::EQUIPMENT_COUNT) {
+		unequip_item(entity, slot);
+	}
 	inv.equipped[slot] = equipment;
 
 	// set base stats

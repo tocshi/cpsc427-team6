@@ -1,4 +1,5 @@
 #include "world_init.hpp"
+#include "combat_system.hpp"
 #include "tiny_ecs_registry.hpp"
 
 Entity createLine(vec2 position, vec2 scale)
@@ -51,8 +52,8 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	stats.maxmp = 100;
 	stats.ep = 100;
 	stats.maxep = 100;
-	stats.atk = 10;
-	stats.def = 2;
+	stats.atk = 0;
+	stats.def = 0;
 	stats.speed = 10;
 	stats.range = 400;
 
@@ -74,6 +75,19 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	// Create and (empty) Player component to be able to refer to all players
 	auto& player = registry.players.emplace(entity);
 	player.inv = registry.inventories.emplace(entity);
+
+	Equipment weapon = {};
+	weapon.type = EQUIPMENT::BLUNT;
+	weapon.sprite = 0;
+	weapon.atk = 10;
+
+	Equipment armour = {};
+	armour.type = EQUIPMENT::ARMOUR;
+	armour.sprite = 2;
+	armour.def = 2;
+
+	equip_item(entity, weapon);
+	equip_item(entity, armour);
 
 	registry.renderRequests.insert(
 		entity,
@@ -438,7 +452,7 @@ Entity createEquipment(RenderSystem* renderer, vec2 pos, EQUIPMENT type, int tie
 
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::EQUIPABLE,
+		{ TEXTURE_ASSET_ID::EQUIPMENT,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);

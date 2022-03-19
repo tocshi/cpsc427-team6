@@ -52,6 +52,8 @@ const float ARTIFACT_IMAGE_BB_WIDTH = 80.f;
 const float ARTIFACT_IMAGE_BB_HEIGHT = 80.f;
 const float DESCRIPTION_DIALOG_BB_WIDTH = 400.f;
 const float DESCRIPTION_DIALOG_BB_HEIGHT = 400.f;
+const float KEY_ICON_BB_WIDTH = 50.f;
+const float KEY_ICON_BB_HEIGHT = 50.f;
 const float MODE_BB_WIDTH = 125.f;
 const float MODE_BB_HEIGHT = 125.f;
 const float POINTER_BB_WIDTH = 64.f;
@@ -102,6 +104,8 @@ Entity createMenuStart(RenderSystem* renderer, vec2 pos);
 Entity createMenuQuit(RenderSystem* renderer, vec2 pos);
 // Menu title
 Entity createMenuTitle(RenderSystem* renderer, vec2 pos);
+// Hotkey icon
+Entity createKeyIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture);
 // Actions bar
 Entity createActionsBar(RenderSystem* renderer, vec2 pos);
 // Attack button
@@ -110,7 +114,6 @@ Entity createAttackButton(RenderSystem* renderer, vec2 pos);
 Entity createMoveButton(RenderSystem* renderer, vec2 pos);
 // Guard button
 Entity createGuardButton(RenderSystem* renderer, vec2 pos, BUTTON_ACTION_ID action, TEXTURE_ASSET_ID texture);
-// End turn button
 // Item button
 Entity createItemButton(RenderSystem* renderer, vec2 pos);
 // Back button

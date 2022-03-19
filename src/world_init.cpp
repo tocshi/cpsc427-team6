@@ -753,6 +753,34 @@ Entity createMenuQuit(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+// Keybind icons
+Entity createKeyIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ KEY_ICON_BB_WIDTH, KEY_ICON_BB_HEIGHT });
+
+	registry.keyIcons.emplace(entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI_TOP });
+
+	return entity;
+}
+
 // Actions bar
 Entity createActionsBar(RenderSystem* renderer, vec2 pos) {
 	auto entity = Entity();

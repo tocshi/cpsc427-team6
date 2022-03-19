@@ -276,10 +276,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (registry.actionButtons.entities.size() < 4) {
 			// bring back all of the buttons
-			createAttackButton(renderer, { window_width_px - 100.f, 200.f });
-			createMoveButton(renderer, { window_width_px - 100.f, 350.f });
-			createGuardButton(renderer, { window_width_px - 100.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
-			createItemButton(renderer, { window_width_px - 100.f, 650.f });
+			createAttackButton(renderer, { window_width_px - 125.f, 200.f });
+			createMoveButton(renderer, { window_width_px - 125.f, 350.f });
+			createGuardButton(renderer, { window_width_px - 125.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+			createItemButton(renderer, { window_width_px - 125.f, 650.f });
+		}
+
+		// todo: add key 5
+		if (registry.keyIcons.entities.size() < 4) {
+			createKeyIcon(renderer, { window_width_px - 60.f, 150.f }, TEXTURE_ASSET_ID::KEY_ICON_1);
+			createKeyIcon(renderer, { window_width_px - 60.f, 300.f }, TEXTURE_ASSET_ID::KEY_ICON_2);
+			createKeyIcon(renderer, { window_width_px - 60.f, 450.f }, TEXTURE_ASSET_ID::KEY_ICON_3);
+			createKeyIcon(renderer, { window_width_px - 60.f, 600.f }, TEXTURE_ASSET_ID::KEY_ICON_4);
 		}
 		
 		// hide all the visulaiztion tools
@@ -322,7 +330,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(gb);
 			}
 			// add end turn button
-			createGuardButton(renderer, { window_width_px - 100.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_END_TURN, TEXTURE_ASSET_ID::ACTIONS_END_TURN);
+			createGuardButton(renderer, { window_width_px - 125.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_END_TURN, TEXTURE_ASSET_ID::ACTIONS_END_TURN);
 		}
 		else if (!hideGuardButton) {
 			// remove guard button
@@ -330,7 +338,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(gb);
 			}
 			// add end turn button
-			createGuardButton(renderer, { window_width_px - 100.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+			createGuardButton(renderer, { window_width_px - 125.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
 		}
 
 		// update player motion
@@ -1007,10 +1015,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						spawn_game_entities();
 						// spawn the actions bar
 						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
-						createAttackButton(renderer, { window_width_px - 100.f, 200.f });
-						createMoveButton(renderer, { window_width_px - 100.f, 350.f });
-						createGuardButton(renderer, { window_width_px - 100.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
-						createItemButton(renderer, { window_width_px - 100.f, 650.f });
+						createAttackButton(renderer, { window_width_px - 125.f, 200.f });
+						createMoveButton(renderer, { window_width_px - 125.f, 350.f });
+						createGuardButton(renderer, { window_width_px - 125.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+						createItemButton(renderer, { window_width_px - 125.f, 650.f });
 
 						// spawn the collection and pause buttons
 						createPauseButton(renderer, { window_width_px - 80.f, 50.f });
@@ -1557,7 +1565,7 @@ void WorldSystem::handleActionButtonPress() {
 	hideGuardButton = true;
 
 	// create back button and move mode text
-	createBackButton(renderer, { window_width_px - 100.f , window_height_px - 100.f });
+	createBackButton(renderer, { window_width_px - 125.f , window_height_px - 100.f });
 }
 
 void WorldSystem::moveAction() {
@@ -1576,7 +1584,7 @@ void WorldSystem::moveAction() {
 		// set game state to move menu
 		set_gamestate(GameStates::MOVEMENT_MENU);
 
-		createMoveModeText(renderer, { window_width_px - 100.f, 350.f });
+		createMoveModeText(renderer, { window_width_px - 125.f, 350.f });
 	}
 }
 
@@ -1591,7 +1599,7 @@ void WorldSystem::attackAction() {
 		// set game state to attack menu
 		set_gamestate(GameStates::ATTACK_MENU);
 
-		createAttackModeText(renderer, { window_width_px - 100.f, 200.f });
+		createAttackModeText(renderer, { window_width_px - 125.f, 200.f });
 	}
 }
 

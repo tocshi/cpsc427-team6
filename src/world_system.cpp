@@ -33,6 +33,8 @@ WorldSystem::~WorldSystem() {
 		Mix_FreeChunk(footstep_sound);
 	if (door_sound != nullptr)
 		Mix_FreeChunk(door_sound);
+	if (switch_sound != nullptr)
+		Mix_FreeChunk(switch_sound);
 	Mix_CloseAudio();
 
 	// Destroy all created components
@@ -145,19 +147,23 @@ GLFWwindow* WorldSystem::create_window() {
 	error_sound = Mix_LoadWAV(audio_path("feedback/error.wav").c_str());
 	Mix_VolumeChunk(error_sound, 13);
 	footstep_sound = Mix_LoadWAV(audio_path("feedback/footstep.wav").c_str());
-	Mix_VolumeChunk(footstep_sound, 32);
+	Mix_VolumeChunk(footstep_sound, 24);
 	door_sound = Mix_LoadWAV(audio_path("feedback/door_open.wav").c_str());
 	Mix_VolumeChunk(door_sound, 32);
+	switch_sound = Mix_LoadWAV(audio_path("feedback/switch_click.wav").c_str());
+	Mix_VolumeChunk(switch_sound, 32);
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr 
 		|| error_sound == nullptr || footstep_sound == nullptr 
-		|| door_sound == nullptr) {
-		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n %s\n make sure the data directory is present",
+		|| door_sound == nullptr || switch_sound == nullptr) {
+		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n %s\n %s\n make sure the data directory is present",
 			audio_path("bgm/caves0.wav").c_str(),
 			audio_path("feedback/fire_explosion.wav").c_str(),
 			audio_path("feedback/error.wav").c_str(),
 			audio_path("feedback/footstep.wav").c_str(),
-			audio_path("feedback/door_open.wav").c_str());
+			audio_path("feedback/door_open.wav").c_str(),
+			audio_path("feedback/switch_click.wav").c_str()
+		);
 		return nullptr;
 	}
 
@@ -825,6 +831,15 @@ void WorldSystem::spawn_doors_random_location(int quantity) {
 	}
 }
 
+void WorldSystem::spawn_switches_random_location(int quantity) {
+	std::random_shuffle(spawnData.enemySpawns.begin(), spawnData.enemySpawns.end());
+	if (spawnData.enemySpawns.size() > 0) {
+		for (int i = 0; i < quantity; i++) {
+			createSwitch(renderer, { spawnData.enemySpawns[i].x, spawnData.enemySpawns[i].y });
+		}
+	}
+}
+
 // Compute collisions between entities
 void WorldSystem::handle_collisions() {
 	// Loop over all collisions detected by the physics system
@@ -1268,6 +1283,17 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									transition.floor = roomSystem.current_floor;
 								}
 							}
+							else if (interactable.type == INTERACT_TYPE::SWITCH && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+								Switch& switch_component = registry.switches.get(entity);
+								if (!switch_component.activated) {
+									switch_component.activated = true;
+									RenderRequest& rr = registry.renderRequests.get(entity);
+									rr.used_texture = TEXTURE_ASSET_ID::SWITCH_ACTIVE;
+									Mix_PlayChannel(-1, switch_sound, 0);
+									roomSystem.updateObjective(ObjectiveType::ACTIVATE_SWITCHES, 1);
+									break;
+								}
+							}
 							else if (interactable.type == INTERACT_TYPE::CHEST && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
 								
 								// use gacha system to determine loot
@@ -1304,6 +1330,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 								// TODO: make a more graceful chest destruction kthx
 								registry.remove_all_components_of(entity);
+								break;
 							}
 						}
 					}
@@ -1422,6 +1449,11 @@ void WorldSystem::removeForNewRoom() {
 	// remove animations
 	for (Entity animation : registry.animations.entities) {
 		registry.remove_all_components_of(animation);
+	}
+
+	// remove interactables
+	for (Entity interactable : registry.interactables.entities) {
+		registry.remove_all_components_of(interactable);
 	}
 }
 

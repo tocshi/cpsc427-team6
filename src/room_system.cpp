@@ -31,7 +31,8 @@ void RoomSystem::setObjective(ObjectiveType type, int quantity) {
 		world.logText("Kill " + std::to_string(quantity) + " enemies to proceed!");
 		break;
 	case ObjectiveType::ACTIVATE_SWITCHES:
-		world.logText("Find and activate " + std::to_string(quantity) + " switches to proceed!");
+		world.spawn_switches_random_location(quantity);
+		world.logText("Find and activate " + std::to_string(quantity) + " switches (black tiles) to proceed!");
 		break;
 	case ObjectiveType::DESTROY_SPAWNER:
 		world.logText("Find and destroy the enemy hive!");
@@ -46,7 +47,8 @@ void RoomSystem::setObjective(ObjectiveType type, int quantity) {
 }
 
 void RoomSystem::setRandomObjective() {
-	ObjectiveType objective_type = (ObjectiveType)irand(objective_count);
+	//ObjectiveType objective_type = (ObjectiveType)irand(objective_count);
+	ObjectiveType objective_type = (ObjectiveType)irand(2); // For now, only the first 2 are implemented
 	int quantity = 0;
 	switch (objective_type) {
 	case ObjectiveType::KILL_ENEMIES:
@@ -65,7 +67,7 @@ void RoomSystem::setRandomObjective() {
 		break;
 	}
 	//setObjective(objective_type, quantity);
-	setObjective(ObjectiveType::KILL_ENEMIES, 1);
+	setObjective(objective_type, quantity);
 }
 
 void RoomSystem::updateObjective(ObjectiveType type, int quantity) {

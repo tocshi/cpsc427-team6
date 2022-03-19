@@ -56,6 +56,8 @@ const float MODE_BB_WIDTH = 800.f;
 const float MODE_BB_HEIGHT = 100.f;
 const float POINTER_BB_WIDTH = 64.f;
 const float POINTER_BB_HEIGHT = 64.f;
+const float SWITCH_BB_WIDTH = 64.f;
+const float SWITCH_BB_HEIGHT = 64.f;
 // want to make fog small so it can be rendered a lot TODO: this is a bad implementation and will need to be changed later to use shadows or drawing circles or something better
 const float FOG_BB_WIDTH = 0.6f * 100.f;
 const float FOG_BB_HEIGHT = 0.6f * 100.f;
@@ -157,3 +159,5 @@ Entity createCollectionMenu(RenderSystem* renderer, vec2 pos);
 Entity createArtifactIcon(RenderSystem* renderer, vec2 pos, ARTIFACT artifact);
 // Description Dialog (artifact version) - todo: add more definitions with other items (attacks etc.)
 Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifact);
+// switch
+Entity createSwitch(RenderSystem* renderer, vec2 pos);

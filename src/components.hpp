@@ -279,7 +279,8 @@ enum class INTERACT_TYPE {
 	DOOR = CHEST + 1,
 	STAIRS = DOOR + 1,
 	SIGN = STAIRS + 1,
-	TYPE_COUNT = SIGN + 1
+	SWITCH = SIGN + 1,
+	TYPE_COUNT = SWITCH + 1
 };
 
 struct Interactable {
@@ -536,6 +537,10 @@ struct FadeInTimer {
 	float counter_ms = 750.f;
 };
 
+struct Switch {
+	bool activated = false;
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -609,7 +614,9 @@ enum class TEXTURE_ASSET_ID {
 	DESCRIPTION_DIALOG = COLLECTION_PANEL + 1,
 	ARTIFACT_PLACEHOLDER = DESCRIPTION_DIALOG + 1,
 	COLLECTION_SCROLL_ARROW = ARTIFACT_PLACEHOLDER + 1,
-	TEXTURE_COUNT = COLLECTION_SCROLL_ARROW + 1
+	SWITCH_DEFAULT = COLLECTION_SCROLL_ARROW + 1,
+	SWITCH_ACTIVE = SWITCH_DEFAULT + 1,
+	TEXTURE_COUNT = SWITCH_ACTIVE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 

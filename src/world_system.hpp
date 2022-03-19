@@ -67,6 +67,7 @@ public:
 	Mix_Chunk* error_sound;
 	Mix_Chunk* footstep_sound;
 	Mix_Chunk* door_sound;
+	Mix_Chunk* switch_sound;
 
 	// Game state
 	RenderSystem* renderer;
@@ -83,6 +84,7 @@ public:
 	void logText(std::string msg);
 
 	void spawn_doors_random_location(int quantity);
+	void spawn_switches_random_location(int quantity);
 
 private:
 	// Input callback functions

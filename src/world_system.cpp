@@ -160,10 +160,10 @@ GLFWwindow* WorldSystem::create_window() {
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr 
 		|| error_sound == nullptr || footstep_sound == nullptr|| menu_music == nullptr || cutscene_music == nullptr ) {
-		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n make sure the data directory is present",
+		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n %s\n %s\n %s\n make sure the data directory is present",
 			audio_path("bgm/caves0.wav").c_str(),
-			audio_path("bgm/menu0.wav").c_str(), //add
-			audio_path("bgm/dream0.wav").c_str(), //add
+			audio_path("bgm/menu0.wav").c_str(),
+			audio_path("bgm/dream0.wav").c_str(),
 			audio_path("feedback/fire_explosion.wav").c_str(),
 			audio_path("feedback/error.wav").c_str(),
 			audio_path("feedback/footstep.wav").c_str());
@@ -177,7 +177,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 	// Playing background music indefinitely
 
-	Mix_PlayMusic(cutscene_music, 1);
+	Mix_PlayMusic(cutscene_music, 0);
 	fprintf(stderr, "Loaded music\n");
 	printf("%d", countCutScene);
 	//set_gamestate(GameStates::CUTSCENE);
@@ -647,7 +647,7 @@ void WorldSystem::restart_game() {
 	set_gamestate(GameStates::MAIN_MENU);
 
 	if (current_game_state == GameStates::MAIN_MENU) {
-		Mix_PlayMusic(menu_music, 1);
+		Mix_PlayMusic(menu_music, 0);
 	}
 
 	/*if (current_game_state != GameStates::MAIN_MENU) {

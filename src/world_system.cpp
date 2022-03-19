@@ -656,7 +656,7 @@ void WorldSystem::spawn_game_entities() {
 	*/
 	
 	float statbarsX = 150.f;
-	float statbarsY = 35.f;
+	float statbarsY = window_height_px - START_BB_HEIGHT - 55.f;
 	createHPFill(renderer, { statbarsX, statbarsY });
 	createHPBar(renderer,  { statbarsX, statbarsY });
 	createMPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
@@ -1558,6 +1558,13 @@ void remove_status(Entity e, StatusType status, int number) {
 }
 
 void WorldSystem::handleActionButtonPress() {
+	// hide all the hotkeys if not in attack mode
+	if (current_game_state != GameStates::ATTACK_MENU) {
+		for (Entity ki : registry.keyIcons.entities) {
+			registry.remove_all_components_of(ki);
+		}
+	}
+
 	// hide all action buttons
 	for (Entity ab : registry.actionButtons.entities) {
 		registry.remove_all_components_of(ab);
@@ -1575,7 +1582,7 @@ void WorldSystem::moveAction() {
 		Stats stats = registry.stats.get(player_main);
 		player.action = PLAYER_ACTION::MOVING;
 
-		handleActionButtonPress();
+		
 
 		// show ep range
 		Motion motion = registry.motions.get(player_main);
@@ -1583,7 +1590,7 @@ void WorldSystem::moveAction() {
 
 		// set game state to move menu
 		set_gamestate(GameStates::MOVEMENT_MENU);
-
+		handleActionButtonPress();
 		createMoveModeText(renderer, { window_width_px - 125.f, 350.f });
 	}
 }
@@ -1594,11 +1601,11 @@ void WorldSystem::attackAction() {
 		Player& player = registry.players.get(player_main);
 		player.action = PLAYER_ACTION::ATTACKING;
 
-		handleActionButtonPress();
+		
 
 		// set game state to attack menu
 		set_gamestate(GameStates::ATTACK_MENU);
-
+		handleActionButtonPress();
 		createAttackModeText(renderer, { window_width_px - 125.f, 200.f });
 	}
 }

@@ -1904,7 +1904,7 @@ Entity createDamageText(RenderSystem* renderer, vec2 pos, std::string text_input
 	text.message = text_input;
 	text.position = { 0,0 };
 	text.scale = 3.f;
-	text.textColor = is_heal ? vec3(0.2, 1.0, 0.2) : vec3(1.0, 0.1, 0.1);
+	text.textColor = is_heal ? vec3(0.4, 1.0, 0.45) : vec3(1.0, 0.3, 0.25);
 
 	// approximately center it
 	vec2 offset = { text_input.length() * text.scale * 4, 0 };

@@ -615,11 +615,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// update game background (only on player turn)
-	if (get_is_player_turn() && current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE) {
-		updateGameBackground();
-	}
-
 	return true;
 }
 
@@ -2095,11 +2090,4 @@ void WorldSystem::update_turn_ui() {
 		}
 	}
 	return;
-}
-
-void WorldSystem::updateGameBackground() {
-	Motion& backgroundMotion = registry.motions.get(background);
-	Camera c = registry.cameras.get(active_camera_entity);
-	backgroundMotion.position.x = -c.position.x * 0.1;
-	backgroundMotion.position.y = -c.position.y * 0.1;
 }

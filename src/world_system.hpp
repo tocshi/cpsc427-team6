@@ -192,9 +192,6 @@ private:
 	// generate and setup a new room
 	void generateNewRoom(Floors floor, bool repeat_allowed);
 
-	// update game background
-	void updateGameBackground();
-
 	// udate turn UI
 	void update_turn_ui();
 

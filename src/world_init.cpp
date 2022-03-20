@@ -1,4 +1,5 @@
 #include "world_init.hpp"
+#include "combat_system.hpp"
 #include "tiny_ecs_registry.hpp"
 
 Entity createLine(vec2 position, vec2 scale)
@@ -30,10 +31,6 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -51,8 +48,8 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	stats.maxmp = 100;
 	stats.ep = 100;
 	stats.maxep = 100;
-	stats.atk = 10;
-	stats.def = 2;
+	stats.atk = 0;
+	stats.def = 0;
 	stats.speed = 10;
 	stats.range = 400;
 
@@ -75,11 +72,25 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	auto& player = registry.players.emplace(entity);
 	player.inv = registry.inventories.emplace(entity);
 
+	Equipment weapon = {};
+	weapon.type = EQUIPMENT::BLUNT;
+	weapon.sprite = 0;
+	weapon.atk = 10;
+
+	Equipment armour = {};
+	armour.type = EQUIPMENT::ARMOUR;
+	armour.sprite = 2;
+	armour.def = 2;
+
+	equip_item(entity, weapon);
+	equip_item(entity, armour);
+
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::PLAYER,
 		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::PLAYER });
 
 	// add player to queuables
 	registry.queueables.emplace(entity);
@@ -95,10 +106,6 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 Entity createEnemy(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -159,10 +166,6 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -214,10 +217,6 @@ Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir, Entity 
 {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -252,10 +251,6 @@ Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir, Entity 
 Entity createCaveling(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -309,10 +304,6 @@ Entity createBoss(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -339,29 +330,162 @@ Entity createBoss(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-// Artifact
-Entity createArtifact(RenderSystem* renderer, vec2 pos)
+// Generate Random Equipment
+Equipment createEquipment(EQUIPMENT type, int tier) {
+
+	Equipment equipment = {};
+	equipment.type = type;
+
+	// Create equipment random stats
+	float atkmod = 0.f;
+	float defmod = 0.f;
+	float speedmod = 0.f;
+	float hpmod = 0.f;
+	float mpmod = 0.f;
+	float netstat = -999.f;
+
+	while (netstat < (-2 + 2 * tier) || netstat >(1 + 2 * tier)) {
+		atkmod = irandRange(-4 + tier, 2 + tier);
+		defmod = irandRange(-4 + tier, 2 + tier);
+		speedmod = irandRange(-4 + tier, 2 + tier);
+		hpmod = irandRange(-20 + tier * 5, 10 + tier * 5);
+		mpmod = irandRange(-20 + tier * 5, 10 + tier * 5);
+		netstat = atkmod + defmod + speedmod + (hpmod / 5) + (mpmod / 5);
+	}
+
+	// Create base stats and attacks
+	if (type == EQUIPMENT::SHARP || type == EQUIPMENT::BLUNT || type == EQUIPMENT::RANGED) {
+		equipment.atk = 7 + 4 * tier;
+
+		// Create shuffled attack pool
+		std::vector<ATTACK> sharp_attacks = { ATTACK::SAPPING_STRIKE, ATTACK::PIERCING_THRUST, ATTACK::PARRYING_STANCE, ATTACK::DISENGAGE };
+		std::random_shuffle(std::begin(sharp_attacks), std::end(sharp_attacks));
+		std::vector<ATTACK> blunt_attacks = { ATTACK::ARMOURCRUSHER, ATTACK::DISORIENTING_BASH, ATTACK::TECTONIC_SLAM, ATTACK::FERVENT_CHARGE };
+		std::random_shuffle(std::begin(blunt_attacks), std::end(blunt_attacks));
+		std::vector<ATTACK> ranged_attacks = { ATTACK::BINDING_ARROW, ATTACK::LUMINOUS_ARROW, ATTACK::HOOK_SHOT, ATTACK::FOCUSED_SHOT };
+		std::random_shuffle(std::begin(ranged_attacks), std::end(ranged_attacks));
+		std::vector<ATTACK> combined_attacks;
+		combined_attacks.reserve(sharp_attacks.size() + blunt_attacks.size() + ranged_attacks.size());
+
+		switch (type) {
+		case EQUIPMENT::SHARP:
+			equipment.attacks[0] = ATTACK::ROUNDSLASH;
+			equipment.attacks[1] = sharp_attacks.back();
+			sharp_attacks.pop_back();
+			equipment.attacks[2] = sharp_attacks.back();
+			sharp_attacks.pop_back();
+			equipment.attacks[3] = ATTACK::TERMINUS_VERITAS;
+			equipment.sprite = irandRange(1, 7) * 6;
+			break;
+		case EQUIPMENT::BLUNT:
+			equipment.attacks[0] = ATTACK::WILD_SWINGS;
+			equipment.attacks[1] = blunt_attacks.back();
+			blunt_attacks.pop_back();
+			equipment.attacks[2] = blunt_attacks.back();
+			blunt_attacks.pop_back();
+			equipment.attacks[3] = ATTACK::PRIMAL_RAGE;
+			equipment.sprite = irandRange(1, 7) * 6 + 1;
+			break;
+		case EQUIPMENT::RANGED:
+			equipment.attacks[0] = ATTACK::SPREAD_SHOT;
+			equipment.attacks[1] = ranged_attacks.back();
+			ranged_attacks.pop_back();
+			equipment.attacks[2] = ranged_attacks.back();
+			ranged_attacks.pop_back();
+			equipment.attacks[3] = ATTACK::SKYBORNE_RAIN;
+			equipment.sprite = irandRange(1, 7) * 6 + 3;
+			break;
+		}
+
+		// Check for Chimera's Arm and resolve effect
+		if (registry.inventories.get(registry.players.entities[0]).artifact[(int)ARTIFACT::CHIMERARM] > 0) {
+			equipment.atk += 4 * registry.inventories.get(registry.players.entities[0]).artifact[(int)ARTIFACT::CHIMERARM];
+			combined_attacks.insert(combined_attacks.end(), sharp_attacks.begin(), sharp_attacks.end());
+			combined_attacks.insert(combined_attacks.end(), blunt_attacks.begin(), blunt_attacks.end());
+			combined_attacks.insert(combined_attacks.end(), ranged_attacks.begin(), ranged_attacks.end());
+			equipment.attacks[1] = combined_attacks[irand(combined_attacks.size())];
+		}
+	}
+	else if (type == EQUIPMENT::ARMOUR) {
+		equipment.def = 0 + 2 * tier;
+		equipment.sprite = irandRange(1, 7) * 6 + 2;
+	}
+
+	equipment.atk += atkmod;
+	equipment.def += defmod;
+	equipment.speed += speedmod;
+	equipment.hp += hpmod;
+	equipment.mp += mpmod;
+
+	return equipment;
+}
+
+// Generate interactable Equipment entity
+Entity createEquipmentEntity(RenderSystem* renderer, vec2 pos, Equipment equipment)
 {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
+	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 0;
 
-	motion.scale = vec2({ ARTIFACT_BB_WIDTH, ARTIFACT_BB_HEIGHT });
+	motion.scale = vec2({ PICKUP_BB_WIDTH, PICKUP_BB_HEIGHT });
+
+	registry.equipment.insert(entity, equipment);
+	auto& interactable = registry.interactables.emplace(entity);
+	interactable.type = INTERACT_TYPE::PICKUP;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::EQUIPMENT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITESHEET });
+	registry.hidables.emplace(entity);
+
+	Spritesheet& spritesheet = registry.spritesheets.emplace(entity);
+	spritesheet.texture = TEXTURE_ASSET_ID::EQUIPMENT;
+	spritesheet.width = 96;
+	spritesheet.height = 144;
+	spritesheet.columns = 6;
+	spritesheet.rows = 9;
+	spritesheet.frame_size = { 16, 16 };
+	spritesheet.index = equipment.sprite;
+
+	return entity;
+}
+
+// Artifact
+Entity createArtifact(RenderSystem* renderer, vec2 pos, ARTIFACT type)
+{
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 0;
+
+	motion.scale = vec2({ PICKUP_BB_WIDTH, PICKUP_BB_HEIGHT });
 
 	// Create and (empty) ARTIFACT component to be able to refer to all artifacts
 	//registry.test.emplace(entity);
-	registry.artifacts.emplace(entity); // grab the artifact entity
+	auto& artifact = registry.artifacts.emplace(entity); // grab the artifact entity
+	artifact.type = type;
+	auto& interactable = registry.interactables.emplace(entity);
+	interactable.type = INTERACT_TYPE::PICKUP;
+	TEXTURE_ASSET_ID sprite = artifact_textures.at(type);
+
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::ARTIFACT,
+		{ sprite,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
@@ -374,17 +498,13 @@ Entity createConsumable(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
 
-	motion.scale = vec2({ CONSUMABLE_BB_WIDTH, CONSUMABLE_BB_HEIGHT });
+	motion.scale = vec2({ PICKUP_BB_WIDTH, PICKUP_BB_HEIGHT });
 
 	// Create and (empty) CONSUMABLE component to be able to refer to all consumables
 	//registry.test.emplace(entity);
@@ -399,44 +519,10 @@ Entity createConsumable(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-// Item (equipable)
-Entity createEquipable(RenderSystem* renderer, vec2 pos)
-{
-	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initilaize the position, scale, and physics components (more to be changed/added)
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.position = pos;
-
-	motion.scale = vec2({ EQUIPABLE_BB_WIDTH, EQUIPABLE_BB_HEIGHT });
-
-	// Create and (empty) EQUIPABLE component to be able to refer to all equipables
-	//registry.test.emplace(entity);
-	registry.equipment.emplace(entity); // TRY FOR EQUIPTMENT
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::EQUIPABLE,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
-	registry.hidables.emplace(entity);
-
-	return entity;
-}
-
 // Chest
-Entity createChest(RenderSystem* renderer, vec2 pos)
+Entity createChest(RenderSystem* renderer, vec2 pos, bool isArtifact)
 {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -448,7 +534,12 @@ Entity createChest(RenderSystem* renderer, vec2 pos)
 
 	// Set interaction type
 	auto& interactable = registry.interactables.emplace(entity);
-	interactable.type = INTERACT_TYPE::CHEST;
+	if (isArtifact) {
+		interactable.type = INTERACT_TYPE::ARTIFACT_CHEST;
+	}
+	else{
+		interactable.type = INTERACT_TYPE::ITEM_CHEST;
+	}
 
 	registry.renderRequests.insert(
 		entity,
@@ -464,10 +555,6 @@ Entity createChest(RenderSystem* renderer, vec2 pos)
 Entity createDoor(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -506,10 +593,6 @@ Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::pair<std::s
 	anim.spritesheet_height = 32;
 	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -541,10 +624,6 @@ Entity createStair(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -571,10 +650,6 @@ Entity createStair(RenderSystem* renderer, vec2 pos)
 Entity createWall(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -657,10 +732,6 @@ Entity createMenuStart(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -688,10 +759,6 @@ Entity createMenuStart(RenderSystem* renderer, vec2 pos)
 Entity createMenuQuit(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -749,10 +816,6 @@ Entity createKeyIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture)
 Entity createActionsBar(RenderSystem* renderer, vec2 pos) {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -774,10 +837,6 @@ Entity createActionsBar(RenderSystem* renderer, vec2 pos) {
 // Attack button
 Entity createAttackButton(RenderSystem* renderer, vec2 pos) {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -805,10 +864,6 @@ Entity createAttackButton(RenderSystem* renderer, vec2 pos) {
 Entity createMoveButton(RenderSystem* renderer, vec2 pos) {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -834,10 +889,6 @@ Entity createMoveButton(RenderSystem* renderer, vec2 pos) {
 // Guard button
 Entity createGuardButton(RenderSystem* renderer, vec2 pos, BUTTON_ACTION_ID action, TEXTURE_ASSET_ID texture) {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -865,10 +916,6 @@ Entity createGuardButton(RenderSystem* renderer, vec2 pos, BUTTON_ACTION_ID acti
 Entity createItemButton(RenderSystem* renderer, vec2 pos) {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -894,10 +941,6 @@ Entity createItemButton(RenderSystem* renderer, vec2 pos) {
 Entity createBackButton(RenderSystem* renderer, vec2 pos) {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -922,10 +965,6 @@ Entity createBackButton(RenderSystem* renderer, vec2 pos) {
 // Cancel button
 Entity createCancelButton(RenderSystem* renderer, vec2 pos) {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -953,10 +992,6 @@ Entity createCancelButton(RenderSystem* renderer, vec2 pos) {
 Entity createAttackModeText(RenderSystem* renderer, vec2 pos) {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -979,10 +1014,6 @@ Entity createAttackModeText(RenderSystem* renderer, vec2 pos) {
 // Move mode text
 Entity createMoveModeText(RenderSystem* renderer, vec2 pos) {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -1007,10 +1038,6 @@ Entity createMoveModeText(RenderSystem* renderer, vec2 pos) {
 Entity createPauseButton(RenderSystem* renderer, vec2 pos) {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -1034,10 +1061,6 @@ Entity createPauseButton(RenderSystem* renderer, vec2 pos) {
 // Collection (book) button
 Entity createCollectionButton(RenderSystem* renderer, vec2 pos) {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -1257,10 +1280,6 @@ Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 Entity createCollectionMenu(RenderSystem* renderer, vec2 pos) {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -1344,10 +1363,6 @@ Entity createCollectionMenu(RenderSystem* renderer, vec2 pos) {
 Entity createArtifactIcon(RenderSystem* renderer, vec2 pos, ARTIFACT artifact) {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -1386,10 +1401,6 @@ Entity createArtifactIcon(RenderSystem* renderer, vec2 pos, ARTIFACT artifact) {
 // Description dialog
 Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifact) {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -1577,10 +1588,6 @@ Entity createMenuTitle(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -1604,10 +1611,6 @@ Entity createMenuTitle(RenderSystem* renderer, vec2 pos)
 Entity createPointer(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture)
 {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -1873,10 +1876,6 @@ Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale
 	// Reserve en entity
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initialize the text component
 	auto& text = registry.texts.emplace(entity);
 	text.message = msg;
@@ -1900,10 +1899,6 @@ Entity createDialogText(RenderSystem* renderer, vec2 pos, std::string msg, float
 {
 	// Reserve en entity
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initialize the text component
 	auto& text = registry.texts.emplace(entity);

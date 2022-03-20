@@ -44,7 +44,7 @@ class RenderSystem {
 			textures_path("boss.png"),
 			textures_path("artifact.png"),
 			textures_path("consumable.png"),
-			textures_path("equipable.png"),
+			textures_path("item/equipment.png"),
 			textures_path("chest.png"),
 			textures_path("door.png"),
 			textures_path("sign.png"),
@@ -167,10 +167,12 @@ private:
 	void drawToScreen();
 	void updateTileMapCoords(TileUV& tileUV);
 	void updateAnimTexCoords(AnimationData& anim);
+	void updateSpritesheetTexCoords(Spritesheet& spritesheet);
 	bool isOnScreen(Motion& motion, Camera& camera, int window_width, int window_height);
 
 	TileUV prev_tileUV = TileUV();
 	AnimationData prev_animdata = AnimationData();
+	Spritesheet prev_spritesheet = Spritesheet();
 
 	// Window handle
 	GLFWwindow* window;

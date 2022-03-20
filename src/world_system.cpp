@@ -1161,26 +1161,21 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	// get cursor position relative to world
 	Camera camera = registry.cameras.get(active_camera_entity);
 	vec2 world_pos = {xpos + camera.position.x, ypos + camera.position.y};
-	//printf("World Position at (%f, %f)\n", world_pos.x, world_pos.y)
 
-		// check if left click works 
-		
-	if (action == GLFW_RELEASE && button == GLFW_MOUSE_BUTTON_LEFT && !player_move_click && current_game_state == GameStates::CUTSCENE) {
-		countCutScene++;
-		printf("start cutscenecount is %d \n", countCutScene);
-		
-		cut_scene_start();
-		if (current_game_state == GameStates::CUTSCENE && countCutScene == 3) {
-			set_gamestate(GameStates::MAIN_MENU);
-			printf("set to main_menu game state \n");
-			restart_game();
-		}
-		else {
-			printf(" \n you just pressed left mouse button\n");
-		}
-	}
 
 	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
+
+		// Advance cutscene
+		if (!player_move_click && current_game_state == GameStates::CUTSCENE) {
+			countCutScene++;
+
+			cut_scene_start();
+			if (current_game_state == GameStates::CUTSCENE && countCutScene == 3) {
+				set_gamestate(GameStates::MAIN_MENU);
+				restart_game();
+			}
+			return;
+		}
 
 		///////////////////////////
 		// logic for button presses

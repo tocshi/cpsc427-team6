@@ -319,10 +319,12 @@ void reset_stats(Entity& entity) {
 	float current_hp = stats.hp;
 	float current_mp = stats.mp;
 	float current_ep = stats.ep;
+	bool current_guard = stats.guard;
 	stats = basestats;
 	stats.hp = current_hp;
 	stats.mp = current_mp;
 	stats.ep = current_ep;
+	stats.guard = current_guard;
 }
 
 // Calculate entity stats based on inv + effects

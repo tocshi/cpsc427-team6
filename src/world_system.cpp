@@ -615,6 +615,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// update game background (only on player turn)
+	if (get_is_player_turn() && current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE) {
+		updateGameBackground();
+	}
+
 	return true;
 }
 
@@ -2090,4 +2095,11 @@ void WorldSystem::update_turn_ui() {
 		}
 	}
 	return;
+}
+
+void WorldSystem::updateGameBackground() {
+	Motion& backgroundMotion = registry.motions.get(background);
+	Motion playerMotion = registry.motions.get(player_main);
+	backgroundMotion.position.x = playerMotion.velocity.x > 0 ? -playerMotion.position.x * 0.05 : playerMotion.position.x * 0.05;
+	backgroundMotion.position.y = playerMotion.velocity.y > 0 ? -playerMotion.position.y * 0.05 : playerMotion.position.y * 0.05;
 }

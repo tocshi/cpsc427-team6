@@ -637,10 +637,10 @@ Entity createGameBackground(RenderSystem* renderer, vec2 position)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
-	motion.position = { 1600.f , 1600.f };
+	motion.position = position;
 
 	// Setting initial values
-	motion.scale = vec2({ 5000, 5000});
+	motion.scale = vec2({ window_width_px * 10, window_height_px * 10});
 
 	registry.renderRequests.insert(
 		entity,

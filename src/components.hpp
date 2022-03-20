@@ -273,7 +273,8 @@ enum class INTERACT_TYPE {
 	DOOR = CHEST + 1,
 	STAIRS = DOOR + 1,
 	SIGN = STAIRS + 1,
-	TYPE_COUNT = SIGN + 1
+	SWITCH = SIGN + 1,
+	TYPE_COUNT = SWITCH + 1
 };
 
 struct Interactable {
@@ -498,6 +499,54 @@ struct KnockBack {
 	float angle = 0;
 };
 
+enum class ObjectiveType {
+	KILL_ENEMIES = 0,
+	ACTIVATE_SWITCHES = KILL_ENEMIES + 1,
+	DESTROY_SPAWNER = ACTIVATE_SWITCHES + 1,
+	SURVIVE_TURNS = DESTROY_SPAWNER + 1,
+	OBJECTIVE_COUNT = SURVIVE_TURNS + 1
+};
+const int objective_count = (int)ObjectiveType::OBJECTIVE_COUNT;
+
+struct Objective {
+	ObjectiveType type;
+	int remaining_count;
+	bool completed = false;
+};
+
+struct SessionStatistics {
+	int rooms_cleared = 0;
+	int enemies_defeated = 0;
+};
+
+enum class Floors {
+	FLOOR1 = 0,
+	FLOOR_COUNT = FLOOR1 + 1
+};
+const int floor_count = (int)Floors::FLOOR_COUNT;
+
+struct RoomTransitionTimer {
+	float counter_ms = 750.f;
+	Floors floor;
+	bool repeat_allowed = false; // whether the next room is allowed to use the same map file as the current
+};
+
+struct LoadingTimer {
+	float counter_ms = 250.f; // We use it to wait some amount of time or until a long step has passed
+};
+
+struct FadeInTimer {
+	float counter_ms = 750.f;
+};
+
+struct Switch {
+	bool activated = false;
+};
+
+struct Icon {
+
+};
+
 /**
  * The following enumerators represent global identifiers refering to graphic
  * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
@@ -566,12 +615,18 @@ enum class TEXTURE_ASSET_ID {
 	NORMAL_POINTER = EXPLOSION_SPRITESHEET + 1,
 	ATTACK_POINTER = NORMAL_POINTER + 1,
 	MOVE_POINTER = ATTACK_POINTER + 1,
-	MENU_CLOSE =  MOVE_POINTER + 1,
+	MENU_CLOSE = MOVE_POINTER + 1,
 	COLLECTION_PANEL = MENU_CLOSE + 1,
 	DESCRIPTION_DIALOG = COLLECTION_PANEL + 1,
 	ARTIFACT_PLACEHOLDER = DESCRIPTION_DIALOG + 1,
 	COLLECTION_SCROLL_ARROW = ARTIFACT_PLACEHOLDER + 1,
-	KEY_ICON_1 = COLLECTION_SCROLL_ARROW + 1,
+	CUTSCENE1 = COLLECTION_SCROLL_ARROW + 1,
+	CUTSCENE2 = CUTSCENE1 + 1,
+	CUTSCENE3 = CUTSCENE2 + 1,
+	TURN_UI = CUTSCENE3+1,
+	SWITCH_DEFAULT = TURN_UI + 1,
+	SWITCH_ACTIVE = SWITCH_DEFAULT + 1,
+  KEY_ICON_1 = SWITCH_ACTIVE + 1,
 	KEY_ICON_2 = KEY_ICON_1 + 1,
 	KEY_ICON_3 = KEY_ICON_2 + 1,
 	KEY_ICON_4 = KEY_ICON_3 + 1,
@@ -579,6 +634,7 @@ enum class TEXTURE_ASSET_ID {
 	ATTACK_NORMAL = KEY_ICON_5 + 1,
 	TEXTURE_COUNT = ATTACK_NORMAL + 1
 };
+
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
@@ -623,7 +679,8 @@ enum class RENDER_LAYER_ID {
 	UI_TOP = DIALOG_TEXT + 1,
 	CURSOR = UI_TOP + 1,
 	DEBUG_LAYER = CURSOR + 1,
-	LAYER_COUNT = DEBUG_LAYER + 1
+	CUTSCENE = DEBUG_LAYER+1,
+	LAYER_COUNT = CUTSCENE + 1
 };
 const int layer_count = (int)RENDER_LAYER_ID::LAYER_COUNT;
 

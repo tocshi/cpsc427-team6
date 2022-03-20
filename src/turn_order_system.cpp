@@ -1,3 +1,5 @@
+#pragma once
+
 #include "turn_order_system.hpp"
 #include "combat_system.hpp"
 
@@ -85,4 +87,8 @@ void TurnOrderSystem::loadTurnOrder(std::queue<Entity> queue) {
 
 void TurnOrderSystem::removeFromQueue(Entity e) {
 	turnQueue.removeEntity(e);
+}
+
+void TurnOrderSystem::emptyQueue() {
+	turnQueue.emptyQueue();
 }

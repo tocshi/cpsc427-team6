@@ -1,3 +1,5 @@
+#pragma once
+
 #include "common.hpp"
 #include "tiny_ecs.hpp"
 #include "components.hpp"
@@ -14,6 +16,7 @@ public:
 	std::queue<Entity> getTurnOrder();
 	void loadTurnOrder(std::queue<Entity> queue);
 	void removeFromQueue(Entity e);
+	void emptyQueue();
 
 private:
 	Entity currentEntity;

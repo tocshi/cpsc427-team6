@@ -16,6 +16,7 @@
 #include "turn_order_system.hpp"
 #include "ai_system.hpp"
 #include "game_state.hpp"
+#include "room_system.hpp"
 
 #include <../ext/json/single_include/nlohmann/json.hpp>
 
@@ -33,10 +34,13 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init(RenderSystem* renderer);
+	void init (RenderSystem* renderer);
 
 	// Releases all associated resources
 	~WorldSystem();
+
+	// free music 
+	void destroyMusic();
 
 	// Steps the game ahead by ms milliseconds
 	bool step(float elapsed_ms);
@@ -65,7 +69,11 @@ public:
 	Mix_Chunk* fire_explosion_sound;
 	Mix_Chunk* error_sound;
 	Mix_Chunk* footstep_sound;
+	Mix_Chunk* door_sound;
+	Mix_Chunk* switch_sound;
 
+	Mix_Music* menu_music;
+	Mix_Music* cutscene_music;
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
@@ -77,15 +85,23 @@ public:
 	bool player_move_click = false;
 	bool is_ai_turn = false;
 
+	Entity turnUI;
+
 	// log text
 	void logText(std::string msg);
+
+	void spawn_doors_random_location(int quantity);
+	void spawn_switches_random_location(int quantity);
 
 private:
 	// Input callback functions
 	void on_key(int key, int, int action, int mod);
 	void on_mouse(int button, int action, int mod);
 	void on_mouse_move(vec2 pos);
-
+	
+	// start of cut scene 
+	void cut_scene_start();
+	
 	// restart level
 	void restart_game();
 
@@ -117,7 +133,7 @@ private:
 	void removeForNewRoom();
 
 	// load entities from saved data
-	std::queue<Entity> loadFromData(json data);
+	void loadFromData(json data);
 
 	// load player from data
 	Entity loadPlayer(json playerData);
@@ -125,14 +141,47 @@ private:
 	// load enemies from data
 	Entity loadEnemy(json enemyData);
 
-	// load a slime from data
-	Entity loadSlime(json slimeData);
-
 	// load motion data
-	Motion loadMotion(json motionData);
+	void loadMotion(Entity e, json motionData);
 
 	// load stats data
-	Stats loadStats(json statsData);
+	void loadStats(Entity e, json statsData);
+
+	// load queueable data
+	void loadQueueable(Entity e, json queueableData);
+
+	// load enemy component
+	void loadEnemyComponent(Entity e, json enemyCompData, Inventory inv);
+
+	// load player component
+	void loadPlayerComponent(Entity e, json playerCompData, Inventory inv);
+
+	// load inventory
+	Inventory loadInventory(Entity e, json inventoryData);
+
+	// load statuses
+	void loadStatuses(Entity e, json statusData);
+
+	// load tiles
+	void loadTiles(json tileData);
+
+	// load collidables
+	void loadCollidables(json collidableData);
+
+	// load interactables
+	void loadInteractables(json interactablesList);
+
+	// load a sign
+	void loadSign(Entity e, json signData);
+
+	// load a chest
+	void loadChest(Entity e);
+
+	// load a door
+	void loadDoor(Entity e);
+
+	// load a switch
+	void loadSwitch(Entity e, json switchData);
   
 	// do turn order logic
 	void doTurnOrderLogic();
@@ -157,6 +206,11 @@ private:
 
 	// action button helper
 	void handleActionButtonPress();
+	// generate and setup a new room
+	void generateNewRoom(Floors floor, bool repeat_allowed);
+
+	// udate turn UI
+	void update_turn_ui();
 
 	// OpenGL window handle
 	GLFWwindow* window;
@@ -164,10 +218,14 @@ private:
 	SaveSystem saveSystem;
 	TurnOrderSystem turnOrderSystem;
 	AISystem aiSystem;
+	RoomSystem roomSystem;
+
+	SpawnData spawnData;
 
 	// C++ random number generator
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+	int countCutScene = 0;
 };
 
 // Set attack state for enemies that attack after moving

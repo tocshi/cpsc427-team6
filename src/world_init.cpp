@@ -85,42 +85,8 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	registry.queueables.emplace(entity);
 	registry.solid.emplace(entity);
 
-	return entity;
-}
-
-// Player created with given motion component
-Entity createPlayer(RenderSystem* renderer, Motion m)
-{
-	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initilaize the position, scale, and physics components (more to be changed/added)
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = m.angle;
-	motion.velocity = m.velocity;
-	motion.position = m.position;
-	motion.in_motion = m.in_motion;
-	motion.movement_speed = m.movement_speed;
-	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
-	motion.destination = m.destination;
-
-	// Create player stats
-	auto& stats = registry.stats.emplace(entity);
-
-	// Create and (empty) Player component to be able to refer to all players
-	registry.players.emplace(entity);
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::PLAYER,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
-
-	// add player to queuables
-	registry.queueables.emplace(entity);
-	registry.solid.emplace(entity);
+	// add status container to player
+	registry.statuses.emplace(entity);
 
 	return entity;
 }
@@ -184,54 +150,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	registry.queueables.emplace(entity);
 	registry.solid.emplace(entity);
 
-	return entity;
-}
-
-// Enemy slime with motion component as input
-Entity createEnemy(RenderSystem* renderer, Motion m)
-{
-	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
-	// Initilaize the position, scale, and physics components (more to be changed/added)
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = m.angle;
-	motion.velocity = m.velocity;
-	motion.position = m.position;
-	motion.in_motion = m.in_motion;
-	motion.movement_speed = m.movement_speed;
-	motion.destination = m.destination;
-	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
-
-	auto& enemy = registry.enemies.emplace(entity);
-	enemy.state = ENEMY_STATE::IDLE;
-	enemy.type = ENEMY_TYPE::SLIME;
-
-	// Create slime stats
-	auto& stats = registry.stats.emplace(entity);
-	stats.name = "Slime";
-	stats.prefix = "the";
-	stats.maxhp = 25;
-	stats.hp = stats.maxhp;
-	stats.atk = 10;
-	stats.def = 3;
-	stats.speed = 8;
-	stats.range = 250;
-
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::SLIME,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
-	registry.hidables.emplace(entity);
-
-	// add enemy to queuables
-	registry.queueables.emplace(entity);
-	registry.solid.emplace(entity);
-
+	// add status container to slime
+	registry.statuses.emplace(entity);
 	return entity;
 }
 
@@ -283,6 +203,9 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
+
+	// add status container to plantshooter
+	registry.statuses.emplace(entity);
 
 	return entity;
 }
@@ -375,6 +298,9 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 	registry.queueables.emplace(entity);
 	registry.solid.emplace(entity);
 
+	// add status container to caveling
+	registry.statuses.emplace(entity);
+
 	return entity;
 }
 
@@ -406,6 +332,9 @@ Entity createBoss(RenderSystem* renderer, vec2 pos)
 
 	// add boss to queuables
 	registry.queueables.emplace(entity);
+
+	// add status container to boss
+	registry.statuses.emplace(entity);
 
 	return entity;
 }
@@ -556,6 +485,10 @@ Entity createDoor(RenderSystem* renderer, vec2 pos)
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 
+	registry.solid.emplace(entity);
+	auto& interactable = registry.interactables.emplace(entity);
+	interactable.type = INTERACT_TYPE::DOOR;
+
 	return entity;
 }
 
@@ -597,7 +530,8 @@ Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::pair<std::s
 	Sign& sign = registry.signs.emplace(entity);
 	sign.messages = messages;
 
-	registry.interactables.emplace(entity);
+	auto& interactable = registry.interactables.emplace(entity);
+	interactable.type = INTERACT_TYPE::SIGN;
 
 	return entity;
 }
@@ -626,6 +560,9 @@ Entity createStair(RenderSystem* renderer, vec2 pos)
 		{ TEXTURE_ASSET_ID::STAIR,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	auto& interactable = registry.interactables.emplace(entity);
+	interactable.type = INTERACT_TYPE::STAIRS;
 
 	return entity;
 }
@@ -685,6 +622,33 @@ Entity createBackground(RenderSystem* renderer, vec2 position)
 		 RENDER_LAYER_ID::BG
 		});
 
+	return entity;   
+}
+
+// create entity for cutScene
+Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID tID) {
+	auto entity = Entity();
+
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ window_width_px, window_height_px });
+
+	registry.renderRequests.insert(
+		entity,
+		{
+		 tID, // textureAssetID
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::CUTSCENE
+
+		}
+	);
 	return entity;
 }
 
@@ -2015,6 +1979,72 @@ Entity createExplosion(RenderSystem* renderer, vec2 pos) {
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::ANIMATION,
 			RENDER_LAYER_ID::WALLS });
+
+	return entity;
+}
+
+Entity createTurnUI(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 256.f, 64.f };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TURN_UI,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id) {
+	auto entity = Entity();
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 48.f, 48.f };
+
+	registry.icons.emplace(entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture_id,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::UI_TOP });
+
+	return entity;
+}
+
+Entity createSwitch(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ SWITCH_BB_WIDTH, SWITCH_BB_HEIGHT });
+
+	// Create and (empty) DOOR component to be able to refer to all doors
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SWITCH_DEFAULT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		RENDER_LAYER_ID::FLOOR_DECO});
+
+	auto& interactable = registry.interactables.emplace(entity);
+	interactable.type = INTERACT_TYPE::SWITCH;
+	registry.switches.emplace(entity);
 
 	return entity;
 }

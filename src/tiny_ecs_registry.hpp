@@ -62,6 +62,11 @@ public:
 	ComponentContainer<KnockBack> knockbacks;
 	ComponentContainer<AttackCard> attackCards;
 	ComponentContainer<AttackDialog> attackDialogs;
+	ComponentContainer<Icon> icons;
+	ComponentContainer<RoomTransitionTimer> roomTransitions;
+	ComponentContainer<FadeInTimer> fadeins;
+	ComponentContainer<LoadingTimer> loadingTimers;
+	ComponentContainer<Switch> switches;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -119,6 +124,11 @@ public:
 		registry_list.push_back(&knockbacks);
 		registry_list.push_back(&attackCards);
 		registry_list.push_back(&attackDialogs);
+		registry_list.push_back(&icons);
+		registry_list.push_back(&roomTransitions);
+		registry_list.push_back(&fadeins);
+		registry_list.push_back(&loadingTimers);
+		registry_list.push_back(&switches);
 	}
 
 	void clear_all_components() {

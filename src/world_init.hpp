@@ -58,6 +58,8 @@ const float MODE_BB_WIDTH = 125.f;
 const float MODE_BB_HEIGHT = 125.f;
 const float POINTER_BB_WIDTH = 64.f;
 const float POINTER_BB_HEIGHT = 64.f;
+const float SWITCH_BB_WIDTH = 64.f;
+const float SWITCH_BB_HEIGHT = 64.f;
 // want to make fog small so it can be rendered a lot TODO: this is a bad implementation and will need to be changed later to use shadows or drawing circles or something better
 const float FOG_BB_WIDTH = 0.6f * 100.f;
 const float FOG_BB_HEIGHT = 0.6f * 100.f;
@@ -68,12 +70,8 @@ Entity createLine(vec2 position, vec2 size);
 Entity createBackground(RenderSystem* renderer, vec2 position);
 // Player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
-// Player with motion component as input
-Entity createPlayer(RenderSystem* renderer, Motion m);
 // Enemy (split into different enemies for future)
 Entity createEnemy(RenderSystem* renderer, vec2 pos);
-// Enemy with motion component as input
-Entity createEnemy(RenderSystem* renderer, Motion m);
 // Plant Shooter
 Entity createPlantShooter(RenderSystem* renderer, vec2 pos);
 // Plant Projectile
@@ -168,3 +166,12 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack);
 // Attack type dialog
 Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack);
+// cutscene
+Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID textureID);
+// Turn UI
+Entity createTurnUI(RenderSystem* renderer, vec2 pos);
+// Icon
+Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id);
+
+// switch
+Entity createSwitch(RenderSystem* renderer, vec2 pos);

@@ -38,6 +38,8 @@ void WorldSystem::destroyMusic() {
 		Mix_FreeChunk(door_sound);
 	if (switch_sound != nullptr)
 		Mix_FreeChunk(switch_sound);
+	if (chest_sound != nullptr)
+		Mix_FreeChunk(chest_sound);
 	Mix_CloseAudio();
 
 }
@@ -134,7 +136,7 @@ GLFWwindow* WorldSystem::create_window() {
 	printf("ACTION: SET THE GAME TO START : Game state = MAIN_MENU\n");
 	printf("Current current_game_state Game state %d \n", static_cast<int>(current_game_state));
 	printf("previous state in Now %d \n", static_cast<int>(previous_game_state));
-	
+
 
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
@@ -150,7 +152,7 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeMusic(10);
 	background_music = Mix_LoadMUS(audio_path("bgm/caves0.wav").c_str());
 	menu_music = Mix_LoadMUS(audio_path("bgm/menu0.wav").c_str());
-	cutscene_music= Mix_LoadMUS(audio_path("bgm/dream0.wav").c_str());
+	cutscene_music = Mix_LoadMUS(audio_path("bgm/dream0.wav").c_str());
 
 
 
@@ -165,12 +167,15 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(door_sound, 32);
 	switch_sound = Mix_LoadWAV(audio_path("feedback/switch_click.wav").c_str());
 	Mix_VolumeChunk(switch_sound, 32);
+	chest_sound = Mix_LoadWAV(audio_path("feedback/chest_open.wav").c_str());
+	Mix_VolumeChunk(chest_sound, 32);
 
-	if (background_music == nullptr || fire_explosion_sound == nullptr 
+	if (background_music == nullptr || fire_explosion_sound == nullptr
 		|| error_sound == nullptr || footstep_sound == nullptr
-		|| menu_music == nullptr || cutscene_music == nullptr 
-		|| door_sound == nullptr || switch_sound == nullptr) {
-		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n make sure the data directory is present",
+		|| menu_music == nullptr || cutscene_music == nullptr
+		|| door_sound == nullptr || switch_sound == nullptr
+		|| chest_sound == nullptr) {
+		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n make sure the data directory is present",
 			audio_path("bgm/caves0.wav").c_str(),
 			audio_path("bgm/menu0.wav").c_str(),
 			audio_path("bgm/dream0.wav").c_str(),
@@ -178,7 +183,8 @@ GLFWwindow* WorldSystem::create_window() {
 			audio_path("feedback/error.wav").c_str(),
 			audio_path("feedback/footstep.wav").c_str(),
 			audio_path("feedback/door_open.wav").c_str(),
-			audio_path("feedback/switch_click.wav").c_str()
+			audio_path("feedback/switch_click.wav").c_str(),
+			audio_path("feedback/chest_open.wav").c_str()
 		);
 		return nullptr;
 	}
@@ -756,8 +762,8 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	//std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 	SpawnData spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
@@ -1479,7 +1485,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									registry.players.get(player_main).gacha_pity++;
 								}
 								
-								createArtifact(renderer, motion.position, (ARTIFACT)loot);
+								createArtifact(renderer, motion.position + vec2(16, 16), (ARTIFACT)loot);
 
 								std::string name = artifact_names.at((ARTIFACT)loot);
 								logText("You open the chest and find " + name + "!");
@@ -1488,6 +1494,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_OPEN;
 
 								chest.opened = true;
+								Mix_PlayChannel(-1, chest_sound, 0);
 								break;
 							}
 							else if (interactable.type == INTERACT_TYPE::ITEM_CHEST && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
@@ -1508,7 +1515,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								}
 
 								Equipment equip = createEquipment(type, player.floor);
-								createEquipmentEntity(renderer, motion.position, equip);
+								createEquipmentEntity(renderer, motion.position + vec2(16,16), equip);
 
 								logText("You open the chest and find some equipment!");
 
@@ -1516,6 +1523,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_OPEN;
 
 								chest.opened = true;
+								Mix_PlayChannel(-1, chest_sound, 0);
 								break;
 							}
 							// Pickup item behaviour

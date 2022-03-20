@@ -1857,6 +1857,7 @@ Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
 	weapon.range = weaponJson["range"];
 	weapon.speed = weaponJson["speed"];
 	weapon.type = weaponJson["type"];
+	weapon.sprite = weaponJson["sprite"];
 	i = 0;
 	for (auto& attack : weaponJson["attacks"]) {
 		weapon.attacks[i] = attack;
@@ -1875,6 +1876,7 @@ Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
 	armour.range = armourJson["range"];
 	armour.speed = armourJson["speed"];
 	armour.type = armourJson["type"];
+	armour.sprite = armourJson["sprite"];
 	i = 0;
 	for (auto& attack : armourJson["attacks"]) {
 		armour.attacks[i] = attack;

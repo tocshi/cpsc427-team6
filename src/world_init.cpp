@@ -612,7 +612,7 @@ Entity createBackground(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values
-	motion.scale = vec2({ window_width_px, window_height_px });
+	motion.scale = vec2({ window_width_px * 2, window_height_px * 2});
 
 	registry.renderRequests.insert(
 		entity,
@@ -640,7 +640,7 @@ Entity createGameBackground(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values
-	motion.scale = vec2({ window_width_px * 10, window_height_px * 10});
+	motion.scale = vec2({ window_width_px * 2, window_height_px * 2});
 
 	registry.renderRequests.insert(
 		entity,

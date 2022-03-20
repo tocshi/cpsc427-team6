@@ -616,7 +616,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// update game background (only on player turn)
-	if (get_is_player_turn() && current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE) {
+	if (current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE) {
 		updateGameBackground();
 	}
 
@@ -1143,8 +1143,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								registry.remove_all_components_of(registry.renderRequests.entities[i]);
 							}
 						}
-						is_player_turn = true; 
-						background = createGameBackground(renderer, { registry.motions.get(player_main).position.x, registry.motions.get(player_main).position.y });
+						is_player_turn = true;
+						background = createGameBackground(renderer, { 0.f, 0.f });
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 					case BUTTON_ACTION_ID::ACTIONS_ATTACK:
@@ -2100,6 +2100,7 @@ void WorldSystem::update_turn_ui() {
 void WorldSystem::updateGameBackground() {
 	Motion& backgroundMotion = registry.motions.get(background);
 	Motion playerMotion = registry.motions.get(player_main);
-	backgroundMotion.position.x = playerMotion.velocity.x > 0 ? -playerMotion.position.x * 0.05 : playerMotion.position.x * 0.05;
-	backgroundMotion.position.y = playerMotion.velocity.y > 0 ? -playerMotion.position.y * 0.05 : playerMotion.position.y * 0.05;
+
+	backgroundMotion.position.x = playerMotion.position.x + window_width_px/2.f - fmod((playerMotion.position.x + window_width_px) * 1.5f, window_width_px);
+	backgroundMotion.position.y = playerMotion.position.y + window_height_px/2.f - fmod((playerMotion.position.y + window_height_px) * 1.5f, window_height_px);
 }

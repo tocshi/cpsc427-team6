@@ -32,6 +32,7 @@ public:
 	ComponentContainer<Test> test;	// for testing
 	ComponentContainer<Solid> solid;
 	ComponentContainer<Enemy> enemies;
+	ComponentContainer<KeyIcon> keyIcons;
 	ComponentContainer<ActionButton> actionButtons;
 	ComponentContainer<GuardButton> guardButtons;
 	ComponentContainer<Button> buttons;
@@ -59,6 +60,8 @@ public:
 	ComponentContainer<Sign> signs;
 	ComponentContainer<StatusContainer> statuses;
 	ComponentContainer<KnockBack> knockbacks;
+	ComponentContainer<AttackCard> attackCards;
+	ComponentContainer<AttackDialog> attackDialogs;
 	ComponentContainer<Icon> icons;
 	ComponentContainer<RoomTransitionTimer> roomTransitions;
 	ComponentContainer<FadeInTimer> fadeins;
@@ -90,6 +93,7 @@ public:
 		registry_list.push_back(&test);
 		registry_list.push_back(&solid);
 		registry_list.push_back(&enemies);
+		registry_list.push_back(&keyIcons);
 		registry_list.push_back(&actionButtons);
 		registry_list.push_back(&guardButtons);
 		registry_list.push_back(&buttons);
@@ -118,6 +122,8 @@ public:
 		registry_list.push_back(&animations);
 		registry_list.push_back(&statuses);
 		registry_list.push_back(&knockbacks);
+		registry_list.push_back(&attackCards);
+		registry_list.push_back(&attackDialogs);
 		registry_list.push_back(&icons);
 		registry_list.push_back(&roomTransitions);
 		registry_list.push_back(&fadeins);

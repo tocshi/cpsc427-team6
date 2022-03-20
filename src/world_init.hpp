@@ -30,18 +30,18 @@ const float STAIR_BB_WIDTH = 0.6f * 150.f;
 const float STAIR_BB_HEIGHT = 0.6f * 150.f;
 const float WALL_BB_WIDTH = 100.f;
 const float WALL_BB_HEIGHT = 100.f;
-const float START_BB_WIDTH = 0.6f * 900.f;
-const float START_BB_HEIGHT = 0.6f * 150.f;
-const float QUIT_BB_WIDTH = 0.6f * 900.f;
-const float QUIT_BB_HEIGHT = 0.6f * 150.f;
+const float START_BB_WIDTH = 380.f;
+const float START_BB_HEIGHT = 98.f;
+const float QUIT_BB_WIDTH = 380.f;
+const float QUIT_BB_HEIGHT = 98.f;
 const float TITLE_BB_WIDTH = 0.6f * 870.f;
 const float TITLE_BB_HEIGHT = 0.6f * 300.f;
 const float STAT_BB_WIDTH = 0.6f * 500.f;
 const float STAT_BB_HEIGHT = 0.6f * 105.f;
 const float ACTIONS_BAR_BB_HEIGHT = 200.f;
 const float ACTIONS_BAR_BB_WIDTH = 1800.f;
-const float ACTIONS_BUTTON_BB_HEIGHT = 75.f;
-const float ACTIONS_BUTTON_BB_WIDTH = 300.f;
+const float ACTIONS_BUTTON_BB_HEIGHT = 125.f;
+const float ACTIONS_BUTTON_BB_WIDTH = 125.f;
 const float PAUSE_BUTTON_BB_HEIGHT = 50.f;
 const float PAUSE_BUTTON_BB_WIDTH = 50.f;
 const float COLLECTION_MENU_BB_WIDTH = 800.f;
@@ -52,8 +52,10 @@ const float ARTIFACT_IMAGE_BB_WIDTH = 80.f;
 const float ARTIFACT_IMAGE_BB_HEIGHT = 80.f;
 const float DESCRIPTION_DIALOG_BB_WIDTH = 400.f;
 const float DESCRIPTION_DIALOG_BB_HEIGHT = 400.f;
-const float MODE_BB_WIDTH = 800.f;
-const float MODE_BB_HEIGHT = 100.f;
+const float KEY_ICON_BB_WIDTH = 50.f;
+const float KEY_ICON_BB_HEIGHT = 50.f;
+const float MODE_BB_WIDTH = 125.f;
+const float MODE_BB_HEIGHT = 125.f;
 const float POINTER_BB_WIDTH = 64.f;
 const float POINTER_BB_HEIGHT = 64.f;
 const float SWITCH_BB_WIDTH = 64.f;
@@ -100,6 +102,8 @@ Entity createMenuStart(RenderSystem* renderer, vec2 pos);
 Entity createMenuQuit(RenderSystem* renderer, vec2 pos);
 // Menu title
 Entity createMenuTitle(RenderSystem* renderer, vec2 pos);
+// Hotkey icon
+Entity createKeyIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture);
 // Actions bar
 Entity createActionsBar(RenderSystem* renderer, vec2 pos);
 // Attack button
@@ -108,7 +112,6 @@ Entity createAttackButton(RenderSystem* renderer, vec2 pos);
 Entity createMoveButton(RenderSystem* renderer, vec2 pos);
 // Guard button
 Entity createGuardButton(RenderSystem* renderer, vec2 pos, BUTTON_ACTION_ID action, TEXTURE_ASSET_ID texture);
-// End turn button
 // Item button
 Entity createItemButton(RenderSystem* renderer, vec2 pos);
 // Back button
@@ -159,6 +162,10 @@ Entity createCollectionMenu(RenderSystem* renderer, vec2 pos);
 Entity createArtifactIcon(RenderSystem* renderer, vec2 pos, ARTIFACT artifact);
 // Description Dialog (artifact version) - todo: add more definitions with other items (attacks etc.)
 Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifact);
+// Attack card
+Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack);
+// Attack type dialog
+Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack);
 // cutscene
 Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID textureID);
 // Turn UI

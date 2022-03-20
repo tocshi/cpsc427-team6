@@ -242,7 +242,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		registry.remove_all_components_of(pointer);
 	}
 	// render stylized pointers
-	if (mouseYpos > window_height_px - 200.f || mouseYpos < 100.f) {
+	if (mouseXpos > window_width_px - 200.f || mouseYpos < 100.f) {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 		createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::NORMAL_POINTER);
 	}
@@ -299,6 +299,23 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// todo: add key 5
+	if (registry.keyIcons.entities.size() < 4) {
+		if (current_game_state == GameStates::ATTACK_MENU) {
+			// need to move everything down one in attack menu
+			createKeyIcon(renderer, { window_width_px - 60.f, 300.f }, TEXTURE_ASSET_ID::KEY_ICON_1);
+			// createKeyIcon(renderer, { window_width_px - 60.f, 450.f }, TEXTURE_ASSET_ID::KEY_ICON_2);
+			// createKeyIcon(renderer, { window_width_px - 60.f, 600.f }, TEXTURE_ASSET_ID::KEY_ICON_3);
+			// createKeyIcon(renderer, { window_width_px - 60.f, 750.f }, TEXTURE_ASSET_ID::KEY_ICON_4);
+		}
+		else if (current_game_state == GameStates::BATTLE_MENU) {
+			createKeyIcon(renderer, { window_width_px - 60.f, 150.f }, TEXTURE_ASSET_ID::KEY_ICON_1);
+			createKeyIcon(renderer, { window_width_px - 60.f, 300.f }, TEXTURE_ASSET_ID::KEY_ICON_2);
+			createKeyIcon(renderer, { window_width_px - 60.f, 450.f }, TEXTURE_ASSET_ID::KEY_ICON_3);
+			createKeyIcon(renderer, { window_width_px - 60.f, 600.f }, TEXTURE_ASSET_ID::KEY_ICON_4);
+		}
+	}
+
 	// If started, remove menu entities, and spawn game entities
 	//if(!current_game_state) (
 	//current_game_state > GameStates::CUTSCENE || current_game_state <GameStates::SPLASH_SCREEN
@@ -310,10 +327,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (registry.actionButtons.entities.size() < 4) {
 			// bring back all of the buttons
-			createMoveButton(renderer, { window_width_px - 1400.f, window_height_px - 50.f });
-			createAttackButton(renderer, { window_width_px - 1000.f, window_height_px - 50.f });
-			createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
-			createItemButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
+			createAttackButton(renderer, { window_width_px - 125.f, 200.f });
+			createMoveButton(renderer, { window_width_px - 125.f, 350.f });
+			createGuardButton(renderer, { window_width_px - 125.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+			createItemButton(renderer, { window_width_px - 125.f, 650.f });
 		}
 		
 		// hide all the visulaiztion tools
@@ -356,7 +373,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(gb);
 			}
 			// add end turn button
-			createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_END_TURN, TEXTURE_ASSET_ID::ACTIONS_END_TURN);
+			createGuardButton(renderer, { window_width_px - 125.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_END_TURN, TEXTURE_ASSET_ID::ACTIONS_END_TURN);
 		}
 		else if (!hideGuardButton) {
 			// remove guard button
@@ -364,7 +381,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(gb);
 			}
 			// add end turn button
-			createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+			createGuardButton(renderer, { window_width_px - 125.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
 		}
 
 		// update player motion
@@ -713,9 +730,9 @@ void WorldSystem::restart_game() {
 	//current_game_state = GameStates::MAIN_MENU;
 	//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
 
-	createMenuStart(renderer, { window_width_px / 2, 500.f });
-	createMenuQuit(renderer, { window_width_px / 2, 850.f });
-	createMenuTitle(renderer, { window_width_px / 2, 200.f });
+	createMenuStart(renderer, { window_width_px / 2, 400.f });
+	createMenuQuit(renderer, { window_width_px / 2, 600.f });
+	createMenuTitle(renderer, { window_width_px / 2, 150.f });
 }
 
 void WorldSystem::handle_end_player_turn(Entity player) {
@@ -779,7 +796,7 @@ void WorldSystem::spawn_game_entities() {
 	*/
 	
 	float statbarsX = 150.f;
-	float statbarsY = 35.f;
+	float statbarsY = window_height_px - START_BB_HEIGHT - 55.f;
 	createHPFill(renderer, { statbarsX, statbarsY });
 	createHPBar(renderer,  { statbarsX, statbarsY });
 	createMPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
@@ -950,7 +967,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (action == GLFW_PRESS && key == GLFW_KEY_P) {
 		for (Entity& enemy : registry.enemies.entities) {
-			int test = irandRange(100,200);
+			int test = irandRange(100, 200);
 			std::string log_message = deal_damage(enemy, player_main, test);
 
 			logText(log_message);
@@ -975,8 +992,68 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		logText("Game state saved!");
 	}
 
-	// DEBUG: Testing artifact/stacking
+	///////////////////////////
+	// menu hotkeys
+	///////////////////////////
 	if (action == GLFW_RELEASE && key == GLFW_KEY_1) {
+		// attack
+		if (current_game_state == GameStates::BATTLE_MENU) {
+			attackAction();
+		}
+	}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_2) {
+		// move
+		if (current_game_state == GameStates::BATTLE_MENU) {
+			moveAction();
+		}
+	}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_3) {
+		// end turn/ guard
+		if (current_game_state == GameStates::BATTLE_MENU) {
+			for (Entity e : registry.guardButtons.entities) {
+				if (!registry.guardButtons.has(e)) {
+						continue;
+				}
+				// perform action based on button ENUM
+				BUTTON_ACTION_ID action = registry.guardButtons.get(e).action;
+
+				switch (action) {
+				case BUTTON_ACTION_ID::ACTIONS_GUARD:
+					logText("You brace yourself...");
+					registry.stats.get(player_main).guard = true;
+					handle_end_player_turn(player_main);
+					break;
+				case BUTTON_ACTION_ID::ACTIONS_END_TURN:
+					handle_end_player_turn(player_main);
+					break;
+				}
+			}
+		}
+	}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_4) {
+		// item
+		if (current_game_state == GameStates::BATTLE_MENU) {
+			itemAction();
+		}
+	}
+	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
+		// pause menu
+		// close the menu if pressed again
+		if (current_game_state == GameStates::PAUSE_MENU) {
+			set_gamestate(GameStates::BATTLE_MENU);
+		}
+		else {
+			set_gamestate(GameStates::PAUSE_MENU);
+			// render quit button
+			createMenuQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 });
+
+			// render cancel button
+			createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f });
+		}
+	}
+
+	// DEBUG: Testing artifact/stacking
+	if (action == GLFW_RELEASE && key == GLFW_KEY_8) {
 		int give = (int)ARTIFACT::KB_MALLET;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
@@ -986,7 +1063,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
 		}
 	}
-	if (action == GLFW_RELEASE && key == GLFW_KEY_2) {
+	if (action == GLFW_RELEASE && key == GLFW_KEY_9) {
 		int give = (int)ARTIFACT::WINDBAG;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
@@ -1124,10 +1201,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						spawn_game_entities();
 						// spawn the actions bar
 						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
-						createMoveButton(renderer, { window_width_px - 1400.f, window_height_px - 50.f });
-						createAttackButton(renderer, { window_width_px - 1000.f, window_height_px - 50.f });
-						createGuardButton(renderer, { window_width_px - 600.f, window_height_px - 50.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
-						createItemButton(renderer, { window_width_px - 200.f, window_height_px - 50.f });
+						createAttackButton(renderer, { window_width_px - 125.f, 200.f });
+						createMoveButton(renderer, { window_width_px - 125.f, 350.f });
+						createGuardButton(renderer, { window_width_px - 125.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+						createItemButton(renderer, { window_width_px - 125.f, 650.f });
 
 						// spawn the collection and pause buttons
 						createPauseButton(renderer, { window_width_px - 80.f, 50.f });
@@ -1142,48 +1219,13 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 					case BUTTON_ACTION_ID::ACTIONS_ATTACK:
-						if (current_game_state != GameStates::ENEMY_TURN) {
-							// set player action to attack
-							Player& player = registry.players.get(player_main);
-							player.action = PLAYER_ACTION::ATTACKING;
-
-							// hide all action buttons
-							for (Entity ab : registry.actionButtons.entities) {
-								registry.remove_all_components_of(ab);
-							}
-							hideGuardButton = true;
-
-							// set game state to attack menu
-							set_gamestate(GameStates::ATTACK_MENU);
-
-							// create back button and attack mode text
-							createBackButton(renderer, { 100.f , window_height_px - 60.f });
-							createAttackModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
+						if (current_game_state == GameStates::BATTLE_MENU) {
+							attackAction();
 						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_MOVE:
-						if (current_game_state != GameStates::ENEMY_TURN) {
-							// set player action to move
-							Player& player = registry.players.get(player_main);
-							Stats stats = registry.stats.get(player_main);
-							player.action = PLAYER_ACTION::MOVING;
-
-							// hide all action buttons
-							for (Entity ab : registry.actionButtons.entities) {
-								registry.remove_all_components_of(ab);
-							}
-							hideGuardButton = true;
-
-							// show ep range
-							Motion motion = registry.motions.get(player_main);
-							create_ep_range(stats.ep, motion.movement_speed, motion.position);
-
-							// set game state to move menu
-							set_gamestate(GameStates::MOVEMENT_MENU);
-
-							// create back button and move mode text
-							createBackButton(renderer, { 100.f , window_height_px - 60.f });
-							createMoveModeText(renderer, { window_width_px / 2 , window_height_px - 60.f });
+						if (current_game_state == GameStates::BATTLE_MENU) {
+							moveAction();
 						}
 						break;
 					case BUTTON_ACTION_ID::PAUSE:
@@ -1199,8 +1241,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_CANCEL:
-						// inMenu = false;
-						set_gamestate(GameStates::BATTLE_MENU);
+						cancelAction();
 						break;
 					case BUTTON_ACTION_ID::COLLECTION:
 						// if the button is pressed again while the menu is already open, close the menu
@@ -1214,25 +1255,14 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_BACK:
-						// set gamestate back to normal
-						set_gamestate(GameStates::BATTLE_MENU);
-
+						if (current_game_state != GameStates::PAUSE_MENU && current_game_state != GameStates::COLLECTION_MENU) {
+							backAction();
+						}
 						break;
 					case BUTTON_ACTION_ID::ACTIONS_ITEM:
-						// TODO: add real functionality for this
-						logText("Items Menu to be implemented later!");
-
-						// hide all action buttons
-						for (Entity ab : registry.actionButtons.entities) {
-							registry.remove_all_components_of(ab);
+						if (current_game_state == GameStates::BATTLE_MENU) {
+							itemAction();
 						}
-						hideGuardButton = true;
-
-						// set game state to move menu
-						set_gamestate(GameStates::ITEM_MENU);
-
-						// create back button and move mode text
-						createBackButton(renderer, { 100.f , window_height_px - 60.f });
 						break;
 					case BUTTON_ACTION_ID::OPEN_DIALOG:
 						// remove all other description dialog components
@@ -1252,6 +1282,24 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							registry.remove_all_components_of(dd);
 						}
 						break;
+					case BUTTON_ACTION_ID::OPEN_ATTACK_DIALOG:
+						// remove all other attack dialog components
+						for (Entity ad : registry.attackDialogs.entities) {
+							registry.remove_all_components_of(ad);
+						}
+
+						// get which icon was clicked
+						if (registry.attackCards.has(e)) {
+							ATTACK attack = registry.attackCards.get(e).attack;
+							createAttackDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f), attack);
+						}
+						break;
+					case BUTTON_ACTION_ID::CLOSE_ATTACK_DIALOG:
+						// remove all attack dialog components
+						for (Entity ad : registry.attackDialogs.entities) {
+							registry.remove_all_components_of(ad);
+						}
+						break;
 				}
 			}
 		}
@@ -1259,7 +1307,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		///////////////////////////
 		// logic for guard button presses
 		///////////////////////////
-		if (current_game_state != GameStates::ENEMY_TURN) {
+		if (current_game_state == GameStates::BATTLE_MENU) {
 			for (Entity e : registry.guardButtons.entities) {
 				if (!registry.motions.has(e)) {
 					continue;
@@ -1295,7 +1343,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		///////////////////////////
 
 		// ensure it is the player's turn and they are not currently moving
-		if (get_is_player_turn() && !player_move_click && ypos < window_height_px - 200.f && ypos > 80.f) {
+		if (get_is_player_turn() && !player_move_click && xpos < window_width_px - 200.f && ypos > 100.f) {
 			if (player_main && current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE) {
 				Player& player = registry.players.get(player_main);
 				Motion& player_motion = registry.motions.get(player_main);
@@ -1452,18 +1500,19 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 
 	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_move_click && current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE) {
-		Motion& motion_struct = registry.motions.get(player_main);
-
-		// set velocity to the direction of the cursor, at a magnitude of player_velocity
-		float speed = motion_struct.movement_speed;
-		float angle = atan2(world_pos.y - motion_struct.position.y, world_pos.x - motion_struct.position.x);
-		float x_component = cos(angle) * speed;
-		float y_component = sin(angle) * speed;
-		motion_struct.velocity = { x_component, y_component};
-		//motion_struct.angle = angle + (0.5 * M_PI);
-		motion_struct.destination = { world_pos.x, world_pos.y };
-		motion_struct.in_motion = true;
-		player_move_click = true;
+		if (current_game_state == GameStates::ATTACK_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ITEM_MENU) {
+			backAction();
+		}
+		// close all dialogs and menus
+		// remove all description dialog components
+		for (Entity dd : registry.descriptionDialogs.entities) {
+			registry.remove_all_components_of(dd);
+		}
+		// remove all attack dialog components
+		for (Entity ad : registry.attackDialogs.entities) {
+			registry.remove_all_components_of(ad);
+		}
+		cancelAction();
 	}
 
 }
@@ -2016,7 +2065,88 @@ void remove_status(Entity e, StatusType status, int number) {
 	}
 	return;
 }
+  
+void WorldSystem::handleActionButtonPress() {
+	// hide all the hotkeys if not in attack mode
+	for (Entity ki : registry.keyIcons.entities) {
+		registry.remove_all_components_of(ki);
+	}
 
+	// hide all action buttons
+	for (Entity ab : registry.actionButtons.entities) {
+		registry.remove_all_components_of(ab);
+	}
+	hideGuardButton = true;
+
+	// create back button and move mode text
+	createBackButton(renderer, { window_width_px - 125.f , window_height_px - 100.f });
+}
+
+void WorldSystem::moveAction() {
+	if (current_game_state != GameStates::ENEMY_TURN) {
+		// set player action to move
+		Player& player = registry.players.get(player_main);
+		Stats stats = registry.stats.get(player_main);
+		player.action = PLAYER_ACTION::MOVING;
+
+		
+
+		// show ep range
+		Motion motion = registry.motions.get(player_main);
+		create_ep_range(stats.ep, motion.movement_speed, motion.position);
+
+		// set game state to move menu
+		set_gamestate(GameStates::MOVEMENT_MENU);
+		handleActionButtonPress();
+		createMoveModeText(renderer, { window_width_px - 125.f, 350.f });
+	}
+}
+
+void WorldSystem::attackAction() {
+	if (current_game_state != GameStates::ENEMY_TURN) {
+		// set player action to attack
+		Player& player = registry.players.get(player_main);
+		player.action = PLAYER_ACTION::ATTACKING;
+
+		// set game state to attack menu
+		set_gamestate(GameStates::ATTACK_MENU);
+		handleActionButtonPress();
+		createAttackModeText(renderer, { window_width_px - 125.f, 200.f });
+		// render attack types TODO: add other attack types
+		createAttackCard(renderer, { window_width_px - 125.f, 350.f }, ATTACK::NONE);
+	}
+}
+
+void WorldSystem::backAction() {
+	// hide all attack cards
+	for (Entity ac : registry.attackCards.entities) {
+		registry.remove_all_components_of(ac);
+	}
+
+	// hide all the hotkeys if not in attack mode
+	for (Entity ki : registry.keyIcons.entities) {
+		registry.remove_all_components_of(ki);
+	}
+
+	// set gamestate back to normal
+	set_gamestate(GameStates::BATTLE_MENU);
+
+}
+
+void WorldSystem::itemAction() {
+	// TODO: add real functionality for this
+	logText("Items Menu to be implemented later!");
+	
+	handleActionButtonPress();
+
+	// set game state to move menu
+	set_gamestate(GameStates::ITEM_MENU);
+}
+
+void WorldSystem::cancelAction() {
+	// inMenu = false;
+	set_gamestate(GameStates::BATTLE_MENU);
+}
 void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
 	// save game (should be just player stuff)
 	json playerData = saveSystem.jsonifyPlayer(player_main);

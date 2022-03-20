@@ -49,12 +49,6 @@ enum class ATTACK {
 	SKYBORNE_RAIN = FOCUSED_SHOT + 1
 };
 
-//TODO: Fill this out
-// Attack name map
-const std::map <ATTACK, std::string>attack_names = {
-	{ATTACK::ROUNDSLASH, "Roundslash"}
-};
-
 enum class ARTIFACT {
 	POISON_FANG = 0,
 	GLAD_HOPLON = POISON_FANG + 1,
@@ -365,7 +359,9 @@ enum class BUTTON_ACTION_ID {
 	COLLECTION = PAUSE + 1,
 	OPEN_DIALOG = COLLECTION + 1,
 	CLOSE_DIALOG = OPEN_DIALOG + 1,
-	SCROLL_DOWN = CLOSE_DIALOG + 1,
+	OPEN_ATTACK_DIALOG = CLOSE_DIALOG + 1,
+	CLOSE_ATTACK_DIALOG = OPEN_ATTACK_DIALOG + 1,
+	SCROLL_DOWN = CLOSE_ATTACK_DIALOG + 1,
 	SCROLL_UP = SCROLL_DOWN + 1,
 	ACTION_COUNT = SCROLL_UP + 1
 };
@@ -384,6 +380,12 @@ struct DescriptionDialog {
 	std::string effect = "";
 	std::string description = "";
 	std::string stats = "";
+};
+
+struct AttackDialog {
+	std::string title = "";
+	std::string description = "";
+	std::string cost = "";
 };
 
 struct EpRange {
@@ -624,7 +626,13 @@ enum class TEXTURE_ASSET_ID {
 	TURN_UI = CUTSCENE3+1,
 	SWITCH_DEFAULT = TURN_UI + 1,
 	SWITCH_ACTIVE = SWITCH_DEFAULT + 1,
-	TEXTURE_COUNT = SWITCH_ACTIVE + 1
+  KEY_ICON_1 = SWITCH_ACTIVE + 1,
+	KEY_ICON_2 = KEY_ICON_1 + 1,
+	KEY_ICON_3 = KEY_ICON_2 + 1,
+	KEY_ICON_4 = KEY_ICON_3 + 1,
+	KEY_ICON_5 = KEY_ICON_4 + 1,
+	ATTACK_NORMAL = KEY_ICON_5 + 1,
+	TEXTURE_COUNT = ATTACK_NORMAL + 1
 };
 
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
@@ -712,9 +720,19 @@ struct GuardButton {
 	BUTTON_ACTION_ID action = BUTTON_ACTION_ID::ACTIONS_GUARD;
 };
 
+// hotkey icon
+struct KeyIcon {
+
+};
+
 // stylized poiner
 struct Pointer {
 
+};
+
+// attack card
+struct AttackCard {
+	ATTACK attack;
 };
 
 // Artifact name map
@@ -827,4 +845,24 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::LIVELY_BULB, "Whenever you perform a Normal Attack, fire 1 (+1 per stack) seed projectile that deals 90% ATK damage towards the lowest HP enemy within your sight range."},
 	{ARTIFACT::MALEDICTION, "When you are attacked, all enemies in sight range will be affected with a curse that reduces their ATK by 40% for 3 turns. Has a 10 (-1 per stack) turn cooldown."},
 	{ARTIFACT::CHIMERARM, "Your current weapon, and newly generated weapons will have +4 ATK (+4 ATK per stack), and its 2nd Attack Skill will become a random attack skill from any weapon type."}
+};
+
+// Attack texture map TODO: finish this
+const std::map <ATTACK, TEXTURE_ASSET_ID>attack_textures = {
+	{ATTACK::NONE, TEXTURE_ASSET_ID::ATTACK_NORMAL},
+};
+
+//TODO: Fill this out
+// Attack name map
+const std::map <ATTACK, std::string>attack_names = {
+	{ATTACK::NONE, "Normal Attack"},
+	{ATTACK::ROUNDSLASH, "Roundslash"},
+};
+
+const std::map <ATTACK, std::string>attack_descriptions = {
+	{ATTACK::NONE, "Deals 100% of ATK in damage to a single target."},
+};
+
+const std::map <ATTACK, std::string>attack_costs = {
+	{ATTACK::NONE, "0 MP, 50 EP"},
 };

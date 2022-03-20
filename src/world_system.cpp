@@ -615,6 +615,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// update game background (only on player turn)
+	if (get_is_player_turn() && current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE) {
+		updateGameBackground();
+	}
+
 	return true;
 }
 
@@ -1139,6 +1144,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							}
 						}
 						is_player_turn = true; 
+						background = createGameBackground(renderer, { registry.motions.get(player_main).position.x, registry.motions.get(player_main).position.y });
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 					case BUTTON_ACTION_ID::ACTIONS_ATTACK:
@@ -2089,4 +2095,11 @@ void WorldSystem::update_turn_ui() {
 		}
 	}
 	return;
+}
+
+void WorldSystem::updateGameBackground() {
+	Motion& backgroundMotion = registry.motions.get(background);
+	Camera c = registry.cameras.get(active_camera_entity);
+	backgroundMotion.position.x = -c.position.x * 0.1;
+	backgroundMotion.position.y = -c.position.y * 0.1;
 }

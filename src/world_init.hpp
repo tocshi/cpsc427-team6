@@ -66,6 +66,8 @@ const float FOG_BB_HEIGHT = 0.6f * 100.f;
 Entity createLine(vec2 position, vec2 size);
 // the background
 Entity createBackground(RenderSystem* renderer, vec2 position);
+// the game background
+Entity createGameBackground(RenderSystem* renderer, vec2 position);
 // Player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // Enemy (split into different enemies for future)

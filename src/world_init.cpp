@@ -625,6 +625,34 @@ Entity createBackground(RenderSystem* renderer, vec2 position)
 	return entity;   
 }
 
+Entity createGameBackground(RenderSystem* renderer, vec2 position)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+
+	// Setting initial values
+	motion.scale = vec2({ window_width_px * 5, window_height_px * 5});
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BG,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::BG
+		});
+
+	return entity;
+}
+
 // create entity for cutScene
 Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID tID) {
 	auto entity = Entity();

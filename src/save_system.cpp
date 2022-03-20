@@ -280,10 +280,16 @@ json SaveSystem::jsonifyInteractables() {
 			interactableJson["chest"] = jsonifyChest(entity);
 		}
 		else if (interactable.type == INTERACT_TYPE::PICKUP) {
-			Equipment eq = registry.equipment.get(entity);
-			interactableJson["equipment"] = jsonifyEquipment(eq);
-			Spritesheet ss = registry.spritesheets.get(entity);
-			interactableJson["spritesheet"] = jsonifySpritesheet(ss);
+			if (registry.equipment.has(entity)) {
+				Equipment eq = registry.equipment.get(entity);
+				interactableJson["equipment"] = jsonifyEquipment(eq);
+				Spritesheet ss = registry.spritesheets.get(entity);
+				interactableJson["spritesheet"] = jsonifySpritesheet(ss);
+			}
+			else if (registry.artifacts.has(entity)) {
+				Artifact a = registry.artifacts.get(entity);
+				interactableJson["artifact"] = jsonifyArtifact(a);
+			}
 		}
 		interactablesList.push_back(interactableJson);
 	}
@@ -356,4 +362,10 @@ json SaveSystem::jsonifyChest(Entity e) {
 	chestJson["isArtifact"] = chest.isArtifact;
 	chestJson["opened"] = chest.opened;
 	return chestJson;
+}
+
+json SaveSystem::jsonifyArtifact(Artifact a) {
+	json artifactJson;
+	artifactJson["type"] = a.type;
+	return artifactJson;
 }

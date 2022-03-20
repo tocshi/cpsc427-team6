@@ -36,5 +36,6 @@ private:
 	json jsonifySwitch(Entity e);
 	json jsonifyChest(Entity e);
 	json jsonifySpritesheet(Spritesheet ss);
+	json jsonifyArtifact(Artifact a);
 	//json jsonify
 };

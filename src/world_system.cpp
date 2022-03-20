@@ -762,8 +762,8 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	//std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 	SpawnData spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
@@ -1963,7 +1963,12 @@ void WorldSystem::loadInteractables(json interactablesList) {
 			loadSwitch(e, interactable["switch"]);
 			break;
 		case INTERACT_TYPE::PICKUP: // equipment drop
-			loadPickup(e, interactable["equipment"], interactable["spritesheet"]);
+			if (interactable["artifact"] != nullptr) {
+				loadArtifact(e, interactable["artifact"]);
+			}
+			else if (interactable["equipment"] != nullptr) {
+				loadEquipmentEntity(e, interactable["equipment"], interactable["spritesheet"]);
+			}
 			break;
 		default:
 			break;
@@ -2061,7 +2066,7 @@ void WorldSystem::loadSwitch(Entity e, json switchData) {
 	registry.renderRequests.insert(e, rr);
 }
 
-void WorldSystem::loadPickup(Entity e, json equipData, json spritesheetData) {
+void WorldSystem::loadEquipmentEntity(Entity e, json equipData, json spritesheetData) {
 	Equipment& equip = registry.equipment.emplace(e);
 	equip.type = equipData["type"];
 	equip.atk = equipData["atk"];
@@ -2092,6 +2097,19 @@ void WorldSystem::loadPickup(Entity e, json equipData, json spritesheetData) {
 		{ TEXTURE_ASSET_ID::EQUIPMENT,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITESHEET });
+	registry.hidables.emplace(e);
+}
+
+void WorldSystem::loadArtifact(Entity e, json artifactData) {
+	registry.artifacts.insert(e, { artifactData["type"]});
+
+	TEXTURE_ASSET_ID sprite = artifact_textures.at(artifactData["type"]);
+
+	registry.renderRequests.insert(
+		e,
+		{ sprite,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(e);
 }
 

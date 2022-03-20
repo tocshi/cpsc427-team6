@@ -183,7 +183,10 @@ private:
 	void loadChest(Entity e, json chestData);
 
 	// load an item pickup
-	void loadPickup(Entity e, json equipData, json spritesheetData);
+	void loadEquipmentEntity(Entity e, json equipData, json spritesheetData);
+
+	// load artifact data
+	void loadArtifact(Entity e, json artifactData);
 
 	// load a door
 	void loadDoor(Entity e);

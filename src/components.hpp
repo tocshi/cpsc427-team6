@@ -518,6 +518,10 @@ struct Text {
 	std::string message = "";
 };
 
+struct DamageTextTimer {
+	float counter_ms = 1500;
+};
+
 // A timer that will be associated will text logging
 struct TextTimer
 {

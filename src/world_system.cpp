@@ -531,7 +531,34 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	
+	// Damage text timer
+	// 0-150 ms: increase size to slightly more than 1
+	// 150-200 ms: decrease to normal size and stay there
+	// 200-1350 ms: stay at normal size
+	// 1350-1500 ms: shrink to 0
+	// 1500+ ms: delete
+	for (Entity entity : registry.damageText.entities) {
+		DamageTextTimer& counter = registry.damageText.get(entity);
+		Motion& motion = registry.motions.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+
+		if (counter.counter_ms <= 0) {
+			registry.remove_all_components_of(entity);
+			continue;
+		}
+		if (counter.counter_ms > 0 && counter.counter_ms <= 150) {
+			motion.scale = { 1 - (150 - counter.counter_ms) / 150, 1 - (150 - counter.counter_ms) / 150 };
+		}
+		else if (counter.counter_ms > 150 && counter.counter_ms <= 1300) {
+			motion.scale = { 1,1 };
+		}
+		else if (counter.counter_ms > 1300 && counter.counter_ms < 1350) {
+			motion.scale = {1 + (counter.counter_ms - 1300)/200, 1 + (counter.counter_ms - 1300) / 200 };
+		}
+		else if (counter.counter_ms > 1350) {
+			motion.scale = {1.25 - (counter.counter_ms-1350)/200, 1.25 - (counter.counter_ms - 1350) / 200 };
+		}
+	}
 
 	// Projectile Timers
 	for (Entity entity : registry.projectileTimers.entities) {

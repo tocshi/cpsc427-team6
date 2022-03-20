@@ -1894,6 +1894,36 @@ Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale
 	return entity;
 }
 
+Entity createDamageText(RenderSystem* renderer, vec2 pos, std::string text_input, bool is_heal=false)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Initialize the text component
+	Text& text = registry.texts.emplace(entity);
+	text.message = text_input;
+	text.position = { 0,0 };
+	text.scale = 3.f;
+	text.textColor = is_heal ? vec3(0.2, 1.0, 0.2) : vec3(1.0, 0.1, 0.1);
+
+	// approximately center it
+	vec2 offset = { text_input.length() * text.scale * 4, 0 };
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos - offset;
+	motion.scale = { 0.5, 0.5 };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::TEXT,
+			GEOMETRY_BUFFER_ID::TEXTQUAD,
+			RENDER_LAYER_ID::EFFECT });
+	registry.damageText.emplace(entity);
+
+	return entity;
+}
+
 // Dialog text
 Entity createDialogText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor)
 {

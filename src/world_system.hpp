@@ -81,6 +81,9 @@ public:
 	Entity active_camera_entity;
 
 	Entity background;
+	Entity background_front;
+	Entity background_mid;
+	Entity background_back;
 	bool is_player_turn = true;
 	bool player_move_click = false;
 	bool is_ai_turn = false;

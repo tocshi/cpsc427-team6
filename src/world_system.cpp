@@ -1144,7 +1144,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							}
 						}
 						is_player_turn = true;
-						background = createGameBackground(renderer, { 0.f, 0.f });
+						background = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_COLOR, RENDER_LAYER_ID::BG);
+						background_back = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_BACK, RENDER_LAYER_ID::BG_1);
+						background_mid = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_MID, RENDER_LAYER_ID::BG_2);
+						background_front = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_FRONT, RENDER_LAYER_ID::BG_3);
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 					case BUTTON_ACTION_ID::ACTIONS_ATTACK:
@@ -2098,9 +2101,21 @@ void WorldSystem::update_turn_ui() {
 }
 
 void WorldSystem::updateGameBackground() {
-	Motion& backgroundMotion = registry.motions.get(background);
 	Motion playerMotion = registry.motions.get(player_main);
 
-	backgroundMotion.position.x = playerMotion.position.x + window_width_px/2.f - fmod((playerMotion.position.x + window_width_px) * 1.5f, window_width_px);
-	backgroundMotion.position.y = playerMotion.position.y + window_height_px/2.f - fmod((playerMotion.position.y + window_height_px) * 1.5f, window_height_px);
+	Motion& backgroundMotion = registry.motions.get(background);
+	backgroundMotion.position.x = playerMotion.position.x + window_width_px/2.f;
+	backgroundMotion.position.y = playerMotion.position.y;
+
+	Motion& background_b_motion = registry.motions.get(background_back);
+	background_b_motion.position.x = playerMotion.position.x + window_width_px/2.f - fmod((playerMotion.position.x + window_width_px) * 0.9f, window_width_px);
+	background_b_motion.position.y = playerMotion.position.y;
+
+	Motion& background_m_motion = registry.motions.get(background_mid);
+	background_m_motion.position.x = playerMotion.position.x + window_width_px/2.f - fmod((playerMotion.position.x + window_width_px) * 1.2f, window_width_px);
+	background_m_motion.position.y = playerMotion.position.y;
+
+	Motion& background_f_motion = registry.motions.get(background_front);
+	background_f_motion.position.x = playerMotion.position.x + window_width_px/2.f - fmod((playerMotion.position.x + window_width_px) * 1.5f, window_width_px);
+	background_f_motion.position.y = playerMotion.position.y;
 }

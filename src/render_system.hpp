@@ -35,7 +35,7 @@ class RenderSystem {
 
 	// Make sure these paths remain in sync with the associated enumerators.
 	const std::array<std::string, texture_count> texture_paths = {
-			textures_path("dungeonbg_parallax.png"),
+			textures_path("dungeonbg.png"),
 			textures_path("char/shou.png"),
 			textures_path("enemy/slime.png"),
 			textures_path("enemy/plant_shooter/plant_shooter.png"),
@@ -89,6 +89,10 @@ class RenderSystem {
 			textures_path("turn_ui.png"),
 			textures_path("switch_default.png"),
 			textures_path("switch_active.png"),
+			textures_path("parallax/cave_0000_front_p.png"),
+			textures_path("parallax/cave_0001_mid_p.png"),
+			textures_path("parallax/cave_0002_back_p.png"),
+			textures_path("parallax/cave_0003_color.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

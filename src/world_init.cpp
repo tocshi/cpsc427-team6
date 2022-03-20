@@ -612,7 +612,7 @@ Entity createBackground(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values
-	motion.scale = vec2({ window_width_px * 2, window_height_px * 2});
+	motion.scale = vec2({ window_width_px, window_height_px });
 
 	registry.renderRequests.insert(
 		entity,
@@ -625,7 +625,7 @@ Entity createBackground(RenderSystem* renderer, vec2 position)
 	return entity;   
 }
 
-Entity createGameBackground(RenderSystem* renderer, vec2 position)
+Entity createGameBackground(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture_id, RENDER_LAYER_ID render_id)
 {
 	auto entity = Entity();
 
@@ -640,14 +640,14 @@ Entity createGameBackground(RenderSystem* renderer, vec2 position)
 	motion.position = position;
 
 	// Setting initial values
-	motion.scale = vec2({ window_width_px * 2, window_height_px * 2});
+	motion.scale = vec2({ window_width_px * 2, window_height_px });
 
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::BG,
+		{ texture_id,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::BG
+		 render_id
 		});
 
 	return entity;

@@ -67,7 +67,7 @@ Entity createLine(vec2 position, vec2 size);
 // the background
 Entity createBackground(RenderSystem* renderer, vec2 position);
 // the game background
-Entity createGameBackground(RenderSystem* renderer, vec2 position);
+Entity createGameBackground(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture_id, RENDER_LAYER_ID render_id);
 // Player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // Enemy (split into different enemies for future)

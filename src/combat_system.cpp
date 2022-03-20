@@ -30,10 +30,17 @@ std::string deal_damage(Entity& attacker, Entity& defender, float multiplier)
 
 	int logged_damage = round(final_damage);
 
-	std::string log = attacker_name.append(" attacked ").append(defender_name).append(" for ").append(std::to_string(logged_damage)).append(" damage!");
+	// Defender take damage, unless parried
+	if (has_status(defender, StatusType::PARRYING_STANCE) && !has_status(attacker, StatusType::PARRYING_STANCE) && final_damage < defender_stats.maxhp * 0.3) {
+		deal_damage(defender, attacker, multiplier);
+		return attacker_name.append("'s attack was parried!");
+	}
+	else {
+		take_damage(defender, final_damage);
+	}
 
-	// Defender take damage
-	take_damage(defender, final_damage);
+	// create logged message
+	std::string log = attacker_name.append(" attacked ").append(defender_name).append(" for ").append(std::to_string(logged_damage)).append(" damage!");
 
 	// Set hit_by_player status
 	if (registry.players.has(attacker) && registry.enemies.has(defender)) {
@@ -296,6 +303,24 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 					break;
 				case (StatusType::STUN):
 					registry.queueables.get(entity).doing_turn = false;
+					break;
+				case (StatusType::EP_REGEN):
+					if (!stats_only) {
+						if (status.percentage && registry.stats.has(entity)) {
+							stats.ep += basestats.maxep * status.value;
+						}
+						else {
+							stats.ep += status.value;
+						}
+					}
+					break;
+				case (StatusType::DISENGAGE_TRIGGER):
+					if (registry.players.has(entity)) {
+						if (!registry.players.get(entity).attacked) {
+							StatusEffect regen = StatusEffect(30, 1, StatusType::EP_REGEN, false, true);
+							apply_status(entity, regen);
+						}
+					}
 					break;
 			}
 			// properly remove statuses that have expired, except for things with >=999 turns (we treat those as infinite)

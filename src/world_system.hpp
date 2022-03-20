@@ -213,8 +213,11 @@ private:
 	// generate and setup a new room
 	void generateNewRoom(Floors floor, bool repeat_allowed);
 
-	// udate turn UI
+	// update turn UI
 	void update_turn_ui();
+
+	// use attack
+	void use_attack(vec2 target_pos);
 
 	// OpenGL window handle
 	GLFWwindow* window;
@@ -240,5 +243,8 @@ bool has_status(Entity e, StatusType status);
 
 // Remove a number of a status effect type from entity
 void remove_status(Entity e, StatusType status, int number = 1);
+
+// return clicked enemy
+Entity& get_targeted_enemy(vec2 target_pos);
 
 extern WorldSystem world;

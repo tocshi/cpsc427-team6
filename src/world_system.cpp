@@ -299,14 +299,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// todo: add key 5
 	if (registry.keyIcons.entities.size() < 4) {
 		if (current_game_state == GameStates::ATTACK_MENU) {
 			// need to move everything down one in attack menu
-			createKeyIcon(renderer, { window_width_px - 60.f, 300.f }, TEXTURE_ASSET_ID::KEY_ICON_1);
-			// createKeyIcon(renderer, { window_width_px - 60.f, 450.f }, TEXTURE_ASSET_ID::KEY_ICON_2);
-			// createKeyIcon(renderer, { window_width_px - 60.f, 600.f }, TEXTURE_ASSET_ID::KEY_ICON_3);
-			// createKeyIcon(renderer, { window_width_px - 60.f, 750.f }, TEXTURE_ASSET_ID::KEY_ICON_4);
+			// TODO: un-hard-code these
+			createKeyIcon(renderer, { window_width_px - 70.f, 140.f }, TEXTURE_ASSET_ID::KEY_ICON_1);
+			createKeyIcon(renderer, { window_width_px - 70.f, 260.f }, TEXTURE_ASSET_ID::KEY_ICON_2);
+			createKeyIcon(renderer, { window_width_px - 70.f, 380.f }, TEXTURE_ASSET_ID::KEY_ICON_3);
+			createKeyIcon(renderer, { window_width_px - 70.f, 500.f }, TEXTURE_ASSET_ID::KEY_ICON_4);
+			createKeyIcon(renderer, { window_width_px - 70.f, 620.f }, TEXTURE_ASSET_ID::KEY_ICON_5);
 		}
 		else if (current_game_state == GameStates::BATTLE_MENU) {
 			createKeyIcon(renderer, { window_width_px - 60.f, 150.f }, TEXTURE_ASSET_ID::KEY_ICON_1);
@@ -741,8 +742,6 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 	Player& p = registry.players.get(player);
 	player_motion.velocity = { 0.f, 0.f };
 	player_motion.in_motion = false;
-	p.attacked = false;
-	p.moved = false;
 
 	set_is_player_turn(false);
 	player_move_click = false;
@@ -756,8 +755,8 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	//std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 	SpawnData spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
@@ -1045,7 +1044,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			restart_game();
 		}
 		else if (current_game_state == GameStates::PAUSE_MENU) {
-			set_gamestate(GameStates::BATTLE_MENU);
+			backAction();
 		}
 		else {
 			set_gamestate(GameStates::PAUSE_MENU);
@@ -1302,6 +1301,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						// get which icon was clicked
 						if (registry.attackCards.has(e)) {
 							ATTACK attack = registry.attackCards.get(e).attack;
+							// TODO: move this to Use button!
+							Player& p = registry.players.get(player_main);
+							p.using_attack = attack;
 							createAttackDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f), attack);
 						}
 						break;
@@ -1363,58 +1365,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				switch (current_game_state) {
 					
 				case GameStates::ATTACK_MENU:
-					// ensure player has clicked on an enemy
-					for (Entity en : registry.enemies.entities) {
-						// super simple bounding box for now
-						Motion m = registry.motions.get(en);
-						int enemyX = m.position[0];
-						int enemyY = m.position[1];
-						
-						if ((world_pos.x <= (enemyX + m.scale[0] / 2) && world_pos.x >= (enemyX - m.scale[0] / 2)) &&
-							(world_pos.y >= (enemyY - m.scale[1] / 2) && world_pos.y <= (enemyY + m.scale[1] / 2))) {
-								
-							// only attack if the player hasn't attacked that turn
-							if (!player.attacked) {
-
-								// only attack if have enough ep and is close enough
-								if (player_stats.ep >= 50 && dist_to(player_motion.position, m.position) <= 100.f) {
-
-									// show explosion animation
-									createExplosion(renderer, { enemyX, enemyY });
-
-									// play attack sound
-									Mix_PlayChannel(-1, fire_explosion_sound, 0);
-
-									logText(deal_damage(player_main, en, 100.f));
-
-									// wobble the enemy lol
-									if (!registry.wobbleTimers.has(en)){
-										WobbleTimer& wobble = registry.wobbleTimers.emplace(en);
-										wobble.orig_scale = m.scale;
-									}
-						
-									// lower ep
-									player_stats.ep -= 50;
-									player.attacked = true;
-								}
-								else if (player_stats.ep < 50) {
-									logText("Not enough EP to attack!");
-									// play error sound
-									Mix_PlayChannel(-1, error_sound, 0);
-								}
-								else {
-									logText("Target too far away!");
-									// play error sound
-									Mix_PlayChannel(-1, error_sound, 0);
-								}
-							}
-							else {
-								logText("You already attacked this turn!");
-								// play error sound
-								Mix_PlayChannel(-1, error_sound, 0);
-							}
-						}
-					}
+					use_attack(world_pos);
 					break;
 				case GameStates::MOVEMENT_MENU:
 					if (player_main) {
@@ -1591,6 +1542,9 @@ void WorldSystem::start_player_turn() {
 	// get player stats
 	float& maxep = registry.stats.get(player_main).maxep;
 	float& ep = registry.stats.get(player_main).ep;
+	Player& p = registry.players.get(player_main);
+	p.attacked = false;
+	p.moved = false;
 
 	if (registry.stats.get(player_main).guard) {
 		ep = maxep * 1.5f;
@@ -2137,8 +2091,6 @@ void WorldSystem::moveAction() {
 		Stats stats = registry.stats.get(player_main);
 		player.action = PLAYER_ACTION::MOVING;
 
-		
-
 		// show ep range
 		Motion motion = registry.motions.get(player_main);
 		create_ep_range(stats.ep, motion.movement_speed, motion.position);
@@ -2154,14 +2106,21 @@ void WorldSystem::attackAction() {
 	if (current_game_state != GameStates::ENEMY_TURN) {
 		// set player action to attack
 		Player& player = registry.players.get(player_main);
+		Equipment weapon = registry.inventories.get(player_main).equipped[0];
 		player.action = PLAYER_ACTION::ATTACKING;
+		player.using_attack = ATTACK::NONE;
 
 		// set game state to attack menu
 		set_gamestate(GameStates::ATTACK_MENU);
 		handleActionButtonPress();
-		createAttackModeText(renderer, { window_width_px - 125.f, 200.f });
-		// render attack types TODO: add other attack types
-		createAttackCard(renderer, { window_width_px - 125.f, 350.f }, ATTACK::NONE);
+		//createAttackModeText(renderer, { window_width_px - 125.f, 200.f });
+		// render attack types 
+		float button_y = 180.f;
+		createAttackCard(renderer, { window_width_px - 125.f, button_y }, ATTACK::NONE);
+		for (ATTACK a : weapon.attacks) {
+			button_y += 150 * 4 / 5;
+			createAttackCard(renderer, { window_width_px - 125.f, button_y }, a);
+		}
 	}
 }
 
@@ -2192,8 +2151,7 @@ void WorldSystem::itemAction() {
 }
 
 void WorldSystem::cancelAction() {
-	// inMenu = false;
-	set_gamestate(GameStates::BATTLE_MENU);
+	backAction();
 }
 void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
 	// save game (should be just player stuff)
@@ -2267,4 +2225,120 @@ void WorldSystem::update_turn_ui() {
 		}
 	}
 	return;
+}
+
+// Use attack depending on player's current using attack
+// TODO: Change this so it's less hard-coded (please)
+void WorldSystem::use_attack(vec2 target_pos) {
+	Player& player = registry.players.get(player_main);
+	Motion& player_motion = registry.motions.get(player_main);
+	Stats& player_stats = registry.stats.get(player_main);
+
+	// I hate my own implementation of this, and I want to change it as soon as Milestone 3 is over
+	switch (player.using_attack) {
+	case ATTACK::NONE:
+		try {
+			Entity& target = get_targeted_enemy(target_pos);
+			float ep_cost = 50 * player_stats.eprateatk;
+
+			// only attack if the player hasn't attacked that turn
+			if (!player.attacked) {
+				Motion m = registry.motions.get(target);
+
+				// only attack if have enough ep and is close enough
+				if (player_stats.ep >= ep_cost && dist_to(player_motion.position, m.position) <= 100.f) {
+
+					// show explosion animation
+					createExplosion(renderer, { m.position.x, m.position.y });
+
+					// play attack sound
+					Mix_PlayChannel(-1, fire_explosion_sound, 0);
+
+					logText(deal_damage(player_main, target, 100.f));
+
+					// wobble the enemy lol
+					if (!registry.wobbleTimers.has(target)) {
+						WobbleTimer& wobble = registry.wobbleTimers.emplace(target);
+						wobble.orig_scale = m.scale;
+					}
+
+					// lower ep and restore mp
+					player_stats.ep -= ep_cost;
+					player_stats.mp = min(player_stats.maxmp, player_stats.mp + (player_stats.maxmp * 0.1f * player_stats.mpregen));
+					player.attacked = true;
+				}
+				else if (player_stats.ep < ep_cost) {
+					logText("Not enough EP to attack!");
+					// play error sound
+					Mix_PlayChannel(-1, error_sound, 0);
+				}
+				else {
+					logText("Target too far away!");
+					// play error sound
+					Mix_PlayChannel(-1, error_sound, 0);
+				}
+			}
+			else {
+				logText("You already attacked this turn!");
+				// play error sound
+				Mix_PlayChannel(-1, error_sound, 0);
+			}
+		}
+		catch (int e) {
+			break;
+		}
+		break;
+
+	case ATTACK::PARRYING_STANCE:
+		// only attack if the player hasn't attacked that turn
+		if (!player.attacked) {
+
+			float ep_cost = 100 * player_stats.eprateatk;
+			float mp_cost = 50;
+
+			// only attack if have enough ep and mp
+			if (player_stats.ep >= ep_cost && player_stats.mp >= mp_cost) {
+				logText("DEBUG: Parrying Stance Activated!");
+
+				StatusEffect stance = StatusEffect(0, 1, StatusType::PARRYING_STANCE, false, true);
+				apply_status(player_main, stance);
+
+				// lower ep and mp
+				player_stats.ep -= ep_cost;
+				player_stats.mp -= mp_cost;
+				player.attacked = true;
+			}
+			else {
+				logText("Not enough EP or MP to attack!");
+				// play error sound
+				Mix_PlayChannel(-1, error_sound, 0);
+			}
+		}
+		else {
+			logText("You already attacked this turn!");
+			// play error sound
+			Mix_PlayChannel(-1, error_sound, 0);
+		}
+		break;
+
+	default:
+		break;
+	}
+}
+
+// return clicked enemy, throws exception if not found
+Entity& get_targeted_enemy(vec2 target_pos) {
+	for (Entity& en : registry.enemies.entities) {
+
+		// super simple bounding box for now
+		Motion m = registry.motions.get(en);
+		int enemyX = m.position[0];
+		int enemyY = m.position[1];
+
+		if ((target_pos.x <= (enemyX + m.scale[0] / 2) && target_pos.x >= (enemyX - m.scale[0] / 2)) &&
+			(target_pos.y >= (enemyY - m.scale[1] / 2) && target_pos.y <= (enemyY + m.scale[1] / 2))) {
+			return en;
+		}
+	}
+	throw 0;
 }

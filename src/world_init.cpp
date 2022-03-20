@@ -1086,17 +1086,13 @@ Entity createCollectionButton(RenderSystem* renderer, vec2 pos) {
 Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
 
-	motion.scale = vec2({ ACTIONS_BUTTON_BB_WIDTH, ACTIONS_BUTTON_BB_HEIGHT });
+	motion.scale = vec2({ ACTIONS_BUTTON_BB_WIDTH * 4 / 5, ACTIONS_BUTTON_BB_HEIGHT * 4 / 5 });
 
 	AttackCard& ac = registry.attackCards.emplace(entity);
 	ac.attack = attack;
@@ -1126,10 +1122,6 @@ Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 // Attack dialog
 Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -1165,8 +1157,8 @@ Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 	std::vector<Entity> ctVect;
 	bool hasCT = false;
 	ctVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 80.f), "COST: ", 1.6f, vec3(0.0f)));
-	iter = attack_costs.find(attack);
-	if (iter != attack_costs.end()) {
+	iter = attack_costs_string.find(attack);
+	if (iter != attack_costs_string.end()) {
 		ad.cost = iter->second;
 		if (ad.cost.size() > 40) {
 			bool renderNewLine = true;
@@ -1200,7 +1192,7 @@ Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 	std::vector<Entity> dtVect;
 	bool hasDT = false;
 	iter = attack_descriptions.find(attack);
-	dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 350.f), "DESCRIPTION: ", 1.6f, vec3(0.0f)));
+	dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 200.f), "DESCRIPTION: ", 1.6f, vec3(0.0f)));
 	if (iter != attack_descriptions.end()) {
 		ad.description = iter->second;
 		if (ad.description.size() > 40) {
@@ -1209,7 +1201,7 @@ Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 			int iter = 1;
 			std::string descLine = ad.description.substr(0, 40);
 			while (renderNewLine) {
-				dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f + descOffset), descLine, 1.2f, vec3(0.0f)));
+				dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 250.f + descOffset), descLine, 1.2f, vec3(0.0f)));
 				descLine = ad.description.substr(40 * iter);
 				descOffset += 30.f;
 				if (descLine.size() >= 40) {
@@ -1217,7 +1209,7 @@ Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 					iter++;
 				}
 				else {
-					dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f + descOffset), descLine, 1.2f, vec3(0.0f)));
+					dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 250.f + descOffset), descLine, 1.2f, vec3(0.0f)));
 					renderNewLine = false;
 				}
 			}

@@ -254,6 +254,9 @@ struct Player
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
 
+	// Currently Using Attack (DO NOT SAVE THIS!)
+	ATTACK using_attack = ATTACK::NONE;
+
 	// true if the player has already attacked or moved that turn
 	bool attacked = false;
 	bool moved = false;
@@ -396,7 +399,7 @@ struct Stats {
 	float maxhp = 100.f;
 	float mp    = 100.f;
 	float maxmp = 100.f;
-	float mpregen = 10.f;
+	float mpregen = 1.f;
 	float ep    = 100.f;
 	float maxep = 100.f;
 	float epratemove = 1.f;
@@ -566,7 +569,8 @@ enum class StatusType {
 	EP_REGEN = PARRYING_STANCE + 1,
 	ARCANE_FUNNEL = EP_REGEN + 1,
 	PRIMAL_RAGE = ARCANE_FUNNEL + 1,
-	FOCUSING = PRIMAL_RAGE + 1
+	FOCUSING = PRIMAL_RAGE + 1,
+	DISENGAGE_TRIGGER = FOCUSING + 1
 };
 
 struct StatusEffect {
@@ -873,6 +877,12 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 // Attack texture map TODO: finish this
 const std::map <ATTACK, TEXTURE_ASSET_ID>attack_textures = {
 	{ATTACK::NONE, TEXTURE_ASSET_ID::ATTACK_NORMAL},
+	{ATTACK::ROUNDSLASH, TEXTURE_ASSET_ID::ATTACK_NORMAL},
+	{ATTACK::SAPPING_STRIKE, TEXTURE_ASSET_ID::ATTACK_NORMAL},
+	{ATTACK::PIERCING_THRUST, TEXTURE_ASSET_ID::ATTACK_NORMAL},
+	{ATTACK::PARRYING_STANCE, TEXTURE_ASSET_ID::ATTACK_NORMAL},
+	{ATTACK::DISENGAGE, TEXTURE_ASSET_ID::ATTACK_NORMAL},
+	{ATTACK::TERMINUS_VERITAS, TEXTURE_ASSET_ID::ATTACK_NORMAL},
 };
 
 //TODO: Fill this out
@@ -880,12 +890,30 @@ const std::map <ATTACK, TEXTURE_ASSET_ID>attack_textures = {
 const std::map <ATTACK, std::string>attack_names = {
 	{ATTACK::NONE, "Normal Attack"},
 	{ATTACK::ROUNDSLASH, "Roundslash"},
+	{ATTACK::SAPPING_STRIKE, "Sapping Strike"},
+	{ATTACK::PIERCING_THRUST, "Piercing Thrust"},
+	{ATTACK::PARRYING_STANCE, "Parrying Stance"},
+	{ATTACK::DISENGAGE, "Disengage"},
+	{ATTACK::TERMINUS_VERITAS, "Terminus Veritas"},
 };
 
 const std::map <ATTACK, std::string>attack_descriptions = {
 	{ATTACK::NONE, "Deals 100% of ATK in damage to a single target."},
+	{ATTACK::ROUNDSLASH, "Deals 80% of ATK in damage in a circle around you."},
+	{ATTACK::SAPPING_STRIKE, "Deals 80% of ATK in damage to a single target, and restores 30 MP."},
+	{ATTACK::PIERCING_THRUST, "Deals 120% of ATK in damage in a line, and ignores 40% DEF of any enemies you hit."},
+	{ATTACK::PARRYING_STANCE, "Prepares to parry until the start of your next turn, all attacks that deal <30% of your max HP are deflected, dealing its original multiplier of damage back to the attacker."},
+	{ATTACK::DISENGAGE, "Quickly jumps 300 units in target direction. Does not count as an attack. If you end your turn without attacking, gain 30 EP at the start of your next turn."},
+	{ATTACK::TERMINUS_VERITAS, "Consumes all MP, dealing 5% ATK damage per MP consumed in a semicircle AoE within sight range. When consuming 90 or more MP, deal 6% ATK damage per MP instead."},
 };
 
-const std::map <ATTACK, std::string>attack_costs = {
+// TODO: make this not hard coded
+const std::map <ATTACK, std::string>attack_costs_string = {
 	{ATTACK::NONE, "0 MP, 50 EP"},
+	{ATTACK::ROUNDSLASH, "30 MP, 50 EP"},
+	{ATTACK::SAPPING_STRIKE, "0 MP, 90 EP"},
+	{ATTACK::PIERCING_THRUST, "40 MP, 40 EP"},
+	{ATTACK::PARRYING_STANCE, "50 MP, 100 EP"},
+	{ATTACK::DISENGAGE, "30 MP, 0 EP"},
+	{ATTACK::TERMINUS_VERITAS, "60+ MP, 100 EP"},
 };

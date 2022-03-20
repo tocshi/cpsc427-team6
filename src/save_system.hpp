@@ -33,5 +33,6 @@ private:
 	json jsonifyCollidables();
 	json jsonifySign(Entity e);
 	json jsonifyStatus(Entity e);
+	json jsonifySwitch(Entity e);
 	//json jsonify
 };

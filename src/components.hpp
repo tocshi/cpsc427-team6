@@ -5,6 +5,30 @@
 #include <map>
 #include "../ext/stb_image/stb_image.h"
 
+/**
+ * The following enumerators represent global identifiers refering to graphic
+ * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
+ * currently supported by the system.
+ *
+ * So, instead of referring to a game asset directly, the game logic just
+ * uses these enumerators and the RenderRequest struct to inform the renderer
+ * how to structure the next draw command.
+ *
+ * There are 2 reasons for this:
+ *
+ * First, game assets such as textures and meshes are large and should not be
+ * copied around as this wastes memory and runtime. Thus separating the data
+ * from its representation makes the system faster.
+ *
+ * Second, it is good practice to decouple the game logic from the render logic.
+ * Imagine, for example, changing from OpenGL to Vulkan, if the game logic
+ * depends on OpenGL semantics it will be much harder to do the switch than if
+ * the renderer encapsulates all asset data and the game logic is agnostic to it.
+ *
+ * The final value in each enumeration is both a way to keep track of how many
+ * enums there are, and as a default value to represent uninitialized fields.
+ */
+
 enum class TEXTURE_ASSET_ID {
 	BG = 0,
 	PLAYER = BG + 1,
@@ -58,8 +82,15 @@ enum class TEXTURE_ASSET_ID {
 	CUTSCENE2 = CUTSCENE1 + 1,
 	CUTSCENE3 = CUTSCENE2 + 1,
 	TURN_UI = CUTSCENE3 + 1,
-	TEXTURE_COUNT = TURN_UI + 1
-
+	SWITCH_DEFAULT = TURN_UI + 1,
+	SWITCH_ACTIVE = SWITCH_DEFAULT + 1,
+	KEY_ICON_1 = SWITCH_ACTIVE + 1,
+	KEY_ICON_2 = KEY_ICON_1 + 1,
+	KEY_ICON_3 = KEY_ICON_2 + 1,
+	KEY_ICON_4 = KEY_ICON_3 + 1,
+	KEY_ICON_5 = KEY_ICON_4 + 1,
+	ATTACK_NORMAL = KEY_ICON_5 + 1,
+	TEXTURE_COUNT = ATTACK_NORMAL + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -106,12 +137,6 @@ enum class ATTACK {
 	FOCUSED_SHOT = HOOK_SHOT + 1,
 	SKYBORNE_RAIN = FOCUSED_SHOT + 1,
 	ATTACK_COUNT = SKYBORNE_RAIN + 1
-};
-
-//TODO: Fill this out
-// Attack name map
-const std::map <ATTACK, std::string>attack_names = {
-	{ATTACK::ROUNDSLASH, "Roundslash"}
 };
 
 enum class ARTIFACT {
@@ -354,7 +379,8 @@ enum class INTERACT_TYPE {
 	STAIRS = DOOR + 1,
 	SIGN = STAIRS + 1,
 	PICKUP = SIGN + 1,
-	TYPE_COUNT = PICKUP + 1
+	SWITCH = PICKUP + 1,
+	TYPE_COUNT = SWITCH + 1
 };
 
 struct Interactable {
@@ -439,7 +465,9 @@ enum class BUTTON_ACTION_ID {
 	COLLECTION = PAUSE + 1,
 	OPEN_DIALOG = COLLECTION + 1,
 	CLOSE_DIALOG = OPEN_DIALOG + 1,
-	SCROLL_DOWN = CLOSE_DIALOG + 1,
+	OPEN_ATTACK_DIALOG = CLOSE_DIALOG + 1,
+	CLOSE_ATTACK_DIALOG = OPEN_ATTACK_DIALOG + 1,
+	SCROLL_DOWN = CLOSE_ATTACK_DIALOG + 1,
 	SCROLL_UP = SCROLL_DOWN + 1,
 	ACTION_COUNT = SCROLL_UP + 1
 };
@@ -458,6 +486,12 @@ struct DescriptionDialog {
 	std::string effect = "";
 	std::string description = "";
 	std::string stats = "";
+};
+
+struct AttackDialog {
+	std::string title = "";
+	std::string description = "";
+	std::string cost = "";
 };
 
 struct EpRange {
@@ -574,33 +608,55 @@ struct KnockBack {
 	float angle = 0;
 };
 
+enum class ObjectiveType {
+	KILL_ENEMIES = 0,
+	ACTIVATE_SWITCHES = KILL_ENEMIES + 1,
+	DESTROY_SPAWNER = ACTIVATE_SWITCHES + 1,
+	SURVIVE_TURNS = DESTROY_SPAWNER + 1,
+	OBJECTIVE_COUNT = SURVIVE_TURNS + 1
+};
+const int objective_count = (int)ObjectiveType::OBJECTIVE_COUNT;
+
+struct Objective {
+	ObjectiveType type;
+	int remaining_count;
+	bool completed = false;
+};
+
+struct SessionStatistics {
+	int rooms_cleared = 0;
+	int enemies_defeated = 0;
+};
+
+enum class Floors {
+	DEBUG = 0,
+	TUTORIAL = DEBUG + 1,
+	FLOOR1 = TUTORIAL + 1,
+	FLOOR_COUNT = FLOOR1 + 1
+};
+const int floor_count = (int)Floors::FLOOR_COUNT;
+
+struct RoomTransitionTimer {
+	float counter_ms = 750.f;
+	Floors floor;
+	bool repeat_allowed = false; // whether the next room is allowed to use the same map file as the current
+};
+
+struct LoadingTimer {
+	float counter_ms = 250.f; // We use it to wait some amount of time or until a long step has passed
+};
+
+struct FadeInTimer {
+	float counter_ms = 750.f;
+};
+
+struct Switch {
+	bool activated = false;
+};
+
 struct Icon {
 
 };
-
-/**
- * The following enumerators represent global identifiers refering to graphic
- * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
- * currently supported by the system.
- *
- * So, instead of referring to a game asset directly, the game logic just
- * uses these enumerators and the RenderRequest struct to inform the renderer
- * how to structure the next draw command.
- *
- * There are 2 reasons for this:
- *
- * First, game assets such as textures and meshes are large and should not be
- * copied around as this wastes memory and runtime. Thus separating the data
- * from its representation makes the system faster.
- *
- * Second, it is good practice to decouple the game logic from the render logic.
- * Imagine, for example, changing from OpenGL to Vulkan, if the game logic
- * depends on OpenGL semantics it will be much harder to do the switch than if
- * the renderer encapsulates all asset data and the game logic is agnostic to it.
- *
- * The final value in each enumeration is both a way to keep track of how many
- * enums there are, and as a default value to represent uninitialized fields.
- */
 
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
@@ -687,9 +743,19 @@ struct GuardButton {
 	BUTTON_ACTION_ID action = BUTTON_ACTION_ID::ACTIONS_GUARD;
 };
 
+// hotkey icon
+struct KeyIcon {
+
+};
+
 // stylized poiner
 struct Pointer {
 
+};
+
+// attack card
+struct AttackCard {
+	ATTACK attack;
 };
 
 // Artifact name map
@@ -802,4 +868,24 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::LIVELY_BULB, "Whenever you perform a Normal Attack, fire 1 (+1 per stack) seed projectile that deals 90% ATK damage towards the lowest HP enemy within your sight range."},
 	{ARTIFACT::MALEDICTION, "When you are attacked, all enemies in sight range will be affected with a curse that reduces their ATK by 40% for 3 turns. Has a 10 (-1 per stack) turn cooldown."},
 	{ARTIFACT::CHIMERARM, "Your current weapon, and newly generated weapons will have +4 ATK (+4 ATK per stack), and its 2nd Attack Skill will become a random attack skill from any weapon type."}
+};
+
+// Attack texture map TODO: finish this
+const std::map <ATTACK, TEXTURE_ASSET_ID>attack_textures = {
+	{ATTACK::NONE, TEXTURE_ASSET_ID::ATTACK_NORMAL},
+};
+
+//TODO: Fill this out
+// Attack name map
+const std::map <ATTACK, std::string>attack_names = {
+	{ATTACK::NONE, "Normal Attack"},
+	{ATTACK::ROUNDSLASH, "Roundslash"},
+};
+
+const std::map <ATTACK, std::string>attack_descriptions = {
+	{ATTACK::NONE, "Deals 100% of ATK in damage to a single target."},
+};
+
+const std::map <ATTACK, std::string>attack_costs = {
+	{ATTACK::NONE, "0 MP, 50 EP"},
 };

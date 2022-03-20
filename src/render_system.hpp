@@ -86,7 +86,15 @@ class RenderSystem {
 			textures_path("cutscene1.png"), // add for cutscenes 
 			textures_path("cutscene2.png"),
 			textures_path("cutscene3.png"),
-			textures_path("turn_ui.png")
+			textures_path("turn_ui.png"),
+			textures_path("switch_default.png"),
+			textures_path("switch_active.png"),
+    	textures_path("keys/1_key.png"),
+			textures_path("keys/2_key.png"),
+			textures_path("keys/3_key.png"),
+			textures_path("keys/4_key.png"),
+			textures_path("keys/5_key.png"),
+			textures_path("attacks/normal_attack.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

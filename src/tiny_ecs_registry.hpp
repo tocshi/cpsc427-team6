@@ -32,6 +32,7 @@ public:
 	ComponentContainer<Test> test;	// for testing
 	ComponentContainer<Solid> solid;
 	ComponentContainer<Enemy> enemies;
+	ComponentContainer<KeyIcon> keyIcons;
 	ComponentContainer<ActionButton> actionButtons;
 	ComponentContainer<GuardButton> guardButtons;
 	ComponentContainer<Button> buttons;
@@ -59,8 +60,14 @@ public:
 	ComponentContainer<Sign> signs;
 	ComponentContainer<StatusContainer> statuses;
 	ComponentContainer<KnockBack> knockbacks;
+	ComponentContainer<AttackCard> attackCards;
+	ComponentContainer<AttackDialog> attackDialogs;
 	ComponentContainer<Icon> icons;
 	ComponentContainer<Spritesheet> spritesheets;
+	ComponentContainer<RoomTransitionTimer> roomTransitions;
+	ComponentContainer<FadeInTimer> fadeins;
+	ComponentContainer<LoadingTimer> loadingTimers;
+	ComponentContainer<Switch> switches;  
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -87,6 +94,7 @@ public:
 		registry_list.push_back(&test);
 		registry_list.push_back(&solid);
 		registry_list.push_back(&enemies);
+		registry_list.push_back(&keyIcons);
 		registry_list.push_back(&actionButtons);
 		registry_list.push_back(&guardButtons);
 		registry_list.push_back(&buttons);
@@ -115,8 +123,14 @@ public:
 		registry_list.push_back(&animations);
 		registry_list.push_back(&statuses);
 		registry_list.push_back(&knockbacks);
+		registry_list.push_back(&attackCards);
+		registry_list.push_back(&attackDialogs);
 		registry_list.push_back(&icons);
 		registry_list.push_back(&spritesheets);
+		registry_list.push_back(&roomTransitions);
+		registry_list.push_back(&fadeins);
+		registry_list.push_back(&loadingTimers);
+		registry_list.push_back(&switches);
 	}
 
 	void clear_all_components() {

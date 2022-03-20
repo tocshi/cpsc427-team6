@@ -225,12 +225,26 @@ json SaveSystem::jsonifyEquipment(Equipment e) {
 	equipt["mp"] = e.ep;
 	equipt["hp"] = e.mp;
 	equipt["range"] = e.range;
+	equipt["sprite"] = e.sprite;
 	auto attacks = json::array();
 	for (ATTACK attack : e.attacks) {
 		attacks.push_back(attack);
 	}
 	equipt["attacks"] = attacks;
 	return equipt;
+}
+
+json SaveSystem::jsonifySpritesheet(Spritesheet ss) {
+	json spritesheetJson;
+	spritesheetJson["texture"] = ss.texture;
+	spritesheetJson["height"] = ss.height;
+	spritesheetJson["width"] = ss.width;
+	spritesheetJson["rows"] = ss.rows;
+	spritesheetJson["columns"] = ss.columns;
+	spritesheetJson["frame_size"]["x"] = ss.frame_size.x;
+	spritesheetJson["frame_size"]["y"] = ss.frame_size.y;
+	spritesheetJson["index"] = ss.index;
+	return spritesheetJson;
 }
 
 json SaveSystem::jsonifyStatus(Entity e) {
@@ -261,6 +275,15 @@ json SaveSystem::jsonifyInteractables() {
 		}
 		else if (interactable.type == INTERACT_TYPE::SWITCH) {
 			interactableJson["switch"] = jsonifySwitch(entity);
+		}
+		else if (interactable.type == INTERACT_TYPE::ARTIFACT_CHEST || interactable.type == INTERACT_TYPE::ITEM_CHEST) {
+			interactableJson["chest"] = jsonifyChest(entity);
+		}
+		else if (interactable.type == INTERACT_TYPE::PICKUP) {
+			Equipment eq = registry.equipment.get(entity);
+			interactableJson["equipment"] = jsonifyEquipment(eq);
+			Spritesheet ss = registry.spritesheets.get(entity);
+			interactableJson["spritesheet"] = jsonifySpritesheet(ss);
 		}
 		interactablesList.push_back(interactableJson);
 	}
@@ -324,4 +347,13 @@ json SaveSystem::jsonifySwitch(Entity e) {
 	json switchJson;
 	switchJson["activated"] = s.activated;
 	return switchJson;
+}
+
+json SaveSystem::jsonifyChest(Entity e) {
+	Chest chest = registry.chests.get(e);
+
+	json chestJson;
+	chestJson["isArtifact"] = chest.isArtifact;
+	chestJson["opened"] = chest.opened;
+	return chestJson;
 }

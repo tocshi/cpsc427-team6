@@ -179,7 +179,10 @@ private:
 	void loadSign(Entity e, json signData);
 
 	// load a chest
-	void loadChest(Entity e);
+	void loadChest(Entity e, json chestData);
+
+	// load an item pickup
+	void loadPickup(Entity e, json equipData, json spritesheetData);
 
 	// load a door
 	void loadDoor(Entity e);

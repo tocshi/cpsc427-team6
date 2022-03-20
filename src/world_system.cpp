@@ -1449,7 +1449,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							}
 							// Chest behaviour
 							else if (interactable.type == INTERACT_TYPE::ARTIFACT_CHEST && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
-								
+								Chest& chest = registry.chests.get(entity);
+								if (chest.opened) {
+									continue;
+								}
 								// use gacha system to determine loot
 								int pity = registry.players.get(player_main).gacha_pity;
 								float chance_T4 = 5.f + 1 * pity;
@@ -1481,11 +1484,18 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								std::string name = artifact_names.at((ARTIFACT)loot);
 								logText("You open the chest and find " + name + "!");
 								
-								// TODO: make a more graceful chest destruction kthx
-								registry.remove_all_components_of(entity);
+								RenderRequest& rr = registry.renderRequests.get(entity);
+								rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_OPEN;
+
+								chest.opened = true;
 								break;
 							}
 							else if (interactable.type == INTERACT_TYPE::ITEM_CHEST && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+								Chest& chest = registry.chests.get(entity);
+								if (chest.opened) {
+									continue;
+								}
+								
 								Player player = registry.players.get(player_main);
 								EQUIPMENT type;
 
@@ -1502,8 +1512,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 								logText("You open the chest and find some equipment!");
 
-								// TODO: make a more graceful chest destruction kthx
-								registry.remove_all_components_of(entity);
+								RenderRequest& rr = registry.renderRequests.get(entity);
+								rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_OPEN;
+
+								chest.opened = true;
 								break;
 							}
 							// Pickup item behaviour
@@ -1924,20 +1936,26 @@ void WorldSystem::loadInteractables(json interactablesList) {
 		Interactable& interact_component = registry.interactables.emplace(e);
 		interact_component.type = (INTERACT_TYPE)interactable["type"];
 
-		switch ((int)interactable["type"]) {
-		case 0: // chest
-			loadChest(e);
+		switch (interact_component.type) {
+		case INTERACT_TYPE::ARTIFACT_CHEST: // artifact chest
+			loadChest(e, interactable["chest"]);
 			break;
-		case 1: // door
+		case INTERACT_TYPE::ITEM_CHEST: // item chest
+			loadChest(e, interactable["chest"]);
+			break;
+		case INTERACT_TYPE::DOOR: // door
 			loadDoor(e);
 			break;
-		case 2: // stairs
+		case INTERACT_TYPE::STAIRS: // stairs
 			break;
-		case 3: // sign
+		case INTERACT_TYPE::SIGN: // sign
 			loadSign(e, interactable["sign"]);
 			break;
-		case 4: // switch
+		case INTERACT_TYPE::SWITCH: // switch
 			loadSwitch(e, interactable["switch"]);
+			break;
+		case INTERACT_TYPE::PICKUP: // equipment drop
+			loadPickup(e, interactable["equipment"], interactable["spritesheet"]);
 			break;
 		default:
 			break;
@@ -1976,15 +1994,34 @@ void WorldSystem::loadSign(Entity e, json signData) {
 		});
 }
 
-void WorldSystem::loadChest(Entity e) {
+void WorldSystem::loadChest(Entity e, json chestData) {
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(e, &mesh);
 
-	registry.renderRequests.insert(
-		e,
-		{ TEXTURE_ASSET_ID::CHEST,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
+	Chest& chest = registry.chests.emplace(e);
+	chest.isArtifact = chestData["isArtifact"];
+	chest.opened = chestData["opened"];
+
+	RenderRequest& rr = registry.renderRequests.emplace(e);
+	rr.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	rr.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	rr.used_layer = RENDER_LAYER_ID::FLOOR_DECO;
+	if (chest.isArtifact) {
+		if (chest.opened) {
+			rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_OPEN;
+		}
+		else {
+			rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_CLOSED;
+		}
+	}
+	else {
+		if (chest.opened) {
+			rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_OPEN;
+		}
+		else {
+			rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_CLOSED;
+		}
+	}
 	registry.hidables.emplace(e);
 }
 
@@ -2014,6 +2051,40 @@ void WorldSystem::loadSwitch(Entity e, json switchData) {
 		rr.used_texture = TEXTURE_ASSET_ID::SWITCH_ACTIVE;
 	}
 	registry.renderRequests.insert(e, rr);
+}
+
+void WorldSystem::loadPickup(Entity e, json equipData, json spritesheetData) {
+	Equipment& equip = registry.equipment.emplace(e);
+	equip.type = equipData["type"];
+	equip.atk = equipData["atk"];
+	equip.def = equipData["def"];
+	equip.speed = equipData["speed"];
+	equip.ep = equipData["ep"];
+	equip.mp = equipData["mp"];
+	equip.hp = equipData["hp"];
+	equip.range = equipData["range"];
+	equip.sprite = equipData["sprite"];
+	int i = 0;
+	for (auto atk : equipData["attacks"]) {
+		equip.attacks[i] = (ATTACK)atk;
+		i++;
+	}
+
+	Spritesheet& ss = registry.spritesheets.emplace(e);
+	ss.texture = spritesheetData["texture"];
+	ss.height = spritesheetData["height"];
+	ss.width = spritesheetData["width"];
+	ss.columns = spritesheetData["columns"];
+	ss.rows = spritesheetData["rows"];
+	ss.frame_size = { spritesheetData["frame_size"]["x"], spritesheetData["frame_size"]["y"] };
+	ss.index = spritesheetData["index"];
+
+	registry.renderRequests.insert(
+		e,
+		{ TEXTURE_ASSET_ID::EQUIPMENT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITESHEET });
+	registry.hidables.emplace(e);
 }
 
 void WorldSystem::logText(std::string msg) {

@@ -61,6 +61,10 @@ void take_damage(Entity& entity, float damage)
 	}
 
 	stats.hp -= damage;
+	
+	Motion motion = registry.motions.get(entity);
+	int rounded_damage = round(damage);
+	createDamageText(world.renderer, motion.position + vec2(0, -32), std::to_string(rounded_damage), false);
 
 	// Effects:
 	// Unnecessarily Thick Tome

@@ -170,7 +170,7 @@ public:
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, Camera& camera);
-	void drawText(Entity entity, const mat3& projection);
+	void drawText(Entity entity, const mat3& projection, Camera& camera);
 	void drawToScreen();
 	void updateTileMapCoords(TileUV& tileUV);
 	void updateAnimTexCoords(AnimationData& anim);

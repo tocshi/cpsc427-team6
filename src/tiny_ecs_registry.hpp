@@ -69,6 +69,7 @@ public:
 	ComponentContainer<LoadingTimer> loadingTimers;
 	ComponentContainer<Switch> switches;  
 	ComponentContainer<Chest> chests;
+	ComponentContainer<DamageTextTimer> damageText;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -133,6 +134,7 @@ public:
 		registry_list.push_back(&loadingTimers);
 		registry_list.push_back(&switches);
 		registry_list.push_back(&chests);
+		registry_list.push_back(&damageText);
 	}
 
 	void clear_all_components() {

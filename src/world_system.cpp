@@ -850,7 +850,8 @@ void WorldSystem::spawn_tutorial_entities() {
 		{ player_motion.position.x - 64, player_motion.position.y - 64 },
 		messages_1);
 
-	createMotionText(renderer, { player_motion.position.x - 160, player_motion.position.y - 96 }, "CLICK ME", 3.f, vec3(1.f));
+	//createMotionText(renderer, { player_motion.position.x - 160, player_motion.position.y - 96 }, "CLICK ME", 3.f, vec3(1.f));
+	createMouseAnimation(renderer, { player_motion.position.x - 64, player_motion.position.y - 128 });
 
 	std::vector<std::pair<std::string, int>> messages_2 = {
 		{"There is a slime enemy ahead!", 0},

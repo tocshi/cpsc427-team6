@@ -40,6 +40,14 @@ void WorldSystem::destroyMusic() {
 		Mix_FreeChunk(switch_sound);
 	if (chest_sound != nullptr)
 		Mix_FreeChunk(chest_sound);
+	if (slime_move != nullptr)
+		Mix_FreeChunk(slime_move);
+	if (slime_death != nullptr)
+		Mix_FreeChunk(slime_death);
+	if (caveling_move != nullptr)
+		Mix_FreeChunk(caveling_move);
+	if (caveling_death != nullptr)
+		Mix_FreeChunk(caveling_death);
 	Mix_CloseAudio();
 
 }
@@ -77,8 +85,14 @@ float ep_resolution = 2000.f;
 // move audio timer
 float move_audio_timer_ms = 200.f;
 
+// enemy move audio timer
+float enemy_move_audio_time_ms = 200.f;
+
 // button toggles
 bool hideGuardButton = false;
+
+// enemy move sounds
+std::vector<int> enemySoundChannels;
 
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
@@ -169,12 +183,22 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(switch_sound, 32);
 	chest_sound = Mix_LoadWAV(audio_path("feedback/chest_open.wav").c_str());
 	Mix_VolumeChunk(chest_sound, 32);
+	slime_move = Mix_LoadWAV(audio_path("feedback/slime_move.wav").c_str());
+	Mix_VolumeChunk(slime_move, 24);
+	slime_death = Mix_LoadWAV(audio_path("feedback/slime_death.wav").c_str());
+	Mix_VolumeChunk(slime_death, 32);
+	caveling_move = Mix_LoadWAV(audio_path("feedback/caveling_move.wav").c_str());
+	Mix_VolumeChunk(caveling_move, 50);
+	caveling_death = Mix_LoadWAV(audio_path("feedback/caveling_death.wav").c_str());
+	Mix_VolumeChunk(caveling_death, 40);
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr
 		|| error_sound == nullptr || footstep_sound == nullptr
 		|| menu_music == nullptr || cutscene_music == nullptr
 		|| door_sound == nullptr || switch_sound == nullptr
-		|| chest_sound == nullptr) {
+		|| chest_sound == nullptr || slime_move == nullptr 
+		|| slime_death == nullptr || caveling_death == nullptr
+		|| caveling_move == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n make sure the data directory is present",
 			audio_path("bgm/caves0.wav").c_str(),
 			audio_path("bgm/menu0.wav").c_str(),
@@ -184,7 +208,11 @@ GLFWwindow* WorldSystem::create_window() {
 			audio_path("feedback/footstep.wav").c_str(),
 			audio_path("feedback/door_open.wav").c_str(),
 			audio_path("feedback/switch_click.wav").c_str(),
-			audio_path("feedback/chest_open.wav").c_str()
+			audio_path("feedback/chest_open.wav").c_str(),
+			audio_path("feedback/slime_move.wav").c_str(),
+			audio_path("feedback/slime_death.wav").c_str(),
+			audio_path("feedback/caveling_death.wav").c_str(),
+			audio_path("feedback/caveling_move.wav").c_str()
 		);
 		return nullptr;
 	}
@@ -274,6 +302,29 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	else {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 		createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::NORMAL_POINTER);
+	}
+
+	// handle enemy move sounds
+	if (current_game_state == GameStates::ENEMY_TURN) {
+		if (enemy_move_audio_time_ms <= 0) {
+			for (Entity e : registry.enemies.entities) {
+				Motion motion = registry.motions.get(e);
+				if (motion.in_motion) {
+					playEnemyMoveSound(registry.enemies.get(e).type);
+				}
+			}
+			enemy_move_audio_time_ms = 200.f;
+		}
+		else {
+			enemy_move_audio_time_ms -= 20.f;
+		}
+	}
+
+	// stop all enemy move sounds on player's turn
+	if (get_is_player_turn()) {
+		for (int i = 0; i < enemySoundChannels.size(); i++) {
+			Mix_HaltChannel(enemySoundChannels[i]);
+		}
 	}
 
 	// perform in-motion behaviour
@@ -472,6 +523,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			SquishTimer& squish = registry.squishTimers.emplace(enemy);
 			squish.orig_scale = registry.motions.get(enemy).scale;
 
+			playEnemyDeathSound(registry.enemies.get(enemy).type);
+      
 			// TEMP: drop healing item from enemy with 1/3 chance
 			int roll = irand(3);
 			if (roll == 0 && !tutorial) {
@@ -824,6 +877,7 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 	player_motion.in_motion = false;
 	p.attacked = false;
 	p.moved = false;
+	enemy_move_audio_time_ms = 0.f;
 
 	set_is_player_turn(false);
 	player_move_click = false;
@@ -2490,6 +2544,28 @@ bool has_status(Entity e, StatusType status) {
 		}
 	}
 	return false;
+}
+
+void WorldSystem::playEnemyDeathSound(ENEMY_TYPE enemy_type) {
+	switch (enemy_type) {
+		case ENEMY_TYPE::SLIME:
+			Mix_PlayChannel(-1, slime_death, 0);
+			break;
+		case ENEMY_TYPE::CAVELING:
+			Mix_PlayChannel(-1, caveling_death, 0);
+			break;
+	}
+}
+
+void WorldSystem::playEnemyMoveSound(ENEMY_TYPE enemy_type) {
+	switch (enemy_type) {
+	case ENEMY_TYPE::SLIME:
+		enemySoundChannels.push_back(Mix_PlayChannel(-1, slime_move, 0));
+		break;
+	case ENEMY_TYPE::CAVELING:
+		enemySoundChannels.push_back(Mix_PlayChannel(-1, caveling_move, 0));
+		break;
+	}
 }
 
 // Remove a number of a status effect type from entity

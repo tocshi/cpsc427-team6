@@ -91,9 +91,6 @@ float enemy_move_audio_time_ms = 200.f;
 // button toggles
 bool hideGuardButton = false;
 
-// enemy move sounds
-std::vector<int> enemySoundChannels;
-
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
 GLFWwindow* WorldSystem::create_window() {
@@ -188,7 +185,7 @@ GLFWwindow* WorldSystem::create_window() {
 	slime_death = Mix_LoadWAV(audio_path("feedback/slime_death.wav").c_str());
 	Mix_VolumeChunk(slime_death, 32);
 	caveling_move = Mix_LoadWAV(audio_path("feedback/caveling_move.wav").c_str());
-	Mix_VolumeChunk(caveling_move, 50);
+	Mix_VolumeChunk(caveling_move, 32);
 	caveling_death = Mix_LoadWAV(audio_path("feedback/caveling_death.wav").c_str());
 	Mix_VolumeChunk(caveling_death, 40);
 
@@ -317,13 +314,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 		else {
 			enemy_move_audio_time_ms -= 20.f;
-		}
-	}
-
-	// stop all enemy move sounds on player's turn
-	if (get_is_player_turn()) {
-		for (int i = 0; i < enemySoundChannels.size(); i++) {
-			Mix_HaltChannel(enemySoundChannels[i]);
 		}
 	}
 
@@ -464,6 +454,28 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				ep -= 0.06f * player_stats.epratemove * elapsed_ms_since_last_update; 
 			}
 		}
+
+		// update stats text
+		std::string currHpString = std::to_string((int)hp);
+		std::string maxHpString = std::to_string((int)maxhp);
+
+		std::string currMpString = std::to_string((int)mp);
+		std::string maxMpString = std::to_string((int)maxmp);
+
+		std::string currEpString = std::to_string((int)ep);
+		std::string maxEpString = std::to_string((int)maxep);
+
+		// remove previous stats text
+		for (Entity st : registry.statsText.entities) {
+			registry.remove_all_components_of(st);
+		}
+
+		float statbarsX = window_width_px * 0.14;
+		float statbarsY = window_height_px * 1.7;
+
+		createStatsText(renderer, { statbarsX, statbarsY }, currHpString + " / " + maxHpString, 1.2f, vec3(1.0f));
+		createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 }, currMpString + " / " + maxMpString, 1.2f, vec3(1.0f));
+		createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 4 }, currEpString + " / " + maxEpString, 1.2f, vec3(1.0f));
 		
 		// update Stat Bars and visibility
 		for (Entity entity : registry.motions.entities) {
@@ -959,8 +971,10 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
+  
 	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	// std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+
 	spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
@@ -1753,6 +1767,13 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									Equipment prev = equip_item(player_main, equipment);
 									createEquipmentEntity(renderer, player_motion.position, prev);
 								}
+								if (current_game_state == GameStates::ITEM_MENU) {
+									// re-render the itemCards
+									for (Entity ic : registry.itemCards.entities) {
+										registry.remove_all_components_of(ic);
+									}
+									createItemMenu(renderer, { window_width_px - 125.f, 200.f }, inv);
+								}
 								if (registry.consumables.has(entity)) {
 									Consumable consumable = registry.consumables.get(entity);
 									Stats stats = registry.stats.get(player_main);
@@ -2068,7 +2089,6 @@ void WorldSystem::loadPlayerComponent(Entity e, json playerCompData, Inventory i
 	registry.players.get(e).floor = playerCompData["floor"];
 	registry.players.get(e).room = playerCompData["room"];
 	registry.players.get(e).total_rooms = playerCompData["total_rooms"];
-	registry.players.get(e).inv = inv;
 }
 
 Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
@@ -2588,10 +2608,10 @@ void WorldSystem::playEnemyDeathSound(ENEMY_TYPE enemy_type) {
 void WorldSystem::playEnemyMoveSound(ENEMY_TYPE enemy_type) {
 	switch (enemy_type) {
 	case ENEMY_TYPE::SLIME:
-		enemySoundChannels.push_back(Mix_PlayChannel(-1, slime_move, 0));
+		Mix_PlayChannel(-1, slime_move, 0);
 		break;
 	case ENEMY_TYPE::CAVELING:
-		enemySoundChannels.push_back(Mix_PlayChannel(-1, caveling_move, 0));
+		Mix_PlayChannel(-1, caveling_move, 0);
 		break;
 	}
 }
@@ -2664,6 +2684,11 @@ void WorldSystem::attackAction() {
 }
 
 void WorldSystem::backAction() {
+	// hide all item cards
+	for (Entity ic : registry.itemCards.entities) {
+		registry.remove_all_components_of(ic);
+	}
+
 	// hide all attack cards
 	for (Entity ac : registry.attackCards.entities) {
 		registry.remove_all_components_of(ac);
@@ -2680,8 +2705,9 @@ void WorldSystem::backAction() {
 }
 
 void WorldSystem::itemAction() {
-	// TODO: add real functionality for this
-	logText("Items Menu to be implemented later!");
+	Inventory& inv = registry.inventories.get(player_main);
+	printf("sprite: %d", inv.equipped[0].sprite);
+	createItemMenu(renderer, { window_width_px - 125.f, 200.f }, inv);
 	
 	handleActionButtonPress();
 

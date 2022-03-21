@@ -96,6 +96,8 @@ class RenderSystem {
 			textures_path("parallax/cave_0001_mid_p.png"),
 			textures_path("parallax/cave_0002_back_p.png"),
 			textures_path("parallax/cave_0003_color.png"),
+			textures_path("item/weapon_card.png"),
+			textures_path("item/armour_card.png"),
     		textures_path("keys/1_key.png"),
 			textures_path("keys/2_key.png"),
 			textures_path("keys/3_key.png"),

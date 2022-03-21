@@ -70,7 +70,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	// Create and (empty) Player component to be able to refer to all players
 	auto& player = registry.players.emplace(entity);
-	player.inv = registry.inventories.emplace(entity);
+	registry.inventories.emplace(entity);
 
 	Equipment weapon = {};
 	weapon.type = EQUIPMENT::BLUNT;
@@ -444,7 +444,8 @@ Entity createEquipmentEntity(RenderSystem* renderer, vec2 pos, Equipment equipme
 		entity,
 		{ TEXTURE_ASSET_ID::EQUIPMENT,
 		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITESHEET });
+		 GEOMETRY_BUFFER_ID::SPRITESHEET,
+		});
 	registry.hidables.emplace(entity);
 
 	Spritesheet& spritesheet = registry.spritesheets.emplace(entity);
@@ -1109,6 +1110,106 @@ Entity createCollectionButton(RenderSystem* renderer, vec2 pos) {
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+// Item menu
+Entity createItemMenu(RenderSystem* renderer, vec2 top_card_pos, Inventory inv) {
+	auto entity = Entity();
+	
+	// render item cards, and items on them (if any)
+	// create weapon card
+	createItemCard(renderer, top_card_pos, EQUIPMENT::SHARP, inv.equipped[0]);
+	// create armour card
+	createItemCard(renderer, vec2(top_card_pos.x, top_card_pos.y + 150.f), EQUIPMENT::ARMOUR, inv.equipped[1]);
+
+	return entity;
+}
+
+// Item menu cards
+Entity createItemCard(RenderSystem* renderer, vec2 pos, EQUIPMENT type, Equipment item) {
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ ACTIONS_BUTTON_BB_WIDTH, ACTIONS_BUTTON_BB_HEIGHT });
+
+	ItemCard& ic = registry.itemCards.emplace(entity);
+	ic.item = item;
+
+	// TODO: add dialog for more item info
+	//Button& b = registry.buttons.emplace(entity);
+	//b.action_taken = BUTTON_ACTION_ID::OPEN_ATTACK_DIALOG;
+
+	// get attack type from item
+	switch (type) {
+		case EQUIPMENT::ARMOUR:
+			registry.renderRequests.insert(
+				entity,
+				{ TEXTURE_ASSET_ID::ITEM_ARMOUR_CARD,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 RENDER_LAYER_ID::UI });
+			break;
+		case EQUIPMENT::SHARP:
+		case EQUIPMENT::RANGED:
+		case EQUIPMENT::BLUNT:
+			registry.renderRequests.insert(
+				entity,
+				{ TEXTURE_ASSET_ID::ITEM_WEAPON_CARD,
+				 EFFECT_ASSET_ID::TEXTURED,
+				 GEOMETRY_BUFFER_ID::SPRITE,
+				 RENDER_LAYER_ID::UI });
+			break;
+	}
+	
+	Entity equip = createItemEquipmentTexture(renderer, pos, item);
+	registry.itemCards.emplace(equip);
+
+	return entity;
+}
+
+// Generate equipment texture for item menu
+Entity createItemEquipmentTexture(RenderSystem* renderer, vec2 pos, Equipment equipment)
+{
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 0;
+
+	motion.scale = vec2({ PICKUP_BB_WIDTH, PICKUP_BB_HEIGHT });
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::EQUIPMENT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITESHEET,
+		 RENDER_LAYER_ID::UI_TOP
+		});
+
+	Spritesheet& spritesheet = registry.spritesheets.emplace(entity);
+	spritesheet.texture = TEXTURE_ASSET_ID::EQUIPMENT;
+	spritesheet.width = 96;
+	spritesheet.height = 144;
+	spritesheet.columns = 6;
+	spritesheet.rows = 9;
+	spritesheet.frame_size = { 16, 16 };
+	spritesheet.index = equipment.sprite;
 
 	return entity;
 }
@@ -1992,6 +2093,32 @@ Entity createDialogText(RenderSystem* renderer, vec2 pos, std::string msg, float
 	text.position = pos;
 	text.scale = scale;
 	text.textColor = textColor;
+
+	// Create an (empty) TEXT component to be able to refer to all text
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::TEXT,
+			GEOMETRY_BUFFER_ID::TEXTQUAD,
+			RENDER_LAYER_ID::DIALOG_TEXT });
+
+	return entity;
+}
+
+// Stats text
+Entity createStatsText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Initialize the text component
+	auto& text = registry.texts.emplace(entity);
+	text.message = msg;
+	text.position = pos;
+	text.scale = scale;
+	text.textColor = textColor;
+
+	registry.statsText.emplace(entity);
 
 	// Create an (empty) TEXT component to be able to refer to all text
 	registry.renderRequests.insert(

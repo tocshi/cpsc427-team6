@@ -88,3 +88,7 @@ void TurnOrderSystem::removeFromQueue(Entity e) {
 void TurnOrderSystem::emptyQueue() {
 	turnQueue.emptyQueue();
 }
+
+void TurnOrderSystem::addNewEntity(Entity e) {
+	turnQueue.addNewEntity(e);
+}

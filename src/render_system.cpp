@@ -8,6 +8,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 									const mat3 &projection, Camera& camera)
 {
 	assert(registry.renderRequests.has(entity));
+	if (registry.texts.has(entity)) { return; }
 	const RenderRequest& render_request = registry.renderRequests.get(entity);
 
 	Motion &motion = registry.motions.get(entity);
@@ -212,7 +213,7 @@ void RenderSystem::drawText(Entity entity, const mat3 &projection, Camera& camer
 
 	Transform transform;
 	// move text relative to world if text is damageText
-	if (registry.damageText.has(entity)) {
+	if (registry.motions.has(entity)) {
 		Motion& motion = registry.motions.get(entity);
 		transform.translate(-camera.position);
 		transform.translate(motion.position);

@@ -40,6 +40,14 @@ void WorldSystem::destroyMusic() {
 		Mix_FreeChunk(switch_sound);
 	if (chest_sound != nullptr)
 		Mix_FreeChunk(chest_sound);
+	if (slime_move != nullptr)
+		Mix_FreeChunk(slime_move);
+	if (slime_death != nullptr)
+		Mix_FreeChunk(slime_death);
+	if (caveling_move != nullptr)
+		Mix_FreeChunk(caveling_move);
+	if (caveling_death != nullptr)
+		Mix_FreeChunk(caveling_death);
 	Mix_CloseAudio();
 
 }
@@ -77,8 +85,14 @@ float ep_resolution = 2000.f;
 // move audio timer
 float move_audio_timer_ms = 200.f;
 
+// enemy move audio timer
+float enemy_move_audio_time_ms = 200.f;
+
 // button toggles
 bool hideGuardButton = false;
+
+// enemy move sounds
+std::vector<int> enemySoundChannels;
 
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
@@ -181,12 +195,22 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(sword_pierce, 24);
 	sword_slash = Mix_LoadWAV(audio_path("sfx/sword_slash.wav").c_str());
 	Mix_VolumeChunk(sword_slash, 24);
+	slime_move = Mix_LoadWAV(audio_path("feedback/slime_move.wav").c_str());
+	Mix_VolumeChunk(slime_move, 24);
+	slime_death = Mix_LoadWAV(audio_path("feedback/slime_death.wav").c_str());
+	Mix_VolumeChunk(slime_death, 32);
+	caveling_move = Mix_LoadWAV(audio_path("feedback/caveling_move.wav").c_str());
+	Mix_VolumeChunk(caveling_move, 50);
+	caveling_death = Mix_LoadWAV(audio_path("feedback/caveling_death.wav").c_str());
+	Mix_VolumeChunk(caveling_death, 40);
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr
 		|| error_sound == nullptr || footstep_sound == nullptr
 		|| menu_music == nullptr || cutscene_music == nullptr
 		|| door_sound == nullptr || switch_sound == nullptr
-		|| chest_sound == nullptr) {
+		|| chest_sound == nullptr || slime_move == nullptr 
+		|| slime_death == nullptr || caveling_death == nullptr
+		|| caveling_move == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n make sure the data directory is present",
 			audio_path("bgm/caves0.wav").c_str(),
 			audio_path("bgm/menu0.wav").c_str(),
@@ -196,7 +220,11 @@ GLFWwindow* WorldSystem::create_window() {
 			audio_path("feedback/footstep.wav").c_str(),
 			audio_path("feedback/door_open.wav").c_str(),
 			audio_path("feedback/switch_click.wav").c_str(),
-			audio_path("feedback/chest_open.wav").c_str()
+			audio_path("feedback/chest_open.wav").c_str(),
+			audio_path("feedback/slime_move.wav").c_str(),
+			audio_path("feedback/slime_death.wav").c_str(),
+			audio_path("feedback/caveling_death.wav").c_str(),
+			audio_path("feedback/caveling_move.wav").c_str()
 		);
 		return nullptr;
 	}
@@ -244,8 +272,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// remove pickups that have been interacted
+	for (int i = (int)registry.interactables.components.size() - 1; i >= 0; --i) {
+		Interactable& interactable = registry.interactables.components[i];
+		if (interactable.type == INTERACT_TYPE::PICKUP && interactable.interacted) {
+			registry.remove_all_components_of(registry.interactables.entities[i]);
+		}
+	}
+
 	// if not in menu do turn order logic (!current_game_state)
 	if (current_game_state < GameStates::CUTSCENE && current_game_state >= GameStates::GAME_START) {
+		if (tutorial) {
+			updateTutorial();
+		}
 		update_turn_ui();
 		doTurnOrderLogic();
 	}
@@ -275,6 +314,29 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	else {
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 		createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::NORMAL_POINTER);
+	}
+
+	// handle enemy move sounds
+	if (current_game_state == GameStates::ENEMY_TURN) {
+		if (enemy_move_audio_time_ms <= 0) {
+			for (Entity e : registry.enemies.entities) {
+				Motion motion = registry.motions.get(e);
+				if (motion.in_motion) {
+					playEnemyMoveSound(registry.enemies.get(e).type);
+				}
+			}
+			enemy_move_audio_time_ms = 200.f;
+		}
+		else {
+			enemy_move_audio_time_ms -= 20.f;
+		}
+	}
+
+	// stop all enemy move sounds on player's turn
+	if (get_is_player_turn()) {
+		for (int i = 0; i < enemySoundChannels.size(); i++) {
+			Mix_HaltChannel(enemySoundChannels[i]);
+		}
 	}
 
 	for (Entity p : registry.players.entities) {
@@ -421,6 +483,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			else { 
 				ep -= 0.06f * player_stats.epratemove * elapsed_ms_since_last_update; 
+				ep = max(0.f, ep);
 			}
 		}
 		
@@ -481,6 +544,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			logText(log_text);
 			SquishTimer& squish = registry.squishTimers.emplace(enemy);
 			squish.orig_scale = registry.motions.get(enemy).scale;
+
+			playEnemyDeathSound(registry.enemies.get(enemy).type);
+      
+			// TEMP: drop healing item from enemy with 1/3 chance
+			int roll = irand(3);
+			if (roll == 0 && !tutorial) {
+				createConsumable(renderer, registry.motions.get(enemy).position + vec2(16, 16), CONSUMABLE::INSTANT);
+			}
 
 			// remove from turn queue
 			turnOrderSystem.removeFromQueue(enemy);
@@ -826,6 +897,9 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 	Player& p = registry.players.get(player);
 	player_motion.velocity = { 0.f, 0.f };
 	player_motion.in_motion = false;
+	p.attacked = false;
+	p.moved = false;
+	enemy_move_audio_time_ms = 0.f;
 
 	// Need to have this outside of handle_status_ticks or else it'll erase the wrong status
 	if (has_status(player_main, StatusType::DISENGAGE_TRIGGER) && !p.attacked) {
@@ -841,13 +915,79 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 	set_gamestate(GameStates::ENEMY_TURN);
 }
 
+// spawn tutorial entities
+void WorldSystem::spawn_tutorial_entities() {
+	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	spawnData = createTiles(renderer, next_map);
+
+	// create all non-menu game objects
+	// spawn the player and enemy in random locations
+	spawn_player_random_location(spawnData.playerSpawns);
+	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
+	spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
+
+	Entity player = registry.players.entities[0];
+	Motion& player_motion = registry.motions.get(player);
+
+	std::vector<std::pair<std::string, int>> messages_1 = {
+		{"Welcome to Adrift in Somnium!", 0},
+		{"Click on the move icon or press [2] to access the move menu", 2000}};
+
+	tutorial_sign_1 = createSign(
+		renderer,
+		{ player_motion.position.x - 64, player_motion.position.y - 64 },
+		messages_1);
+
+	//createMotionText(renderer, { player_motion.position.x - 160, player_motion.position.y - 96 }, "CLICK ME", 3.f, vec3(1.f));
+	createMouseAnimation(renderer, { player_motion.position.x - 64, player_motion.position.y - 128 });
+
+	std::vector<std::pair<std::string, int>> messages_2 = {
+		{"There is a slime enemy ahead!", 0},
+		{"You will need enough EP and be within range to attack the enemy", 3000},
+		{"You can click the attack icon or press [1] to access the attack menu", 6000},
+		{"If you don't have enough EP, end your turn", 9000}};
+
+	tutorial_sign_2 = createSign(
+		renderer,
+		{ player_motion.position.x - 64, player_motion.position.y - 1280 },
+		messages_2);
+
+	std::vector<std::pair<std::string, int>> messages_3 = {
+		{"Good Luck adventurer!", 0},
+		{"Go through the door to proceed", 3000}};
+
+	tutorial_sign_3 = createSign(
+		renderer,
+		{ player_motion.position.x - 64, player_motion.position.y - 2016 },
+		messages_3);
+
+	// setup turn order system
+	turnOrderSystem.setUpTurnOrder();
+	// start first turn
+	turnOrderSystem.getNextTurn();
+
+	float statbarsX = 150.f;
+	float statbarsY = window_height_px - START_BB_HEIGHT - 55.f;
+	createHPFill(renderer, { statbarsX, statbarsY });
+	createHPBar(renderer,  { statbarsX, statbarsY });
+	createMPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createMPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
+	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
+	create_fog_of_war();
+	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
+
+	// roomSystem.setRandomObjective(); // hijack for tutorial objectives?
+}
+
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
 	//std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
 	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
-	SpawnData spawnData = createTiles(renderer, next_map);
+
+	spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
@@ -858,20 +998,20 @@ void WorldSystem::spawn_game_entities() {
 	Entity player = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player);
 
-	std::vector<std::pair<std::string, int>> messages = {
-		{"Welcome to Adrift in Somnium!", 0},
-		{"Left click the buttons at the bottom to switch between actions.", 2000},
-		{"In Move mode, you can click to move as long as you have EP.", 6000},
-		{"EP is the yellow bar at the top of the screen, which gets expended as you move and attack.", 10000},
-		{"In Attack mode, you can click on an enemy close to you to deal damage at the cost of half your EP.", 15000},
-		{"Use your attacks wisely. You can only attack once per turn.", 20000},
-		{"After your EP hits 0 or you click on End Turn, the enemies will have a turn to move and attack you.", 24000},
-		{"Good luck, nameless adventurer.", 30000}};
+	// std::vector<std::pair<std::string, int>> messages = {
+	// 	{"Welcome to Adrift in Somnium!", 0},
+	// 	{"Left click the buttons at the bottom to switch between actions.", 2000},
+	// 	{"In Move mode, you can click to move as long as you have EP.", 6000},
+	// 	{"EP is the yellow bar at the top of the screen, which gets expended as you move and attack.", 10000},
+	// 	{"In Attack mode, you can click on an enemy close to you to deal damage at the cost of half your EP.", 15000},
+	// 	{"Use your attacks wisely. You can only attack once per turn.", 20000},
+	// 	{"After your EP hits 0 or you click on End Turn, the enemies will have a turn to move and attack you.", 24000},
+	// 	{"Good luck, nameless adventurer.", 30000}};
 
-	createSign(
-		renderer, 
-		{ player_motion.position.x - 64, player_motion.position.y - 64 },
-		messages);
+	// createSign(
+	// 	renderer, 
+	// 	{ player_motion.position.x - 64, player_motion.position.y - 64 },
+	// 	messages);
 
 	// setup turn order system
 	turnOrderSystem.setUpTurnOrder();
@@ -904,7 +1044,8 @@ void WorldSystem::spawn_game_entities() {
 
 // render ep range around the given position
 void WorldSystem::create_ep_range(float remaining_ep, float speed, vec2 pos) {
-	float ep_radius = remaining_ep * speed * 0.015 + ((110.f * remaining_ep) / 100);
+	Stats player_stats = registry.stats.get(player_main);
+	float ep_radius = remaining_ep * (1 / player_stats.epratemove) * speed * 0.015 + ((110.f * remaining_ep * (1 / player_stats.epratemove)) / 100);
 
 	Entity ep = createEpRange({ pos.x , pos.y }, ep_resolution, ep_radius, { window_width_px, window_height_px });
 	registry.colors.insert(ep, { 0.2, 0.2, 8.7 });
@@ -1068,13 +1209,15 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
 		auto& stats = registry.stats.get(player_main);
-		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp);
+		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\nrange: %f\nepmove: %f\nepatk: %f\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp, stats.range, stats.epratemove, stats.eprateatk);
 	}
 
 	// SAVING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
-		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
-		logText("Game state saved!");
+		if (roomSystem.current_floor != Floors::TUTORIAL) {
+			saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+			logText("Game state saved!");
+		}
 	}
 
 	///////////////////////////
@@ -1182,13 +1325,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (saveSystem.saveDataExists()) {
 			// remove entities to load in entities
 			removeForLoad();
-			printf("Removed for load\n");
+			//printf("Removed for load\n");
 			// get saved game data
 			json gameData = saveSystem.getSaveData();
-			printf("getting gameData\n");
+			//printf("getting gameData\n");
 			// load the entities in
 			loadFromData(gameData);
-			printf("load game data?\n");
+			//printf("load game data?\n");
 		}
 
 		logText("Game state loaded!");
@@ -1292,13 +1435,13 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
 
 				switch (action_taken) {
-
-				case BUTTON_ACTION_ID::MENU_START:
-					set_gamestate(GameStates::GAME_START);
+				case BUTTON_ACTION_ID::MENU_START: 
+					set_gamestate(GameStates::BATTLE_MENU);
 					if (current_game_state != GameStates::CUTSCENE || current_game_state != GameStates::MAIN_MENU) {
 						Mix_PlayMusic(background_music, -1);
 					}
-					spawn_game_entities();
+					if (tutorial) { spawn_tutorial_entities(); }
+					else { spawn_game_entities(); }
 					// spawn the actions bar
 					// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
 					createAttackButton(renderer, { window_width_px - 125.f, 200.f });
@@ -1320,8 +1463,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					background_back = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_BACK, RENDER_LAYER_ID::BG_1);
 					background_mid = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_MID, RENDER_LAYER_ID::BG_2);
 					background_front = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_FRONT, RENDER_LAYER_ID::BG_3);
-					break;
-				case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
+					return;
+				case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); return;
 				case BUTTON_ACTION_ID::ACTIONS_ATTACK:
 					if (current_game_state == GameStates::BATTLE_MENU) {
 						attackAction();
@@ -1331,7 +1474,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					if (registry.stats.get(player_main).ep <= 0) {
 						logText("Cannot move with 0 EP!");
 						Mix_PlayChannel(-1, error_sound, 0);
-						break;
+						return;
 					}
 					if (current_game_state == GameStates::BATTLE_MENU) {
 						moveAction();
@@ -1517,6 +1660,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							world_pos.y <= motion.position.y + abs(motion.scale.y / 2) &&
 							world_pos.y >= motion.position.y - abs(motion.scale.y / 2)) {
 
+							bool prev_interacted = interactable.interacted;
+							interactable.interacted = true;
+
 							// Sign behaviour
 							if (registry.signs.has(entity)) {
 								Sign& sign = registry.signs.get(entity);
@@ -1598,13 +1744,33 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								if (registry.artifacts.has(entity)) {
 									ARTIFACT artifact = registry.artifacts.get(entity).type;
 									inv.artifact[(int)artifact]++;
+									reset_stats(player_main);
+									calc_stats(player_main);
+									remove_fog_of_war();
+									create_fog_of_war();
 								}
 								if (registry.equipment.has(entity)) {
 									Equipment equipment = registry.equipment.get(entity);
 									Equipment prev = equip_item(player_main, equipment);
 									createEquipmentEntity(renderer, player_motion.position, prev);
 								}
-								registry.remove_all_components_of(entity);
+								if (registry.consumables.has(entity)) {
+									Consumable consumable = registry.consumables.get(entity);
+									Stats stats = registry.stats.get(player_main);
+									switch (consumable.type) {
+									case CONSUMABLE::REDPOT:
+										break;
+									case CONSUMABLE::BLUPOT:
+										break;
+									case CONSUMABLE::YELPOT:
+										break;
+									case CONSUMABLE::INSTANT:
+										heal(player_main, stats.maxhp * 0.3);
+										break;
+									default:
+										break;
+									}
+								}
 								break;
 							}
 							// Door Behaviour
@@ -1623,6 +1789,13 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									rr.used_texture = TEXTURE_ASSET_ID::SWITCH_ACTIVE;
 									Mix_PlayChannel(-1, switch_sound, 0);
 									roomSystem.updateObjective(ObjectiveType::ACTIVATE_SWITCHES, 1);
+									break;
+								}
+							}
+							else if (interactable.type == INTERACT_TYPE::CAMPFIRE && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+								if (!prev_interacted) {
+									Stats& stats = registry.stats.get(player_main);
+									heal(player_main, stats.maxhp);
 									break;
 								}
 							}
@@ -1756,6 +1929,8 @@ void WorldSystem::removeForNewRoom() {
 }
 
 void WorldSystem::loadFromData(json data) {
+	tutorial = data["tutorial"] == nullptr ? false : data["tutorial"];
+
 	// load player
 	json entityList = data["entities"];
 	json collidablesList = data["map"]["collidables"];
@@ -2014,6 +2189,8 @@ void WorldSystem::loadInteractables(json interactablesList) {
 
 		Interactable& interact_component = registry.interactables.emplace(e);
 		interact_component.type = (INTERACT_TYPE)interactable["type"];
+		interact_component.interacted = interactable["interacted"] == nullptr ? false : interactable["interacted"];
+		//interact_component.interacted = interactable["interacted"];
 
 		switch (interact_component.type) {
 		case INTERACT_TYPE::ARTIFACT_CHEST: // artifact chest
@@ -2040,6 +2217,12 @@ void WorldSystem::loadInteractables(json interactablesList) {
 			else if (interactable["equipment"] != nullptr) {
 				loadEquipmentEntity(e, interactable["equipment"], interactable["spritesheet"]);
 			}
+			else if (interactable["consumable"] != nullptr) {
+				loadConsumable(e, interactable["consumable"]);
+			}
+			break;
+		case INTERACT_TYPE::CAMPFIRE:
+			loadCampfire(e);
 			break;
 		default:
 			break;
@@ -2184,6 +2367,53 @@ void WorldSystem::loadArtifact(Entity e, json artifactData) {
 	registry.hidables.emplace(e);
 }
 
+void WorldSystem::loadConsumable(Entity e, json consumableData) {
+	registry.consumables.insert(e, { consumableData["type"] });
+
+	RenderRequest& rr = registry.renderRequests.emplace(e);
+	rr.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	rr.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	rr.used_layer = RENDER_LAYER_ID::SPRITE;
+	switch ((CONSUMABLE)consumableData["type"]) {
+	case CONSUMABLE::REDPOT:
+		rr.used_texture = TEXTURE_ASSET_ID::POTION_RED;
+		break;
+	case CONSUMABLE::BLUPOT:
+		rr.used_texture = TEXTURE_ASSET_ID::POTION_BLUE;
+		break;
+	case CONSUMABLE::YELPOT:
+		rr.used_texture = TEXTURE_ASSET_ID::POTION_YELLOW;
+		break;
+	case CONSUMABLE::INSTANT:
+		rr.used_texture = TEXTURE_ASSET_ID::POTION_RED;
+		break;
+	default:
+		rr.used_texture = TEXTURE_ASSET_ID::POTION_RED;
+		break;
+	}
+	registry.hidables.emplace(e);
+}
+
+void WorldSystem::loadCampfire(Entity e) {
+	AnimationData& anim = registry.animations.emplace(e);
+	anim.spritesheet_texture = TEXTURE_ASSET_ID::CAMPFIRE_SPRITESHEET;
+	anim.frametime_ms = 150;
+	anim.frame_indices = { 0, 1, 2, 3, 4 };
+	anim.spritesheet_columns = 5;
+	anim.spritesheet_rows = 1;
+	anim.spritesheet_width = 320;
+	anim.spritesheet_height = 64;
+	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
+
+	registry.renderRequests.insert(
+		e,
+		{ TEXTURE_ASSET_ID::CAMPFIRE_SPRITESHEET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::ANIMATION,
+			RENDER_LAYER_ID::FLOOR_DECO });
+	registry.hidables.emplace(e);
+}
+
 void WorldSystem::logText(std::string msg) {
 	// (note: if we want to use createText in other applications, we can create a logged text entity)
 	// shift existing logged text upwards
@@ -2232,8 +2462,9 @@ void WorldSystem::doTurnOrderLogic() {
 		}
 
 		// handle start-of-turn behaviour
-		reset_stats(currentTurnEntity);
 		handle_status_ticks(currentTurnEntity, true, false);
+		reset_stats(currentTurnEntity);
+		calc_stats(currentTurnEntity);
 	}
 
 	// if current turn entity is enemy and is still doing_turn call ai.step();
@@ -2242,6 +2473,75 @@ void WorldSystem::doTurnOrderLogic() {
 
 		// now that ai did its step, set doing turn to false
 		registry.queueables.get(currentTurnEntity).doing_turn = false;
+	}
+}
+
+void WorldSystem::updateTutorial() {
+	if (!movementSelected) {
+		if (current_game_state == GameStates::MOVEMENT_MENU) {
+			movementSelected = true;
+			logText("Left click to move around the room");
+		}
+	}
+	else if (!epDepleted) {
+		// check ep depleted
+		if (registry.stats.get(player_main).ep <= 0) {
+			epDepleted = true;
+			logText("You ran out of EP!");
+			logText("Movement and attacks consumes EP");
+			logText("To end your turn, click end turn or by press [3]");
+			Motion& player_motion = registry.motions.get(player_main);
+			tutorial_floor_text = createMotionText(renderer, { player_motion.position.x - 64, player_motion.position.y - 64 }, "GO NORTH", 3.f, vec3(1.f));
+		}
+	}
+	// use else if, if want prior flags to be true
+	if (!secondSign) {
+		if (registry.interactables.has(tutorial_sign_2) && registry.interactables.get(tutorial_sign_2).interacted) {
+			secondSign = true;
+			// spawn slime
+			Motion& sign_motion = registry.motions.get(tutorial_sign_2);
+			tutorial_slime = createEnemy(renderer, { sign_motion.position.x - 64.f, sign_motion.position.y - 256.f });
+			turnOrderSystem.addNewEntity(tutorial_slime);
+		}
+	}
+	else if (!slimeDefeated) {
+		Motion& player_motion = registry.motions.get(player_main);
+		if (registry.enemies.size() <= 0) {
+			slimeDefeated = true;
+			// spawn campfire
+			tutorial_campfire = createCampfire(renderer, { player_motion.position.x, player_motion.position.y - 96.f });
+			logText("Left click on the campfire to interact with it");
+		}
+	}
+	else if (!interactedCampfire) {
+		if (registry.interactables.has(tutorial_campfire) && registry.interactables.get(tutorial_campfire).interacted) {
+			interactedCampfire = true;
+			std::vector<std::pair<std::string, int>> messages = {
+				{"Campfires will recover your HP and MP to full", 0},
+				{"There are several items that you can interact with", 3000},
+				{"Left click treasures and items to interact with them", 6000},
+				{"You can view artifacts by clicking the book in the top right", 9000}};
+
+			Entity campfire_sign = createSign(
+				renderer,
+				{ -64.f, -64.f },
+				messages);
+
+			registry.signs.get(campfire_sign).playing = true;
+		}
+	}
+	// use else if, if want prior flags to be true
+	if (!thirdSign) {
+		if (registry.interactables.has(tutorial_sign_3) && registry.interactables.get(tutorial_sign_3).interacted) {
+			thirdSign = true;
+			// spawn stairs (or door)
+			Motion& sign_motion = registry.motions.get(tutorial_sign_3);
+			tutorial_door = createDoor(renderer, { sign_motion.position.x + 64.f, sign_motion.position.y });
+		}
+	}
+	else if (registry.interactables.has(tutorial_door) && registry.interactables.get(tutorial_door).interacted) {
+		tutorial = false;
+		registry.remove_all_components_of(tutorial_floor_text);
 	}
 }
 
@@ -2271,6 +2571,28 @@ bool has_status(Entity e, StatusType status) {
 		}
 	}
 	return false;
+}
+
+void WorldSystem::playEnemyDeathSound(ENEMY_TYPE enemy_type) {
+	switch (enemy_type) {
+		case ENEMY_TYPE::SLIME:
+			Mix_PlayChannel(-1, slime_death, 0);
+			break;
+		case ENEMY_TYPE::CAVELING:
+			Mix_PlayChannel(-1, caveling_death, 0);
+			break;
+	}
+}
+
+void WorldSystem::playEnemyMoveSound(ENEMY_TYPE enemy_type) {
+	switch (enemy_type) {
+	case ENEMY_TYPE::SLIME:
+		enemySoundChannels.push_back(Mix_PlayChannel(-1, slime_move, 0));
+		break;
+	case ENEMY_TYPE::CAVELING:
+		enemySoundChannels.push_back(Mix_PlayChannel(-1, caveling_move, 0));
+		break;
+	}
 }
 
 // Remove a number of a status effect type from entity
@@ -2489,6 +2811,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 
 	// costs 0 if prepared
 	if (player.prepared) {
+		printf("testestste\n");
 		mp_cost = 0;
 		ep_cost = 0;
 	}
@@ -2655,7 +2978,9 @@ void WorldSystem::use_attack(vec2 target_pos) {
 	if (attack_success) {
 		player_stats.ep -= ep_cost;
 		player_stats.mp -= mp_cost;
-		player.attacked = true;
+		if (player.using_attack != ATTACK::DISENGAGE) {
+			player.attacked = true;
+		}
 		player.prepared = false;
 		attackAction();
 	}

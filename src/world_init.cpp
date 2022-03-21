@@ -1987,6 +1987,31 @@ Entity createDamageText(RenderSystem* renderer, vec2 pos, std::string text_input
 	return entity;
 }
 
+Entity createMotionText(RenderSystem* renderer, vec2 pos, std::string msg, float scale = 1.0f, vec3 textColor = vec3(0.0f)) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Initialize the text component
+	Text& text = registry.texts.emplace(entity);
+	text.message = msg;
+	text.position = { 0,0 };
+	text.scale = scale;
+	text.textColor = textColor;
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 1.f, 1.f };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::TEXT,
+			GEOMETRY_BUFFER_ID::TEXTQUAD,
+			RENDER_LAYER_ID::FLOOR_DECO });
+
+	return entity;
+}
+
 // Dialog text
 Entity createDialogText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor)
 {
@@ -2031,6 +2056,9 @@ Entity createCampfire(RenderSystem* renderer, vec2 pos) {
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.scale = { 64, 64 };
+
+	Interactable& interactable = registry.interactables.emplace(entity);
+	interactable.type = INTERACT_TYPE::CAMPFIRE;
 	
 	registry.renderRequests.insert(
 		entity,
@@ -2039,6 +2067,32 @@ Entity createCampfire(RenderSystem* renderer, vec2 pos) {
 			GEOMETRY_BUFFER_ID::ANIMATION,
 			RENDER_LAYER_ID::FLOOR_DECO });
 	registry.hidables.emplace(entity);
+
+	return entity;
+}
+
+Entity createMouseAnimation(RenderSystem* renderer, vec2 pos) {
+	Entity entity = Entity();
+	AnimationData& anim = registry.animations.emplace(entity);
+	anim.spritesheet_texture = TEXTURE_ASSET_ID::MOUSE_SPRITESHEET;
+	anim.frametime_ms = 1000;
+	anim.frame_indices = { 3, 0 };
+	anim.spritesheet_columns = 1;
+	anim.spritesheet_rows = 4;
+	anim.spritesheet_width = 50;
+	anim.spritesheet_height = 200;
+	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 64, 64 };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::MOUSE_SPRITESHEET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::ANIMATION,
+			RENDER_LAYER_ID::EFFECT });
 
 	return entity;
 }
@@ -2133,6 +2187,50 @@ Entity createSwitch(RenderSystem* renderer, vec2 pos) {
 	auto& interactable = registry.interactables.emplace(entity);
 	interactable.type = INTERACT_TYPE::SWITCH;
 	registry.switches.emplace(entity);
+
+	return entity;
+}
+
+Entity createConsumable(RenderSystem* renderer, vec2 pos, CONSUMABLE type) {
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ PICKUP_BB_WIDTH, PICKUP_BB_HEIGHT });
+
+	Consumable& consumable = registry.consumables.emplace(entity);
+	consumable.type = type;
+	
+	RenderRequest& rr = registry.renderRequests.emplace(entity);
+	rr.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	rr.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	rr.used_layer = RENDER_LAYER_ID::SPRITE;
+
+	switch (type) {
+		case CONSUMABLE::REDPOT:
+			rr.used_texture = TEXTURE_ASSET_ID::POTION_RED;
+			break;
+		case CONSUMABLE::BLUPOT:
+			rr.used_texture = TEXTURE_ASSET_ID::POTION_BLUE;
+			break;
+		case CONSUMABLE::YELPOT:
+			rr.used_texture = TEXTURE_ASSET_ID::POTION_YELLOW;
+			break;
+		case CONSUMABLE::INSTANT:
+			rr.used_texture = TEXTURE_ASSET_ID::POTION_RED;
+			break;
+		default:
+			rr.used_texture = TEXTURE_ASSET_ID::POTION_RED;
+			break;
+	}
+
+	auto& interactable = registry.interactables.emplace(entity);
+	interactable.type = INTERACT_TYPE::PICKUP;
+	registry.hidables.emplace(entity);
 
 	return entity;
 }

@@ -61,8 +61,32 @@ public:
 
 	void start_player_turn();
 
+	// create fog of war
+	void create_fog_of_war();
+
+	// remove all fog entities
+	void remove_fog_of_war();
+
 	// Game state
 	Entity player_main;
+
+	// Tutorial flags
+	bool tutorial = true;
+	bool firstSign = false;
+	bool movementSelected = false;
+	bool epDepleted = false;
+	bool secondSign = false;
+	bool slimeDefeated = false;
+	bool interactedCampfire = false;
+	bool thirdSign = false;
+
+	Entity tutorial_sign_1;
+	Entity tutorial_sign_2;
+	Entity tutorial_sign_3;
+	Entity tutorial_slime;
+	Entity tutorial_campfire;
+	Entity tutorial_door;
+	Entity tutorial_floor_text;
 
 	// music references
 	Mix_Music* background_music;
@@ -78,6 +102,10 @@ public:
 	Mix_Chunk* sword_parry;
 	Mix_Chunk* sword_pierce;
 	Mix_Chunk* sword_slash;
+	Mix_Chunk* slime_move;
+	Mix_Chunk* slime_death;
+	Mix_Chunk* caveling_death;
+	Mix_Chunk* caveling_move;
 
 	Mix_Music* menu_music;
 	Mix_Music* cutscene_music;
@@ -119,17 +147,14 @@ private:
 	// restart level
 	void restart_game();
 
+	// spawn entities (tutorial)
+	void spawn_tutorial_entities();
+
 	// spawn entities
 	void spawn_game_entities();
 
 	// create ep range
 	void create_ep_range(float remaining_ep, float speed, vec2 pos);
-
-	// create fog of war
-	void create_fog_of_war();
-
-	// remove all fog entities
-	void remove_fog_of_war();
 
 	// spawn player in random location
 	void spawn_player_random_location(std::vector<vec2>& playerSpawns);
@@ -200,8 +225,14 @@ private:
 	// load a door
 	void loadDoor(Entity e);
 
+	// load a consumable
+	void loadConsumable(Entity e, json consumableData);
+
 	// load a switch
 	void loadSwitch(Entity e, json switchData);
+
+	// load a campfire
+	void loadCampfire(Entity e);
   
 	// do turn order logic
 	void doTurnOrderLogic();
@@ -237,6 +268,15 @@ private:
 
 	// use attack
 	void use_attack(vec2 target_pos);
+
+	// play enemy death sounds
+	void playEnemyDeathSound(ENEMY_TYPE enemy_type);
+
+	// play enemy move sounds
+	void playEnemyMoveSound(ENEMY_TYPE enemy_type);
+
+	// update tutorial flags
+	void WorldSystem::updateTutorial();
 
 	// OpenGL window handle
 	GLFWwindow* window;

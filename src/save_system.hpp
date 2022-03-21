@@ -37,5 +37,7 @@ private:
 	json jsonifyChest(Entity e);
 	json jsonifySpritesheet(Spritesheet ss);
 	json jsonifyArtifact(Artifact a);
+	json jsonifyConsumable(Consumable c);
+	json jsonifyAnimationData(AnimationData& a);
 	//json jsonify
 };

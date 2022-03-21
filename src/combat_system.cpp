@@ -88,6 +88,16 @@ void take_damage(Entity& entity, float damage)
 	}
 }
 
+void heal(Entity& entity, float amount) {
+	Stats& stats = registry.stats.get(entity);
+
+	stats.hp = min(stats.maxhp, stats.hp + amount);
+
+	Motion motion = registry.motions.get(entity);
+	int rounded_heal = round(amount);
+	createDamageText(world.renderer, motion.position + vec2(0, -32), std::to_string(rounded_heal), true);
+}
+
 void take_damage_mp(Entity& entity, float damage)
 {
 	Stats& stats = registry.stats.get(entity);
@@ -295,7 +305,6 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 					}
 					else {
 						take_damage(entity, status.value);
-						printf("took DoT of %f\n", status.value);
 					}
 					break;
 				case (StatusType::ATK_BUFF):
@@ -358,11 +367,33 @@ void reset_stats(Entity& entity) {
 void calc_stats(Entity& entity) {
 	Stats& stats = registry.stats.get(entity);
 	Stats basestats = registry.basestats.get(entity);
-	Inventory inv = registry.inventories.get(entity);
-
-	// Artifact Effects
+	Inventory& inv = registry.inventories.get(entity);
 
 	handle_status_ticks(entity, true, true);
+
+	// Artifact Effects
+	// Arcane Spectcles
+	if (inv.artifact[(int)ARTIFACT::ARCANE_SPECS] > 0) {
+		stats.range += 50.f * inv.artifact[(int)ARTIFACT::ARCANE_SPECS];
+	}
+
+	// Scouting Striders
+	if (inv.artifact[(int)ARTIFACT::SCOUT_STRIDE] > 0) {
+		int stack = inv.artifact[(int)ARTIFACT::SCOUT_STRIDE];
+		while (stack > 0) {
+			stats.epratemove *= 0.88f;
+			stack--;
+		}
+	}
+
+	// The Art of Conservation
+	if (inv.artifact[(int)ARTIFACT::ART_CONSERVE] > 0) {
+		int stack = inv.artifact[(int)ARTIFACT::ART_CONSERVE];
+		while (stack > 0) {
+			stats.eprateatk *= 0.93f;
+			stack--;
+		}
+	}
 }
 
 // Equip an item (returns unequipped item)

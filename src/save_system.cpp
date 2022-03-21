@@ -1,5 +1,5 @@
 #include "save_system.hpp"
-
+#include "world_system.hpp"
 
 void saveToFile(json j) {
 	std::ofstream o(SAVE_DATA_PATH);
@@ -23,6 +23,7 @@ void SaveSystem::saveGameState(std::queue<Entity> entities) {
 	json saveState;
 	std::queue<Entity> resultList;
 	resultList = getSolidTileInteract(entities);
+	saveState["tutorial"] = world.tutorial;
 	saveState["entities"] = jsonifyEntities(entities);
 	//saveState["entities"] = jsonifyEntities(resultList);
 	saveState["map"]["collidables"] = jsonifyCollidables();
@@ -268,6 +269,7 @@ json SaveSystem::jsonifyInteractables() {
 		json interactableJson;
 		Interactable interactable = registry.interactables.get(entity);
 		interactableJson["type"] = interactable.type;
+		interactableJson["interacted"] = interactable.interacted;
 		Motion m = registry.motions.get(entity);
 		interactableJson["motion"] = jsonifyMotion(m);
 		if (interactable.type == INTERACT_TYPE::SIGN) {
@@ -289,6 +291,10 @@ json SaveSystem::jsonifyInteractables() {
 			else if (registry.artifacts.has(entity)) {
 				Artifact a = registry.artifacts.get(entity);
 				interactableJson["artifact"] = jsonifyArtifact(a);
+			}
+			else if (registry.consumables.has(entity)) {
+				Consumable c = registry.consumables.get(entity);
+				interactableJson["consumable"] = jsonifyConsumable(c);
 			}
 		}
 		interactablesList.push_back(interactableJson);
@@ -368,4 +374,35 @@ json SaveSystem::jsonifyArtifact(Artifact a) {
 	json artifactJson;
 	artifactJson["type"] = a.type;
 	return artifactJson;
+}
+
+json SaveSystem::jsonifyConsumable(Consumable c) {
+	json consumableJson;
+	consumableJson["type"] = c.type;
+	return consumableJson;
+}
+
+json SaveSystem::jsonifyAnimationData(AnimationData& a) {
+	json animationJson;
+	animationJson["spritesheet_texture"] = a.spritesheet_texture;
+	animationJson["spritesheet_width"] = a.spritesheet_width;
+	animationJson["spritesheet_height"] = a.spritesheet_height;
+	animationJson["spritesheet_columns"] = a.spritesheet_columns;
+	animationJson["spritesheet_rows"] = a.spritesheet_rows;
+	animationJson["frame_size"]["x"] = a.frame_size.x;
+	animationJson["frame_size"]["y"] = a.frame_size.y;
+
+	animationJson["current_frame"] = a.current_frame;
+	animationJson["animation_time_ms"] = a.animation_time_ms;
+	animationJson["frametime_ms"] = a.frametime_ms;
+
+	auto frame_indices = json::array();
+	for (int idx : a.frame_indices) {
+		frame_indices.push_back(idx);
+	}
+	animationJson["frame_indices"] = frame_indices;
+	
+	animationJson["loop"] = a.loop;
+	animationJson["delete_on_finish"] = a.delete_on_finish;
+	return animationJson;
 }

@@ -46,8 +46,8 @@ const float COLLECTION_MENU_BB_WIDTH = 800.f;
 const float COLLECTION_MENU_BB_HEIGHT = 700.f;
 const float ARTIFACT_CARD_BB_WIDTH = 600.f;
 const float ARTIFACT_CARD_BB_HEIGHT = 150.f;
-const float ARTIFACT_IMAGE_BB_WIDTH = 80.f;
-const float ARTIFACT_IMAGE_BB_HEIGHT = 80.f;
+const float ARTIFACT_IMAGE_BB_WIDTH = 64.f;
+const float ARTIFACT_IMAGE_BB_HEIGHT = 64.f;
 const float DESCRIPTION_DIALOG_BB_WIDTH = 400.f;
 const float DESCRIPTION_DIALOG_BB_HEIGHT = 400.f;
 const float KEY_ICON_BB_WIDTH = 50.f;
@@ -153,6 +153,8 @@ SpawnData createTiles(RenderSystem* renderer, const std::string& filepath);
 Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);
 // Damage text
 Entity createDamageText(RenderSystem* renderer, vec2 pos, std::string text_input , bool is_heal);
+// Text (w/ motion)
+Entity createMotionText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);
 // Dialog text
 Entity createDialogText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);
 // Animated campfire
@@ -179,3 +181,7 @@ Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id)
 Entity createSwitch(RenderSystem* renderer, vec2 pos);
 // generic button
 Entity createAttackDialogButton(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID button_texture, BUTTON_ACTION_ID button_action);
+// potion
+Entity createConsumable(RenderSystem* renderer, vec2 pos, CONSUMABLE type);
+// left mouse click animation
+Entity createMouseAnimation(RenderSystem* renderer, vec2 pos);

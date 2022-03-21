@@ -61,6 +61,12 @@ public:
 
 	void start_player_turn();
 
+	// create fog of war
+	void create_fog_of_war();
+
+	// remove all fog entities
+	void remove_fog_of_war();
+
 	// Game state
 	Entity player_main;
 
@@ -146,12 +152,6 @@ private:
 
 	// create ep range
 	void create_ep_range(float remaining_ep, float speed, vec2 pos);
-
-	// create fog of war
-	void create_fog_of_war();
-
-	// remove all fog entities
-	void remove_fog_of_war();
 
 	// spawn player in random location
 	void spawn_player_random_location(std::vector<vec2>& playerSpawns);

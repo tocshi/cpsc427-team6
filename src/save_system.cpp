@@ -1,5 +1,5 @@
 #include "save_system.hpp"
-
+#include "world_system.hpp"
 
 void saveToFile(json j) {
 	std::ofstream o(SAVE_DATA_PATH);
@@ -23,6 +23,7 @@ void SaveSystem::saveGameState(std::queue<Entity> entities) {
 	json saveState;
 	std::queue<Entity> resultList;
 	resultList = getSolidTileInteract(entities);
+	saveState["tutorial"] = world.tutorial;
 	saveState["entities"] = jsonifyEntities(entities);
 	//saveState["entities"] = jsonifyEntities(resultList);
 	saveState["map"]["collidables"] = jsonifyCollidables();

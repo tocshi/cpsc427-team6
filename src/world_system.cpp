@@ -1128,8 +1128,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// SAVING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
-		saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
-		logText("Game state saved!");
+		if (roomSystem.current_floor != Floors::TUTORIAL) {
+			saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+			logText("Game state saved!");
+		}
 	}
 
 	///////////////////////////
@@ -1854,6 +1856,8 @@ void WorldSystem::removeForNewRoom() {
 }
 
 void WorldSystem::loadFromData(json data) {
+	tutorial = data["tutorial"] == nullptr ? false : data["tutorial"];
+
 	// load player
 	json entityList = data["entities"];
 	json collidablesList = data["map"]["collidables"];

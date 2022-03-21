@@ -165,6 +165,18 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(door_sound, 32);
 	switch_sound = Mix_LoadWAV(audio_path("feedback/switch_click.wav").c_str());
 	Mix_VolumeChunk(switch_sound, 32);
+	special_sound = Mix_LoadWAV(audio_path("sfx/special.wav").c_str());
+	Mix_VolumeChunk(special_sound, 24);
+	whoosh = Mix_LoadWAV(audio_path("sfx/whoosh.wav").c_str());
+	Mix_VolumeChunk(whoosh, 24);
+	sword_end = Mix_LoadWAV(audio_path("sfx/sword_end.wav").c_str());
+	Mix_VolumeChunk(sword_end, 24);
+	sword_parry = Mix_LoadWAV(audio_path("sfx/sword_parry.wav").c_str());
+	Mix_VolumeChunk(sword_parry, 24);
+	sword_pierce = Mix_LoadWAV(audio_path("sfx/sword_pierce.wav").c_str());
+	Mix_VolumeChunk(sword_pierce, 24);
+	sword_slash = Mix_LoadWAV(audio_path("sfx/sword_slash.wav").c_str());
+	Mix_VolumeChunk(sword_slash, 24);
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr 
 		|| error_sound == nullptr || footstep_sound == nullptr
@@ -259,43 +271,50 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::NORMAL_POINTER);
 	}
 
-	// perform in-motion behaviour
-	if (get_is_player_turn() && player_move_click) {
+	for (Entity p : registry.players.entities) {
 		Motion player_motion = registry.motions.get(player_main);
 		Stats stats = registry.stats.get(player_main);
-		if (player_motion.in_motion) {
-			// handle footstep sound
-			if (move_audio_timer_ms <= 0) {
-				// play the footstep sound
-				Mix_PlayChannel(-1, footstep_sound, 0);
-				move_audio_timer_ms = 200.f;
-			}
-			else {
-				move_audio_timer_ms -= 20.f;
-			}
+
+		// update FoW if moving
+		if (player_motion.velocity != vec2(0.f, 0.f)) {
 			// update the fog of war if the player is moving
 			remove_fog_of_war();
 			create_fog_of_war();
-
-			// remove old ep range
-			for (Entity epr : registry.epRange.entities) {
-				registry.remove_all_components_of(epr);
-			}
-			// update ep range
-			if (current_game_state == GameStates::MOVEMENT_MENU) {
-				create_ep_range(stats.ep, player_motion.movement_speed, player_motion.position);
-			}
 		}
-		else {
-			// if in movement mode, show the new ep range
-			if (current_game_state == GameStates::MOVEMENT_MENU) {
+
+		// perform in-motion behaviour
+		if (get_is_player_turn() && player_move_click) {
+			if (player_motion.in_motion) {
+				// handle footstep sound
+				if (move_audio_timer_ms <= 0) {
+					// play the footstep sound
+					Mix_PlayChannel(-1, footstep_sound, 0);
+					move_audio_timer_ms = 200.f;
+				}
+				else {
+					move_audio_timer_ms -= 20.f;
+				}
+
 				// remove old ep range
 				for (Entity epr : registry.epRange.entities) {
 					registry.remove_all_components_of(epr);
 				}
-				create_ep_range(stats.ep, player_motion.movement_speed, player_motion.position);
+				// update ep range
+				if (current_game_state == GameStates::MOVEMENT_MENU) {
+					create_ep_range(stats.ep, player_motion.movement_speed, player_motion.position);
+				}
 			}
-			player_move_click = false;
+			else {
+				// if in movement mode, show the new ep range
+				if (current_game_state == GameStates::MOVEMENT_MENU) {
+					// remove old ep range
+					for (Entity epr : registry.epRange.entities) {
+						registry.remove_all_components_of(epr);
+					}
+					create_ep_range(stats.ep, player_motion.movement_speed, player_motion.position);
+				}
+				player_move_click = false;
+			}
 		}
 	}
 
@@ -742,6 +761,12 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 	Player& p = registry.players.get(player);
 	player_motion.velocity = { 0.f, 0.f };
 	player_motion.in_motion = false;
+
+	// Need to have this outside of handle_status_ticks or else it'll erase the wrong status
+	if (has_status(player_main, StatusType::DISENGAGE_TRIGGER) && !p.attacked) {
+		StatusEffect regen = StatusEffect(30, 1, StatusType::EP_REGEN, false, true);
+		apply_status(player_main, regen);
+	}
 
 	set_is_player_turn(false);
 	player_move_click = false;
@@ -2003,6 +2028,9 @@ void WorldSystem::doTurnOrderLogic() {
 			aiSystem.step(currentTurnEntity);
 		}
 
+		// handle end-of-turn behaviour
+		handle_status_ticks(currentTurnEntity, false, false);
+
 		// get next turn
 		currentTurnEntity = turnOrderSystem.getNextTurn();
 
@@ -2013,6 +2041,10 @@ void WorldSystem::doTurnOrderLogic() {
 			logText("It is now your turn!");
 			set_gamestate(GameStates::BATTLE_MENU);
 		}
+
+		// handle start-of-turn behaviour
+		reset_stats(currentTurnEntity);
+		handle_status_ticks(currentTurnEntity, true, false);
 	}
 
 	// if current turn entity is enemy and is still doing_turn call ai.step();
@@ -2233,13 +2265,14 @@ void WorldSystem::use_attack(vec2 target_pos) {
 	Player& player = registry.players.get(player_main);
 	Motion& player_motion = registry.motions.get(player_main);
 	Stats& player_stats = registry.stats.get(player_main);
+	float mp_cost = attack_mpcosts.at(player.using_attack);
+	float ep_cost = attack_epcosts.at(player.using_attack) * player_stats.eprateatk;
 
 	// I hate my own implementation of this, and I want to change it as soon as Milestone 3 is over
 	switch (player.using_attack) {
 	case ATTACK::NONE:
 		try {
 			Entity& target = get_targeted_enemy(target_pos);
-			float ep_cost = 50 * player_stats.eprateatk;
 
 			// only attack if the player hasn't attacked that turn
 			if (!player.attacked) {
@@ -2289,16 +2322,67 @@ void WorldSystem::use_attack(vec2 target_pos) {
 		}
 		break;
 
+	case ATTACK::SAPPING_STRIKE:
+		try {
+			Entity& target = get_targeted_enemy(target_pos);
+
+			// only attack if the player hasn't attacked that turn
+			if (!player.attacked) {
+				Motion m = registry.motions.get(target);
+
+				// only attack if have enough ep and is close enough
+				if (player_stats.ep >= ep_cost && player_stats.mp >= mp_cost && dist_to(player_motion.position, m.position) <= 100.f) {
+
+					// show explosion animation
+					Entity explosion = createExplosion(renderer, { m.position.x, m.position.y });
+					registry.colors.insert(explosion, {0.f, 0.f, 1.f});
+
+					// play attack sound
+					Mix_PlayChannel(-1, fire_explosion_sound, 0);
+
+					logText(deal_damage(player_main, target, 80.f));
+
+					// wobble the enemy lol
+					if (!registry.wobbleTimers.has(target)) {
+						WobbleTimer& wobble = registry.wobbleTimers.emplace(target);
+						wobble.orig_scale = m.scale;
+					}
+
+					// lower ep and restore mp
+					player_stats.ep -= ep_cost;
+					player_stats.mp = min(player_stats.maxmp, player_stats.mp + 30.f);
+					player.attacked = true;
+				}
+				else if (player_stats.ep < ep_cost || player_stats.mp < mp_cost) {
+					logText("Not enough MP or EP to attack!");
+					// play error sound
+					Mix_PlayChannel(-1, error_sound, 0);
+				}
+				else {
+					logText("Target too far away!");
+					// play error sound
+					Mix_PlayChannel(-1, error_sound, 0);
+				}
+			}
+			else {
+				logText("You already attacked this turn!");
+				// play error sound
+				Mix_PlayChannel(-1, error_sound, 0);
+			}
+		}
+		catch (int e) {
+			break;
+		}
+		break;
+
 	case ATTACK::PARRYING_STANCE:
 		// only attack if the player hasn't attacked that turn
 		if (!player.attacked) {
 
-			float ep_cost = 100 * player_stats.eprateatk;
-			float mp_cost = 50;
-
 			// only attack if have enough ep and mp
 			if (player_stats.ep >= ep_cost && player_stats.mp >= mp_cost) {
 				logText("DEBUG: Parrying Stance Activated!");
+				Mix_PlayChannel(-1, special_sound, 0);
 
 				StatusEffect stance = StatusEffect(0, 1, StatusType::PARRYING_STANCE, false, true);
 				apply_status(player_main, stance);
@@ -2309,13 +2393,39 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				player.attacked = true;
 			}
 			else {
-				logText("Not enough EP or MP to attack!");
+				logText("Not enough MP or EP to attack!");
 				// play error sound
 				Mix_PlayChannel(-1, error_sound, 0);
 			}
 		}
 		else {
 			logText("You already attacked this turn!");
+			// play error sound
+			Mix_PlayChannel(-1, error_sound, 0);
+		}
+		break;
+
+	case ATTACK::DISENGAGE:
+
+		// only attack if have enough ep and mp
+		if (player_stats.ep >= ep_cost && player_stats.mp >= mp_cost) {
+
+			if (!registry.knockbacks.has(player_main)) {
+				KnockBack& knockback = registry.knockbacks.emplace(player_main);
+				knockback.remaining_distance = 300.f;
+				knockback.angle = atan2(target_pos.y - player_motion.position.y, target_pos.x - player_motion.position.x);
+			}
+
+			StatusEffect trigger = StatusEffect(0, 1, StatusType::DISENGAGE_TRIGGER, false, false);
+			apply_status(player_main, trigger);
+			Mix_PlayChannel(-1, whoosh, 0);
+
+			// lower ep and mp
+			player_stats.ep -= ep_cost;
+			player_stats.mp -= mp_cost;
+		}
+		else {
+			logText("Not enough MP or EP to attack!");
 			// play error sound
 			Mix_PlayChannel(-1, error_sound, 0);
 		}

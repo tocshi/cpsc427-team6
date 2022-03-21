@@ -907,7 +907,7 @@ const std::map <ATTACK, std::string>attack_descriptions = {
 	{ATTACK::TERMINUS_VERITAS, "Consumes all MP, dealing 5% ATK damage per MP consumed in a semicircle AoE within sight range. When consuming 90 or more MP, deal 6% ATK damage per MP instead."},
 };
 
-// TODO: make this not hard coded
+// TODO: deprecate this
 const std::map <ATTACK, std::string>attack_costs_string = {
 	{ATTACK::NONE, "0 MP, 50 EP"},
 	{ATTACK::ROUNDSLASH, "30 MP, 50 EP"},
@@ -916,4 +916,24 @@ const std::map <ATTACK, std::string>attack_costs_string = {
 	{ATTACK::PARRYING_STANCE, "50 MP, 100 EP"},
 	{ATTACK::DISENGAGE, "30 MP, 0 EP"},
 	{ATTACK::TERMINUS_VERITAS, "60+ MP, 100 EP"},
+};
+
+const std::map <ATTACK, float>attack_mpcosts = {
+	{ATTACK::NONE, 0},
+	{ATTACK::ROUNDSLASH, 30},
+	{ATTACK::SAPPING_STRIKE, 0},
+	{ATTACK::PIERCING_THRUST, 40},
+	{ATTACK::PARRYING_STANCE, 50},
+	{ATTACK::DISENGAGE, 30},
+	{ATTACK::TERMINUS_VERITAS, 60},
+};
+
+const std::map <ATTACK, float>attack_epcosts = {
+	{ATTACK::NONE, 50},
+	{ATTACK::ROUNDSLASH, 50},
+	{ATTACK::SAPPING_STRIKE, 90},
+	{ATTACK::PIERCING_THRUST, 40},
+	{ATTACK::PARRYING_STANCE, 100},
+	{ATTACK::DISENGAGE, 0},
+	{ATTACK::TERMINUS_VERITAS, 100},
 };

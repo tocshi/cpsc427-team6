@@ -33,6 +33,7 @@ std::string deal_damage(Entity& attacker, Entity& defender, float multiplier)
 	// Defender take damage, unless parried
 	if (has_status(defender, StatusType::PARRYING_STANCE) && !has_status(attacker, StatusType::PARRYING_STANCE) && final_damage < defender_stats.maxhp * 0.3) {
 		deal_damage(defender, attacker, multiplier);
+		Mix_PlayChannel(-1, world.sword_parry, 0);
 		return attacker_name.append("'s attack was parried!");
 	}
 	else {
@@ -314,23 +315,20 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 						}
 					}
 					break;
-				case (StatusType::DISENGAGE_TRIGGER):
-					if (registry.players.has(entity)) {
-						if (!registry.players.get(entity).attacked) {
-							StatusEffect regen = StatusEffect(30, 1, StatusType::EP_REGEN, false, true);
-							apply_status(entity, regen);
-						}
-					}
+				default:
 					break;
 			}
+
 			// properly remove statuses that have expired, except for things with >=999 turns (we treat those as infinite)
-			if (status.turns_remaining <= 999 && !stats_only) {
-				status.turns_remaining--;
-			}
-			if (status.turns_remaining <= 0 && !stats_only) {
-				statusContainer.statuses.erase(statusContainer.statuses.begin() + i);
-				reset_stats(entity);
-				calc_stats(entity);
+			if (!stats_only) {
+				if (status.turns_remaining <= 999) {
+					status.turns_remaining--;
+				}
+				if (status.turns_remaining <= 0) {
+					statusContainer.statuses.erase(statusContainer.statuses.begin() + i);
+					reset_stats(entity);
+					calc_stats(entity);
+				}
 			}
 		}
 	}
@@ -358,8 +356,9 @@ void calc_stats(Entity& entity) {
 	Stats basestats = registry.basestats.get(entity);
 	Inventory inv = registry.inventories.get(entity);
 
-	handle_status_ticks(entity, true, true);
 	// Artifact Effects
+
+	handle_status_ticks(entity, true, true);
 }
 
 // Equip an item (returns unequipped item)

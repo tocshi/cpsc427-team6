@@ -71,6 +71,12 @@ public:
 	Mix_Chunk* footstep_sound;
 	Mix_Chunk* door_sound;
 	Mix_Chunk* switch_sound;
+	Mix_Chunk* special_sound;
+	Mix_Chunk* whoosh;
+	Mix_Chunk* sword_end;
+	Mix_Chunk* sword_parry;
+	Mix_Chunk* sword_pierce;
+	Mix_Chunk* sword_slash;
 
 	Mix_Music* menu_music;
 	Mix_Music* cutscene_music;

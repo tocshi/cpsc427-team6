@@ -91,7 +91,9 @@ enum class TEXTURE_ASSET_ID {
 	CAVE_MID = CAVE_FRONT + 1,
 	CAVE_BACK = CAVE_MID + 1,
 	CAVE_COLOR = CAVE_BACK + 1,
-	KEY_ICON_1 = CAVE_COLOR + 1,
+	ITEM_WEAPON_CARD = CAVE_COLOR + 1,
+	ITEM_ARMOUR_CARD = ITEM_WEAPON_CARD + 1,
+	KEY_ICON_1 = ITEM_ARMOUR_CARD + 1,
 	KEY_ICON_2 = KEY_ICON_1 + 1,
 	KEY_ICON_3 = KEY_ICON_2 + 1,
 	KEY_ICON_4 = KEY_ICON_3 + 1,
@@ -678,6 +680,10 @@ struct Icon {
 
 };
 
+struct StatsText {
+	float counter_ms = 10.f;
+};
+
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
 	LINE = COLOURED + 1,
@@ -779,6 +785,11 @@ struct Pointer {
 // attack card
 struct AttackCard {
 	ATTACK attack;
+};
+
+// item card
+struct ItemCard {
+	Equipment item;
 };
 
 // Artifact name map

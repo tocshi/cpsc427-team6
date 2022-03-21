@@ -182,3 +182,9 @@ Entity createSwitch(RenderSystem* renderer, vec2 pos);
 Entity createConsumable(RenderSystem* renderer, vec2 pos, CONSUMABLE type);
 // left mouse click animation
 Entity createMouseAnimation(RenderSystem* renderer, vec2 pos);
+// item card
+Entity createItemCard(RenderSystem* renderer, vec2 pos, EQUIPMENT type, Equipment item);
+// item menu
+Entity createItemMenu(RenderSystem* renderer, vec2 top_card_pos, Inventory inv);
+// stats text
+Entity createStatsText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);

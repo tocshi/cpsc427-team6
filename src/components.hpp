@@ -392,6 +392,7 @@ enum class INTERACT_TYPE {
 
 struct Interactable {
 	INTERACT_TYPE type;
+	bool interacted = false;
 };
 
 struct Chest {

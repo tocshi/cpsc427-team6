@@ -1559,6 +1559,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							world_pos.y <= motion.position.y + abs(motion.scale.y / 2) &&
 							world_pos.y >= motion.position.y - abs(motion.scale.y / 2)) {
 
+							interactable.interacted = true;
+
 							// Sign behaviour
 							if (registry.signs.has(entity)) {
 								Sign& sign = registry.signs.get(entity);

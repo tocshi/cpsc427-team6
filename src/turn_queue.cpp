@@ -44,6 +44,7 @@ void TurnQueue::addNewEntity(Entity entity) {
 	// if entity is slower than player, just place it in the back
 	if (playerSpeed > s.speed) {
 		push(entity);
+		return;
 	}
 	// else we need to iterate from the front and add the enemy where appropriate
 	// increment size because we are not calling push
@@ -51,6 +52,13 @@ void TurnQueue::addNewEntity(Entity entity) {
 	n->e = entity;
 	length++;
 	// first check head
+
+	if (!head) {
+		head = n;
+		tail = n;
+		return;
+	}
+
 	int headSpeed = registry.stats.get(head->e).speed;
 	if (s.speed > headSpeed) {
 		head->prev = n;

@@ -1294,13 +1294,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (saveSystem.saveDataExists()) {
 			// remove entities to load in entities
 			removeForLoad();
-			printf("Removed for load\n");
+			//printf("Removed for load\n");
 			// get saved game data
 			json gameData = saveSystem.getSaveData();
-			printf("getting gameData\n");
+			//printf("getting gameData\n");
 			// load the entities in
 			loadFromData(gameData);
-			printf("load game data?\n");
+			//printf("load game data?\n");
 		}
 
 		logText("Game state loaded!");

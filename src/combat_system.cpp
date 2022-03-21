@@ -297,7 +297,6 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 					}
 					else {
 						take_damage(entity, status.value);
-						printf("took DoT of %f\n", status.value);
 					}
 					break;
 				case (StatusType::ATK_BUFF):
@@ -372,7 +371,6 @@ void calc_stats(Entity& entity) {
 			stack--;
 		}
 	}
-	printf("range: %f\nmove: %f\natk: %f\n", stats.range, stats.epratemove, stats.eprateatk);
 }
 
 // Equip an item (returns unequipped item)

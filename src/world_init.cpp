@@ -1172,8 +1172,44 @@ Entity createItemCard(RenderSystem* renderer, vec2 pos, EQUIPMENT type, Equipmen
 			break;
 	}
 	
-	Entity equip = createEquipmentEntity(renderer, pos, item);
+	Entity equip = createItemEquipmentTexture(renderer, pos, item);
 	registry.itemCards.emplace(equip);
+
+	return entity;
+}
+
+// Generate equipment texture for item menu
+Entity createItemEquipmentTexture(RenderSystem* renderer, vec2 pos, Equipment equipment)
+{
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 0;
+
+	motion.scale = vec2({ PICKUP_BB_WIDTH, PICKUP_BB_HEIGHT });
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::EQUIPMENT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITESHEET,
+		 RENDER_LAYER_ID::UI_TOP
+		});
+
+	Spritesheet& spritesheet = registry.spritesheets.emplace(entity);
+	spritesheet.texture = TEXTURE_ASSET_ID::EQUIPMENT;
+	spritesheet.width = 96;
+	spritesheet.height = 144;
+	spritesheet.columns = 6;
+	spritesheet.rows = 9;
+	spritesheet.frame_size = { 16, 16 };
+	spritesheet.index = equipment.sprite;
 
 	return entity;
 }

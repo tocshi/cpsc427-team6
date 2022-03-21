@@ -2670,8 +2670,8 @@ void WorldSystem::backAction() {
 
 void WorldSystem::itemAction() {
 	for (Entity e : registry.players.entities) {
-		Player p = registry.players.get(e);
-		printf("sprite: %d", p.inv.equipped[0]);
+		Player& p = registry.players.get(e);
+		printf("sprite: %d", p.inv.equipped[0].sprite);
 		createItemMenu(renderer, { window_width_px - 125.f, 200.f }, p.inv);
 	}
 	

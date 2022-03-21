@@ -220,6 +220,9 @@ private:
 
 	// load a switch
 	void loadSwitch(Entity e, json switchData);
+
+	// load a campfire
+	void loadCampfire(Entity e);
   
 	// do turn order logic
 	void doTurnOrderLogic();

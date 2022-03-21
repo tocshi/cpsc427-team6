@@ -2144,6 +2144,9 @@ void WorldSystem::loadInteractables(json interactablesList) {
 				loadConsumable(e, interactable["consumable"]);
 			}
 			break;
+		case INTERACT_TYPE::CAMPFIRE:
+			loadCampfire(e);
+			break;
 		default:
 			break;
 		}
@@ -2311,6 +2314,26 @@ void WorldSystem::loadConsumable(Entity e, json consumableData) {
 		rr.used_texture = TEXTURE_ASSET_ID::POTION_RED;
 		break;
 	}
+	registry.hidables.emplace(e);
+}
+
+void WorldSystem::loadCampfire(Entity e) {
+	AnimationData& anim = registry.animations.emplace(e);
+	anim.spritesheet_texture = TEXTURE_ASSET_ID::CAMPFIRE_SPRITESHEET;
+	anim.frametime_ms = 150;
+	anim.frame_indices = { 0, 1, 2, 3, 4 };
+	anim.spritesheet_columns = 5;
+	anim.spritesheet_rows = 1;
+	anim.spritesheet_width = 320;
+	anim.spritesheet_height = 64;
+	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
+
+	registry.renderRequests.insert(
+		e,
+		{ TEXTURE_ASSET_ID::CAMPFIRE_SPRITESHEET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::ANIMATION,
+			RENDER_LAYER_ID::FLOOR_DECO });
 	registry.hidables.emplace(e);
 }
 

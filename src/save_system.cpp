@@ -380,3 +380,28 @@ json SaveSystem::jsonifyConsumable(Consumable c) {
 	consumableJson["type"] = c.type;
 	return consumableJson;
 }
+
+json SaveSystem::jsonifyAnimationData(AnimationData& a) {
+	json animationJson;
+	animationJson["spritesheet_texture"] = a.spritesheet_texture;
+	animationJson["spritesheet_width"] = a.spritesheet_width;
+	animationJson["spritesheet_height"] = a.spritesheet_height;
+	animationJson["spritesheet_columns"] = a.spritesheet_columns;
+	animationJson["spritesheet_rows"] = a.spritesheet_rows;
+	animationJson["frame_size"]["x"] = a.frame_size.x;
+	animationJson["frame_size"]["y"] = a.frame_size.y;
+
+	animationJson["current_frame"] = a.current_frame;
+	animationJson["animation_time_ms"] = a.animation_time_ms;
+	animationJson["frametime_ms"] = a.frametime_ms;
+
+	auto frame_indices = json::array();
+	for (int idx : a.frame_indices) {
+		frame_indices.push_back(idx);
+	}
+	animationJson["frame_indices"] = frame_indices;
+	
+	animationJson["loop"] = a.loop;
+	animationJson["delete_on_finish"] = a.delete_on_finish;
+	return animationJson;
+}

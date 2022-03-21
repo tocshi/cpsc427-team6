@@ -64,6 +64,24 @@ public:
 	// Game state
 	Entity player_main;
 
+	// Tutorial flags
+	bool tutorial = true;
+	bool firstSign = false;
+	bool movementSelected = false;
+	bool epDepleted = false;
+	bool secondSign = false;
+	bool slimeDefeated = false;
+	bool interactedCampfire = false;
+	bool thirdSign = false;
+
+	Entity tutorial_sign_1;
+	Entity tutorial_sign_2;
+	Entity tutorial_sign_3;
+	Entity tutorial_slime;
+	Entity tutorial_campfire;
+	Entity tutorial_door;
+	Entity tutorial_floor_text;
+
 	// music references
 	Mix_Music* background_music;
 	Mix_Chunk* fire_explosion_sound;
@@ -116,6 +134,9 @@ private:
 	
 	// restart level
 	void restart_game();
+
+	// spawn entities (tutorial)
+	void spawn_tutorial_entities();
 
 	// spawn entities
 	void spawn_game_entities();
@@ -203,6 +224,9 @@ private:
 
 	// load a switch
 	void loadSwitch(Entity e, json switchData);
+
+	// load a campfire
+	void loadCampfire(Entity e);
   
 	// do turn order logic
 	void doTurnOrderLogic();
@@ -241,6 +265,9 @@ private:
 
 	// play enemy move sounds
 	void playEnemyMoveSound(ENEMY_TYPE enemy_type);
+
+	// update tutorial flags
+	void WorldSystem::updateTutorial();
 
 	// OpenGL window handle
 	GLFWwindow* window;

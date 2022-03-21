@@ -151,6 +151,8 @@ SpawnData createTiles(RenderSystem* renderer, const std::string& filepath);
 Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);
 // Damage text
 Entity createDamageText(RenderSystem* renderer, vec2 pos, std::string text_input , bool is_heal);
+// Text (w/ motion)
+Entity createMotionText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);
 // Dialog text
 Entity createDialogText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);
 // Animated campfire
@@ -178,3 +180,5 @@ Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id)
 Entity createSwitch(RenderSystem* renderer, vec2 pos);
 // potion
 Entity createConsumable(RenderSystem* renderer, vec2 pos, CONSUMABLE type);
+// left mouse click animation
+Entity createMouseAnimation(RenderSystem* renderer, vec2 pos);

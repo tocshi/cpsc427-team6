@@ -534,18 +534,21 @@ Entity createChest(RenderSystem* renderer, vec2 pos, bool isArtifact)
 
 	// Set interaction type
 	auto& interactable = registry.interactables.emplace(entity);
+	RenderRequest& rr = registry.renderRequests.emplace(entity);
+	rr.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	rr.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	rr.used_layer = RENDER_LAYER_ID::FLOOR_DECO;
+
 	if (isArtifact) {
 		interactable.type = INTERACT_TYPE::ARTIFACT_CHEST;
+		rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_CLOSED;
 	}
 	else{
 		interactable.type = INTERACT_TYPE::ITEM_CHEST;
+		rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_CLOSED;
 	}
+	registry.chests.insert(entity, { isArtifact });
 
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::CHEST,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
 
 	return entity;
@@ -698,6 +701,34 @@ Entity createBackground(RenderSystem* renderer, vec2 position)
 		});
 
 	return entity;   
+}
+
+Entity createGameBackground(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture_id, RENDER_LAYER_ID render_id)
+{
+	auto entity = Entity();
+
+	// Store a reference to the potentially re-used mesh object (the value is stored in the resource cache)
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(entity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = position;
+
+	// Setting initial values
+	motion.scale = vec2({ window_width_px * 2, window_height_px });
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture_id,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 render_id
+		});
+
+	return entity;
 }
 
 // create entity for cutScene
@@ -1912,6 +1943,36 @@ Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale
 			EFFECT_ASSET_ID::TEXT,
 			GEOMETRY_BUFFER_ID::TEXTQUAD,
 			RENDER_LAYER_ID::TEXT });
+
+	return entity;
+}
+
+Entity createDamageText(RenderSystem* renderer, vec2 pos, std::string text_input, bool is_heal=false)
+{
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Initialize the text component
+	Text& text = registry.texts.emplace(entity);
+	text.message = text_input;
+	text.position = { 0,0 };
+	text.scale = 3.f;
+	text.textColor = is_heal ? vec3(0.4, 1.0, 0.45) : vec3(1.0, 0.3, 0.25);
+
+	// approximately center it
+	vec2 offset = { text_input.length() * text.scale * 4, 0 };
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos - offset;
+	motion.scale = { 0.5, 0.5 };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::TEXT,
+			GEOMETRY_BUFFER_ID::TEXTQUAD,
+			RENDER_LAYER_ID::EFFECT });
+	registry.damageText.emplace(entity);
 
 	return entity;
 }

@@ -45,7 +45,10 @@ class RenderSystem {
 			textures_path("artifact.png"),
 			textures_path("consumable.png"),
 			textures_path("item/equipment.png"),
-			textures_path("chest.png"),
+			textures_path("chest_item_closed.png"),
+			textures_path("chest_item_open.png"),
+			textures_path("chest_artifact_closed.png"),
+			textures_path("chest_artifact_open.png"),
 			textures_path("door.png"),
 			textures_path("sign.png"),
 			textures_path("sign_glowing.png"),
@@ -94,7 +97,17 @@ class RenderSystem {
 			textures_path("keys/3_key.png"),
 			textures_path("keys/4_key.png"),
 			textures_path("keys/5_key.png"),
+			textures_path("parallax/cave_0000_front_p.png"),
+			textures_path("parallax/cave_0001_mid_p.png"),
+			textures_path("parallax/cave_0002_back_p.png"),
+			textures_path("parallax/cave_0003_color.png"),
 			textures_path("attacks/normal_attack.png"),
+			textures_path("attacks/roundslash.png"),
+			textures_path("attacks/sapping_strike.png"),
+			textures_path("attacks/piercing_thrust.png"),
+			textures_path("attacks/parrying_stance.png"),
+			textures_path("attacks/disengage.png"),
+			textures_path("attacks/terminus_veritas.png"),
 			textures_path("use.png"),
 			textures_path("prepare.png"),
 	};
@@ -165,7 +178,7 @@ public:
 private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, Camera& camera);
-	void drawText(Entity entity, const mat3& projection);
+	void drawText(Entity entity, const mat3& projection, Camera& camera);
 	void drawToScreen();
 	void updateTileMapCoords(TileUV& tileUV);
 	void updateAnimTexCoords(AnimationData& anim);

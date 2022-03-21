@@ -16,8 +16,8 @@ const float BOSS_BB_WIDTH = 0.6f * 150.f;
 const float BOSS_BB_HEIGHT = 0.6f * 150.f;
 const float PICKUP_BB_WIDTH = 64.f;
 const float PICKUP_BB_HEIGHT = 64.f;
-const float CHEST_BB_WIDTH = 0.6f * 150.f;
-const float CHEST_BB_HEIGHT = 0.6f * 150.f;
+const float CHEST_BB_WIDTH = 64.f;
+const float CHEST_BB_HEIGHT = 64.f;
 const float DOOR_BB_WIDTH = 0.6f * 150.f;
 const float DOOR_BB_HEIGHT = 0.6f * 150.f;
 const float SIGN_BB_WIDTH = 64.f;
@@ -66,6 +66,8 @@ const float FOG_BB_HEIGHT = 0.6f * 100.f;
 Entity createLine(vec2 position, vec2 size);
 // the background
 Entity createBackground(RenderSystem* renderer, vec2 position);
+// the game background
+Entity createGameBackground(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture_id, RENDER_LAYER_ID render_id);
 // Player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // Enemy (split into different enemies for future)
@@ -149,6 +151,8 @@ Entity createCamera(vec2 pos);
 SpawnData createTiles(RenderSystem* renderer, const std::string& filepath);
 // Text
 Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);
+// Damage text
+Entity createDamageText(RenderSystem* renderer, vec2 pos, std::string text_input , bool is_heal);
 // Dialog text
 Entity createDialogText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);
 // Animated campfire

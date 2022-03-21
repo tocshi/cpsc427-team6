@@ -40,8 +40,11 @@ enum class TEXTURE_ASSET_ID {
 	ARTIFACT = BOSS + 1,
 	CONSUMABLE = ARTIFACT + 1,
 	EQUIPMENT = CONSUMABLE + 1,
-	CHEST = EQUIPMENT + 1,
-	DOOR = CHEST + 1,
+	CHEST_ITEM_CLOSED = EQUIPMENT + 1,
+	CHEST_ITEM_OPEN = CHEST_ITEM_CLOSED + 1,
+	CHEST_ARTIFACT_CLOSED = CHEST_ITEM_OPEN + 1,
+	CHEST_ARTIFACT_OPEN = CHEST_ARTIFACT_CLOSED + 1,
+	DOOR = CHEST_ARTIFACT_OPEN + 1,
 	SIGN = DOOR + 1,
 	SIGN_GLOW_SPRITESHEET = SIGN + 1,
 	STAIR = SIGN_GLOW_SPRITESHEET + 1,
@@ -84,7 +87,11 @@ enum class TEXTURE_ASSET_ID {
 	TURN_UI = CUTSCENE3 + 1,
 	SWITCH_DEFAULT = TURN_UI + 1,
 	SWITCH_ACTIVE = SWITCH_DEFAULT + 1,
-	KEY_ICON_1 = SWITCH_ACTIVE + 1,
+	CAVE_FRONT = SWITCH_ACTIVE + 1,
+	CAVE_MID = CAVE_FRONT + 1,
+	CAVE_BACK = CAVE_MID + 1,
+	CAVE_COLOR = CAVE_BACK + 1,
+	KEY_ICON_1 = CAVE_COLOR + 1,
 	KEY_ICON_2 = KEY_ICON_1 + 1,
 	KEY_ICON_3 = KEY_ICON_2 + 1,
 	KEY_ICON_4 = KEY_ICON_3 + 1,
@@ -392,6 +399,12 @@ struct Interactable {
 	INTERACT_TYPE type;
 };
 
+struct Chest {
+	bool isArtifact = false;
+	bool opened = false;
+	bool needs_retexture = false; // use this in step() to check whether the texture needs be changed
+};
+
 struct Stats {
 	// Name goes here too
 	std::string name = "Placeholder Name";
@@ -523,6 +536,10 @@ struct Text {
 	float scale = 1.0f;
 	vec3 textColor = { 0.f, 0.f, 0.f };
 	std::string message = "";
+};
+
+struct DamageTextTimer {
+	float counter_ms = 1500;
 };
 
 // A timer that will be associated will text logging
@@ -695,7 +712,10 @@ const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
 enum class RENDER_LAYER_ID {
 	BG = 0,
-	FLOOR = BG + 1,
+	BG_1 = BG + 1,
+	BG_2 = BG_1 + 1,
+	BG_3 = BG_2 + 1,
+	FLOOR = BG_3 + 1,
 	FLOOR_DECO = FLOOR + 1,
 	SPRITE = FLOOR_DECO + 1,
 	PLAYER = SPRITE + 1,

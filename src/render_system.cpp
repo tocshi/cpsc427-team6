@@ -206,11 +206,18 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 }
 
-void RenderSystem::drawText(Entity entity, const mat3 &projection)
+void RenderSystem::drawText(Entity entity, const mat3 &projection, Camera& camera)
 {
 	Text &text = registry.texts.get(entity);
 
 	Transform transform;
+	// move text relative to world if text is damageText
+	if (registry.damageText.has(entity)) {
+		Motion& motion = registry.motions.get(entity);
+		transform.translate(-camera.position);
+		transform.translate(motion.position);
+		transform.scale(motion.scale);
+	}
 
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest &render_request = registry.renderRequests.get(entity);
@@ -416,16 +423,17 @@ void RenderSystem::draw()
 	for (Entity entity : registry.renderRequests.entities)
 	{
 		if (registry.texts.has(entity)) {
-			drawText(entity, projection_2D);
+			drawText(entity, projection_2D, camera);
 		}
-		if (!registry.motions.has(entity) || registry.hidden.has(entity))
+		else if (!registry.motions.has(entity) || registry.hidden.has(entity))
 			continue;
-		if (registry.renderRequests.get(entity).used_layer < RENDER_LAYER_ID::UI &&
+		else if (registry.renderRequests.get(entity).used_layer < RENDER_LAYER_ID::UI &&
 			!isOnScreen(registry.motions.get(entity), camera, w, h))
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
-		drawTexturedMesh(entity, projection_2D, camera);
+		else
+			drawTexturedMesh(entity, projection_2D, camera);
 	}
 
 	// Truely render to the screen

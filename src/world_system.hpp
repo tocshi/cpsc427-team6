@@ -71,6 +71,7 @@ public:
 	Mix_Chunk* footstep_sound;
 	Mix_Chunk* door_sound;
 	Mix_Chunk* switch_sound;
+	Mix_Chunk* chest_sound;
 	Mix_Chunk* special_sound;
 	Mix_Chunk* whoosh;
 	Mix_Chunk* sword_end;
@@ -87,6 +88,9 @@ public:
 	Entity active_camera_entity;
 
 	Entity background;
+	Entity background_front;
+	Entity background_mid;
+	Entity background_back;
 	bool is_player_turn = true;
 	bool player_move_click = false;
 	bool is_ai_turn = false;
@@ -185,7 +189,13 @@ private:
 	void loadSign(Entity e, json signData);
 
 	// load a chest
-	void loadChest(Entity e);
+	void loadChest(Entity e, json chestData);
+
+	// load an item pickup
+	void loadEquipmentEntity(Entity e, json equipData, json spritesheetData);
+
+	// load artifact data
+	void loadArtifact(Entity e, json artifactData);
 
 	// load a door
 	void loadDoor(Entity e);
@@ -219,7 +229,10 @@ private:
 	// generate and setup a new room
 	void generateNewRoom(Floors floor, bool repeat_allowed);
 
-	// update turn UI
+	// update game background
+	void updateGameBackground();
+
+	// udate turn UI
 	void update_turn_ui();
 
 	// use attack

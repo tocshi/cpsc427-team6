@@ -534,18 +534,21 @@ Entity createChest(RenderSystem* renderer, vec2 pos, bool isArtifact)
 
 	// Set interaction type
 	auto& interactable = registry.interactables.emplace(entity);
+	RenderRequest& rr = registry.renderRequests.emplace(entity);
+	rr.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	rr.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	rr.used_layer = RENDER_LAYER_ID::FLOOR_DECO;
+
 	if (isArtifact) {
 		interactable.type = INTERACT_TYPE::ARTIFACT_CHEST;
+		rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_CLOSED;
 	}
 	else{
 		interactable.type = INTERACT_TYPE::ITEM_CHEST;
+		rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_CLOSED;
 	}
+	registry.chests.insert(entity, { isArtifact });
 
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::CHEST,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
 
 	return entity;

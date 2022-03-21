@@ -956,8 +956,8 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	//std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 	spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
@@ -1015,7 +1015,8 @@ void WorldSystem::spawn_game_entities() {
 
 // render ep range around the given position
 void WorldSystem::create_ep_range(float remaining_ep, float speed, vec2 pos) {
-	float ep_radius = remaining_ep * speed * 0.015 + ((110.f * remaining_ep) / 100);
+	Stats player_stats = registry.stats.get(player_main);
+	float ep_radius = remaining_ep * (1 / player_stats.epratemove) * speed * 0.015 + ((110.f * remaining_ep * (1 / player_stats.epratemove)) / 100);
 
 	Entity ep = createEpRange({ pos.x , pos.y }, ep_resolution, ep_radius, { window_width_px, window_height_px });
 	registry.colors.insert(ep, { 0.2, 0.2, 8.7 });
@@ -1177,7 +1178,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
 		auto& stats = registry.stats.get(player_main);
-		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp);
+		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\nrange: %f\nepmove: %f\nepatk: %f\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp, stats.range, stats.epratemove, stats.eprateatk);
 	}
 
 	// SAVING THE GAME
@@ -1293,13 +1294,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (saveSystem.saveDataExists()) {
 			// remove entities to load in entities
 			removeForLoad();
-			printf("Removed for load\n");
+			//printf("Removed for load\n");
 			// get saved game data
 			json gameData = saveSystem.getSaveData();
-			printf("getting gameData\n");
+			//printf("getting gameData\n");
 			// load the entities in
 			loadFromData(gameData);
-			printf("load game data?\n");
+			//printf("load game data?\n");
 		}
 
 		logText("Game state loaded!");
@@ -1733,6 +1734,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								if (registry.artifacts.has(entity)) {
 									ARTIFACT artifact = registry.artifacts.get(entity).type;
 									inv.artifact[(int)artifact]++;
+									reset_stats(player_main);
+									calc_stats(player_main);
+									remove_fog_of_war();
+									create_fog_of_war();
 								}
 								if (registry.equipment.has(entity)) {
 									Equipment equipment = registry.equipment.get(entity);

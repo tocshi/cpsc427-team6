@@ -14,10 +14,14 @@ const float PLANT_PROJECTILE_BB_WIDTH = 16.f;
 const float PLANT_PROJECTILE_BB_HEIGHT = 16.f;
 const float BOSS_BB_WIDTH = 0.6f * 150.f;
 const float BOSS_BB_HEIGHT = 0.6f * 150.f;
-const float PICKUP_BB_WIDTH = 64.f;
-const float PICKUP_BB_HEIGHT = 64.f;
-const float CHEST_BB_WIDTH = 64.f;
-const float CHEST_BB_HEIGHT = 64.f;
+const float ARTIFACT_BB_WIDTH = 0.6f * 150.f;
+const float ARTIFACT_BB_HEIGHT = 0.6f * 150.f;
+const float CONSUMABLE_BB_WIDTH = 0.6f * 150.f;
+const float CONSUMABLE_BB_HEIGHT = 0.6f * 150.f;
+const float EQUIPABLE_BB_WIDTH = 0.6f * 150.f;
+const float EQUIPABLE_BB_HEIGHT = 0.6f * 150.f;
+const float CHEST_BB_WIDTH = 0.6f * 150.f;
+const float CHEST_BB_HEIGHT = 0.6f * 150.f;
 const float DOOR_BB_WIDTH = 0.6f * 150.f;
 const float DOOR_BB_HEIGHT = 0.6f * 150.f;
 const float SIGN_BB_WIDTH = 64.f;
@@ -26,18 +30,18 @@ const float STAIR_BB_WIDTH = 0.6f * 150.f;
 const float STAIR_BB_HEIGHT = 0.6f * 150.f;
 const float WALL_BB_WIDTH = 100.f;
 const float WALL_BB_HEIGHT = 100.f;
-const float START_BB_WIDTH = 380.f;
-const float START_BB_HEIGHT = 98.f;
-const float QUIT_BB_WIDTH = 380.f;
-const float QUIT_BB_HEIGHT = 98.f;
+const float START_BB_WIDTH = 0.6f * 900.f;
+const float START_BB_HEIGHT = 0.6f * 150.f;
+const float QUIT_BB_WIDTH = 0.6f * 900.f;
+const float QUIT_BB_HEIGHT = 0.6f * 150.f;
 const float TITLE_BB_WIDTH = 0.6f * 870.f;
 const float TITLE_BB_HEIGHT = 0.6f * 300.f;
 const float STAT_BB_WIDTH = 0.6f * 500.f;
 const float STAT_BB_HEIGHT = 0.6f * 105.f;
 const float ACTIONS_BAR_BB_HEIGHT = 200.f;
 const float ACTIONS_BAR_BB_WIDTH = 1800.f;
-const float ACTIONS_BUTTON_BB_HEIGHT = 125.f;
-const float ACTIONS_BUTTON_BB_WIDTH = 125.f;
+const float ACTIONS_BUTTON_BB_HEIGHT = 75.f;
+const float ACTIONS_BUTTON_BB_WIDTH = 300.f;
 const float PAUSE_BUTTON_BB_HEIGHT = 50.f;
 const float PAUSE_BUTTON_BB_WIDTH = 50.f;
 const float COLLECTION_MENU_BB_WIDTH = 800.f;
@@ -48,14 +52,10 @@ const float ARTIFACT_IMAGE_BB_WIDTH = 80.f;
 const float ARTIFACT_IMAGE_BB_HEIGHT = 80.f;
 const float DESCRIPTION_DIALOG_BB_WIDTH = 400.f;
 const float DESCRIPTION_DIALOG_BB_HEIGHT = 400.f;
-const float KEY_ICON_BB_WIDTH = 50.f;
-const float KEY_ICON_BB_HEIGHT = 50.f;
-const float MODE_BB_WIDTH = 125.f;
-const float MODE_BB_HEIGHT = 125.f;
+const float MODE_BB_WIDTH = 800.f;
+const float MODE_BB_HEIGHT = 100.f;
 const float POINTER_BB_WIDTH = 64.f;
 const float POINTER_BB_HEIGHT = 64.f;
-const float SWITCH_BB_WIDTH = 64.f;
-const float SWITCH_BB_HEIGHT = 64.f;
 // want to make fog small so it can be rendered a lot TODO: this is a bad implementation and will need to be changed later to use shadows or drawing circles or something better
 const float FOG_BB_WIDTH = 0.6f * 100.f;
 const float FOG_BB_HEIGHT = 0.6f * 100.f;
@@ -64,8 +64,6 @@ const float FOG_BB_HEIGHT = 0.6f * 100.f;
 Entity createLine(vec2 position, vec2 size);
 // the background
 Entity createBackground(RenderSystem* renderer, vec2 position);
-// the game background
-Entity createGameBackground(RenderSystem* renderer, vec2 position, TEXTURE_ASSET_ID texture_id, RENDER_LAYER_ID render_id);
 // Player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // Enemy (split into different enemies for future)
@@ -78,15 +76,14 @@ Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir, Entity 
 Entity createCaveling(RenderSystem* renderer, vec2 pos);
 // Boss
 Entity createBoss(RenderSystem* renderer, vec2 pos);
-// Equipment
-Equipment createEquipment(EQUIPMENT type, int tier);
-Entity createEquipmentEntity(RenderSystem* renderer, vec2 pos, Equipment equipment);
 // Artifact
-Entity createArtifact(RenderSystem* renderer, vec2 pos, ARTIFACT type);
+Entity createArtifact(RenderSystem* renderer, vec2 pos);
 // Item (consumable)
 Entity createConsumable(RenderSystem* renderer, vec2 pos);
+// Item (equipable)
+Entity createEquipable(RenderSystem* renderer, vec2 pos);
 // Chest
-Entity createChest(RenderSystem* renderer, vec2 pos, bool isArtifact);
+Entity createChest(RenderSystem* renderer, vec2 pos);
 // Door
 Entity createDoor(RenderSystem* renderer, vec2 pos);
 // Sign
@@ -101,8 +98,6 @@ Entity createMenuStart(RenderSystem* renderer, vec2 pos);
 Entity createMenuQuit(RenderSystem* renderer, vec2 pos);
 // Menu title
 Entity createMenuTitle(RenderSystem* renderer, vec2 pos);
-// Hotkey icon
-Entity createKeyIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture);
 // Actions bar
 Entity createActionsBar(RenderSystem* renderer, vec2 pos);
 // Attack button
@@ -111,6 +106,7 @@ Entity createAttackButton(RenderSystem* renderer, vec2 pos);
 Entity createMoveButton(RenderSystem* renderer, vec2 pos);
 // Guard button
 Entity createGuardButton(RenderSystem* renderer, vec2 pos, BUTTON_ACTION_ID action, TEXTURE_ASSET_ID texture);
+// End turn button
 // Item button
 Entity createItemButton(RenderSystem* renderer, vec2 pos);
 // Back button
@@ -149,8 +145,6 @@ Entity createCamera(vec2 pos);
 SpawnData createTiles(RenderSystem* renderer, const std::string& filepath);
 // Text
 Entity createText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);
-// Damage text
-Entity createDamageText(RenderSystem* renderer, vec2 pos, std::string text_input , bool is_heal);
 // Dialog text
 Entity createDialogText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);
 // Animated campfire
@@ -163,10 +157,6 @@ Entity createCollectionMenu(RenderSystem* renderer, vec2 pos);
 Entity createArtifactIcon(RenderSystem* renderer, vec2 pos, ARTIFACT artifact);
 // Description Dialog (artifact version) - todo: add more definitions with other items (attacks etc.)
 Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifact);
-// Attack card
-Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack);
-// Attack type dialog
-Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack);
 // cutscene
 Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID textureID);
 // Turn UI
@@ -174,7 +164,3 @@ Entity createTurnUI(RenderSystem* renderer, vec2 pos);
 // Icon
 Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id);
 
-// switch
-Entity createSwitch(RenderSystem* renderer, vec2 pos);
-// potion
-Entity createConsumable(RenderSystem* renderer, vec2 pos, CONSUMABLE type);

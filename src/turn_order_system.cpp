@@ -23,7 +23,7 @@ Entity TurnOrderSystem::getNextTurn() {
 	// handle end-of-turn behaviour
 	if (!firstTurn) {
 		turnQueue.putBackEntity(currentEntity);
-		handle_status_ticks(currentEntity, false, false);
+		handle_status_ticks(currentEntity, false);
 	}
 
 	// if this is the first turn, set first turn to false
@@ -45,8 +45,7 @@ Entity TurnOrderSystem::getNextTurn() {
 	// set doing_turn of the entity to true
 	// handle start-of-turn behaviour
 	registry.queueables.get(currentEntity).doing_turn = true;
-	reset_stats(currentEntity);
-	handle_status_ticks(currentEntity, true, false);
+	handle_status_ticks(currentEntity, true);
 	return next;
 }
 

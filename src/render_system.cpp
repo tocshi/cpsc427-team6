@@ -54,14 +54,7 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 			AnimationData& anim = registry.animations.get(entity);
 			if (anim.spritesheet_texture != prev_animdata.spritesheet_texture || anim.current_frame != prev_animdata.current_frame) {
 				updateAnimTexCoords(anim);
-					prev_animdata = anim;
-			}
-		}
-		else if (render_request.used_geometry == GEOMETRY_BUFFER_ID::SPRITESHEET && registry.spritesheets.has(entity)) {
-			Spritesheet& spritesheet = registry.spritesheets.get(entity);
-			if (spritesheet.texture != prev_spritesheet.texture || spritesheet.index != prev_spritesheet.index) {
-				updateSpritesheetTexCoords(spritesheet);
-				prev_spritesheet = spritesheet;
+				prev_animdata = anim;
 			}
 		}
 
@@ -206,18 +199,11 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 	gl_has_errors();
 }
 
-void RenderSystem::drawText(Entity entity, const mat3 &projection, Camera& camera)
+void RenderSystem::drawText(Entity entity, const mat3 &projection)
 {
 	Text &text = registry.texts.get(entity);
 
 	Transform transform;
-	// move text relative to world if text is damageText
-	if (registry.damageText.has(entity)) {
-		Motion& motion = registry.motions.get(entity);
-		transform.translate(-camera.position);
-		transform.translate(motion.position);
-		transform.scale(motion.scale);
-	}
 
 	assert(registry.renderRequests.has(entity));
 	const RenderRequest &render_request = registry.renderRequests.get(entity);
@@ -423,17 +409,16 @@ void RenderSystem::draw()
 	for (Entity entity : registry.renderRequests.entities)
 	{
 		if (registry.texts.has(entity)) {
-			drawText(entity, projection_2D, camera);
+			drawText(entity, projection_2D);
 		}
-		else if (!registry.motions.has(entity) || registry.hidden.has(entity))
+		if (!registry.motions.has(entity) || registry.hidden.has(entity))
 			continue;
-		else if (registry.renderRequests.get(entity).used_layer < RENDER_LAYER_ID::UI &&
+		if (registry.renderRequests.get(entity).used_layer < RENDER_LAYER_ID::UI &&
 			!isOnScreen(registry.motions.get(entity), camera, w, h))
 			continue;
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
-		else
-			drawTexturedMesh(entity, projection_2D, camera);
+		drawTexturedMesh(entity, projection_2D, camera);
 	}
 
 	// Truely render to the screen
@@ -521,30 +506,4 @@ void RenderSystem::updateAnimTexCoords(AnimationData& anim) {
 	// Counterclockwise as it's the default opengl front winding direction.
 	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::ANIMATION, textured_vertices, textured_indices);
-}
-
-void RenderSystem::updateSpritesheetTexCoords(Spritesheet& spritesheet) {
-	//////////////////////////
-	// Initialize sprite
-	// The position corresponds to the center of the texture.
-	if (spritesheet.width == 0 || spritesheet.height == 0)
-		return;
-	float start_x = (spritesheet.frame_size.x * (spritesheet.index % spritesheet.columns)) / spritesheet.width;
-	float start_y = (spritesheet.frame_size.y * (spritesheet.index / spritesheet.columns)) / spritesheet.height;
-	float end_x = start_x + (spritesheet.frame_size.x / spritesheet.width);
-	float end_y = start_y + (spritesheet.frame_size.y / spritesheet.height);
-
-	std::vector<TexturedVertex> textured_vertices(4);
-	textured_vertices[0].position = { -1.f / 2, +1.f / 2, 0.f };
-	textured_vertices[1].position = { +1.f / 2, +1.f / 2, 0.f };
-	textured_vertices[2].position = { +1.f / 2, -1.f / 2, 0.f };
-	textured_vertices[3].position = { -1.f / 2, -1.f / 2, 0.f };
-	textured_vertices[0].texcoord = { start_x, end_y };
-	textured_vertices[1].texcoord = { end_x, end_y };
-	textured_vertices[2].texcoord = { end_x, start_y };
-	textured_vertices[3].texcoord = { start_x, start_y };
-
-	// Counterclockwise as it's the default opengl front winding direction.
-	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
-	bindVBOandIBO(GEOMETRY_BUFFER_ID::SPRITESHEET, textured_vertices, textured_indices);
 }

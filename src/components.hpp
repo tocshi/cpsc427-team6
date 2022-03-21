@@ -5,130 +5,6 @@
 #include <map>
 #include "../ext/stb_image/stb_image.h"
 
-/**
- * The following enumerators represent global identifiers refering to graphic
- * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
- * currently supported by the system.
- *
- * So, instead of referring to a game asset directly, the game logic just
- * uses these enumerators and the RenderRequest struct to inform the renderer
- * how to structure the next draw command.
- *
- * There are 2 reasons for this:
- *
- * First, game assets such as textures and meshes are large and should not be
- * copied around as this wastes memory and runtime. Thus separating the data
- * from its representation makes the system faster.
- *
- * Second, it is good practice to decouple the game logic from the render logic.
- * Imagine, for example, changing from OpenGL to Vulkan, if the game logic
- * depends on OpenGL semantics it will be much harder to do the switch than if
- * the renderer encapsulates all asset data and the game logic is agnostic to it.
- *
- * The final value in each enumeration is both a way to keep track of how many
- * enums there are, and as a default value to represent uninitialized fields.
- */
-
-enum class TEXTURE_ASSET_ID {
-	BG = 0,
-	PLAYER = BG + 1,
-	SLIME = PLAYER + 1,
-	PLANT_SHOOTER = SLIME + 1,
-	PLANT_PROJECTILE = PLANT_SHOOTER + 1,
-	CAVELING = PLANT_PROJECTILE + 1,
-	BOSS = CAVELING + 1,
-	ARTIFACT = BOSS + 1,
-	CONSUMABLE = ARTIFACT + 1,
-	EQUIPMENT = CONSUMABLE + 1,
-	CHEST_ITEM_CLOSED = EQUIPMENT + 1,
-	CHEST_ITEM_OPEN = CHEST_ITEM_CLOSED + 1,
-	CHEST_ARTIFACT_CLOSED = CHEST_ITEM_OPEN + 1,
-	CHEST_ARTIFACT_OPEN = CHEST_ARTIFACT_CLOSED + 1,
-	DOOR = CHEST_ARTIFACT_OPEN + 1,
-	SIGN = DOOR + 1,
-	SIGN_GLOW_SPRITESHEET = SIGN + 1,
-	STAIR = SIGN_GLOW_SPRITESHEET + 1,
-	START = STAIR + 1,
-	QUIT = START + 1,
-	TITLE = QUIT + 1,
-	WALL = TITLE + 1,
-	HPBAR = WALL + 1,
-	MPBAR = HPBAR + 1,
-	EPBAR = MPBAR + 1,
-	HPFILL = EPBAR + 1,
-	MPFILL = HPFILL + 1,
-	EPFILL = MPFILL + 1,
-	ACTIONS_MOVE = EPFILL + 1,
-	ACTIONS_ATTACK = ACTIONS_MOVE + 1,
-	ACTIONS_BAR = ACTIONS_ATTACK + 1,
-	ACTIONS_GUARD = ACTIONS_BAR + 1,
-	ACTIONS_ITEM = ACTIONS_GUARD + 1,
-	ACTIONS_END_TURN = ACTIONS_ITEM + 1,
-	ACTIONS_BACK = ACTIONS_END_TURN + 1,
-	ACTIONS_CANCEL = ACTIONS_BACK + 1,
-	ACTIONS_ATTACK_MODE = ACTIONS_CANCEL + 1,
-	ACTIONS_MOVE_MODE = ACTIONS_ATTACK_MODE + 1,
-	PAUSE = ACTIONS_MOVE_MODE + 1,
-	COLLECTION_BUTTON = PAUSE + 1,
-	DUNGEON_TILESHEET = COLLECTION_BUTTON + 1,
-	CAMPFIRE_SPRITESHEET = DUNGEON_TILESHEET + 1,
-	EXPLOSION_SPRITESHEET = CAMPFIRE_SPRITESHEET + 1,
-	NORMAL_POINTER = EXPLOSION_SPRITESHEET + 1,
-	ATTACK_POINTER = NORMAL_POINTER + 1,
-	MOVE_POINTER = ATTACK_POINTER + 1,
-	MENU_CLOSE = MOVE_POINTER + 1,
-	COLLECTION_PANEL = MENU_CLOSE + 1,
-	DESCRIPTION_DIALOG = COLLECTION_PANEL + 1,
-	ARTIFACT_PLACEHOLDER = DESCRIPTION_DIALOG + 1,
-	COLLECTION_SCROLL_ARROW = ARTIFACT_PLACEHOLDER + 1,
-	CUTSCENE1 = COLLECTION_SCROLL_ARROW + 1,
-	CUTSCENE2 = CUTSCENE1 + 1,
-	CUTSCENE3 = CUTSCENE2 + 1,
-	TURN_UI = CUTSCENE3 + 1,
-	SWITCH_DEFAULT = TURN_UI + 1,
-	SWITCH_ACTIVE = SWITCH_DEFAULT + 1,
-	CAVE_FRONT = SWITCH_ACTIVE + 1,
-	CAVE_MID = CAVE_FRONT + 1,
-	CAVE_BACK = CAVE_MID + 1,
-	CAVE_COLOR = CAVE_BACK + 1,
-	KEY_ICON_1 = CAVE_COLOR + 1,
-	KEY_ICON_2 = KEY_ICON_1 + 1,
-	KEY_ICON_3 = KEY_ICON_2 + 1,
-	KEY_ICON_4 = KEY_ICON_3 + 1,
-	KEY_ICON_5 = KEY_ICON_4 + 1,
-	ATTACK_NORMAL = KEY_ICON_5 + 1,
-	POTION_RED = ATTACK_NORMAL + 1,
-	POTION_BLUE = POTION_RED + 1,
-	POTION_YELLOW = POTION_BLUE + 1,
-	TEXTURE_COUNT = POTION_YELLOW + 1,
-	ARROW_FEATHER = TURN_UI + 1,
-	BASEBALL_CAP = ARROW_FEATHER + 1,
-	BELT = BASEBALL_CAP + 1,
-	BLOODY_RUBY = BELT + 1,
-	BOOK_THICK = BLOODY_RUBY + 1,
-	DEMON_ARM = BOOK_THICK + 1,
-	FANG = DEMON_ARM + 1,
-	FLORESCENT_MUSHROOM = FANG + 1,
-	FUNNEL = FLORESCENT_MUSHROOM + 1,
-	GREEN_BOOK = FUNNEL + 1,
-	PLANT_BULB = GREEN_BOOK + 1,
-	POKER_CHIP = PLANT_BULB + 1,
-	POUCH = POKER_CHIP + 1,
-	POUCH_DIFF = POUCH + 1,
-	POWDER_POUCH = POUCH_DIFF + 1,
-	ROUND_METAL_SHEILD = POWDER_POUCH + 1,
-	RUBBER_MALLET = ROUND_METAL_SHEILD + 1,
-	SCROLL = RUBBER_MALLET + 1,
-	TWIG = SCROLL + 1,
-	FUR_COAT = TWIG + 1,
-	TEXTURE_COUNT = FUR_COAT + 1
-
-
-
-
-};
-const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
-
 enum class PLAYER_ACTION {
 	MOVING = 0,
 	ATTACKING = MOVING + 1,
@@ -140,8 +16,7 @@ enum class CONSUMABLE {
 	REDPOT = 0,
 	BLUPOT = REDPOT + 1,
 	YELPOT = BLUPOT + 1,
-	INSTANT = YELPOT + 1,
-	CONSUMABLE_COUNT = INSTANT + 1
+	CONSUMABLE_COUNT = YELPOT + 1
 };
 
 enum class EQUIPMENT {
@@ -171,8 +46,13 @@ enum class ATTACK {
 	LUMINOUS_ARROW = BINDING_ARROW + 1,
 	HOOK_SHOT = LUMINOUS_ARROW + 1,
 	FOCUSED_SHOT = HOOK_SHOT + 1,
-	SKYBORNE_RAIN = FOCUSED_SHOT + 1,
-	ATTACK_COUNT = SKYBORNE_RAIN + 1
+	SKYBORNE_RAIN = FOCUSED_SHOT + 1
+};
+
+//TODO: Fill this out
+// Attack name map
+const std::map <ATTACK, std::string>attack_names = {
+	{ATTACK::ROUNDSLASH, "Roundslash"}
 };
 
 enum class ARTIFACT {
@@ -238,31 +118,19 @@ const int artifact_T4[] {
 	//(int)ARTIFACT::CHIMERARM // blocked by stat calc system and weapon generation
 };
 
-struct Spritesheet {
-	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::TEXTURE_COUNT;
-	int width; // width of the source image
-	int height; // height of the source image
-	int columns; // number of columns the spritesheet image is split into
-	int rows; // number of columns the spritesheet image is split into
-	vec2 frame_size; // width and height of a "tile" in the spritesheet
-
-	int index = 0;
-};
 
 // Equipment component
 struct Equipment
 {
 	EQUIPMENT type = EQUIPMENT::EQUIPMENT_COUNT;
 	ATTACK attacks[4] = { ATTACK::NONE, ATTACK::NONE, ATTACK::NONE, ATTACK::NONE };
-	float atk = 0;
-	float def = 0;
-	float speed = 0;
-	float hp = 0;
-	float mp = 0;
-	float ep = 0;
-	float range = 0;
-
-	int sprite = 0;
+	float atk;
+	float def;
+	float speed;
+	float hp;
+	float mp;
+	float ep;
+	float range;
 };
 
 struct ArtifactIcon {
@@ -272,8 +140,7 @@ struct ArtifactIcon {
 // Inventory component
 struct Inventory
 {
-	Equipment e = {};
-	Equipment equipped[2] = {e, e}; // [Weapon, Armour]
+	Equipment equipped[2]; // [Weapon, Armour]
 	int consumable[static_cast<int>(CONSUMABLE::CONSUMABLE_COUNT)];
 	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
 };
@@ -283,16 +150,15 @@ struct Player
 {
 	float s;
 	Inventory inv;
-	int gacha_pity = 0;
-	int floor = 1; // TODO: turn this back to 0 when tutorial is implemented
-	int room = 0;
-	int total_rooms = 0;
+	int gacha_pity;
+	int floor;
+	int room;
+	int total_rooms;
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
 
-	// true if the player has already attacked or moved that turn
+	// true if the player has already attacked that turn
 	bool attacked = false;
-	bool moved = false;
 };
 
 // Mode visualization objects
@@ -397,7 +263,11 @@ struct Damageable {
 };
 
 struct Consumable {
-	CONSUMABLE type;
+	// recover mp
+	bool magic_potion = true;
+	// recover hp
+	bool hp_potion = true;
+
 };
 
 struct Guardable {
@@ -405,24 +275,15 @@ struct Guardable {
 };
 
 enum class INTERACT_TYPE {
-	ARTIFACT_CHEST = 0,
-	ITEM_CHEST = ARTIFACT_CHEST + 1,
-	DOOR = ITEM_CHEST + 1,
+	CHEST = 0,
+	DOOR = CHEST + 1,
 	STAIRS = DOOR + 1,
 	SIGN = STAIRS + 1,
-	PICKUP = SIGN + 1,
-	SWITCH = PICKUP + 1,
-	TYPE_COUNT = SWITCH + 1
+	TYPE_COUNT = SIGN + 1
 };
 
 struct Interactable {
 	INTERACT_TYPE type;
-};
-
-struct Chest {
-	bool isArtifact = false;
-	bool opened = false;
-	bool needs_retexture = false; // use this in step() to check whether the texture needs be changed
 };
 
 struct Stats {
@@ -503,9 +364,7 @@ enum class BUTTON_ACTION_ID {
 	COLLECTION = PAUSE + 1,
 	OPEN_DIALOG = COLLECTION + 1,
 	CLOSE_DIALOG = OPEN_DIALOG + 1,
-	OPEN_ATTACK_DIALOG = CLOSE_DIALOG + 1,
-	CLOSE_ATTACK_DIALOG = OPEN_ATTACK_DIALOG + 1,
-	SCROLL_DOWN = CLOSE_ATTACK_DIALOG + 1,
+	SCROLL_DOWN = CLOSE_DIALOG + 1,
 	SCROLL_UP = SCROLL_DOWN + 1,
 	ACTION_COUNT = SCROLL_UP + 1
 };
@@ -524,12 +383,6 @@ struct DescriptionDialog {
 	std::string effect = "";
 	std::string description = "";
 	std::string stats = "";
-};
-
-struct AttackDialog {
-	std::string title = "";
-	std::string description = "";
-	std::string cost = "";
 };
 
 struct EpRange {
@@ -556,10 +409,6 @@ struct Text {
 	std::string message = "";
 };
 
-struct DamageTextTimer {
-	float counter_ms = 1500;
-};
-
 // A timer that will be associated will text logging
 struct TextTimer
 {
@@ -568,13 +417,11 @@ struct TextTimer
 
 // temp struct for artifacts
 struct Artifact {
-	ARTIFACT type;
+	bool artifact1 = true; 
 };
-
 struct Door {
 	bool collidedWithDoor = false; 
 };
-
 struct TileUV {
 	std::string layer;
 	int tileID = 0;
@@ -600,8 +447,7 @@ enum class StatusType {
 	INVINCIBLE = FANG_POISON + 1,
 	BURR_DEBUFF = INVINCIBLE + 1,
 	RANGE_BUFF = BURR_DEBUFF + 1,
-	SMOKE_CD = RANGE_BUFF + 1,
-	WINDBAG_CD = SMOKE_CD + 1,
+	WINDBAG_CD = RANGE_BUFF + 1,
 	MALEDICTION_CD = WINDBAG_CD + 1,
 	PIERCE_DEF = MALEDICTION_CD + 1,
 	PARRYING_STANCE = PIERCE_DEF + 1,
@@ -650,55 +496,112 @@ struct KnockBack {
 	float angle = 0;
 };
 
-enum class ObjectiveType {
-	KILL_ENEMIES = 0,
-	ACTIVATE_SWITCHES = KILL_ENEMIES + 1,
-	DESTROY_SPAWNER = ACTIVATE_SWITCHES + 1,
-	SURVIVE_TURNS = DESTROY_SPAWNER + 1,
-	OBJECTIVE_COUNT = SURVIVE_TURNS + 1
-};
-const int objective_count = (int)ObjectiveType::OBJECTIVE_COUNT;
-
-struct Objective {
-	ObjectiveType type;
-	int remaining_count;
-	bool completed = false;
-};
-
-struct SessionStatistics {
-	int rooms_cleared = 0;
-	int enemies_defeated = 0;
-};
-
-enum class Floors {
-	DEBUG = 0,
-	TUTORIAL = DEBUG + 1,
-	FLOOR1 = TUTORIAL + 1,
-	FLOOR_COUNT = FLOOR1 + 1
-};
-const int floor_count = (int)Floors::FLOOR_COUNT;
-
-struct RoomTransitionTimer {
-	float counter_ms = 750.f;
-	Floors floor;
-	bool repeat_allowed = false; // whether the next room is allowed to use the same map file as the current
-};
-
-struct LoadingTimer {
-	float counter_ms = 250.f; // We use it to wait some amount of time or until a long step has passed
-};
-
-struct FadeInTimer {
-	float counter_ms = 750.f;
-};
-
-struct Switch {
-	bool activated = false;
-};
-
 struct Icon {
 
 };
+
+/**
+ * The following enumerators represent global identifiers refering to graphic
+ * assets. For example TEXTURE_ASSET_ID are the identifiers of each texture
+ * currently supported by the system.
+ *
+ * So, instead of referring to a game asset directly, the game logic just
+ * uses these enumerators and the RenderRequest struct to inform the renderer
+ * how to structure the next draw command.
+ *
+ * There are 2 reasons for this:
+ *
+ * First, game assets such as textures and meshes are large and should not be
+ * copied around as this wastes memory and runtime. Thus separating the data
+ * from its representation makes the system faster.
+ *
+ * Second, it is good practice to decouple the game logic from the render logic.
+ * Imagine, for example, changing from OpenGL to Vulkan, if the game logic
+ * depends on OpenGL semantics it will be much harder to do the switch than if
+ * the renderer encapsulates all asset data and the game logic is agnostic to it.
+ *
+ * The final value in each enumeration is both a way to keep track of how many
+ * enums there are, and as a default value to represent uninitialized fields.
+ */
+
+enum class TEXTURE_ASSET_ID {
+	BG = 0,
+	PLAYER = BG + 1,
+	SLIME = PLAYER + 1,
+	PLANT_SHOOTER = SLIME + 1,
+	PLANT_PROJECTILE = PLANT_SHOOTER + 1,
+	CAVELING = PLANT_PROJECTILE + 1,
+	BOSS = CAVELING + 1,
+	ARTIFACT = BOSS + 1,
+	CONSUMABLE = ARTIFACT + 1,
+	EQUIPABLE = CONSUMABLE + 1,
+	CHEST = EQUIPABLE + 1,
+	DOOR = CHEST + 1,
+	SIGN = DOOR + 1,
+	SIGN_GLOW_SPRITESHEET = SIGN + 1,
+	STAIR = SIGN_GLOW_SPRITESHEET + 1,
+	START = STAIR + 1,
+	QUIT = START + 1,
+	TITLE = QUIT + 1,
+	WALL = TITLE + 1,
+	HPBAR = WALL + 1,
+	MPBAR = HPBAR + 1,
+	EPBAR = MPBAR + 1,
+	HPFILL = EPBAR + 1,
+	MPFILL = HPFILL + 1,
+	EPFILL = MPFILL + 1,
+	ACTIONS_MOVE = EPFILL + 1,
+	ACTIONS_ATTACK = ACTIONS_MOVE + 1,
+	ACTIONS_BAR = ACTIONS_ATTACK + 1,
+	ACTIONS_GUARD = ACTIONS_BAR + 1,
+	ACTIONS_ITEM = ACTIONS_GUARD + 1,
+	ACTIONS_END_TURN = ACTIONS_ITEM + 1,
+	ACTIONS_BACK = ACTIONS_END_TURN + 1,
+	ACTIONS_CANCEL = ACTIONS_BACK + 1,
+	ACTIONS_ATTACK_MODE = ACTIONS_CANCEL + 1,
+	ACTIONS_MOVE_MODE = ACTIONS_ATTACK_MODE + 1,
+	PAUSE = ACTIONS_MOVE_MODE + 1,
+	COLLECTION_BUTTON = PAUSE + 1,
+	DUNGEON_TILESHEET = COLLECTION_BUTTON + 1,
+	CAMPFIRE_SPRITESHEET = DUNGEON_TILESHEET + 1,
+	EXPLOSION_SPRITESHEET = CAMPFIRE_SPRITESHEET + 1,
+	NORMAL_POINTER = EXPLOSION_SPRITESHEET + 1,
+	ATTACK_POINTER = NORMAL_POINTER + 1,
+	MOVE_POINTER = ATTACK_POINTER + 1,
+	MENU_CLOSE = MOVE_POINTER + 1,
+	COLLECTION_PANEL = MENU_CLOSE + 1,
+	DESCRIPTION_DIALOG = COLLECTION_PANEL + 1,
+	ARTIFACT_PLACEHOLDER = DESCRIPTION_DIALOG + 1,
+	COLLECTION_SCROLL_ARROW = ARTIFACT_PLACEHOLDER + 1,
+	CUTSCENE1 = COLLECTION_SCROLL_ARROW + 1,
+	CUTSCENE2 = CUTSCENE1 + 1,
+	CUTSCENE3 = CUTSCENE2 + 1,
+	TURN_UI = CUTSCENE3+1,
+	ARROW_FEATHER = TURN_UI+1,
+	BASEBALL_CAP = ARROW_FEATHER+1,
+	BELT = BASEBALL_CAP+1,
+	BLOODY_RUBY = BELT+1,
+	BOOK_THICK = BLOODY_RUBY+1,
+	DEMON_ARM = BOOK_THICK+1,
+	FANG = DEMON_ARM+1,
+	FLORESCENT_MUSHROOM = FANG+1,
+	FUNNEL = FLORESCENT_MUSHROOM+1,
+	GREEN_BOOK = FUNNEL+1,
+	PLANT_BULB = GREEN_BOOK+1,
+	POKER_CHIP = PLANT_BULB+1,
+	POUCH = POKER_CHIP+1,
+	POUCH_DIFF = POUCH+1,
+	POWDER_POUCH = POUCH_DIFF+1,
+	ROUND_METAL_SHEILD = POWDER_POUCH+1,
+	RUBBER_MALLET = ROUND_METAL_SHEILD+1,
+	SCROLL = RUBBER_MALLET+1,
+	TWIG = SCROLL+1,
+	FUR_COAT = TWIG+1,
+	TEXTURE_COUNT = FUR_COAT+ 1
+	
+};
+
+const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
@@ -717,8 +620,7 @@ enum class GEOMETRY_BUFFER_ID {
 	TILEMAP = SPRITE + 1,
 	LINE = TILEMAP + 1,
 	ANIMATION = LINE + 1,
-	SPRITESHEET = ANIMATION + 1,
-	FOG = SPRITESHEET + 1,
+	FOG = ANIMATION + 1,
 	EP = FOG + 1,
 	DEBUG_LINE = EP + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
@@ -729,14 +631,10 @@ const int geometry_count = (int)GEOMETRY_BUFFER_ID::GEOMETRY_COUNT;
 
 enum class RENDER_LAYER_ID {
 	BG = 0,
-	BG_1 = BG + 1,
-	BG_2 = BG_1 + 1,
-	BG_3 = BG_2 + 1,
-	FLOOR = BG_3 + 1,
+	FLOOR = BG + 1,
 	FLOOR_DECO = FLOOR + 1,
 	SPRITE = FLOOR_DECO + 1,
-	PLAYER = SPRITE + 1,
-	WALLS = PLAYER + 1,
+	WALLS = SPRITE + 1,
 	RANDOM_WALLS = WALLS + 1,
 	EFFECT = RANDOM_WALLS + 1,
 	UI = EFFECT + 1,
@@ -788,19 +686,9 @@ struct GuardButton {
 	BUTTON_ACTION_ID action = BUTTON_ACTION_ID::ACTIONS_GUARD;
 };
 
-// hotkey icon
-struct KeyIcon {
-
-};
-
 // stylized poiner
 struct Pointer {
 
-};
-
-// attack card
-struct AttackCard {
-	ATTACK attack;
 };
 
 // Artifact name map
@@ -834,28 +722,28 @@ const std::map <ARTIFACT, std::string>artifact_names = {
 // Artifact description map
 const std::map <ARTIFACT, std::string>artifact_descriptions = {
 	{ARTIFACT::POISON_FANG, "Even without the creature this fang originally belonged to, you still feel uneasy knowing there might be more of them out there."},
-	{ARTIFACT::GLAD_HOPLON, "\"You won't believe it! This man bested TWO lions! It's a miracle how he's still alive! Just what is his shield made of?!\""},
+	{ARTIFACT::GLAD_HOPLON, "You won't believe it! This man bested TWO lions! It's a miracle how he's still alive! Just what is his shield made of?!"},
 	{ARTIFACT::BLADE_POLISH, "test description"},
 	{ARTIFACT::HQ_FLETCHING, "test description"},
 	{ARTIFACT::MESSENGER_CAP, "Wait, are you sure this came from a messenger?"},
-	{ARTIFACT::WARM_CLOAK, "Hiking up the mountain, boot-deep in snow, with chilling winds rushing past...why does this imaginary scene feel so real?"},
+	{ARTIFACT::WARM_CLOAK, "Hiking up the mountain, boot-deep in snow, with chilling winds rushing past�why does this imaginary scene feel so real?"},
 	{ARTIFACT::THUNDER_TWIG, "test description"},
-	{ARTIFACT::LUCKY_CHIP, "\"Why do you have this? Doesn\'t that belong to the [REDACTED]? Well, I guess it\'s too late to give it back to them now...\""},
-	{ARTIFACT::GUIDE_HEALBUFF, "\"YOU EAT GOOD, YOU BECOME STRONG LIKE ME.\""},
+	{ARTIFACT::LUCKY_CHIP, "�Why do you have this? Doesn�t that belong to the [REDACTED]? Well, I guess it�s too late to give it back to them now��"},
+	{ARTIFACT::GUIDE_HEALBUFF, "�YOU EAT GOOD, YOU BECOME STRONG LIKE ME.�"},
 	{ARTIFACT::THICK_TOME, "It is said that someone escaped death when a projectile aimed at them was stopped by a tome like this. Perhaps you may encounter a similar fortune by keeping it on your person."},
 	{ARTIFACT::GOLIATH_BELT, "test description"},
 	{ARTIFACT::BLOOD_RUBY, "test description"},
 	{ARTIFACT::WINDBAG, "How? How does a simple pouch hold such a strong gust of wind? How is this possible?"},
-	{ARTIFACT::KB_MALLET, "\"Don\'t worry, those aren\'t real moles.\""},
-	{ARTIFACT::ARCANE_SPECS, "It\'s engraved with the words \"Property of Professor Hammond\". Putting them on somehow lets you see further into the darkness than usual."},
-	{ARTIFACT::SCOUT_STRIDE, "\"Come get it today! Our newly patented boots that, when you sprint with them, lets you cover long distances far easier than ever before!\""},
-	{ARTIFACT::ART_CONSERVE, "The ideas in this scroll were originally meant for saving energy so you won\'t need to eat as frequently, but somebody left notes about applying some of these concepts in close-quarters combat. How intriguing..."},
-	{ARTIFACT::ARCANE_FUNNEL, "It\'s engraved with the words \"Property of Professor Hammond\". It seems to be absorbing energy from fallen monsters. Don\'t think about it too much, lest you wish to pity the poor creatures you\'ve slain during your time here."},
-	{ARTIFACT::FUNGIFIER, "\"What do you mean it wasn\'t fungible?!\""},
-	{ARTIFACT::BURRBAG, "\"Who even collects these?\""},
-	{ARTIFACT::SMOKE_POWDER, "\"Come get it today! Our newly patented powder that, when thrown on the ground, produces a cloud of smoke that lets you slip out of sight far easier than ever before!\""},
-	{ARTIFACT::LIVELY_BULB, "You may have unintentionally allowed this plant to think you\'re its parent. You also may have named it \"Bobby\"."},
-	{ARTIFACT::MALEDICTION, "\"Your suffering...I want to savour it!\""},
+	{ARTIFACT::KB_MALLET, "�Don�t worry, those aren�t real moles.�"},
+	{ARTIFACT::ARCANE_SPECS, "It�s engraved with the words �Property of Professor Hammond�. Putting them on somehow lets you see further into the darkness than usual."},
+	{ARTIFACT::SCOUT_STRIDE, "�Come get it today! Our newly patented boots that, when you sprint with them, lets you cover long distances far easier than ever before!�"},
+	{ARTIFACT::ART_CONSERVE, "The ideas in this book were originally meant for saving energy so you won�t need to eat as frequently, but somebody left notes about applying some of these concepts in close-quarters combat. How intriguing�"},
+	{ARTIFACT::ARCANE_FUNNEL, "It�s engraved with the words �Property of Professor Hammond�. It seems to be absorbing energy from fallen monsters. Don�t think about it too much, lest you wish to pity the poor creatures you�ve slain during your time here."},
+	{ARTIFACT::FUNGIFIER, "�What do you mean it wasn�t fungible?!�"},
+	{ARTIFACT::BURRBAG, "�Who even collects these?�"},
+	{ARTIFACT::SMOKE_POWDER, "�Come get it today! Our newly patented powder that, when thrown on the ground, produces a cloud of smoke that lets you slip out of sight far easier than ever before!�"},
+	{ARTIFACT::LIVELY_BULB, "You may have unintentionally allowed this plant to think you�re its parent. You also may have named it �Bobby�."},
+	{ARTIFACT::MALEDICTION, "�Your suffering�I want to savour it!�"},
 	{ARTIFACT::CHIMERARM, "A disfigured limb belonging to a monster of unknown origin. It seems to be wrapped in a strange aura that warps nearby weapons in an inexplicable way. You hear a strange voice from the back of your head saying that you can use it to create an armament of unparalleled power."}
 };
 
@@ -896,41 +784,21 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::MESSENGER_CAP, "10% (+5% per stack) of your base ATK stat is added onto your Speed stat."},
 	{ARTIFACT::WARM_CLOAK, "10% (+5% per stack) of your base ATK stat is added onto your DEF stat."},
 	{ARTIFACT::THUNDER_TWIG, "Attacks have a 15% (+15% per stack) chance to summon a lightning bolt that deals 60% ATK damage in a small AoE."},
-	{ARTIFACT::LUCKY_CHIP, "7% (+7% per stack) chance for your attack to deal 777% damage. 7 % (+7% per stack) chance to reduce incoming damage by 777. Lowest damage taken per attack is 1."},
+	{ARTIFACT::LUCKY_CHIP, "7% (+7% additive) chance for your attack to deal 777% damage. 7 % (+7 % additive) chance to reduce incoming damage by 777. Lowest damage taken per attack is 1."},
 	{ARTIFACT::GUIDE_HEALBUFF, "Health-restoring items and interactables grant a 30% (+30% per stack) ATK buff for 5 turns."},
 	{ARTIFACT::THICK_TOME, "Upon taking lethal damage, survive with 1 HP and gain 3 turns of invincibility. This artifact is consumed when this effect activates."},
-	{ARTIFACT::GOLIATH_BELT, "When HP is above 80%, increases ATK by 20% (+20% per stack)."},
+	{ARTIFACT::GOLIATH_BELT, "test effects"},
 	{ARTIFACT::BLOOD_RUBY, "When HP is below 40%, increases ATK by 20% (+20% per stack)."},
 	{ARTIFACT::WINDBAG, "Upon taking damage that puts you below 25% (+5% per stack) HP, release an AoE that knocks back nearby enemies by 300 units, and stuns them for 3 (+1 per stack) turns. Has a 15 turn cooldown."},
 	{ARTIFACT::KB_MALLET, "When attacking an enemy within melee range, knock back struck enemies by 100 units (+ 50 units per stack)."},
 	{ARTIFACT::ARCANE_SPECS, "Gain 50 (+50 per stack) units of sight range."},
-	{ARTIFACT::SCOUT_STRIDE, "Consume 10% (*10% per stack) less EP when moving."},
-	{ARTIFACT::ART_CONSERVE, "Consume 10% (*10% per stack) less EP when attacking."},
+	{ARTIFACT::SCOUT_STRIDE, "Consume 10% (+10% multiplicative per stack) less EP when moving."},
+	{ARTIFACT::ART_CONSERVE, "Consume 10% (+10% multiplicative per stack) less EP when attacking."},
 	{ARTIFACT::ARCANE_FUNNEL, "Upon defeating an enemy, gain a buff that doubles your MP regeneration for 1 (+1 per stack) turns."},
 	{ARTIFACT::FUNGIFIER, "Upon defeating an enemy, an explosive mushroom is dropped at their location. When an enemy steps on the mushroom, or after 3 turns, the mushroom explodes, dealing 130% (+130% per stack) ATK in damage in a small AoE."},
 	{ARTIFACT::BURRBAG, "At the start of each turn, leave a patch of burrs on the ground that last for 5 turns or until activated 1 (+1 per stack) times. Enemies that step over the burrs will take 40% ATK in damage and can move only 50% of their regular distance on their next turn."},
-	{ARTIFACT::SMOKE_POWDER, "Upon picking up an item, release a cloud of smoke that halves the aggro range of enemies within 200 (+75 per stack) units for 1 turn. Has a 5 turn cooldown."},
+	{ARTIFACT::SMOKE_POWDER, "Upon picking up an item, release a cloud of smoke that halves the aggro range of enemies within 150 (+100 per stack) units for 1 turn."},
 	{ARTIFACT::LIVELY_BULB, "Whenever you perform a Normal Attack, fire 1 (+1 per stack) seed projectile that deals 90% ATK damage towards the lowest HP enemy within your sight range."},
 	{ARTIFACT::MALEDICTION, "When you are attacked, all enemies in sight range will be affected with a curse that reduces their ATK by 40% for 3 turns. Has a 10 (-1 per stack) turn cooldown."},
 	{ARTIFACT::CHIMERARM, "Your current weapon, and newly generated weapons will have +4 ATK (+4 ATK per stack), and its 2nd Attack Skill will become a random attack skill from any weapon type."}
-};
-
-// Attack texture map TODO: finish this
-const std::map <ATTACK, TEXTURE_ASSET_ID>attack_textures = {
-	{ATTACK::NONE, TEXTURE_ASSET_ID::ATTACK_NORMAL},
-};
-
-//TODO: Fill this out
-// Attack name map
-const std::map <ATTACK, std::string>attack_names = {
-	{ATTACK::NONE, "Normal Attack"},
-	{ATTACK::ROUNDSLASH, "Roundslash"},
-};
-
-const std::map <ATTACK, std::string>attack_descriptions = {
-	{ATTACK::NONE, "Deals 100% of ATK in damage to a single target."},
-};
-
-const std::map <ATTACK, std::string>attack_costs = {
-	{ATTACK::NONE, "0 MP, 50 EP"},
 };

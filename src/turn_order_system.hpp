@@ -17,7 +17,7 @@ public:
 	void loadTurnOrder(std::queue<Entity> queue);
 	void removeFromQueue(Entity e);
 	void emptyQueue();
-
+	void addNewEntity(Entity e);
 private:
 	Entity currentEntity;
 	TurnQueue turnQueue;

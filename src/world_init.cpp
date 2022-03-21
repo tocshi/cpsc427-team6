@@ -1955,6 +1955,31 @@ Entity createDamageText(RenderSystem* renderer, vec2 pos, std::string text_input
 	return entity;
 }
 
+Entity createMotionText(RenderSystem* renderer, vec2 pos, std::string msg, float scale = 1.0f, vec3 textColor = vec3(0.0f)) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Initialize the text component
+	Text& text = registry.texts.emplace(entity);
+	text.message = msg;
+	text.position = { 0,0 };
+	text.scale = scale;
+	text.textColor = textColor;
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 1.f, 1.f };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::TEXT,
+			GEOMETRY_BUFFER_ID::TEXTQUAD,
+			RENDER_LAYER_ID::FLOOR_DECO });
+
+	return entity;
+}
+
 // Dialog text
 Entity createDialogText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor)
 {

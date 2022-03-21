@@ -234,6 +234,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// if not in menu do turn order logic (!current_game_state)
 	if (current_game_state < GameStates::CUTSCENE && current_game_state >= GameStates::GAME_START) {
+		if (tutorial) {
+			updateTutorial();
+		}
 		update_turn_ui();
 		doTurnOrderLogic();
 	}
@@ -816,6 +819,50 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 	set_gamestate(GameStates::ENEMY_TURN);
 }
 
+// spawn tutorial entities
+void WorldSystem::spawn_tutorial_entities() {
+	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	SpawnData spawnData = createTiles(renderer, next_map);
+
+	// create all non-menu game objects
+	// spawn the player and enemy in random locations
+	spawn_player_random_location(spawnData.playerSpawns);
+	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
+	spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
+
+	Entity player = registry.players.entities[0];
+	Motion& player_motion = registry.motions.get(player);
+
+	std::vector<std::pair<std::string, int>> messages = {
+		{"Welcome to Adrift in Somnium!", 0},
+		{"Click on the move icon or press [2] to access the move menu", 2000}};
+
+	createSign(
+		renderer,
+		{ player_motion.position.x - 64, player_motion.position.y - 64 },
+		messages);
+
+	createMotionText(renderer, { player_motion.position.x - 160, player_motion.position.y - 96 }, "CLICK ME", 3.f, vec3(1.f));
+
+	// setup turn order system
+	turnOrderSystem.setUpTurnOrder();
+	// start first turn
+	turnOrderSystem.getNextTurn();
+
+	float statbarsX = 150.f;
+	float statbarsY = window_height_px - START_BB_HEIGHT - 55.f;
+	createHPFill(renderer, { statbarsX, statbarsY });
+	createHPBar(renderer,  { statbarsX, statbarsY });
+	createMPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createMPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
+	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
+	create_fog_of_war();
+	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
+
+	// roomSystem.setRandomObjective(); // hijack for tutorial objectives?
+}
+
 // spawn the game entities
 void WorldSystem::spawn_game_entities() {
 
@@ -1268,7 +1315,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						if (current_game_state != GameStates::CUTSCENE || current_game_state != GameStates::MAIN_MENU) {
 							Mix_PlayMusic(background_music, -1);
 						}
-						spawn_game_entities();
+						// TODO: add tutorial flag
+						if (tutorial) { spawn_tutorial_entities(); }
+						else { spawn_game_entities(); }
 						// spawn the actions bar
 						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
 						createAttackButton(renderer, { window_width_px - 125.f, 200.f });
@@ -2224,6 +2273,26 @@ void WorldSystem::doTurnOrderLogic() {
 
 		// now that ai did its step, set doing turn to false
 		registry.queueables.get(currentTurnEntity).doing_turn = false;
+	}
+}
+
+void WorldSystem::updateTutorial() {
+	if (!movementSelected) {
+		if (current_game_state == GameStates::MOVEMENT_MENU) {
+			movementSelected = true;
+			logText("Left click to move around the room");
+		}
+	}
+	else if (!epDepleted) {
+		// check ep depleted
+		if (registry.stats.get(player_main).ep <= 0) {
+			epDepleted = true;
+			logText("You ran out of EP!");
+			logText("Movement and attacks consumes EP");
+			logText("To end your turn, click end turn or by press [3]");
+			Motion& player_motion = registry.motions.get(player_main);
+			createMotionText(renderer, { player_motion.position.x - 64, player_motion.position.y - 64 }, "GO NORTH", 3.f, vec3(1.f));
+		}
 	}
 }
 

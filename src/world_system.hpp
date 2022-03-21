@@ -64,6 +64,16 @@ public:
 	// Game state
 	Entity player_main;
 
+	// Tutorial flags
+	bool tutorial = true;
+	bool firstSign = false;
+	bool movementSelected = false;
+	bool epDepleted = false;
+	bool secondSign = false;
+	bool slimeDefeated = false;
+	bool interactedCampfire = false;
+	bool thirdSign = false;
+
 	// music references
 	Mix_Music* background_music;
 	Mix_Chunk* fire_explosion_sound;
@@ -112,6 +122,9 @@ private:
 	
 	// restart level
 	void restart_game();
+
+	// spawn entities (tutorial)
+	void spawn_tutorial_entities();
 
 	// spawn entities
 	void spawn_game_entities();
@@ -228,6 +241,9 @@ private:
 
 	// udate turn UI
 	void update_turn_ui();
+
+	// update tutorial flags
+	void WorldSystem::updateTutorial();
 
 	// OpenGL window handle
 	GLFWwindow* window;

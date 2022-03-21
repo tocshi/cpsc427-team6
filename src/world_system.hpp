@@ -230,6 +230,9 @@ private:
 
 	// load a campfire
 	void loadCampfire(Entity e);
+
+	// load the room system
+	void loadRoomSystem(json roomSystemData);
   
 	// do turn order logic
 	void doTurnOrderLogic();

@@ -2052,6 +2052,9 @@ void WorldSystem::loadInteractables(json interactablesList) {
 			else if (interactable["equipment"] != nullptr) {
 				loadEquipmentEntity(e, interactable["equipment"], interactable["spritesheet"]);
 			}
+			else if (interactable["consumable"] != nullptr) {
+				loadConsumable(e, interactable["consumable"]);
+			}
 			break;
 		default:
 			break;
@@ -2193,6 +2196,33 @@ void WorldSystem::loadArtifact(Entity e, json artifactData) {
 		{ sprite,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(e);
+}
+
+void WorldSystem::loadConsumable(Entity e, json consumableData) {
+	registry.consumables.insert(e, { consumableData["type"] });
+
+	RenderRequest& rr = registry.renderRequests.emplace(e);
+	rr.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	rr.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	rr.used_layer = RENDER_LAYER_ID::SPRITE;
+	switch ((CONSUMABLE)consumableData["type"]) {
+	case CONSUMABLE::REDPOT:
+		rr.used_texture = TEXTURE_ASSET_ID::POTION_RED;
+		break;
+	case CONSUMABLE::BLUPOT:
+		rr.used_texture = TEXTURE_ASSET_ID::POTION_BLUE;
+		break;
+	case CONSUMABLE::YELPOT:
+		rr.used_texture = TEXTURE_ASSET_ID::POTION_YELLOW;
+		break;
+	case CONSUMABLE::INSTANT:
+		rr.used_texture = TEXTURE_ASSET_ID::POTION_RED;
+		break;
+	default:
+		rr.used_texture = TEXTURE_ASSET_ID::POTION_RED;
+		break;
+	}
 	registry.hidables.emplace(e);
 }
 

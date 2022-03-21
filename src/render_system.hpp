@@ -107,7 +107,30 @@ class RenderSystem {
 			textures_path("item/potion_red.png"),
 			textures_path("item/potion_blue.png"),
 			textures_path("item/potion_yellow.png"),
-			textures_path("mouse_icons.png"),
+			textures_path("artifacts/arcane_specs.png"), // artifact sprites
+			textures_path("artifacts/art_conserve.png"),
+			textures_path("artifacts/blade_polish.png"),
+			textures_path("artifacts/blood_ruby.png"),
+			textures_path("artifacts/burrbag.png"),
+			textures_path("artifacts/chimerarm.png"),
+			textures_path("artifacts/discarded_fang.png"),
+			textures_path("artifacts/fletching.png"),
+			textures_path("artifacts/fungifier.png"),
+			textures_path("artifacts/funnel.png"),
+			textures_path("artifacts/goliath_belt.png"),
+			textures_path("artifacts/guide_healthy.png"),
+			textures_path("artifacts/hoplon.png"),
+			textures_path("artifacts/lively_bulb.png"),
+			textures_path("artifacts/lucky_chip.png"),
+			textures_path("artifacts/messenger_cap.png"),
+			textures_path("artifacts/rubber_mallet.png"),
+			textures_path("artifacts/scout_shoes.png"),
+			textures_path("artifacts/smoke_powder.png"),
+			textures_path("artifacts/thick_tome.png"),
+			textures_path("artifacts/thunder_twig.png"),
+			textures_path("artifacts/warm_cloak.png"),
+			textures_path("artifacts/windbag.png"),
+			textures_path("mouse_icons.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

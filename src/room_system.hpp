@@ -16,6 +16,10 @@ public:
 private:
 	const std::map<Floors, std::vector<std::string>> floor_map_data = {
 		{
+			Floors::TUTORIAL,
+			{"tutorial.tmx"}
+		},
+		{
 			Floors::DEBUG,
 			{"debug_room.tmx"}
 		},

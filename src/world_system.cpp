@@ -865,7 +865,7 @@ void WorldSystem::spawn_tutorial_entities() {
 
 	std::vector<std::pair<std::string, int>> messages_3 = {
 		{"Good Luck adventurer!", 0},
-		{"Take the stairs to proceed", 3000}};
+		{"Go through the door to proceed", 3000}};
 
 	tutorial_sign_3 = createSign(
 		renderer,
@@ -2331,20 +2331,20 @@ void WorldSystem::updateTutorial() {
 			// spawn slime
 			Motion& sign_motion = registry.motions.get(tutorial_sign_2);
 			tutorial_slime = createEnemy(renderer, { sign_motion.position.x - 64.f, sign_motion.position.y - 256.f });
-			turnOrderSystem.addNewEntity(tutorial_slime); // TODO: fix crash
+			turnOrderSystem.addNewEntity(tutorial_slime);
 		}
 	}
 	else if (!slimeDefeated) {
-		vec2 slime_position = registry.motions.get(tutorial_slime).position;
+		Motion& player_motion = registry.motions.get(player_main);
 		if (registry.enemies.size() <= 0) {
 			slimeDefeated = true;
 			// spawn campfire
-			tutorial_campfire = createCampfire(renderer, slime_position);
+			tutorial_campfire = createCampfire(renderer, { player_motion.position.x, player_motion.position.y - 96.f });
 			logText("Left click on the campfire to interact with it");
 		}
 	}
 	else if (!interactedCampfire) {
-		if (registry.interactables.get(tutorial_campfire).interacted) {
+		if (registry.interactables.has(tutorial_campfire) && registry.interactables.get(tutorial_campfire).interacted) {
 			interactedCampfire = true;
 			std::vector<std::pair<std::string, int>> messages = {
 				{"Campfires will recover your HP and MP to full", 0},
@@ -2362,7 +2362,7 @@ void WorldSystem::updateTutorial() {
 	}
 	// use else if, if want prior flags to be true
 	if (!thirdSign) {
-		if (registry.interactables.get(tutorial_sign_3).interacted) {
+		if (registry.interactables.has(tutorial_sign_3) && registry.interactables.get(tutorial_sign_3).interacted) {
 			thirdSign = true;
 			// spawn stairs (or door)
 			Motion& sign_motion = registry.motions.get(tutorial_sign_3);

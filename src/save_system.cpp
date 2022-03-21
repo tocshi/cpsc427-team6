@@ -268,6 +268,7 @@ json SaveSystem::jsonifyInteractables() {
 		json interactableJson;
 		Interactable interactable = registry.interactables.get(entity);
 		interactableJson["type"] = interactable.type;
+		interactableJson["interacted"] = interactable.interacted;
 		Motion m = registry.motions.get(entity);
 		interactableJson["motion"] = jsonifyMotion(m);
 		if (interactable.type == INTERACT_TYPE::SIGN) {

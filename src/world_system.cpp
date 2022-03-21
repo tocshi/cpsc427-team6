@@ -1338,6 +1338,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							registry.remove_all_components_of(ad);
 						}
 						break;
+					case BUTTON_ACTION_ID::USE_ATTACK:
+						use_attack(world_pos);
+						break;
+					case BUTTON_ACTION_ID::PREPARE_ATTACK:
+						// TODO
+						break;
 				}
 			}
 		}

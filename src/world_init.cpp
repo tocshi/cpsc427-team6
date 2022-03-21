@@ -1237,6 +1237,10 @@ Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 		}
 	}
 
+	// render use / prepare buttons
+	createAttackDialogButton(renderer, vec2(pos.x - DESCRIPTION_DIALOG_BB_WIDTH / 4 + 3.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 - 50.f), TEXTURE_ASSET_ID::USE_BUTTON, BUTTON_ACTION_ID::USE_ATTACK);
+	createAttackDialogButton(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH / 4 - 3.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 - 50.f), TEXTURE_ASSET_ID::PREPARE_BUTTON, BUTTON_ACTION_ID::PREPARE_ATTACK);
+
 	// render the x button
 	auto close_entity = Entity();
 
@@ -1261,6 +1265,32 @@ Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 	registry.renderRequests.insert(
 		close_entity,
 		{ TEXTURE_ASSET_ID::MENU_CLOSE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI_TOP });
+
+	return entity;
+}
+
+// generic button
+Entity createAttackDialogButton(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID button_texture, BUTTON_ACTION_ID button_action) {
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ ATTACK_DIALOG_BUTTON_BB_WIDTH, ATTACK_DIALOG_BUTTON_BB_HEIGHT });
+
+	registry.attackDialogs.emplace(entity);
+
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = button_action;
+	registry.renderRequests.insert(
+		entity,
+		{ button_texture,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI_TOP });

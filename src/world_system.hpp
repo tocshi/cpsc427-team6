@@ -71,6 +71,7 @@ public:
 	Mix_Chunk* footstep_sound;
 	Mix_Chunk* door_sound;
 	Mix_Chunk* switch_sound;
+	Mix_Chunk* chest_sound;
 
 	Mix_Music* menu_music;
 	Mix_Music* cutscene_music;
@@ -179,7 +180,13 @@ private:
 	void loadSign(Entity e, json signData);
 
 	// load a chest
-	void loadChest(Entity e);
+	void loadChest(Entity e, json chestData);
+
+	// load an item pickup
+	void loadEquipmentEntity(Entity e, json equipData, json spritesheetData);
+
+	// load artifact data
+	void loadArtifact(Entity e, json artifactData);
 
 	// load a door
 	void loadDoor(Entity e);

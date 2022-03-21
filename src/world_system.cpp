@@ -2380,7 +2380,7 @@ void WorldSystem::updateTutorial() {
 	}
 	// use else if, if want prior flags to be true
 	if (!secondSign) {
-		if (registry.interactables.get(tutorial_sign_2).interacted) {
+		if (registry.interactables.has(tutorial_sign_2) && registry.interactables.get(tutorial_sign_2).interacted) {
 			secondSign = true;
 			// spawn slime
 			Motion& sign_motion = registry.motions.get(tutorial_sign_2);
@@ -2423,7 +2423,7 @@ void WorldSystem::updateTutorial() {
 			tutorial_door = createDoor(renderer, { sign_motion.position.x + 64.f, sign_motion.position.y });
 		}
 	}
-	else if (registry.interactables.get(tutorial_door).interacted) {
+	else if (registry.interactables.has(tutorial_door) && registry.interactables.get(tutorial_door).interacted) {
 		tutorial = false;
 		registry.remove_all_components_of(tutorial_floor_text);
 	}

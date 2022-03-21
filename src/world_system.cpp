@@ -855,12 +855,12 @@ void WorldSystem::spawn_tutorial_entities() {
 	std::vector<std::pair<std::string, int>> messages_2 = {
 		{"There is a slime enemy ahead!", 0},
 		{"You will need enough EP and be within range to attack the enemy", 3000},
-		{"You can click the attack icon or press [2] to access the attack menu", 6000},
+		{"You can click the attack icon or press [1] to access the attack menu", 6000},
 		{"If you don't have enough EP, end your turn", 9000}};
 
 	tutorial_sign_2 = createSign(
 		renderer,
-		{ player_motion.position.x - 64, player_motion.position.y - 128 }, // TODO: change y value
+		{ player_motion.position.x - 64, player_motion.position.y - 1280 },
 		messages_2);
 
 	std::vector<std::pair<std::string, int>> messages_3 = {
@@ -869,7 +869,7 @@ void WorldSystem::spawn_tutorial_entities() {
 
 	tutorial_sign_3 = createSign(
 		renderer,
-		{ player_motion.position.x - 64, player_motion.position.y - 192 }, // TODO: change y value
+		{ player_motion.position.x - 64, player_motion.position.y - 2016 },
 		messages_3);
 
 	// setup turn order system
@@ -908,20 +908,20 @@ void WorldSystem::spawn_game_entities() {
 	Entity player = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player);
 
-	std::vector<std::pair<std::string, int>> messages = {
-		{"Welcome to Adrift in Somnium!", 0},
-		{"Left click the buttons at the bottom to switch between actions.", 2000},
-		{"In Move mode, you can click to move as long as you have EP.", 6000},
-		{"EP is the yellow bar at the top of the screen, which gets expended as you move and attack.", 10000},
-		{"In Attack mode, you can click on an enemy close to you to deal damage at the cost of half your EP.", 15000},
-		{"Use your attacks wisely. You can only attack once per turn.", 20000},
-		{"After your EP hits 0 or you click on End Turn, the enemies will have a turn to move and attack you.", 24000},
-		{"Good luck, nameless adventurer.", 30000}};
+	// std::vector<std::pair<std::string, int>> messages = {
+	// 	{"Welcome to Adrift in Somnium!", 0},
+	// 	{"Left click the buttons at the bottom to switch between actions.", 2000},
+	// 	{"In Move mode, you can click to move as long as you have EP.", 6000},
+	// 	{"EP is the yellow bar at the top of the screen, which gets expended as you move and attack.", 10000},
+	// 	{"In Attack mode, you can click on an enemy close to you to deal damage at the cost of half your EP.", 15000},
+	// 	{"Use your attacks wisely. You can only attack once per turn.", 20000},
+	// 	{"After your EP hits 0 or you click on End Turn, the enemies will have a turn to move and attack you.", 24000},
+	// 	{"Good luck, nameless adventurer.", 30000}};
 
-	createSign(
-		renderer, 
-		{ player_motion.position.x - 64, player_motion.position.y - 64 },
-		messages);
+	// createSign(
+	// 	renderer, 
+	// 	{ player_motion.position.x - 64, player_motion.position.y - 64 },
+	// 	messages);
 
 	// setup turn order system
 	turnOrderSystem.setUpTurnOrder();
@@ -1339,11 +1339,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				switch (action_taken) {
 
 					case BUTTON_ACTION_ID::MENU_START: 
-						set_gamestate(GameStates::GAME_START);
+						set_gamestate(GameStates::BATTLE_MENU);
 						if (current_game_state != GameStates::CUTSCENE || current_game_state != GameStates::MAIN_MENU) {
 							Mix_PlayMusic(background_music, -1);
 						}
-						// TODO: add tutorial flag
 						if (tutorial) { spawn_tutorial_entities(); }
 						else { spawn_game_entities(); }
 						// spawn the actions bar
@@ -2332,6 +2331,7 @@ void WorldSystem::updateTutorial() {
 			// spawn slime
 			Motion& sign_motion = registry.motions.get(tutorial_sign_2);
 			tutorial_slime = createEnemy(renderer, { sign_motion.position.x - 64.f, sign_motion.position.y - 256.f });
+			turnOrderSystem.addNewEntity(tutorial_slime); // TODO: fix crash
 		}
 	}
 	else if (!slimeDefeated) {
@@ -2366,8 +2366,11 @@ void WorldSystem::updateTutorial() {
 			thirdSign = true;
 			// spawn stairs (or door)
 			Motion& sign_motion = registry.motions.get(tutorial_sign_3);
-			createDoor(renderer, { sign_motion.position.x + 64.f, sign_motion.position.y });
+			tutorial_door = createDoor(renderer, { sign_motion.position.x + 64.f, sign_motion.position.y });
 		}
+	}
+	else if (registry.interactables.get(tutorial_door).interacted) {
+		tutorial = false;
 	}
 }
 

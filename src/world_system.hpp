@@ -77,6 +77,8 @@ public:
 	Entity tutorial_sign_1;
 	Entity tutorial_sign_2;
 	Entity tutorial_sign_3;
+	Entity tutorial_slime;
+	Entity tutorial_campfire;
 
 	// music references
 	Mix_Music* background_music;

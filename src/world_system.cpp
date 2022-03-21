@@ -2317,6 +2317,50 @@ void WorldSystem::updateTutorial() {
 			createMotionText(renderer, { player_motion.position.x - 64, player_motion.position.y - 64 }, "GO NORTH", 3.f, vec3(1.f));
 		}
 	}
+	// use else if, if want prior flags to be true
+	if (!secondSign) {
+		if (registry.interactables.get(tutorial_sign_2).interacted) {
+			secondSign = true;
+			// spawn slime
+			Motion& sign_motion = registry.motions.get(tutorial_sign_2);
+			tutorial_slime = createEnemy(renderer, { sign_motion.position.x - 64.f, sign_motion.position.y - 256.f });
+		}
+	}
+	else if (!slimeDefeated) {
+		vec2 slime_position = registry.motions.get(tutorial_slime).position;
+		if (registry.enemies.size() <= 0) {
+			slimeDefeated = true;
+			// spawn campfire
+			tutorial_campfire = createCampfire(renderer, slime_position);
+			logText("Left click on the campfire to interact with it");
+		}
+	}
+	else if (!interactedCampfire) {
+		if (registry.interactables.get(tutorial_campfire).interacted) {
+			interactedCampfire = true;
+			std::vector<std::pair<std::string, int>> messages = {
+				{"Campfires will recover your HP and MP to full", 0},
+				{"There are several items that you can interact with", 3000},
+				{"Left click treasures and items to interact with them", 6000},
+				{"You can view artifacts by clicking the book in the top right", 9000}};
+
+			Entity campfire_sign = createSign(
+				renderer,
+				{ -64.f, -64.f },
+				messages);
+
+			registry.signs.get(campfire_sign).playing = true;
+		}
+	}
+	// use else if, if want prior flags to be true
+	if (!thirdSign) {
+		if (registry.interactables.get(tutorial_sign_3).interacted) {
+			thirdSign = true;
+			// spawn stairs (or door)
+			Motion& sign_motion = registry.motions.get(tutorial_sign_3);
+			createDoor(renderer, { sign_motion.position.x + 64.f, sign_motion.position.y });
+		}
+	}
 }
 
 // Set attack state for enemies who attack after moving

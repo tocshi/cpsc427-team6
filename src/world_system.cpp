@@ -454,6 +454,28 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				ep -= 0.06f * player_stats.epratemove * elapsed_ms_since_last_update; 
 			}
 		}
+
+		// update stats text
+		std::string currHpString = std::to_string((int)hp);
+		std::string maxHpString = std::to_string((int)maxhp);
+
+		std::string currMpString = std::to_string((int)mp);
+		std::string maxMpString = std::to_string((int)maxmp);
+
+		std::string currEpString = std::to_string((int)ep);
+		std::string maxEpString = std::to_string((int)maxep);
+
+		// remove previous stats text
+		for (Entity st : registry.statsText.entities) {
+			registry.remove_all_components_of(st);
+		}
+
+		float statbarsX = window_width_px * 0.14;
+		float statbarsY = window_height_px * 1.7;
+
+		createStatsText(renderer, { statbarsX, statbarsY }, currHpString + " / " + maxHpString, 1.2f, vec3(1.0f));
+		createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 }, currMpString + " / " + maxMpString, 1.2f, vec3(1.0f));
+		createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 4 }, currEpString + " / " + maxEpString, 1.2f, vec3(1.0f));
 		
 		// update Stat Bars and visibility
 		for (Entity entity : registry.motions.entities) {
@@ -462,27 +484,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			Motion& motion_struct = registry.motions.get(entity);
 			RenderRequest& render_struct = registry.renderRequests.get(entity);
-
-			std::string currHpString = std::to_string((int)hp);
-			std::string maxHpString = std::to_string((int)maxhp);
-
-			std::string currMpString = std::to_string((int)mp);
-			std::string maxMpString = std::to_string((int)maxmp);
-
-			std::string currEpString = std::to_string((int)ep);
-			std::string maxEpString = std::to_string((int)maxep);
-
-			// remove previous stats text
-			for (Entity st : registry.statsText.entities) {
-				registry.remove_all_components_of(st);
-			}
-
-			float statbarsX = window_width_px * 0.14;
-			float statbarsY = window_height_px * 1.7;
-
-			createStatsText(renderer, { statbarsX, statbarsY }, currHpString + " / " + maxHpString, 1.2f, vec3(1.0f));
-			createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 }, currMpString + " / " + maxMpString, 1.2f, vec3(1.0f));
-			createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 4 }, currEpString + " / " + maxEpString, 1.2f, vec3(1.0f));
 			
 			switch (render_struct.used_texture) {
 			case TEXTURE_ASSET_ID::HPFILL:

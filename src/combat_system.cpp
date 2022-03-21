@@ -345,10 +345,34 @@ void reset_stats(Entity& entity) {
 void calc_stats(Entity& entity) {
 	Stats& stats = registry.stats.get(entity);
 	Stats basestats = registry.basestats.get(entity);
-	Inventory inv = registry.inventories.get(entity);
+	Inventory& inv = registry.inventories.get(entity);
 
 	handle_status_ticks(entity, true, true);
 	// Artifact Effects
+	
+	// Arcane Spectcles
+	if (inv.artifact[(int)ARTIFACT::ARCANE_SPECS] > 0) {
+		stats.range += 50.f * inv.artifact[(int)ARTIFACT::ARCANE_SPECS];
+	}
+
+	// Scouting Striders
+	if (inv.artifact[(int)ARTIFACT::SCOUT_STRIDE] > 0) {
+		int stack = inv.artifact[(int)ARTIFACT::SCOUT_STRIDE];
+		while (stack > 0) {
+			stats.epratemove *= 0.88f;
+			stack--;
+		}
+	}
+
+	// The Art of Conservation
+	if (inv.artifact[(int)ARTIFACT::ART_CONSERVE] > 0) {
+		int stack = inv.artifact[(int)ARTIFACT::ART_CONSERVE];
+		while (stack > 0) {
+			stats.eprateatk *= 0.93f;
+			stack--;
+		}
+	}
+	printf("range: %f\nmove: %f\natk: %f\n", stats.range, stats.epratemove, stats.eprateatk);
 }
 
 // Equip an item (returns unequipped item)

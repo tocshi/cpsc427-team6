@@ -106,6 +106,7 @@ class RenderSystem {
 			textures_path("item/potion_blue.png"),
 			textures_path("item/potion_yellow.png"),
 			textures_path("mouse_icons.png"),
+			textures_path("objective_counter.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

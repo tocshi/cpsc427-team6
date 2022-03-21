@@ -182,3 +182,5 @@ Entity createSwitch(RenderSystem* renderer, vec2 pos);
 Entity createConsumable(RenderSystem* renderer, vec2 pos, CONSUMABLE type);
 // left mouse click animation
 Entity createMouseAnimation(RenderSystem* renderer, vec2 pos);
+// objective counter UI
+Entity createObjectiveCounter(RenderSystem* renderer, vec2 pos);

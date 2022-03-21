@@ -116,6 +116,9 @@ public:
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
 	Entity turnUI;
+	Entity objectiveCounter;
+	Entity objectiveDescText;
+	Entity objectiveNumberText;
 
 	// log text
 	void logText(std::string msg);

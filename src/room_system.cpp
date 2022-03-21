@@ -74,6 +74,27 @@ void RoomSystem::updateObjective(ObjectiveType type, int quantity) {
 	if (current_objective.type == type) {
 		current_objective.remaining_count = max(0, current_objective.remaining_count - quantity);
 	}
+	Text& desc = registry.texts.get(world.objectiveDescText);
+	Text& remaining = registry.texts.get(world.objectiveNumberText);
+	remaining.message = std::to_string(current_objective.remaining_count);
+	switch (current_objective.type) {
+	case ObjectiveType::KILL_ENEMIES:
+		desc.message = "Kill enemies";
+		break;
+	case ObjectiveType::ACTIVATE_SWITCHES:
+		desc.message = "Activate the black tiles";
+		break;
+	case ObjectiveType::DESTROY_SPAWNER:
+		desc.message = "Destroy the enemy hive";
+		break;
+	case ObjectiveType::SURVIVE_TURNS:
+		desc.message = "Survive the remaining turns";
+		break;
+	default:
+		desc.message = "";
+		remaining.message = "";
+	}
+
 	if (current_objective.remaining_count == 0) {
 		if (!current_objective.completed) {
 			current_objective.completed = true;

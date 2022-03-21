@@ -6,7 +6,7 @@
 #include <../ext/json/single_include/nlohmann/json.hpp>
 #include <iostream>
 #include <queue>
-
+#include "room_system.hpp"
 
 const std::string SAVE_DATA_PATH = data_path() + "/saveData.json";
 
@@ -15,7 +15,7 @@ using json = nlohmann::json;
 class SaveSystem
 {
 public:
-	void saveGameState(std::queue<Entity> entities);
+	void saveGameState(std::queue<Entity> entities, RoomSystem& roomSystem);
 	bool saveDataExists();
 	json getSaveData();
 	std::queue<Entity> getSolidTileInteract(std::queue<Entity> orignalqueue); // puts solid/ collidables obj + tileMAp into the entitylist
@@ -39,5 +39,6 @@ private:
 	json jsonifyArtifact(Artifact a);
 	json jsonifyConsumable(Consumable c);
 	json jsonifyAnimationData(AnimationData& a);
+	json jsonifyRoomSystem(RoomSystem& r);
 	//json jsonify
 };

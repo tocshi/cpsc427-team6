@@ -948,6 +948,9 @@ void WorldSystem::spawn_tutorial_entities() {
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war();
 	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
+	objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32 });
+	objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, {1.0, 1.0, 1.0});
+	objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
 
 	// roomSystem.setRandomObjective(); // hijack for tutorial objectives?
 }
@@ -956,8 +959,8 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	//std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 	spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
@@ -1009,6 +1012,9 @@ void WorldSystem::spawn_game_entities() {
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war();
 	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
+	objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) });
+	objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
+	objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
 
 	roomSystem.setRandomObjective();
 }
@@ -1183,8 +1189,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// SAVING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
-		if (roomSystem.current_floor != Floors::TUTORIAL) {
-			saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+		if (!tutorial) {
+			saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
 			logText("Game state saved!");
 		}
 	}
@@ -1311,6 +1317,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// simulating a new room
 	if (action == GLFW_RELEASE && key == GLFW_KEY_N && get_is_player_turn()) {
 		if (!registry.roomTransitions.has(player_main)) {
+			if (tutorial) {
+				tutorial = false;
+			}
 			RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
 			transition.floor = roomSystem.current_floor;
 		}
@@ -1922,6 +1931,7 @@ void WorldSystem::loadFromData(json data) {
 	json collidablesList = data["map"]["collidables"];
 	json interactablesList = data["map"]["interactables"];
 	json tilesList = data["map"]["tiles"];
+	json roomSystemJson = data["room"];
 
 	// load enemies
 	std::queue<Entity> entities;
@@ -1947,6 +1957,8 @@ void WorldSystem::loadFromData(json data) {
 	loadInteractables(interactablesList);
 	// load tiles
 	loadTiles(tilesList);
+	// load room system
+	loadRoomSystem(roomSystemJson);
 }
 
 Entity WorldSystem::loadPlayer(json playerData) {
@@ -2400,6 +2412,17 @@ void WorldSystem::loadCampfire(Entity e) {
 	registry.hidables.emplace(e);
 }
 
+void WorldSystem::loadRoomSystem(json roomSystemData) {
+	roomSystem.current_floor = roomSystemData["current_floor"];
+	roomSystem.current_room_idx = roomSystemData["current_room_idx"];
+	roomSystem.current_objective = { 
+		(ObjectiveType)roomSystemData["current_objective"]["type"], 
+		roomSystemData["current_objective"]["remaining_count"],
+		roomSystemData["current_objective"]["completed"]
+	};
+	roomSystem.updateObjective(roomSystem.current_objective.type, 0);
+}
+
 void WorldSystem::logText(std::string msg) {
 	// (note: if we want to use createText in other applications, we can create a logged text entity)
 	// shift existing logged text upwards
@@ -2711,7 +2734,7 @@ void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
 	// create an objective
 	roomSystem.setRandomObjective();
 
-	saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+	saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
 
 	if (!registry.loadingTimers.has(player_main)) {
 		registry.loadingTimers.emplace(player_main);

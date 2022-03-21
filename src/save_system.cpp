@@ -19,7 +19,7 @@ json SaveSystem::getSaveData() {
 	return j;
 }
 
-void SaveSystem::saveGameState(std::queue<Entity> entities) {
+void SaveSystem::saveGameState(std::queue<Entity> entities, RoomSystem& roomSystem) {
 	json saveState;
 	std::queue<Entity> resultList;
 	resultList = getSolidTileInteract(entities);
@@ -29,6 +29,8 @@ void SaveSystem::saveGameState(std::queue<Entity> entities) {
 	saveState["map"]["collidables"] = jsonifyCollidables();
 	saveState["map"]["interactables"] = jsonifyInteractables();
 	saveState["map"]["tiles"] = jsonifyTiles();
+
+	saveState["room"] = jsonifyRoomSystem(roomSystem);
 
 	saveToFile(saveState);
 }
@@ -405,4 +407,14 @@ json SaveSystem::jsonifyAnimationData(AnimationData& a) {
 	animationJson["loop"] = a.loop;
 	animationJson["delete_on_finish"] = a.delete_on_finish;
 	return animationJson;
+}
+
+json SaveSystem::jsonifyRoomSystem(RoomSystem& r) {
+	json roomSystemJson;
+	roomSystemJson["current_floor"] = r.current_floor;
+	roomSystemJson["current_room_idx"] = r.current_room_idx;
+	roomSystemJson["current_objective"]["type"] = r.current_objective.type;
+	roomSystemJson["current_objective"]["remaining_count"] = r.current_objective.remaining_count;
+	roomSystemJson["current_objective"]["completed"] = r.current_objective.completed;
+	return roomSystemJson;
 }

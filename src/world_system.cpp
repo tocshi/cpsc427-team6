@@ -969,7 +969,7 @@ void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
 	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	// std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 	spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
@@ -2671,6 +2671,7 @@ void WorldSystem::backAction() {
 void WorldSystem::itemAction() {
 	for (Entity e : registry.players.entities) {
 		Player p = registry.players.get(e);
+		printf("sprite: %d", p.inv.equipped[0]);
 		createItemMenu(renderer, { window_width_px - 125.f, 200.f }, p.inv);
 	}
 	

@@ -444,7 +444,8 @@ Entity createEquipmentEntity(RenderSystem* renderer, vec2 pos, Equipment equipme
 		entity,
 		{ TEXTURE_ASSET_ID::EQUIPMENT,
 		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITESHEET });
+		 GEOMETRY_BUFFER_ID::SPRITESHEET,
+		});
 	registry.hidables.emplace(entity);
 
 	Spritesheet& spritesheet = registry.spritesheets.emplace(entity);
@@ -1140,8 +1141,6 @@ Entity createItemCard(RenderSystem* renderer, vec2 pos, EQUIPMENT type, Equipmen
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
 
-	
-
 	motion.scale = vec2({ ACTIONS_BUTTON_BB_WIDTH, ACTIONS_BUTTON_BB_HEIGHT });
 
 	ItemCard& ic = registry.itemCards.emplace(entity);
@@ -1172,9 +1171,9 @@ Entity createItemCard(RenderSystem* renderer, vec2 pos, EQUIPMENT type, Equipmen
 				 RENDER_LAYER_ID::UI });
 			break;
 	}
-	// todo: render base card on the type
-
-	// todo: render spritesheet texture on top of card
+	
+	Entity equip = createEquipmentEntity(renderer, pos, item);
+	registry.itemCards.emplace(equip);
 
 	return entity;
 }

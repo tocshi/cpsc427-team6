@@ -291,6 +291,10 @@ json SaveSystem::jsonifyInteractables() {
 				Artifact a = registry.artifacts.get(entity);
 				interactableJson["artifact"] = jsonifyArtifact(a);
 			}
+			else if (registry.consumables.has(entity)) {
+				Consumable c = registry.consumables.get(entity);
+				interactableJson["consumable"] = jsonifyConsumable(c);
+			}
 		}
 		interactablesList.push_back(interactableJson);
 	}
@@ -369,4 +373,10 @@ json SaveSystem::jsonifyArtifact(Artifact a) {
 	json artifactJson;
 	artifactJson["type"] = a.type;
 	return artifactJson;
+}
+
+json SaveSystem::jsonifyConsumable(Consumable c) {
+	json consumableJson;
+	consumableJson["type"] = c.type;
+	return consumableJson;
 }

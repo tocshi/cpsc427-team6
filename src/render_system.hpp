@@ -102,6 +102,9 @@ class RenderSystem {
 			textures_path("keys/4_key.png"),
 			textures_path("keys/5_key.png"),
 			textures_path("attacks/normal_attack.png"),
+			textures_path("item/potion_red.png"),
+			textures_path("item/potion_blue.png"),
+			textures_path("item/potion_yellow.png"),
 			textures_path("mouse_icons.png"),
 	};
 

@@ -821,7 +821,7 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 
 // spawn tutorial entities
 void WorldSystem::spawn_tutorial_entities() {
-	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::TUTORIAL, true);
 	SpawnData spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects

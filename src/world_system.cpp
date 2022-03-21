@@ -474,7 +474,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			// TEMP: drop healing item from enemy with 1/3 chance
 			int roll = irand(3);
-			if (roll == 0) {
+			if (roll == 0 && !tutorial) {
 				createConsumable(renderer, registry.motions.get(enemy).position + vec2(16, 16), CONSUMABLE::INSTANT);
 			}
 

@@ -2054,6 +2054,7 @@ void WorldSystem::loadInteractables(json interactablesList) {
 
 		Interactable& interact_component = registry.interactables.emplace(e);
 		interact_component.type = (INTERACT_TYPE)interactable["type"];
+		interact_component.interacted = interactable["interacted"];
 
 		switch (interact_component.type) {
 		case INTERACT_TYPE::ARTIFACT_CHEST: // artifact chest

@@ -38,6 +38,8 @@ const float ACTIONS_BAR_BB_HEIGHT = 200.f;
 const float ACTIONS_BAR_BB_WIDTH = 1800.f;
 const float ACTIONS_BUTTON_BB_HEIGHT = 125.f;
 const float ACTIONS_BUTTON_BB_WIDTH = 125.f;
+const float ATTACK_DIALOG_BUTTON_BB_HEIGHT = 49.f * 1;
+const float ATTACK_DIALOG_BUTTON_BB_WIDTH = 190.f * 1;
 const float PAUSE_BUTTON_BB_HEIGHT = 50.f;
 const float PAUSE_BUTTON_BB_WIDTH = 50.f;
 const float COLLECTION_MENU_BB_WIDTH = 800.f;
@@ -169,6 +171,7 @@ Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture
 Entity createTurnUI(RenderSystem* renderer, vec2 pos);
 // Icon
 Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id);
-
 // switch
 Entity createSwitch(RenderSystem* renderer, vec2 pos);
+// generic button
+Entity createAttackDialogButton(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID button_texture, BUTTON_ACTION_ID button_action);

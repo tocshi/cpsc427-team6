@@ -833,16 +833,36 @@ void WorldSystem::spawn_tutorial_entities() {
 	Entity player = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player);
 
-	std::vector<std::pair<std::string, int>> messages = {
+	std::vector<std::pair<std::string, int>> messages_1 = {
 		{"Welcome to Adrift in Somnium!", 0},
 		{"Click on the move icon or press [2] to access the move menu", 2000}};
 
-	createSign(
+	tutorial_sign_1 = createSign(
 		renderer,
 		{ player_motion.position.x - 64, player_motion.position.y - 64 },
-		messages);
+		messages_1);
 
 	createMotionText(renderer, { player_motion.position.x - 160, player_motion.position.y - 96 }, "CLICK ME", 3.f, vec3(1.f));
+
+	std::vector<std::pair<std::string, int>> messages_2 = {
+		{"There is a slime enemy ahead!", 0},
+		{"You will need enough EP and be within range to attack the enemy", 3000},
+		{"You can click the attack icon or press [2] to access the attack menu", 6000},
+		{"If you don't have enough EP, end your turn", 9000}};
+
+	tutorial_sign_2 = createSign(
+		renderer,
+		{ player_motion.position.x - 64, player_motion.position.y - 128 }, // TODO: change y value
+		messages_2);
+
+	std::vector<std::pair<std::string, int>> messages_3 = {
+		{"Good Luck adventurer!", 0},
+		{"Take the stairs to proceed", 3000}};
+
+	tutorial_sign_3 = createSign(
+		renderer,
+		{ player_motion.position.x - 64, player_motion.position.y - 192 }, // TODO: change y value
+		messages_3);
 
 	// setup turn order system
 	turnOrderSystem.setUpTurnOrder();

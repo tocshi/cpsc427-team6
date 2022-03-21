@@ -74,6 +74,10 @@ public:
 	bool interactedCampfire = false;
 	bool thirdSign = false;
 
+	Entity tutorial_sign_1;
+	Entity tutorial_sign_2;
+	Entity tutorial_sign_3;
+
 	// music references
 	Mix_Music* background_music;
 	Mix_Chunk* fire_explosion_sound;

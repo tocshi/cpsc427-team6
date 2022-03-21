@@ -2024,6 +2024,9 @@ Entity createCampfire(RenderSystem* renderer, vec2 pos) {
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.scale = { 64, 64 };
+
+	Interactable& interactable = registry.interactables.emplace(entity);
+	interactable.type = INTERACT_TYPE::CAMPFIRE;
 	
 	registry.renderRequests.insert(
 		entity,

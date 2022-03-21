@@ -1593,6 +1593,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							world_pos.y <= motion.position.y + abs(motion.scale.y / 2) &&
 							world_pos.y >= motion.position.y - abs(motion.scale.y / 2)) {
 
+							bool prev_interacted = interactable.interacted;
 							interactable.interacted = true;
 
 							// Sign behaviour
@@ -1717,6 +1718,13 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									rr.used_texture = TEXTURE_ASSET_ID::SWITCH_ACTIVE;
 									Mix_PlayChannel(-1, switch_sound, 0);
 									roomSystem.updateObjective(ObjectiveType::ACTIVATE_SWITCHES, 1);
+									break;
+								}
+							}
+							else if (interactable.type == INTERACT_TYPE::CAMPFIRE && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+								if (!prev_interacted) {
+									Stats& stats = registry.stats.get(player_main);
+									heal(player_main, stats.maxhp);
 									break;
 								}
 							}

@@ -2097,6 +2097,50 @@ Entity createMouseAnimation(RenderSystem* renderer, vec2 pos) {
 	return entity;
 }
 
+Entity createAttackAnimation(RenderSystem* renderer, vec2 pos, ATTACK attack) {
+	Entity entity = Entity();
+	AnimationData& anim = registry.animations.emplace(entity);
+	anim.spritesheet_texture = TEXTURE_ASSET_ID::SLASH_SPRITESHEET;
+	anim.frametime_ms = 80;
+	anim.spritesheet_columns = 6;
+	anim.spritesheet_rows = 3;
+	anim.spritesheet_width = 756;
+	anim.spritesheet_height = 450;
+	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
+
+	anim.loop = false;
+	anim.delete_on_finish = true;
+
+	switch (attack) {
+	case ATTACK::NONE:
+	case ATTACK::SAPPING_STRIKE:
+		anim.frame_indices = { 0,1,2,3,4,5 };
+		break;
+	case ATTACK::ROUNDSLASH:
+		anim.frame_indices = { 6,7,8,9,10,11 };
+		break;
+	case ATTACK::PIERCING_THRUST:
+		anim.frame_indices = { 12,13,14,15,16,17 };
+		break;
+	default:
+		anim.frame_indices = { 0,1,2,3,4,5 };
+		break;
+	}
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 126, 150 };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SLASH_SPRITESHEET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::ANIMATION,
+			RENDER_LAYER_ID::EFFECT });
+
+	return entity;
+}
+
 Entity createExplosion(RenderSystem* renderer, vec2 pos) {
 	Entity entity = Entity();
 	AnimationData& anim = registry.animations.emplace(entity);

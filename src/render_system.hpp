@@ -130,7 +130,8 @@ class RenderSystem {
 			textures_path("artifacts/thunder_twig.png"),
 			textures_path("artifacts/warm_cloak.png"),
 			textures_path("artifacts/windbag.png"),
-			textures_path("mouse_icons.png")
+			textures_path("mouse_icons.png"),
+			textures_path("objective_counter.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

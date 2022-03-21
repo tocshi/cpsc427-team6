@@ -190,3 +190,5 @@ Entity createItemMenu(RenderSystem* renderer, vec2 top_card_pos, Inventory inv);
 Entity createStatsText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);
 // Generate equipment texture for item menu
 Entity createItemEquipmentTexture(RenderSystem* renderer, vec2 pos, Equipment equipment);
+// objective counter UI
+Entity createObjectiveCounter(RenderSystem* renderer, vec2 pos);

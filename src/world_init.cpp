@@ -2237,6 +2237,23 @@ Entity createTurnUI(RenderSystem* renderer, vec2 pos) {
 	return entity;
 }
 
+Entity createObjectiveCounter(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 512.f, 128.f };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::OBJECTIVE_COUNTER,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
 Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id) {
 	auto entity = Entity();
 

@@ -639,6 +639,33 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// update chest textures if flagged
+	for (Entity& entity : registry.chests.entities) {
+		Chest& chest = registry.chests.get(entity);
+		if (chest.needs_retexture) {
+			if (registry.renderRequests.has(entity)) {
+				RenderRequest& rr = registry.renderRequests.get(entity);
+				if (chest.isArtifact) {
+					if (chest.opened) {
+						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_OPEN;
+					}
+					else {
+						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_CLOSED;
+					}
+				}
+				else {
+					if (chest.opened) {
+						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_OPEN;
+					}
+					else {
+						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_CLOSED;
+					}
+				}
+				chest.needs_retexture = false;
+			}
+		}
+	}
+
 	return true;
 }
 
@@ -1489,11 +1516,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 								std::string name = artifact_names.at((ARTIFACT)loot);
 								logText("You open the chest and find " + name + "!");
-								
-								RenderRequest& rr = registry.renderRequests.get(entity);
-								rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_OPEN;
 
 								chest.opened = true;
+								chest.needs_retexture = true;
 								Mix_PlayChannel(-1, chest_sound, 0);
 								break;
 							}
@@ -1519,10 +1544,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 								logText("You open the chest and find some equipment!");
 
-								RenderRequest& rr = registry.renderRequests.get(entity);
-								rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_OPEN;
-
 								chest.opened = true;
+								chest.needs_retexture = true;
 								Mix_PlayChannel(-1, chest_sound, 0);
 								break;
 							}

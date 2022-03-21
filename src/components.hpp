@@ -393,6 +393,7 @@ struct Interactable {
 struct Chest {
 	bool isArtifact = false;
 	bool opened = false;
+	bool needs_retexture = false; // use this in step() to check whether the texture needs be changed
 };
 
 struct Stats {

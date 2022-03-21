@@ -80,6 +80,7 @@ public:
 	Entity tutorial_slime;
 	Entity tutorial_campfire;
 	Entity tutorial_door;
+	Entity tutorial_floor_text;
 
 	// music references
 	Mix_Music* background_music;

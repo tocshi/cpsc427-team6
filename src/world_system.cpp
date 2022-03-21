@@ -2375,7 +2375,7 @@ void WorldSystem::updateTutorial() {
 			logText("Movement and attacks consumes EP");
 			logText("To end your turn, click end turn or by press [3]");
 			Motion& player_motion = registry.motions.get(player_main);
-			createMotionText(renderer, { player_motion.position.x - 64, player_motion.position.y - 64 }, "GO NORTH", 3.f, vec3(1.f));
+			tutorial_floor_text = createMotionText(renderer, { player_motion.position.x - 64, player_motion.position.y - 64 }, "GO NORTH", 3.f, vec3(1.f));
 		}
 	}
 	// use else if, if want prior flags to be true
@@ -2425,6 +2425,7 @@ void WorldSystem::updateTutorial() {
 	}
 	else if (registry.interactables.get(tutorial_door).interacted) {
 		tutorial = false;
+		registry.remove_all_components_of(tutorial_floor_text);
 	}
 }
 

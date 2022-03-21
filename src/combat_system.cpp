@@ -248,13 +248,19 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 void apply_status(Entity& target, StatusEffect& status) {
 	StatusContainer& statusContainer = registry.statuses.get(target);
 	statusContainer.statuses.push_back(status);
+
+	// recalculate stats for entity
+	reset_stats(target);
+	calc_stats(target);
 }
 
 // call this function once at turn start (2nd param=true), and once at turn end (2nd param=false)
-void handle_status_ticks(Entity& entity, bool applied_from_turn_start) {
+// set stats_only to true if you're using this for mid-turn stat recalculation
+void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stats_only) {
 	if (registry.statuses.has(entity)) {
 		StatusContainer& statusContainer = registry.statuses.get(entity);
-		Stats stats = registry.stats.get(entity);
+		Stats& stats = registry.stats.get(entity);
+		Stats basestats = registry.basestats.get(entity);
 		// sort the statuses to ensure that percentage buffs get applied before flat buffs
 		statusContainer.sort_statuses_reverse();
 		// we iterate backwards so that removing elements will not mess up the rest of the loop
@@ -282,7 +288,7 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start) {
 					break;
 				case (StatusType::ATK_BUFF):
 					if (status.percentage && registry.stats.has(entity)) {
-						stats.atk *= 1 + status.value;
+						stats.atk += basestats.atk * status.value;
 					}
 					else {
 						stats.atk += status.value;
@@ -293,12 +299,105 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start) {
 					break;
 			}
 			// properly remove statuses that have expired, except for things with >=999 turns (we treat those as infinite)
-			if (status.turns_remaining <= 999) {
+			if (status.turns_remaining <= 999 && !stats_only) {
 				status.turns_remaining--;
 			}
-			if (status.turns_remaining <= 0) {
+			if (status.turns_remaining <= 0 && !stats_only) {
 				statusContainer.statuses.erase(statusContainer.statuses.begin() + i);
+				reset_stats(entity);
+				calc_stats(entity);
 			}
 		}
 	}
+}
+
+// Reset entity stats to base stats
+void reset_stats(Entity& entity) {
+	Stats& stats = registry.stats.get(entity);
+	Stats basestats = registry.basestats.get(entity);
+
+	float current_hp = stats.hp;
+	float current_mp = stats.mp;
+	float current_ep = stats.ep;
+	bool current_guard = stats.guard;
+	stats = basestats;
+	stats.hp = current_hp;
+	stats.mp = current_mp;
+	stats.ep = current_ep;
+	stats.guard = current_guard;
+}
+
+// Calculate entity stats based on inv + effects
+void calc_stats(Entity& entity) {
+	Stats& stats = registry.stats.get(entity);
+	Stats basestats = registry.basestats.get(entity);
+	Inventory inv = registry.inventories.get(entity);
+
+	handle_status_ticks(entity, true, true);
+	// Artifact Effects
+}
+
+// Equip an item (returns unequipped item)
+Equipment equip_item(Entity& entity, Equipment& equipment) {
+	Stats& basestats = registry.basestats.get(entity);
+	Inventory& inv = registry.inventories.get(entity);
+	int slot = 0;
+
+	switch (equipment.type) {
+	case EQUIPMENT::SHARP:
+	case EQUIPMENT::BLUNT: 
+	case EQUIPMENT::RANGED:
+		slot = 0;
+		break;
+	case EQUIPMENT::ARMOUR:
+		slot = 1;
+		break;
+	default:
+		break;
+	}
+
+	Equipment prev = {};
+	// weird nullguard, source: trust me bro
+	if (inv.equipped[slot].type != EQUIPMENT::EQUIPMENT_COUNT) {
+		prev = unequip_item(entity, slot);
+	}
+	inv.equipped[slot] = equipment;
+
+	// set base stats
+	basestats.atk += inv.equipped[slot].atk;
+	basestats.def += inv.equipped[slot].def;
+	basestats.speed += inv.equipped[slot].speed;
+	basestats.maxhp += inv.equipped[slot].hp;
+	basestats.maxmp += inv.equipped[slot].mp;
+	basestats.maxep += inv.equipped[slot].ep;
+	basestats.range += inv.equipped[slot].range;
+
+	// recalculate stats based on new equipment basestats
+	reset_stats(entity);
+	calc_stats(entity);
+
+	return prev;
+}
+
+// Unequip an item (does not remove from inventory)
+Equipment unequip_item(Entity& entity, int slot) {
+	Stats& basestats = registry.basestats.get(entity);
+	Inventory& inv = registry.inventories.get(entity);
+
+	Equipment equip = inv.equipped[slot];
+
+	// set base stats
+	basestats.atk -= inv.equipped[slot].atk;
+	basestats.def -= inv.equipped[slot].def;
+	basestats.speed -= inv.equipped[slot].speed;
+	basestats.maxhp -= inv.equipped[slot].hp;
+	basestats.maxmp -= inv.equipped[slot].mp;
+	basestats.maxep -= inv.equipped[slot].ep;
+	basestats.range -= inv.equipped[slot].range;
+
+	// recalculate stats based on new equipment basestats
+	reset_stats(entity);
+	calc_stats(entity);
+
+	return equip;
 }

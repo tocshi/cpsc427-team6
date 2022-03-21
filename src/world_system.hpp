@@ -71,6 +71,7 @@ public:
 	Mix_Chunk* footstep_sound;
 	Mix_Chunk* door_sound;
 	Mix_Chunk* switch_sound;
+	Mix_Chunk* chest_sound;
 
 	Mix_Music* menu_music;
 	Mix_Music* cutscene_music;
@@ -87,6 +88,10 @@ public:
 	bool is_player_turn = true;
 	bool player_move_click = false;
 	bool is_ai_turn = false;
+
+	// C++ random number generator
+	std::default_random_engine rng;
+	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
 	Entity turnUI;
 
@@ -178,7 +183,13 @@ private:
 	void loadSign(Entity e, json signData);
 
 	// load a chest
-	void loadChest(Entity e);
+	void loadChest(Entity e, json chestData);
+
+	// load an item pickup
+	void loadEquipmentEntity(Entity e, json equipData, json spritesheetData);
+
+	// load artifact data
+	void loadArtifact(Entity e, json artifactData);
 
 	// load a door
 	void loadDoor(Entity e);
@@ -192,6 +203,23 @@ private:
 	// handle end of player's turn
 	void handle_end_player_turn(Entity player);
 
+	// item action
+	void itemAction();
+
+	// attack action
+	void attackAction();
+
+	// move action
+	void moveAction();
+
+	// cacnel action
+	void cancelAction();
+
+	// back action
+	void backAction();
+
+	// action button helper
+	void handleActionButtonPress();
 	// generate and setup a new room
 	void generateNewRoom(Floors floor, bool repeat_allowed);
 
@@ -210,10 +238,7 @@ private:
 	RoomSystem roomSystem;
 
 	SpawnData spawnData;
-
-	// C++ random number generator
-	std::default_random_engine rng;
-	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
+	
 	int countCutScene = 0;
 };
 

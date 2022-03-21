@@ -44,8 +44,11 @@ class RenderSystem {
 			textures_path("boss.png"),
 			textures_path("artifact.png"),
 			textures_path("consumable.png"),
-			textures_path("equipable.png"),
-			textures_path("chest.png"),
+			textures_path("item/equipment.png"),
+			textures_path("chest_item_closed.png"),
+			textures_path("chest_item_open.png"),
+			textures_path("chest_artifact_closed.png"),
+			textures_path("chest_artifact_open.png"),
 			textures_path("door.png"),
 			textures_path("sign.png"),
 			textures_path("sign_glowing.png"),
@@ -92,7 +95,13 @@ class RenderSystem {
 			textures_path("parallax/cave_0000_front_p.png"),
 			textures_path("parallax/cave_0001_mid_p.png"),
 			textures_path("parallax/cave_0002_back_p.png"),
-			textures_path("parallax/cave_0003_color.png")
+			textures_path("parallax/cave_0003_color.png"),
+    		textures_path("keys/1_key.png"),
+			textures_path("keys/2_key.png"),
+			textures_path("keys/3_key.png"),
+			textures_path("keys/4_key.png"),
+			textures_path("keys/5_key.png"),
+			textures_path("attacks/normal_attack.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -165,10 +174,12 @@ private:
 	void drawToScreen();
 	void updateTileMapCoords(TileUV& tileUV);
 	void updateAnimTexCoords(AnimationData& anim);
+	void updateSpritesheetTexCoords(Spritesheet& spritesheet);
 	bool isOnScreen(Motion& motion, Camera& camera, int window_width, int window_height);
 
 	TileUV prev_tileUV = TileUV();
 	AnimationData prev_animdata = AnimationData();
+	Spritesheet prev_spritesheet = Spritesheet();
 
 	// Window handle
 	GLFWwindow* window;

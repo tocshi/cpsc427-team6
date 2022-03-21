@@ -16,9 +16,13 @@ public:
 private:
 	const std::map<Floors, std::vector<std::string>> floor_map_data = {
 		{
+			Floors::DEBUG,
+			{"debug_room.tmx"}
+		},
+		{
 			Floors::FLOOR1, 
 			{"map1.tmx", "map2.tmx", "map3.tmx"}
-		},
+		}
 	};
 
 	int current_room_idx = 0;

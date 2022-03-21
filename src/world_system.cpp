@@ -1751,6 +1751,13 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									Equipment prev = equip_item(player_main, equipment);
 									createEquipmentEntity(renderer, player_motion.position, prev);
 								}
+								if (current_game_state == GameStates::ITEM_MENU) {
+									// re-render the itemCards
+									for (Entity ic : registry.itemCards.entities) {
+										registry.remove_all_components_of(ic);
+									}
+									createItemMenu(renderer, { window_width_px - 125.f, 200.f }, inv);
+								}
 								if (registry.consumables.has(entity)) {
 									Consumable consumable = registry.consumables.get(entity);
 									Stats stats = registry.stats.get(player_main);

@@ -2429,6 +2429,10 @@ void WorldSystem::use_attack(vec2 target_pos) {
 			// lower ep and mp
 			player_stats.ep -= ep_cost;
 			player_stats.mp -= mp_cost;
+
+			// re-render the fog of war
+			remove_fog_of_war();
+			create_fog_of_war();
 		}
 		else {
 			logText("Not enough MP or EP to attack!");

@@ -78,12 +78,12 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	weapon.atk = 10;
 
 	// DEBUG
-	/*
+	
 	weapon.attacks[0] = ATTACK::DISENGAGE;
 	weapon.attacks[1] = ATTACK::PARRYING_STANCE;
 	weapon.attacks[2] = ATTACK::SAPPING_STRIKE;
-	weapon.attacks[3] = ATTACK::DISENGAGE;
-	*/
+	weapon.attacks[3] = ATTACK::ROUNDSLASH;
+	
 
 	Equipment armour = {};
 	armour.type = EQUIPMENT::ARMOUR;

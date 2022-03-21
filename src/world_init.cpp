@@ -1955,6 +1955,31 @@ Entity createDamageText(RenderSystem* renderer, vec2 pos, std::string text_input
 	return entity;
 }
 
+Entity createMotionText(RenderSystem* renderer, vec2 pos, std::string msg, float scale = 1.0f, vec3 textColor = vec3(0.0f)) {
+	// Reserve en entity
+	auto entity = Entity();
+
+	// Initialize the text component
+	Text& text = registry.texts.emplace(entity);
+	text.message = msg;
+	text.position = { 0,0 };
+	text.scale = scale;
+	text.textColor = textColor;
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 1.f, 1.f };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+			EFFECT_ASSET_ID::TEXT,
+			GEOMETRY_BUFFER_ID::TEXTQUAD,
+			RENDER_LAYER_ID::FLOOR_DECO });
+
+	return entity;
+}
+
 // Dialog text
 Entity createDialogText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor)
 {
@@ -1999,6 +2024,9 @@ Entity createCampfire(RenderSystem* renderer, vec2 pos) {
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.scale = { 64, 64 };
+
+	Interactable& interactable = registry.interactables.emplace(entity);
+	interactable.type = INTERACT_TYPE::CAMPFIRE;
 	
 	registry.renderRequests.insert(
 		entity,
@@ -2007,6 +2035,32 @@ Entity createCampfire(RenderSystem* renderer, vec2 pos) {
 			GEOMETRY_BUFFER_ID::ANIMATION,
 			RENDER_LAYER_ID::FLOOR_DECO });
 	registry.hidables.emplace(entity);
+
+	return entity;
+}
+
+Entity createMouseAnimation(RenderSystem* renderer, vec2 pos) {
+	Entity entity = Entity();
+	AnimationData& anim = registry.animations.emplace(entity);
+	anim.spritesheet_texture = TEXTURE_ASSET_ID::MOUSE_SPRITESHEET;
+	anim.frametime_ms = 1000;
+	anim.frame_indices = { 3, 0 };
+	anim.spritesheet_columns = 1;
+	anim.spritesheet_rows = 4;
+	anim.spritesheet_width = 50;
+	anim.spritesheet_height = 200;
+	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 64, 64 };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::MOUSE_SPRITESHEET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::ANIMATION,
+			RENDER_LAYER_ID::EFFECT });
 
 	return entity;
 }

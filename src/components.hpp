@@ -123,7 +123,8 @@ enum class TEXTURE_ASSET_ID {
 	THUNDER_TWIG = THICK_TOME + 1,
 	WARM_CLOAK = THUNDER_TWIG + 1,
 	WINDBAG = WARM_CLOAK + 1,
-	TEXTURE_COUNT = WINDBAG + 1
+	MOUSE_SPRITESHEET = WINDBAG + 1,
+	TEXTURE_COUNT = MOUSE_SPRITESHEET + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -410,11 +411,13 @@ enum class INTERACT_TYPE {
 	SIGN = STAIRS + 1,
 	PICKUP = SIGN + 1,
 	SWITCH = PICKUP + 1,
+	CAMPFIRE = SWITCH + 1,
 	TYPE_COUNT = SWITCH + 1
 };
 
 struct Interactable {
 	INTERACT_TYPE type;
+	bool interacted = false;
 };
 
 struct Chest {

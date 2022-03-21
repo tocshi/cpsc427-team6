@@ -70,7 +70,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	// Create and (empty) Player component to be able to refer to all players
 	auto& player = registry.players.emplace(entity);
-	player.inv = registry.inventories.emplace(entity);
+	registry.inventories.emplace(entity);
 
 	Equipment weapon = {};
 	weapon.type = EQUIPMENT::BLUNT;

@@ -2063,7 +2063,6 @@ void WorldSystem::loadPlayerComponent(Entity e, json playerCompData, Inventory i
 	registry.players.get(e).floor = playerCompData["floor"];
 	registry.players.get(e).room = playerCompData["room"];
 	registry.players.get(e).total_rooms = playerCompData["total_rooms"];
-	registry.players.get(e).inv = inv;
 }
 
 Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
@@ -2669,11 +2668,9 @@ void WorldSystem::backAction() {
 }
 
 void WorldSystem::itemAction() {
-	for (Entity e : registry.players.entities) {
-		Player& p = registry.players.get(e);
-		printf("sprite: %d", p.inv.equipped[0].sprite);
-		createItemMenu(renderer, { window_width_px - 125.f, 200.f }, p.inv);
-	}
+	Inventory& inv = registry.inventories.get(player_main);
+	printf("sprite: %d", inv.equipped[0].sprite);
+	createItemMenu(renderer, { window_width_px - 125.f, 200.f }, inv);
 	
 	handleActionButtonPress();
 

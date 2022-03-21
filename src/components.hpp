@@ -260,7 +260,6 @@ struct Inventory
 struct Player
 {
 	float s;
-	Inventory inv;
 	int gacha_pity = 0;
 	int floor = 1; // TODO: turn this back to 0 when tutorial is implemented
 	int room = 0;

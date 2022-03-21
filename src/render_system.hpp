@@ -86,7 +86,28 @@ class RenderSystem {
 			textures_path("cutscene1.png"), // add for cutscenes 
 			textures_path("cutscene2.png"),
 			textures_path("cutscene3.png"),
-			textures_path("turn_ui.png")
+			textures_path("turn_ui.png"),
+			textures_path("arrow_feather.png"),
+			textures_path("baseball_cap.png"),
+			textures_path("belt.png"),
+			textures_path("bloody_ruby-1.png"),
+			textures_path("book_thick.png"),
+			textures_path("demon_arm_option_2.png"),
+			textures_path("fang.png"),
+			textures_path("florescent_mushroom.png"),
+			textures_path("funnel.png"),
+			textures_path("green_book.png"),
+			textures_path("plant_bulb.png"),
+			textures_path("poker_chip1.png"),
+			textures_path("pouch.png"),
+			textures_path("pouch_diff.png"),
+			textures_path("pouch_v2.png"),
+			textures_path("round_metal_shield.png"),
+			textures_path("rubber_mallet.png"),
+			textures_path("scroll_open"),
+			textures_path("twig.png"),
+			textures_path("fur_coat.png")
+
 	};
 
 	std::array<GLuint, effect_count> effects;

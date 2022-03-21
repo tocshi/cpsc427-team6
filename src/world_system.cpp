@@ -232,6 +232,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// remove pickups that have been interacted
+	for (int i = (int)registry.interactables.components.size() - 1; i >= 0; --i) {
+		Interactable& interactable = registry.interactables.components[i];
+		if (interactable.type == INTERACT_TYPE::PICKUP && interactable.interacted) {
+			registry.remove_all_components_of(registry.interactables.entities[i]);
+		}
+	}
+
 	// if not in menu do turn order logic (!current_game_state)
 	if (current_game_state < GameStates::CUTSCENE && current_game_state >= GameStates::GAME_START) {
 		if (tutorial) {
@@ -822,7 +830,7 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 // spawn tutorial entities
 void WorldSystem::spawn_tutorial_entities() {
 	std::string next_map = roomSystem.getRandomRoom(Floors::TUTORIAL, true);
-	SpawnData spawnData = createTiles(renderer, next_map);
+	spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
@@ -889,7 +897,7 @@ void WorldSystem::spawn_game_entities() {
 	// Switch between debug and regular room
 	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
 	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
-	SpawnData spawnData = createTiles(renderer, next_map);
+	spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
@@ -1668,7 +1676,6 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									Equipment prev = equip_item(player_main, equipment);
 									createEquipmentEntity(renderer, player_motion.position, prev);
 								}
-								registry.remove_all_components_of(entity);
 								break;
 							}
 							// Door Behaviour
@@ -2074,7 +2081,8 @@ void WorldSystem::loadInteractables(json interactablesList) {
 
 		Interactable& interact_component = registry.interactables.emplace(e);
 		interact_component.type = (INTERACT_TYPE)interactable["type"];
-		interact_component.interacted = interactable["interacted"];
+		interact_component.interacted = interactable["interacted"] == nullptr ? false : interactable["interacted"];
+		//interact_component.interacted = interactable["interacted"];
 
 		switch (interact_component.type) {
 		case INTERACT_TYPE::ARTIFACT_CHEST: // artifact chest

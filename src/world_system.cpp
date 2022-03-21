@@ -461,6 +461,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			SquishTimer& squish = registry.squishTimers.emplace(enemy);
 			squish.orig_scale = registry.motions.get(enemy).scale;
 
+			// TEMP: drop healing item from enemy with 1/3 chance
+			int roll = irand(3);
+			if (roll == 0) {
+				createConsumable(renderer, registry.motions.get(enemy).position + vec2(16, 16), CONSUMABLE::INSTANT);
+			}
+
 			// remove from turn queue
 			turnOrderSystem.removeFromQueue(enemy);
 			roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
@@ -1596,6 +1602,23 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									Equipment equipment = registry.equipment.get(entity);
 									Equipment prev = equip_item(player_main, equipment);
 									createEquipmentEntity(renderer, player_motion.position, prev);
+								}
+								if (registry.consumables.has(entity)) {
+									Consumable consumable = registry.consumables.get(entity);
+									Stats stats = registry.stats.get(player_main);
+									switch (consumable.type) {
+									case CONSUMABLE::REDPOT:
+										break;
+									case CONSUMABLE::BLUPOT:
+										break;
+									case CONSUMABLE::YELPOT:
+										break;
+									case CONSUMABLE::INSTANT:
+										heal(player_main, stats.maxhp * 0.3);
+										break;
+									default:
+										break;
+									}
 								}
 								registry.remove_all_components_of(entity);
 								break;

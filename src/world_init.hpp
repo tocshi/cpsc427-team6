@@ -176,3 +176,5 @@ Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id)
 
 // switch
 Entity createSwitch(RenderSystem* renderer, vec2 pos);
+// potion
+Entity createConsumable(RenderSystem* renderer, vec2 pos, CONSUMABLE type);

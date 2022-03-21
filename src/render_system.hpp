@@ -163,7 +163,7 @@ public:
 	// Draw all entities
 	void draw();
 
-	mat3 createProjectionMatrix();
+	mat3 createProjectionMatrix(int width, int height);
 
 	int findTextureId(const std::string& filename);
 

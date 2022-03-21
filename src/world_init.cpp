@@ -2104,3 +2104,47 @@ Entity createSwitch(RenderSystem* renderer, vec2 pos) {
 
 	return entity;
 }
+
+Entity createConsumable(RenderSystem* renderer, vec2 pos, CONSUMABLE type) {
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ PICKUP_BB_WIDTH, PICKUP_BB_HEIGHT });
+
+	Consumable& consumable = registry.consumables.emplace(entity);
+	consumable.type = type;
+	
+	RenderRequest& rr = registry.renderRequests.emplace(entity);
+	rr.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	rr.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	rr.used_layer = RENDER_LAYER_ID::SPRITE;
+
+	switch (type) {
+		case CONSUMABLE::REDPOT:
+			rr.used_texture = TEXTURE_ASSET_ID::POTION_RED;
+			break;
+		case CONSUMABLE::BLUPOT:
+			rr.used_texture = TEXTURE_ASSET_ID::POTION_BLUE;
+			break;
+		case CONSUMABLE::YELPOT:
+			rr.used_texture = TEXTURE_ASSET_ID::POTION_YELLOW;
+			break;
+		case CONSUMABLE::INSTANT:
+			rr.used_texture = TEXTURE_ASSET_ID::POTION_RED;
+			break;
+		default:
+			rr.used_texture = TEXTURE_ASSET_ID::POTION_RED;
+			break;
+	}
+
+	auto& interactable = registry.interactables.emplace(entity);
+	interactable.type = INTERACT_TYPE::PICKUP;
+	registry.hidables.emplace(entity);
+
+	return entity;
+}

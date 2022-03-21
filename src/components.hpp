@@ -97,7 +97,10 @@ enum class TEXTURE_ASSET_ID {
 	KEY_ICON_4 = KEY_ICON_3 + 1,
 	KEY_ICON_5 = KEY_ICON_4 + 1,
 	ATTACK_NORMAL = KEY_ICON_5 + 1,
-	TEXTURE_COUNT = ATTACK_NORMAL + 1
+	POTION_RED = ATTACK_NORMAL + 1,
+	POTION_BLUE = POTION_RED + 1,
+	POTION_YELLOW = POTION_BLUE + 1,
+	TEXTURE_COUNT = POTION_YELLOW + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -112,7 +115,8 @@ enum class CONSUMABLE {
 	REDPOT = 0,
 	BLUPOT = REDPOT + 1,
 	YELPOT = BLUPOT + 1,
-	CONSUMABLE_COUNT = YELPOT + 1
+	INSTANT = YELPOT + 1,
+	CONSUMABLE_COUNT = INSTANT + 1
 };
 
 enum class EQUIPMENT {
@@ -368,11 +372,7 @@ struct Damageable {
 };
 
 struct Consumable {
-	// recover mp
-	bool magic_potion = true;
-	// recover hp
-	bool hp_potion = true;
-
+	CONSUMABLE type;
 };
 
 struct Guardable {

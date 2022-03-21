@@ -17,5 +17,6 @@ void apply_status(Entity& target, StatusEffect& status);
 void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stats_only);
 void reset_stats(Entity& entity);
 void calc_stats(Entity& entity);
+void heal(Entity& entity, float amount);
 Equipment equip_item(Entity& entity, Equipment& equipment);
 Equipment unequip_item(Entity& entity, int slot);

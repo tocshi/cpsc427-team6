@@ -82,6 +82,9 @@ public:
 	Entity active_camera_entity;
 
 	Entity background;
+	Entity background_front;
+	Entity background_mid;
+	Entity background_back;
 	bool is_player_turn = true;
 	bool player_move_click = false;
 	bool is_ai_turn = false;
@@ -219,6 +222,9 @@ private:
 	void handleActionButtonPress();
 	// generate and setup a new room
 	void generateNewRoom(Floors floor, bool repeat_allowed);
+
+	// update game background
+	void updateGameBackground();
 
 	// udate turn UI
 	void update_turn_ui();

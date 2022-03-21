@@ -639,6 +639,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// update game background (only on player turn)
+	if (current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE) {
+		updateGameBackground();
+	}
 	// update chest textures if flagged
 	for (Entity& entity : registry.chests.entities) {
 		Chest& chest = registry.chests.get(entity);
@@ -1254,7 +1258,11 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								registry.remove_all_components_of(registry.renderRequests.entities[i]);
 							}
 						}
-						is_player_turn = true; 
+						is_player_turn = true;
+						background = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_COLOR, RENDER_LAYER_ID::BG);
+						background_back = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_BACK, RENDER_LAYER_ID::BG_1);
+						background_mid = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_MID, RENDER_LAYER_ID::BG_2);
+						background_front = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_FRONT, RENDER_LAYER_ID::BG_3);
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 					case BUTTON_ACTION_ID::ACTIONS_ATTACK:
@@ -2389,4 +2397,24 @@ void WorldSystem::update_turn_ui() {
 		}
 	}
 	return;
+}
+
+void WorldSystem::updateGameBackground() {
+	Motion playerMotion = registry.motions.get(player_main);
+
+	Motion& backgroundMotion = registry.motions.get(background);
+	backgroundMotion.position.x = playerMotion.position.x + window_width_px/2.f;
+	backgroundMotion.position.y = playerMotion.position.y;
+
+	Motion& background_b_motion = registry.motions.get(background_back);
+	background_b_motion.position.x = playerMotion.position.x + window_width_px/2.f - fmod((playerMotion.position.x + window_width_px) * 0.9f, window_width_px);
+	background_b_motion.position.y = playerMotion.position.y;
+
+	Motion& background_m_motion = registry.motions.get(background_mid);
+	background_m_motion.position.x = playerMotion.position.x + window_width_px/2.f - fmod((playerMotion.position.x + window_width_px) * 1.2f, window_width_px);
+	background_m_motion.position.y = playerMotion.position.y;
+
+	Motion& background_f_motion = registry.motions.get(background_front);
+	background_f_motion.position.x = playerMotion.position.x + window_width_px/2.f - fmod((playerMotion.position.x + window_width_px) * 1.5f, window_width_px);
+	background_f_motion.position.y = playerMotion.position.y;
 }

@@ -198,6 +198,9 @@ private:
 	// load a door
 	void loadDoor(Entity e);
 
+	// load a consumable
+	void loadConsumable(Entity e, json consumableData);
+
 	// load a switch
 	void loadSwitch(Entity e, json switchData);
   

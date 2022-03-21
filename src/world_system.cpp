@@ -513,6 +513,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			squish.orig_scale = registry.motions.get(enemy).scale;
 
 			playEnemyDeathSound(registry.enemies.get(enemy).type);
+      
+			// TEMP: drop healing item from enemy with 1/3 chance
+			int roll = irand(3);
+			if (roll == 0) {
+				createConsumable(renderer, registry.motions.get(enemy).position + vec2(16, 16), CONSUMABLE::INSTANT);
+			}
 
 			// remove from turn queue
 			turnOrderSystem.removeFromQueue(enemy);
@@ -876,7 +882,7 @@ void WorldSystem::spawn_game_entities() {
 	// Switch between debug and regular room
 	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
 	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
-	SpawnData spawnData = createTiles(renderer, next_map);
+	spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
@@ -1651,6 +1657,23 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									Equipment prev = equip_item(player_main, equipment);
 									createEquipmentEntity(renderer, player_motion.position, prev);
 								}
+								if (registry.consumables.has(entity)) {
+									Consumable consumable = registry.consumables.get(entity);
+									Stats stats = registry.stats.get(player_main);
+									switch (consumable.type) {
+									case CONSUMABLE::REDPOT:
+										break;
+									case CONSUMABLE::BLUPOT:
+										break;
+									case CONSUMABLE::YELPOT:
+										break;
+									case CONSUMABLE::INSTANT:
+										heal(player_main, stats.maxhp * 0.3);
+										break;
+									default:
+										break;
+									}
+								}
 								registry.remove_all_components_of(entity);
 								break;
 							}
@@ -2083,6 +2106,9 @@ void WorldSystem::loadInteractables(json interactablesList) {
 			else if (interactable["equipment"] != nullptr) {
 				loadEquipmentEntity(e, interactable["equipment"], interactable["spritesheet"]);
 			}
+			else if (interactable["consumable"] != nullptr) {
+				loadConsumable(e, interactable["consumable"]);
+			}
 			break;
 		default:
 			break;
@@ -2224,6 +2250,33 @@ void WorldSystem::loadArtifact(Entity e, json artifactData) {
 		{ sprite,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(e);
+}
+
+void WorldSystem::loadConsumable(Entity e, json consumableData) {
+	registry.consumables.insert(e, { consumableData["type"] });
+
+	RenderRequest& rr = registry.renderRequests.emplace(e);
+	rr.used_effect = EFFECT_ASSET_ID::TEXTURED;
+	rr.used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+	rr.used_layer = RENDER_LAYER_ID::SPRITE;
+	switch ((CONSUMABLE)consumableData["type"]) {
+	case CONSUMABLE::REDPOT:
+		rr.used_texture = TEXTURE_ASSET_ID::POTION_RED;
+		break;
+	case CONSUMABLE::BLUPOT:
+		rr.used_texture = TEXTURE_ASSET_ID::POTION_BLUE;
+		break;
+	case CONSUMABLE::YELPOT:
+		rr.used_texture = TEXTURE_ASSET_ID::POTION_YELLOW;
+		break;
+	case CONSUMABLE::INSTANT:
+		rr.used_texture = TEXTURE_ASSET_ID::POTION_RED;
+		break;
+	default:
+		rr.used_texture = TEXTURE_ASSET_ID::POTION_RED;
+		break;
+	}
 	registry.hidables.emplace(e);
 }
 

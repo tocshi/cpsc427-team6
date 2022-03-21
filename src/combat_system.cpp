@@ -80,6 +80,16 @@ void take_damage(Entity& entity, float damage)
 	}
 }
 
+void heal(Entity& entity, float amount) {
+	Stats& stats = registry.stats.get(entity);
+
+	stats.hp = min(stats.maxhp, stats.hp + amount);
+
+	Motion motion = registry.motions.get(entity);
+	int rounded_heal = round(amount);
+	createDamageText(world.renderer, motion.position + vec2(0, -32), std::to_string(rounded_heal), true);
+}
+
 void take_damage_mp(Entity& entity, float damage)
 {
 	Stats& stats = registry.stats.get(entity);

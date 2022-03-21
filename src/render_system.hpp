@@ -98,13 +98,13 @@ class RenderSystem {
 			textures_path("artifacts/funnel.png"),
 			textures_path("artifacts/green_book.png"),
 			textures_path("artifacts/plant_bulb.png"),
-			textures_path("artifacts/poker_chip1.png"),
+			textures_path("artifacts/pokerchip1.png"),
 			textures_path("artifacts/pouch.png"),
 			textures_path("artifacts/pouch_diff.png"),
 			textures_path("artifacts/pouch_v2.png"),
 			textures_path("artifacts/round_metal_shield.png"),
 			textures_path("artifacts/rubber_mallet.png"),
-			textures_path("artifacts/scroll_open"),
+			textures_path("artifacts/scroll_open.gif"),
 			textures_path("artifacts/twig.png"),
 			textures_path("artifacts/fur_coat.png")
 

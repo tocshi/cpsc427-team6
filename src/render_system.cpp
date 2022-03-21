@@ -488,7 +488,7 @@ void RenderSystem::updateTileMapCoords(TileUV& tileUV) {
 
 	// Counterclockwise as it's the default opengl front winding direction.
 	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
-	bindVBOandIBO(GEOMETRY_BUFFER_ID::TILEMAP, textured_vertices, textured_indices);
+	dynamicBindVBOandIBO(GEOMETRY_BUFFER_ID::TILEMAP, textured_vertices, textured_indices);
 }
 
 bool RenderSystem::isOnScreen(Motion& motion, Camera& camera, int window_width, int window_height) {
@@ -521,7 +521,7 @@ void RenderSystem::updateAnimTexCoords(AnimationData& anim) {
 
 	// Counterclockwise as it's the default opengl front winding direction.
 	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
-	bindVBOandIBO(GEOMETRY_BUFFER_ID::ANIMATION, textured_vertices, textured_indices);
+	dynamicBindVBOandIBO(GEOMETRY_BUFFER_ID::ANIMATION, textured_vertices, textured_indices);
 }
 
 void RenderSystem::updateSpritesheetTexCoords(Spritesheet& spritesheet) {
@@ -547,5 +547,5 @@ void RenderSystem::updateSpritesheetTexCoords(Spritesheet& spritesheet) {
 
 	// Counterclockwise as it's the default opengl front winding direction.
 	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
-	bindVBOandIBO(GEOMETRY_BUFFER_ID::SPRITESHEET, textured_vertices, textured_indices);
+	dynamicBindVBOandIBO(GEOMETRY_BUFFER_ID::SPRITESHEET, textured_vertices, textured_indices);
 }

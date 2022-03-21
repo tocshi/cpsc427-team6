@@ -278,12 +278,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	for (Entity p : registry.players.entities) {
+		Player player = registry.players.get(p);
 		Motion player_motion = registry.motions.get(player_main);
 		Stats stats = registry.stats.get(player_main);
 
 		// update FoW if moving
-		if (player_motion.velocity != vec2(0.f, 0.f)) {
-			// update the fog of war if the player is moving
+		if (registry.knockbacks.has(p) || player_motion.in_motion) {
+			// update the fog of war if the player is being knocked back
 			remove_fog_of_war();
 			create_fog_of_war();
 		}
@@ -322,23 +323,23 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				player_move_click = false;
 			}
 		}
-	}
 
-	if (registry.keyIcons.entities.size() < 4) {
-		if (current_game_state == GameStates::ATTACK_MENU) {
-			// need to move everything down one in attack menu
-			// TODO: un-hard-code these
-			createKeyIcon(renderer, { window_width_px - 70.f, 140.f }, TEXTURE_ASSET_ID::KEY_ICON_1);
-			createKeyIcon(renderer, { window_width_px - 70.f, 260.f }, TEXTURE_ASSET_ID::KEY_ICON_2);
-			createKeyIcon(renderer, { window_width_px - 70.f, 380.f }, TEXTURE_ASSET_ID::KEY_ICON_3);
-			createKeyIcon(renderer, { window_width_px - 70.f, 500.f }, TEXTURE_ASSET_ID::KEY_ICON_4);
-			createKeyIcon(renderer, { window_width_px - 70.f, 620.f }, TEXTURE_ASSET_ID::KEY_ICON_5);
-		}
-		else if (current_game_state == GameStates::BATTLE_MENU) {
-			createKeyIcon(renderer, { window_width_px - 60.f, 150.f }, TEXTURE_ASSET_ID::KEY_ICON_1);
-			createKeyIcon(renderer, { window_width_px - 60.f, 300.f }, TEXTURE_ASSET_ID::KEY_ICON_2);
-			createKeyIcon(renderer, { window_width_px - 60.f, 450.f }, TEXTURE_ASSET_ID::KEY_ICON_3);
-			createKeyIcon(renderer, { window_width_px - 60.f, 600.f }, TEXTURE_ASSET_ID::KEY_ICON_4);
+		if (registry.keyIcons.entities.size() < 4) {
+			if (current_game_state == GameStates::ATTACK_MENU && !player.prepared) {
+				// need to move everything down one in attack menu
+				// TODO: un-hard-code these
+				createKeyIcon(renderer, { window_width_px - 70.f, 140.f }, TEXTURE_ASSET_ID::KEY_ICON_1);
+				createKeyIcon(renderer, { window_width_px - 70.f, 260.f }, TEXTURE_ASSET_ID::KEY_ICON_2);
+				createKeyIcon(renderer, { window_width_px - 70.f, 380.f }, TEXTURE_ASSET_ID::KEY_ICON_3);
+				createKeyIcon(renderer, { window_width_px - 70.f, 500.f }, TEXTURE_ASSET_ID::KEY_ICON_4);
+				createKeyIcon(renderer, { window_width_px - 70.f, 620.f }, TEXTURE_ASSET_ID::KEY_ICON_5);
+			}
+			else if (current_game_state == GameStates::BATTLE_MENU) {
+				createKeyIcon(renderer, { window_width_px - 60.f, 150.f }, TEXTURE_ASSET_ID::KEY_ICON_1);
+				createKeyIcon(renderer, { window_width_px - 60.f, 300.f }, TEXTURE_ASSET_ID::KEY_ICON_2);
+				createKeyIcon(renderer, { window_width_px - 60.f, 450.f }, TEXTURE_ASSET_ID::KEY_ICON_3);
+				createKeyIcon(renderer, { window_width_px - 60.f, 600.f }, TEXTURE_ASSET_ID::KEY_ICON_4);
+			}
 		}
 	}
 
@@ -1056,12 +1057,14 @@ bool WorldSystem::is_over() const {
 
 // On key callback
 void WorldSystem::on_key(int key, int, int action, int mod) {
+	// no interactions when being knocked back
+	if (registry.knockbacks.has(player_main)) { return; }
+
 	// DEBUG: HEAL PLAYER
 	if (action == GLFW_RELEASE && key == GLFW_KEY_EQUAL) {
 		Stats& stat = registry.stats.get(player_main);
 		stat.hp = stat.maxhp;
 	}
-
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
 		auto& stats = registry.stats.get(player_main);
@@ -1241,6 +1244,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 // On mouse click callback
 void WorldSystem::on_mouse(int button, int action, int mod) {
 
+	// no interactions when being knocked back
+	if (registry.knockbacks.has(player_main)) { return; }
+
 	double xpos, ypos;
 	//getting cursor position
 	glfwGetCursorPos(window, &xpos, &ypos);
@@ -1287,131 +1293,150 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 				switch (action_taken) {
 
-					case BUTTON_ACTION_ID::MENU_START: 
-						set_gamestate(GameStates::GAME_START);
-						if (current_game_state != GameStates::CUTSCENE || current_game_state != GameStates::MAIN_MENU) {
-							Mix_PlayMusic(background_music, -1);
-						}
-						spawn_game_entities();
-						// spawn the actions bar
-						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
-						createAttackButton(renderer, { window_width_px - 125.f, 200.f });
-						createMoveButton(renderer, { window_width_px - 125.f, 350.f });
-						createGuardButton(renderer, { window_width_px - 125.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
-						createItemButton(renderer, { window_width_px - 125.f, 650.f });
+				case BUTTON_ACTION_ID::MENU_START:
+					set_gamestate(GameStates::GAME_START);
+					if (current_game_state != GameStates::CUTSCENE || current_game_state != GameStates::MAIN_MENU) {
+						Mix_PlayMusic(background_music, -1);
+					}
+					spawn_game_entities();
+					// spawn the actions bar
+					// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
+					createAttackButton(renderer, { window_width_px - 125.f, 200.f });
+					createMoveButton(renderer, { window_width_px - 125.f, 350.f });
+					createGuardButton(renderer, { window_width_px - 125.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+					createItemButton(renderer, { window_width_px - 125.f, 650.f });
 
-						// spawn the collection and pause buttons
-						createPauseButton(renderer, { window_width_px - 80.f, 50.f });
-						createCollectionButton(renderer, { window_width_px - 160.f, 50.f });
+					// spawn the collection and pause buttons
+					createPauseButton(renderer, { window_width_px - 80.f, 50.f });
+					createCollectionButton(renderer, { window_width_px - 160.f, 50.f });
 
-						for (int i = registry.renderRequests.size() - 1; i >= 0; i--) {
-							if (registry.renderRequests.components[i].used_layer == RENDER_LAYER_ID::BG) {
-								registry.remove_all_components_of(registry.renderRequests.entities[i]);
-							}
+					for (int i = registry.renderRequests.size() - 1; i >= 0; i--) {
+						if (registry.renderRequests.components[i].used_layer == RENDER_LAYER_ID::BG) {
+							registry.remove_all_components_of(registry.renderRequests.entities[i]);
 						}
-						is_player_turn = true;
-						background = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_COLOR, RENDER_LAYER_ID::BG);
-						background_back = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_BACK, RENDER_LAYER_ID::BG_1);
-						background_mid = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_MID, RENDER_LAYER_ID::BG_2);
-						background_front = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_FRONT, RENDER_LAYER_ID::BG_3);
+					}
+					is_player_turn = true;
+					background = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_COLOR, RENDER_LAYER_ID::BG);
+					background_back = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_BACK, RENDER_LAYER_ID::BG_1);
+					background_mid = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_MID, RENDER_LAYER_ID::BG_2);
+					background_front = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_FRONT, RENDER_LAYER_ID::BG_3);
+					break;
+				case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
+				case BUTTON_ACTION_ID::ACTIONS_ATTACK:
+					if (current_game_state == GameStates::BATTLE_MENU) {
+						attackAction();
+					}
+					return;
+				case BUTTON_ACTION_ID::ACTIONS_MOVE:
+					if (registry.stats.get(player_main).ep <= 0) {
+						logText("Cannot move with 0 EP!");
+						Mix_PlayChannel(-1, error_sound, 0);
 						break;
-					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
-					case BUTTON_ACTION_ID::ACTIONS_ATTACK:
-						if (current_game_state == GameStates::BATTLE_MENU) {
-							attackAction();
-						}
-						break;
-					case BUTTON_ACTION_ID::ACTIONS_MOVE:
-						if (registry.stats.get(player_main).ep <= 0) {
-							logText("Cannot move with 0 EP!");
-							Mix_PlayChannel(-1, error_sound, 0);
-							break;
-						}
-						if (current_game_state == GameStates::BATTLE_MENU) {
-							moveAction();
-						}
-						break;
-					case BUTTON_ACTION_ID::PAUSE:
-						// TODO: pause enimies if it is their turn
+					}
+					if (current_game_state == GameStates::BATTLE_MENU) {
+						moveAction();
+					}
+					return;
+				case BUTTON_ACTION_ID::PAUSE:
+					// TODO: pause enimies if it is their turn
 						
-						// inMenu = true;
-						set_gamestate(GameStates::PAUSE_MENU);
-						// render quit button
-						createMenuQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90});
+					// inMenu = true;
+					set_gamestate(GameStates::PAUSE_MENU);
+					// render quit button
+					createMenuQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90});
 
-						// render cancel button
-						createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f });
+					// render cancel button
+					createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f });
 						
-						break;
-					case BUTTON_ACTION_ID::ACTIONS_CANCEL:
+					return;
+				case BUTTON_ACTION_ID::ACTIONS_CANCEL:
+					cancelAction();
+					return;
+				case BUTTON_ACTION_ID::COLLECTION:
+					// if the button is pressed again while the menu is already open, close the menu
+					if (current_game_state == GameStates::COLLECTION_MENU) {
+						set_gamestate(GameStates::BATTLE_MENU);
+					}
+					else {
+						// render the collection menu
+						createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f));
+						set_gamestate(GameStates::COLLECTION_MENU);
+					}
+					return;
+				case BUTTON_ACTION_ID::ACTIONS_BACK:
+					if (current_game_state != GameStates::PAUSE_MENU && current_game_state != GameStates::COLLECTION_MENU) {
+						backAction();
+					}
+					return;
+				case BUTTON_ACTION_ID::ACTIONS_ITEM:
+					if (current_game_state == GameStates::BATTLE_MENU) {
+						itemAction();
+					}
+					return;
+				case BUTTON_ACTION_ID::OPEN_DIALOG:
+					// remove all other description dialog components
+					for (Entity dd : registry.descriptionDialogs.entities) {
+						registry.remove_all_components_of(dd);
+					}
+
+					// get which icon was clicked
+					if (registry.artifactIcons.has(e)) {
+						ARTIFACT artifact = registry.artifactIcons.get(e).artifact;
+						createDescriptionDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f), artifact);
+					}
+					return;
+				case BUTTON_ACTION_ID::CLOSE_DIALOG:
+					// remove all description dialog components
+					for (Entity dd : registry.descriptionDialogs.entities) {
+						registry.remove_all_components_of(dd);
+					}
+					return;
+				case BUTTON_ACTION_ID::OPEN_ATTACK_DIALOG:
+					// remove all other attack dialog components
+					for (Entity ad : registry.attackDialogs.entities) {
+						registry.remove_all_components_of(ad);
+					}
+
+					// get which icon was clicked
+					if (registry.attackCards.has(e)) {
+						ATTACK attack = registry.attackCards.get(e).attack;
+						registry.players.get(player_main).selected_attack = attack;
+						createAttackDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f), attack, registry.players.get(player_main).prepared);
+					}
+					return;
+				case BUTTON_ACTION_ID::CLOSE_ATTACK_DIALOG:
+					// remove all attack dialog components
+					for (Entity ad : registry.attackDialogs.entities) {
+						registry.remove_all_components_of(ad);
+					}
+					return;
+				case BUTTON_ACTION_ID::USE_ATTACK:
+					registry.players.get(player_main).using_attack = registry.players.get(player_main).selected_attack;
+					for (Entity ad : registry.attackDialogs.entities) {
+						registry.remove_all_components_of(ad);
+					}
+					return;
+				case BUTTON_ACTION_ID::PREPARE_ATTACK:
+					Player& p = registry.players.get(player_main);
+					Stats& stats = registry.stats.get(player_main);
+					if (p.attacked) {
+						logText("You already attacked this turn!");
+						Mix_PlayChannel(-1, error_sound, 0);
+					}
+					else if (stats.mp < attack_mpcosts.at(p.selected_attack) || stats.ep < attack_epcosts.at(p.selected_attack)) {
+						logText("Not enough MP or EP to attack!");
+						Mix_PlayChannel(-1, error_sound, 0);
+					}
+					else {
+						stats.mp -= attack_mpcosts.at(p.selected_attack);
+						stats.ep -= attack_epcosts.at(p.selected_attack);
+						registry.players.get(player_main).prepared = true;
+						for (Entity ad : registry.attackDialogs.entities) {
+							registry.remove_all_components_of(ad);
+						}
 						cancelAction();
-						break;
-					case BUTTON_ACTION_ID::COLLECTION:
-						// if the button is pressed again while the menu is already open, close the menu
-						if (current_game_state == GameStates::COLLECTION_MENU) {
-							set_gamestate(GameStates::BATTLE_MENU);
-						}
-						else {
-							// render the collection menu
-							createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f));
-							set_gamestate(GameStates::COLLECTION_MENU);
-						}
-						break;
-					case BUTTON_ACTION_ID::ACTIONS_BACK:
-						if (current_game_state != GameStates::PAUSE_MENU && current_game_state != GameStates::COLLECTION_MENU) {
-							backAction();
-						}
-						break;
-					case BUTTON_ACTION_ID::ACTIONS_ITEM:
-						if (current_game_state == GameStates::BATTLE_MENU) {
-							itemAction();
-						}
-						break;
-					case BUTTON_ACTION_ID::OPEN_DIALOG:
-						// remove all other description dialog components
-						for (Entity dd : registry.descriptionDialogs.entities) {
-							registry.remove_all_components_of(dd);
-						}
-
-						// get which icon was clicked
-						if (registry.artifactIcons.has(e)) {
-							ARTIFACT artifact = registry.artifactIcons.get(e).artifact;
-							createDescriptionDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f), artifact);
-						}
-						break;
-					case BUTTON_ACTION_ID::CLOSE_DIALOG:
-						// remove all description dialog components
-						for (Entity dd : registry.descriptionDialogs.entities) {
-							registry.remove_all_components_of(dd);
-						}
-						break;
-					case BUTTON_ACTION_ID::OPEN_ATTACK_DIALOG:
-						// remove all other attack dialog components
-						for (Entity ad : registry.attackDialogs.entities) {
-							registry.remove_all_components_of(ad);
-						}
-
-						// get which icon was clicked
-						if (registry.attackCards.has(e)) {
-							ATTACK attack = registry.attackCards.get(e).attack;
-							// TODO: move this to Use button!
-							Player& p = registry.players.get(player_main);
-							p.using_attack = attack;
-							createAttackDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f), attack);
-						}
-						break;
-					case BUTTON_ACTION_ID::CLOSE_ATTACK_DIALOG:
-						// remove all attack dialog components
-						for (Entity ad : registry.attackDialogs.entities) {
-							registry.remove_all_components_of(ad);
-						}
-						break;
-					case BUTTON_ACTION_ID::USE_ATTACK:
-						use_attack(world_pos);
-						break;
-					case BUTTON_ACTION_ID::PREPARE_ATTACK:
-						// TODO
-						break;
+					}
+					return;
 				}
 			}
 		}
@@ -1654,6 +1679,7 @@ void WorldSystem::start_player_turn() {
 	Player& p = registry.players.get(player_main);
 	p.attacked = false;
 	p.moved = false;
+	p.prepared = false;
 
 	if (registry.stats.get(player_main).guard) {
 		ep = maxep * 1.5f;
@@ -2303,19 +2329,28 @@ void WorldSystem::attackAction() {
 		Player& player = registry.players.get(player_main);
 		Equipment weapon = registry.inventories.get(player_main).equipped[0];
 		player.action = PLAYER_ACTION::ATTACKING;
-		player.using_attack = ATTACK::NONE;
+		float button_y = 180.f;
 
+		// if prepared attack, only show the prepared attack
+		if (player.prepared) {
+			player.using_attack = player.selected_attack;
+			createAttackCard(renderer, { window_width_px - 125.f, button_y }, player.using_attack);
+		}
+		else {
+			player.selected_attack = ATTACK::NONE;
+			player.using_attack = ATTACK::NONE;
+
+			//createAttackModeText(renderer, { window_width_px - 125.f, 200.f });
+			// render attack types 
+			createAttackCard(renderer, { window_width_px - 125.f, button_y }, ATTACK::NONE);
+			for (ATTACK a : weapon.attacks) {
+				button_y += 150 * 4 / 5;
+				createAttackCard(renderer, { window_width_px - 125.f, button_y }, a);
+			}
+		}
 		// set game state to attack menu
 		set_gamestate(GameStates::ATTACK_MENU);
 		handleActionButtonPress();
-		//createAttackModeText(renderer, { window_width_px - 125.f, 200.f });
-		// render attack types 
-		float button_y = 180.f;
-		createAttackCard(renderer, { window_width_px - 125.f, button_y }, ATTACK::NONE);
-		for (ATTACK a : weapon.attacks) {
-			button_y += 150 * 4 / 5;
-			createAttackCard(renderer, { window_width_px - 125.f, button_y }, a);
-		}
 	}
 }
 
@@ -2450,6 +2485,13 @@ void WorldSystem::use_attack(vec2 target_pos) {
 	Stats& player_stats = registry.stats.get(player_main);
 	float mp_cost = attack_mpcosts.at(player.using_attack);
 	float ep_cost = attack_epcosts.at(player.using_attack) * player_stats.eprateatk;
+	bool attack_success = false;
+
+	// costs 0 if prepared
+	if (player.prepared) {
+		mp_cost = 0;
+		ep_cost = 0;
+	}
 
 	// I hate my own implementation of this, and I want to change it as soon as Milestone 3 is over
 	switch (player.using_attack) {
@@ -2478,10 +2520,8 @@ void WorldSystem::use_attack(vec2 target_pos) {
 						wobble.orig_scale = m.scale;
 					}
 
-					// lower ep and restore mp
-					player_stats.ep -= ep_cost;
 					player_stats.mp = min(player_stats.maxmp, player_stats.mp + (player_stats.maxmp * 0.1f * player_stats.mpregen));
-					player.attacked = true;
+					attack_success = true;
 				}
 				else if (player_stats.ep < ep_cost) {
 					logText("Not enough EP to attack!");
@@ -2531,10 +2571,8 @@ void WorldSystem::use_attack(vec2 target_pos) {
 						wobble.orig_scale = m.scale;
 					}
 
-					// lower ep and restore mp
-					player_stats.ep -= ep_cost;
 					player_stats.mp = min(player_stats.maxmp, player_stats.mp + 30.f);
-					player.attacked = true;
+					attack_success = true;
 				}
 				else if (player_stats.ep < ep_cost || player_stats.mp < mp_cost) {
 					logText("Not enough MP or EP to attack!");
@@ -2570,10 +2608,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				StatusEffect stance = StatusEffect(0, 1, StatusType::PARRYING_STANCE, false, true);
 				apply_status(player_main, stance);
 
-				// lower ep and mp
-				player_stats.ep -= ep_cost;
-				player_stats.mp -= mp_cost;
-				player.attacked = true;
+				attack_success = true;
 			}
 			else {
 				logText("Not enough MP or EP to attack!");
@@ -2603,13 +2638,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 			apply_status(player_main, trigger);
 			Mix_PlayChannel(-1, whoosh, 0);
 
-			// lower ep and mp
-			player_stats.ep -= ep_cost;
-			player_stats.mp -= mp_cost;
-
-			// re-render the fog of war
-			remove_fog_of_war();
-			create_fog_of_war();
+			attack_success = true;
 		}
 		else {
 			logText("Not enough MP or EP to attack!");
@@ -2620,6 +2649,15 @@ void WorldSystem::use_attack(vec2 target_pos) {
 
 	default:
 		break;
+	}
+
+	// perform behaviour if attack succeeds
+	if (attack_success) {
+		player_stats.ep -= ep_cost;
+		player_stats.mp -= mp_cost;
+		player.attacked = true;
+		player.prepared = false;
+		attackAction();
 	}
 }
 

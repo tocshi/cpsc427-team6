@@ -168,7 +168,7 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 // Attack card
 Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack);
 // Attack type dialog
-Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack);
+Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack, bool prepared);
 // cutscene
 Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID textureID);
 // Turn UI

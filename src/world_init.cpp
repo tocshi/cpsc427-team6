@@ -77,6 +77,14 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	weapon.sprite = 0;
 	weapon.atk = 10;
 
+	// DEBUG
+	/*
+	weapon.attacks[0] = ATTACK::DISENGAGE;
+	weapon.attacks[1] = ATTACK::PARRYING_STANCE;
+	weapon.attacks[2] = ATTACK::SAPPING_STRIKE;
+	weapon.attacks[3] = ATTACK::DISENGAGE;
+	*/
+
 	Equipment armour = {};
 	armour.type = EQUIPMENT::ARMOUR;
 	armour.sprite = 2;
@@ -1151,7 +1159,7 @@ Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 }
 
 // Attack dialog
-Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack) {
+Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack, bool prepared) {
 	auto entity = Entity();
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
@@ -1269,8 +1277,10 @@ Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 	}
 
 	// render use / prepare buttons
-	createAttackDialogButton(renderer, vec2(pos.x - DESCRIPTION_DIALOG_BB_WIDTH / 4 + 3.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 - 50.f), TEXTURE_ASSET_ID::USE_BUTTON, BUTTON_ACTION_ID::USE_ATTACK);
-	createAttackDialogButton(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH / 4 - 3.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 - 50.f), TEXTURE_ASSET_ID::PREPARE_BUTTON, BUTTON_ACTION_ID::PREPARE_ATTACK);
+	if (!prepared) {
+		createAttackDialogButton(renderer, vec2(pos.x - DESCRIPTION_DIALOG_BB_WIDTH / 4 + 3.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 - 50.f), TEXTURE_ASSET_ID::USE_BUTTON, BUTTON_ACTION_ID::USE_ATTACK);
+		createAttackDialogButton(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH / 4 - 3.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 - 50.f), TEXTURE_ASSET_ID::PREPARE_BUTTON, BUTTON_ACTION_ID::PREPARE_ATTACK);
+	}
 
 	// render the x button
 	auto close_entity = Entity();

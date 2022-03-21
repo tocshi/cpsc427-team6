@@ -269,12 +269,14 @@ struct Player
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
 
-	// Currently Using Attack (DO NOT SAVE THIS!)
+	// Currently Using/Selected Attack (DO NOT SAVE THIS!)
+	ATTACK selected_attack = ATTACK::NONE;
 	ATTACK using_attack = ATTACK::NONE;
 
-	// true if the player has already attacked or moved that turn
+	// true if the player has already attacked or moved or prepared that turn
 	bool attacked = false;
 	bool moved = false;
+	bool prepared = false;
 };
 
 // Mode visualization objects

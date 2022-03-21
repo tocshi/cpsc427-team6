@@ -2868,6 +2868,47 @@ void WorldSystem::use_attack(vec2 target_pos) {
 		}
 		break;
 
+	case ATTACK::ROUNDSLASH:
+		// only attack if the player hasn't attacked that turn
+		if (!player.attacked) {
+
+			// only attack if have enough ep and mp
+			if (player_stats.ep >= ep_cost && player_stats.mp >= mp_cost) {
+				Mix_PlayChannel(-1, sword_slash, 0);
+
+				// check enemies that are in area
+				for (Entity& en : registry.enemies.entities) {
+
+					Motion aoe = {};
+					aoe.position = player_motion.position;
+					aoe.scale = {300.f, 300.f};
+
+					if (collides_circle(registry.motions.get(en), aoe)) {
+						// wobble the enemy lol
+						if (!registry.wobbleTimers.has(en)) {
+							WobbleTimer& wobble = registry.wobbleTimers.emplace(en);
+							wobble.orig_scale = registry.motions.get(en).scale;
+						}
+
+						logText(deal_damage(player_main, en, 80.f));
+					}
+				}
+
+				attack_success = true;
+			}
+			else {
+				logText("Not enough MP or EP to attack!");
+				// play error sound
+				Mix_PlayChannel(-1, error_sound, 0);
+			}
+		}
+		else {
+			logText("You already attacked this turn!");
+			// play error sound
+			Mix_PlayChannel(-1, error_sound, 0);
+		}
+		break;
+
 	case ATTACK::SAPPING_STRIKE:
 		try {
 			Entity& target = get_targeted_enemy(target_pos);

@@ -72,6 +72,10 @@ public:
 	Mix_Chunk* door_sound;
 	Mix_Chunk* switch_sound;
 	Mix_Chunk* chest_sound;
+	Mix_Chunk* slime_move;
+	Mix_Chunk* slime_death;
+	Mix_Chunk* caveling_death;
+	Mix_Chunk* caveling_move;
 
 	Mix_Music* menu_music;
 	Mix_Music* cutscene_music;
@@ -231,6 +235,12 @@ private:
 
 	// udate turn UI
 	void update_turn_ui();
+
+	// play enemy death sounds
+	void playEnemyDeathSound(ENEMY_TYPE enemy_type);
+
+	// play enemy move sounds
+	void playEnemyMoveSound(ENEMY_TYPE enemy_type);
 
 	// OpenGL window handle
 	GLFWwindow* window;

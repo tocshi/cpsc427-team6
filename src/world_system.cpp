@@ -48,6 +48,20 @@ void WorldSystem::destroyMusic() {
 		Mix_FreeChunk(caveling_move);
 	if (caveling_death != nullptr)
 		Mix_FreeChunk(caveling_death);
+	if (whoosh != nullptr)
+		Mix_FreeChunk(whoosh);
+	if (sword_end != nullptr)
+		Mix_FreeChunk(sword_end);
+	if (sword_parry != nullptr)
+		Mix_FreeChunk(sword_parry);
+	if (sword_pierce != nullptr)
+		Mix_FreeChunk(sword_pierce);
+	if (sword_slash != nullptr)
+		Mix_FreeChunk(sword_slash);
+	if (special_sound != nullptr)
+		Mix_FreeChunk(special_sound);
+	if (ui_click != nullptr)
+		Mix_FreeChunk(ui_click);
 	Mix_CloseAudio();
 
 }
@@ -200,6 +214,8 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(caveling_move, 14);
 	caveling_death = Mix_LoadWAV(audio_path("feedback/caveling_death.wav").c_str());
 	Mix_VolumeChunk(caveling_death, 30);
+	ui_click = Mix_LoadWAV(audio_path("feedback/ui_click.wav").c_str());
+	Mix_VolumeChunk(ui_click, 20);
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr
 		|| error_sound == nullptr || footstep_sound == nullptr
@@ -1234,6 +1250,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// no interactions when being knocked back
 	if (registry.knockbacks.has(player_main)) { return; }
 
+	if (action == GLFW_RELEASE) {
+		// button sound
+		Mix_PlayChannel(-1, ui_click, 0);
+	}
+
 	// DEBUG: HEAL PLAYER
 	if (action == GLFW_RELEASE && key == GLFW_KEY_EQUAL) {
 		Stats& stat = registry.stats.get(player_main);
@@ -1470,6 +1491,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				if (!registry.buttons.has(e)) {
 					continue;
 				}
+				// button sound
+				Mix_PlayChannel(-1, ui_click, 0);
+
 				// perform action based on button ENUM
 				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
 
@@ -1638,6 +1662,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					if (!registry.guardButtons.has(e)) {
 						continue;
 					}
+					// button sound
+					Mix_PlayChannel(-1, ui_click, 0);
+
 					// perform action based on button ENUM
 					BUTTON_ACTION_ID action = registry.guardButtons.get(e).action;
 

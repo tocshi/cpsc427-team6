@@ -106,6 +106,7 @@ public:
 	Mix_Chunk* slime_death;
 	Mix_Chunk* caveling_death;
 	Mix_Chunk* caveling_move;
+	Mix_Chunk* ui_click;
 
 	Mix_Music* menu_music;
 	Mix_Music* cutscene_music;

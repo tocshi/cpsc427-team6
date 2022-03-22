@@ -2876,11 +2876,11 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				// only attack if have enough ep and is close enough
 				if (player_stats.ep >= ep_cost && dist_to(player_motion.position, m.position) <= 100.f) {
 
-					// show explosion animation
-					createExplosion(renderer, { m.position.x, m.position.y });
+					// show attack animation
+					createAttackAnimation(renderer, { m.position.x, m.position.y }, player.using_attack);
 
 					// play attack sound
-					Mix_PlayChannel(-1, fire_explosion_sound, 0);
+					Mix_PlayChannel(-1, sword_parry, 0);
 
 					logText(deal_damage(player_main, target, 100.f));
 
@@ -2967,12 +2967,12 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				// only attack if have enough ep and is close enough
 				if (player_stats.ep >= ep_cost && player_stats.mp >= mp_cost && dist_to(player_motion.position, m.position) <= 100.f) {
 
-					// show explosion animation
-					Entity explosion = createExplosion(renderer, { m.position.x, m.position.y });
-					registry.colors.insert(explosion, {0.f, 0.f, 1.f});
+					// show attack animation
+					Entity anim = createAttackAnimation(renderer, { m.position.x, m.position.y }, player.using_attack);
+					registry.colors.insert(anim, {0.f, 0.f, 1.f});
 
 					// play attack sound
-					Mix_PlayChannel(-1, fire_explosion_sound, 0);
+					Mix_PlayChannel(-1, sword_parry, 0);
 
 					logText(deal_damage(player_main, target, 80.f));
 

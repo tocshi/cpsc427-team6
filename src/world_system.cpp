@@ -1895,7 +1895,7 @@ void WorldSystem::start_game() {
 	createEPBar(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	
 	turnUI = createTurnUI(renderer, { window_width_px * (3.f / 4.f), window_height_px * (1.f / 16.f) });
-	objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) });
+	objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32});
 	objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
 	objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
 }

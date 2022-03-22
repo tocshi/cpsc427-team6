@@ -18,6 +18,8 @@
 #include "game_state.hpp"
 #include "room_system.hpp"
 
+#include "config.hpp"
+
 #include <../ext/json/single_include/nlohmann/json.hpp>
 
 using json = nlohmann::json;
@@ -279,6 +281,10 @@ private:
 	GLFWwindow* window;
 
 	SaveSystem saveSystem;
+
+	ConfigSystem configSystem; // initilizae the config
+
+
 	TurnOrderSystem turnOrderSystem;
 	AISystem aiSystem;
 	RoomSystem roomSystem;

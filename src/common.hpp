@@ -42,6 +42,8 @@ const float ui_scale = 1.2;
 #define M_PI 3.14159265358979323846f
 #endif
 
+void loadConfig(); // loading config 
+
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)
 // We recomment making all components non-copyable by derving from ComponentNonCopyable

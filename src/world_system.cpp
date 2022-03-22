@@ -462,7 +462,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 
 		// change guard button to end turn if ep is not full
-		if ((p.attacked || p.moved) && !hideGuardButton) {
+		if ((p.attacked || p.moved || ep <= 50) && !hideGuardButton) {
 			// remove guard button
 			for (Entity gb : registry.guardButtons.entities) {
 				registry.remove_all_components_of(gb);
@@ -961,7 +961,7 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 
 // spawn tutorial entities
 void WorldSystem::spawn_tutorial_entities() {
-	std::string next_map = roomSystem.getRandomRoom(Floors::TUTORIAL, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 	spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
@@ -1085,7 +1085,7 @@ void WorldSystem::spawn_game_entities() {
 	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
-	objectiveCounter = createObjectiveCounter(renderer, { 256 * ui_scale, window_height_px * (1.f / 16.f) });
+	objectiveCounter = createObjectiveCounter(renderer, { 256 * ui_scale, window_height_px * (1.f / 16.f) + 32});
 	objectiveDescText = createText(renderer, { 272 * ui_scale, window_height_px * (1.f / 16.f) + 76 * ui_scale }, "", 2.f, { 1.0, 1.0, 1.0 });
 	objectiveNumberText = createText(renderer, { 272 * ui_scale, window_height_px * (1.f / 16.f) + 204 * ui_scale }, "", 2.f, { 1.0, 1.0, 1.0 });
 
@@ -1637,13 +1637,13 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						logText("You already attacked this turn!");
 						Mix_PlayChannel(-1, error_sound, 0);
 					}
-					else if (stats.mp < attack_mpcosts.at(p.selected_attack) || stats.ep < attack_epcosts.at(p.selected_attack)) {
+					else if (stats.mp < attack_mpcosts.at(p.selected_attack) || stats.ep < attack_epcosts.at(p.selected_attack) * stats.eprateatk) {
 						logText("Not enough MP or EP to attack!");
 						Mix_PlayChannel(-1, error_sound, 0);
 					}
 					else {
 						stats.mp -= attack_mpcosts.at(p.selected_attack);
-						stats.ep -= attack_epcosts.at(p.selected_attack);
+						stats.ep -= attack_epcosts.at(p.selected_attack) * stats.eprateatk;
 						registry.players.get(player_main).prepared = true;
 						for (Entity ad : registry.attackDialogs.entities) {
 							registry.remove_all_components_of(ad);
@@ -1983,7 +1983,6 @@ void WorldSystem::start_player_turn() {
 	p.prepared = false;
 
 	if (registry.stats.get(player_main).guard) {
-		ep = maxep * 1.5f;
 		registry.stats.get(player_main).guard = false;
 	}
 	else {
@@ -2106,18 +2105,19 @@ Entity WorldSystem::loadPlayer(json playerData) {
 	// get queueable stuff
 	loadQueueable(e, playerData["queueable"]);
 
-	// load stats
-	loadStats(e, playerData["stats"]);
-
 	// get inventory
 	Inventory inv = loadInventory(e, playerData["inventory"]);
+	registry.inventories.get(player_main) = inv;
+
+	// load player statuses
+	loadStatuses(e, playerData["statuses"]);
+
+	// load stats
+	loadStats(e, playerData["stats"]);
 
 	// get player component stuff
 	loadPlayerComponent(e, playerData["player"], inv);
 
-	// load player statuses
-	loadStatuses(e, playerData["statuses"]);
-	
 	return e;
 }
 
@@ -2237,7 +2237,6 @@ Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
 		weapon.attacks[i] = attack;
 		i++;
 	}
-	inv.equipped[0] = weapon;
 
 	// get armour
 	json armourJson = inventoryData["equipped"]["armour"];
@@ -2256,7 +2255,9 @@ Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
 		armour.attacks[i] = attack;
 		i++;
 	}
-	inv.equipped[1] = armour;
+	
+	equip_item(player_main, weapon);
+	equip_item(player_main, armour);
 
 	return inv;
 }
@@ -2877,6 +2878,8 @@ void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
 	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 
 	// Refill Player EP
+	reset_stats(player_main);
+	calc_stats(player_main);
 	stats.ep = stats.maxep;
 
 	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);

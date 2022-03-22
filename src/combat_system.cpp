@@ -141,7 +141,14 @@ float calc_damage(Entity& attacker, Entity& defender, float multiplier)
 	final_damage -= defender_def;
 
 	if (defender_stats.guard) {
-		final_damage /= 2.f;
+		while (final_damage > 1) {
+			if (defender_stats.ep <= defender_stats.maxep * 0.5f) {
+				break;
+			}
+			// defender loses 2 EP per % of HP damage blocked
+			defender_stats.ep -= defender_stats.maxep / defender_stats.maxhp;
+			final_damage -= 0.5f;
+		}
 	}
 
 	// Minimum damage is 1

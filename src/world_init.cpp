@@ -787,6 +787,64 @@ Entity createMenuStart(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+// Menu Continue Button
+Entity createMenuContinue(RenderSystem * renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ QUIT_BB_WIDTH, QUIT_BB_HEIGHT });
+
+	registry.menuItems.emplace(entity);
+	// Create and (empty) QUIT component to be able to refer to all quit buttons
+	registry.buttons.insert(
+		entity,
+		{ BUTTON_ACTION_ID::CONTINUE
+		});
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::CONTINUE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI_TOP });
+
+	return entity;
+}
+
+// Save and Quit Button
+Entity createSaveQuit(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ QUIT_BB_WIDTH, QUIT_BB_HEIGHT });
+
+	registry.menuItems.emplace(entity);
+	// Create and (empty) QUIT component to be able to refer to all quit buttons
+	registry.buttons.insert(
+		entity,
+		{ BUTTON_ACTION_ID::SAVE_QUIT
+		});
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SAVE_QUIT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI_TOP });
+
+	return entity;
+}
+
 // Menu Quit Button
 Entity createMenuQuit(RenderSystem* renderer, vec2 pos)
 {

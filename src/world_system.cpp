@@ -878,7 +878,8 @@ void WorldSystem::restart_game() {
 	//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
 
 	createMenuStart(renderer, { window_width_px / 2, 400.f });
-	createMenuQuit(renderer, { window_width_px / 2, 600.f });
+	createMenuContinue(renderer, { window_width_px / 2, 600.f });
+	createMenuQuit(renderer, { window_width_px / 2, 800.f });
 	createMenuTitle(renderer, { window_width_px / 2, 150.f });
 }
 
@@ -1262,21 +1263,23 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
 		// pause menu
 		// close the menu if pressed again
-		if (current_game_state == GameStates::CUTSCENE) {
-			int w, h;
-			glfwGetWindowSize(window, &w, &h);
-			restart_game();
-		}
-		else if (current_game_state == GameStates::PAUSE_MENU) {
-			set_gamestate(GameStates::BATTLE_MENU);
-		}
-		else {
-			set_gamestate(GameStates::PAUSE_MENU);
-			// render quit button
-			createMenuQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 });
+		if (current_game_state != GameStates::MAIN_MENU) {
+			if (current_game_state == GameStates::CUTSCENE) {
+				int w, h;
+				glfwGetWindowSize(window, &w, &h);
+				restart_game();
+			}
+			else if (current_game_state == GameStates::PAUSE_MENU) {
+				set_gamestate(GameStates::BATTLE_MENU);
+			}
+			else {
+				set_gamestate(GameStates::PAUSE_MENU);
+				// render save and quit button
+				createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 });
 
-			// render cancel button
-			createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f });
+				// render cancel button
+				createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f });
+			}
 		}
 	}
 
@@ -1455,6 +1458,31 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						background_front = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_FRONT, RENDER_LAYER_ID::BG_3);
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
+					case BUTTON_ACTION_ID::CONTINUE:
+						// if save data exists reset the game
+						if (saveSystem.saveDataExists()) {
+							// remove entities to load in entities
+							removeForLoad();
+							//printf("Removed for load\n");
+							// get saved game data
+							json gameData = saveSystem.getSaveData();
+							//printf("getting gameData\n");
+							// load the entities in
+							loadFromData(gameData);
+							//printf("load game data?\n");
+						}
+
+						logText("Game state loaded!");
+						remove_fog_of_war();
+						create_fog_of_war();
+						break;
+					case BUTTON_ACTION_ID::SAVE_QUIT:
+						if (!tutorial) {
+							saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
+							logText("Game state saved!");
+						}
+						glfwSetWindowShouldClose(window, true); break;
+						break;
 					case BUTTON_ACTION_ID::ACTIONS_ATTACK:
 						if (current_game_state == GameStates::BATTLE_MENU) {
 							attackAction();
@@ -1475,8 +1503,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						
 						// inMenu = true;
 						set_gamestate(GameStates::PAUSE_MENU);
-						// render quit button
-						createMenuQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90});
+						// render save and quit button
+						createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 });
 
 						// render cancel button
 						createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f });

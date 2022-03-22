@@ -192,3 +192,7 @@ Entity createStatsText(RenderSystem* renderer, vec2 pos, std::string msg, float 
 Entity createItemEquipmentTexture(RenderSystem* renderer, vec2 pos, Equipment equipment);
 // objective counter UI
 Entity createObjectiveCounter(RenderSystem* renderer, vec2 pos);
+// menu continue
+Entity createMenuContinue(RenderSystem* renderer, vec2 pos);
+// Save and Quit Button
+Entity createSaveQuit(RenderSystem* renderer, vec2 pos);

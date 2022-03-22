@@ -38,6 +38,8 @@ const float ACTIONS_BAR_BB_HEIGHT = 200.f;
 const float ACTIONS_BAR_BB_WIDTH = 1800.f;
 const float ACTIONS_BUTTON_BB_HEIGHT = 125.f;
 const float ACTIONS_BUTTON_BB_WIDTH = 125.f;
+const float ATTACK_DIALOG_BUTTON_BB_HEIGHT = 49.f * 1;
+const float ATTACK_DIALOG_BUTTON_BB_WIDTH = 190.f * 1;
 const float PAUSE_BUTTON_BB_HEIGHT = 50.f;
 const float PAUSE_BUTTON_BB_WIDTH = 50.f;
 const float COLLECTION_MENU_BB_WIDTH = 800.f;
@@ -168,16 +170,17 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 // Attack card
 Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack);
 // Attack type dialog
-Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack);
+Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack, bool prepared);
 // cutscene
 Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID textureID);
 // Turn UI
 Entity createTurnUI(RenderSystem* renderer, vec2 pos);
 // Icon
 Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id);
-
 // switch
 Entity createSwitch(RenderSystem* renderer, vec2 pos);
+// generic button
+Entity createAttackDialogButton(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID button_texture, BUTTON_ACTION_ID button_action);
 // potion
 Entity createConsumable(RenderSystem* renderer, vec2 pos, CONSUMABLE type);
 // left mouse click animation
@@ -192,6 +195,10 @@ Entity createStatsText(RenderSystem* renderer, vec2 pos, std::string msg, float 
 Entity createItemEquipmentTexture(RenderSystem* renderer, vec2 pos, Equipment equipment);
 // objective counter UI
 Entity createObjectiveCounter(RenderSystem* renderer, vec2 pos);
+// attack animation
+Entity createAttackAnimation(RenderSystem* renderer, vec2 pos, ATTACK attack);
+// Terminus Veritas effect
+Entity createBigSlash(RenderSystem* renderer, vec2 pos, float angle, float scale);
 // menu continue
 Entity createMenuContinue(RenderSystem* renderer, vec2 pos);
 // Save and Quit Button

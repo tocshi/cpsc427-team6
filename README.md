@@ -146,3 +146,12 @@ Implemented Features:
 		<li> render_system.cpp | drawText() | line 213 </li>
 	</ul>
     </ul>
+
+- Status Effect System 
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> components.hpp | StatusType() | line 333 </li>
+		<li> combat_system.cpp | apply_status() | line 77 </li>
+	</ul>
+    </ul>

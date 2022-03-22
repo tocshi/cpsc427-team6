@@ -109,11 +109,11 @@ bool collides_rotrect_circle(const Motion& rectmotion, const Motion& circlemotio
 		cy = rectCenterY;
 	}
 	else {
-		tx = cos(rectRotation) * circleCenterX - sin(rectRotation) * circleCenterY;
-		ty = cos(rectRotation) * circleCenterY + sin(rectRotation) * circleCenterX;
+		tx = cos(rectRotation) * circleCenterX - sin(rectRotation-M_PI) * circleCenterY;
+		ty = cos(rectRotation) * circleCenterY + sin(rectRotation-M_PI) * circleCenterX;
 
-		cx = cos(rectRotation) * rectCenterX - sin(rectRotation) * rectCenterY;
-		cy = cos(rectRotation) * rectCenterY + sin(rectRotation) * rectCenterX;
+		cx = cos(rectRotation) * rectCenterX - sin(rectRotation-M_PI) * rectCenterY;
+		cy = cos(rectRotation) * rectCenterY + sin(rectRotation-M_PI) * rectCenterX;
 	}
 
 	return testRectangleToPoint(rectWidth, rectHeight, rectRotation, rectCenterX, rectCenterY, circleCenterX, circleCenterY) ||

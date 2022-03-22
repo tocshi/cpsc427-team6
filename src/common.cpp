@@ -1,6 +1,28 @@
 #include "common.hpp"
 #include <stdlib.h>
 #include <time.h>
+#include <iostream>
+#include <fstream>
+#include <string> 
+
+
+struct Config {
+	int window_h;
+	int window_w;
+	int scale_fac; 
+};
+
+void loadConfig() {
+	std::string line; 
+	std::ifstream myfile(data_path() + "config.txt");
+	if (myfile.is_open()) {
+		while (getline(myfile, line)) {
+			printf("line is : ", line);
+		}
+		myfile.close();
+	}
+
+}
 
 // Note, we could also use the functions from GLM but we write the transformations here to show the uderlying math
 void Transform::scale(vec2 scale)

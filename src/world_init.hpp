@@ -56,6 +56,7 @@ const float POINTER_BB_WIDTH = 64.f * ui_scale;
 const float POINTER_BB_HEIGHT = 64.f * ui_scale;
 const float SWITCH_BB_WIDTH = 64.f * ui_scale;
 const float SWITCH_BB_HEIGHT = 64.f * ui_scale;
+
 // want to make fog small so it can be rendered a lot TODO: this is a bad implementation and will need to be changed later to use shadows or drawing circles or something better
 const float FOG_BB_WIDTH = 0.6f * 100.f * ui_scale;
 const float FOG_BB_HEIGHT = 0.6f * 100.f * ui_scale;
@@ -168,16 +169,17 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 // Attack card
 Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack);
 // Attack type dialog
-Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack);
+Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack, bool prepared);
 // cutscene
 Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID textureID);
 // Turn UI
 Entity createTurnUI(RenderSystem* renderer, vec2 pos);
 // Icon
 Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id);
-
 // switch
 Entity createSwitch(RenderSystem* renderer, vec2 pos);
+// generic button
+Entity createAttackDialogButton(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID button_texture, BUTTON_ACTION_ID button_action);
 // potion
 Entity createConsumable(RenderSystem* renderer, vec2 pos, CONSUMABLE type);
 // left mouse click animation
@@ -192,3 +194,11 @@ Entity createStatsText(RenderSystem* renderer, vec2 pos, std::string msg, float 
 Entity createItemEquipmentTexture(RenderSystem* renderer, vec2 pos, Equipment equipment);
 // objective counter UI
 Entity createObjectiveCounter(RenderSystem* renderer, vec2 pos);
+// attack animation
+Entity createAttackAnimation(RenderSystem* renderer, vec2 pos, ATTACK attack);
+// Terminus Veritas effect
+Entity createBigSlash(RenderSystem* renderer, vec2 pos, float angle, float scale);
+// menu continue
+Entity createMenuContinue(RenderSystem* renderer, vec2 pos);
+// Save and Quit Button
+Entity createSaveQuit(RenderSystem* renderer, vec2 pos);

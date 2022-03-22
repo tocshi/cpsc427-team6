@@ -1958,6 +1958,8 @@ Entity createEPFill(RenderSystem* renderer, vec2 position) {
 	// Setting initial values
 	motion.scale = vec2({ STAT_BB_WIDTH, STAT_BB_HEIGHT });
 
+	registry.colors.insert(statEntity, {0.9f, 0.9f, 0.f});
+
 	registry.renderRequests.insert(
 		statEntity,
 		{ TEXTURE_ASSET_ID::EPFILL,

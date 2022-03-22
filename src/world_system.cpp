@@ -1223,6 +1223,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (action == GLFW_RELEASE && key == GLFW_KEY_EQUAL) {
 		Stats& stat = registry.stats.get(player_main);
 		stat.hp = stat.maxhp;
+		stat.mp = stat.maxmp;
+		stat.ep = stat.maxep;
+		registry.players.get(player_main).attacked = false;
 	}
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
@@ -3022,7 +3025,8 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				Mix_PlayChannel(-1, sword_pierce, 0);
 				Motion aoe = {};
 				aoe.position = dirdist_extrapolate(player_motion.position, angle, 150.f);
-				aoe.scale = { 1.f, 300.f };
+				aoe.angle = angle;
+				aoe.scale = { 300.f, 1.f };
 				Entity animation = createAttackAnimation(renderer, dirdist_extrapolate(player_motion.position, angle, 200.f), player.using_attack);
 				registry.motions.get(animation).angle = angle + M_PI/2;
 

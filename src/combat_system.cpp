@@ -33,6 +33,9 @@ std::string deal_damage(Entity& attacker, Entity& defender, float multiplier)
 	// Defender take damage, unless parried
 	if (has_status(defender, StatusType::PARRYING_STANCE) && !has_status(attacker, StatusType::PARRYING_STANCE) && final_damage < defender_stats.maxhp * 0.3) {
 		deal_damage(defender, attacker, multiplier);
+		// show attack animation
+		Motion& attacker_motion = registry.motions.get(attacker);
+		createAttackAnimation(world.renderer, { attacker_motion.position.x, attacker_motion.position.y }, ATTACK::NONE);
 		Mix_PlayChannel(-1, world.sword_parry, 0);
 		return attacker_name.append("'s attack was parried!");
 	}

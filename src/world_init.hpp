@@ -195,3 +195,5 @@ Entity createStatsText(RenderSystem* renderer, vec2 pos, std::string msg, float 
 Entity createItemEquipmentTexture(RenderSystem* renderer, vec2 pos, Equipment equipment);
 // objective counter UI
 Entity createObjectiveCounter(RenderSystem* renderer, vec2 pos);
+// attack animation
+Entity createAttackAnimation(RenderSystem* renderer, vec2 pos, ATTACK attack);

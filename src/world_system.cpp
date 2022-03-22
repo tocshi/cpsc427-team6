@@ -3026,9 +3026,9 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				Motion aoe = {};
 				aoe.position = dirdist_extrapolate(player_motion.position, angle, 150.f);
 				aoe.angle = angle;
-				aoe.scale = { 300.f, 1.f };
+				aoe.scale = { 250.f, 5.f };
 				Entity animation = createAttackAnimation(renderer, dirdist_extrapolate(player_motion.position, angle, 200.f), player.using_attack);
-				registry.motions.get(animation).angle = angle + M_PI/2;
+				registry.motions.get(animation).angle = angle + M_PI/3;
 
 				// check enemies that are in area
 				for (Entity& en : registry.enemies.entities) {
@@ -3042,7 +3042,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 						Stats& enemy_stats = registry.stats.get(en);
 						float def_mod = enemy_stats.def * 0.4;
 						enemy_stats.def -= def_mod;
-						logText(deal_damage(player_main, en, 120.f));
+						logText(deal_damage(player_main, en, 1.f));
 						enemy_stats.def += def_mod;
 					}
 				}
@@ -3121,16 +3121,15 @@ void WorldSystem::use_attack(vec2 target_pos) {
 			if (player_stats.ep >= ep_cost && player_stats.mp >= mp_cost) {
 				Mix_PlayChannel(-1, sword_end, 0);
 				Motion aoe = {};
-				aoe.position = dirdist_extrapolate(player_motion.position, angle, player_stats.range);
+				aoe.position = dirdist_extrapolate(player_motion.position, angle, player_stats.range * 1.1);
 				aoe.angle = angle;
 				aoe.scale = { player_stats.range * 2.f, player_stats.range * 2.f };
-				Entity animation = createAttackAnimation(renderer, dirdist_extrapolate(player_motion.position, angle, 200.f), player.using_attack);
-				registry.motions.get(animation).angle = angle + M_PI / 2;
 
 				// check enemies that are in area
 				for (Entity& en : registry.enemies.entities) {
 
-					if (collides_rotrect_circle(aoe, registry.motions.get(en))) {
+					if (collides_rotrect_circle(aoe, registry.motions.get(en)) 
+						&& dist_to(player_motion.position, registry.motions.get(en).position) <= player_stats.range) {
 						// wobble the enemy lol
 						if (!registry.wobbleTimers.has(en)) {
 							WobbleTimer& wobble = registry.wobbleTimers.emplace(en);
@@ -3138,9 +3137,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 						}
 						Stats& enemy_stats = registry.stats.get(en);
 						float def_mod = enemy_stats.def * 0.4;
-						enemy_stats.def -= def_mod;
-						logText(deal_damage(player_main, en, 120.f));
-						enemy_stats.def += def_mod;
+						logText(deal_damage(player_main, en, 1.f));
 					}
 				}
 

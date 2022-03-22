@@ -98,7 +98,7 @@ bool collides_rotrect_circle(const Motion& rectmotion, const Motion& circlemotio
 	float rectCenterY = rectmotion.position.y;
 	float circleCenterX = circlemotion.position.x;
 	float circleCenterY = circlemotion.position.y;
-	float circleRadius = circlemotion.scale.x;
+	float circleRadius = circlemotion.scale.x/2.f;
 	float tx, ty, cx, cy;
 
 	if (rectRotation == 0) { // Higher Efficiency for Rectangles with 0 rotation.

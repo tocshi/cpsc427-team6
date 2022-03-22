@@ -6,6 +6,7 @@
 #include <tuple>
 #include <vector>
 #include <cmath>
+#include <../ext/json/single_include/nlohmann/json.hpp>
 
 // glfw (OpenGL)
 #define NOMINMAX
@@ -18,6 +19,7 @@
 #include <glm/vec3.hpp>             // vec3
 #include <glm/mat3x3.hpp>           // mat3
 using namespace glm;
+using json = nlohmann::json;
 
 #include "tiny_ecs.hpp"
 
@@ -33,12 +35,18 @@ inline std::string mesh_path(const std::string& name) { return data_path() + "/m
 inline std::string font_path(const std::string& name) { return data_path() + "/fonts/" + std::string(name); };
 inline std::string tilemaps_path(const std::string& name) { return data_path() + "/maps/" + std::string(name); };
 
-const int window_width_px = 1600;
-const int window_height_px = 900;
+const std::string SAVE_CONFIG_PATH = data_path() + "/config.json";
+
+extern int window_width_px;
+extern int window_height_px;
+
+extern float ui_scale;
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f
 #endif
+
+void loadConfig(); // loading config 
 
 // The 'Transform' component handles transformations passed to the Vertex shader
 // (similar to the gl Immediate mode equivalent, e.g., glTranslate()...)

@@ -292,6 +292,7 @@ private:
 	GLFWwindow* window;
 
 	SaveSystem saveSystem;
+
 	TurnOrderSystem turnOrderSystem;
 	AISystem aiSystem;
 	RoomSystem roomSystem;

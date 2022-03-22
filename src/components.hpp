@@ -87,19 +87,27 @@ enum class TEXTURE_ASSET_ID {
 	TURN_UI = CUTSCENE3 + 1,
 	SWITCH_DEFAULT = TURN_UI + 1,
 	SWITCH_ACTIVE = SWITCH_DEFAULT + 1,
-	CAVE_FRONT = SWITCH_ACTIVE + 1,
-	CAVE_MID = CAVE_FRONT + 1,
-	CAVE_BACK = CAVE_MID + 1,
-	CAVE_COLOR = CAVE_BACK + 1,
-	ITEM_WEAPON_CARD = CAVE_COLOR + 1,
+	ITEM_WEAPON_CARD = SWITCH_ACTIVE + 1,
 	ITEM_ARMOUR_CARD = ITEM_WEAPON_CARD + 1,
 	KEY_ICON_1 = ITEM_ARMOUR_CARD + 1,
 	KEY_ICON_2 = KEY_ICON_1 + 1,
 	KEY_ICON_3 = KEY_ICON_2 + 1,
 	KEY_ICON_4 = KEY_ICON_3 + 1,
 	KEY_ICON_5 = KEY_ICON_4 + 1,
-	ATTACK_NORMAL = KEY_ICON_5 + 1,
-	POTION_RED = ATTACK_NORMAL + 1,
+	CAVE_FRONT = KEY_ICON_5 + 1, //bg parallax
+	CAVE_MID = CAVE_FRONT + 1,
+	CAVE_BACK = CAVE_MID + 1,
+	CAVE_COLOR = CAVE_BACK + 1,
+	ATTACK_NORMAL = CAVE_COLOR + 1, // attack icons
+	ATTACK_ROUNDSLASH = ATTACK_NORMAL + 1,
+	ATTACK_SAPPING_STRIKE = ATTACK_ROUNDSLASH + 1,
+	ATTACK_PIERCING_THRUST = ATTACK_SAPPING_STRIKE + 1,
+	ATTACK_PARRYING_STANCE = ATTACK_PIERCING_THRUST + 1,
+	ATTACK_DISENGAGE = ATTACK_PARRYING_STANCE + 1,
+	ATTACK_TERMINUS_VERITAS = ATTACK_DISENGAGE + 1,
+	USE_BUTTON = ATTACK_TERMINUS_VERITAS + 1,
+	PREPARE_BUTTON = USE_BUTTON + 1,
+	POTION_RED = PREPARE_BUTTON + 1, // items/artifacts
 	POTION_BLUE = POTION_RED + 1,
 	POTION_YELLOW = POTION_BLUE + 1,
 	ARCANE_SPECS = POTION_YELLOW + 1,
@@ -126,8 +134,10 @@ enum class TEXTURE_ASSET_ID {
 	WARM_CLOAK = THUNDER_TWIG + 1,
 	WINDBAG = WARM_CLOAK + 1,
 	MOUSE_SPRITESHEET = WINDBAG + 1,
-	OBJECTIVE_COUNTER = MOUSE_SPRITESHEET + 1,
-	TEXTURE_COUNT = OBJECTIVE_COUNTER + 1
+	SLASH_SPRITESHEET = MOUSE_SPRITESHEET + 1,
+	OBJECTIVE_COUNTER = SLASH_SPRITESHEET + 1,
+	BIGSLASH = OBJECTIVE_COUNTER + 1,
+	TEXTURE_COUNT = BIGSLASH + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -291,9 +301,14 @@ struct Player
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
 
-	// true if the player has already attacked or moved that turn
+	// Currently Using/Selected Attack (DO NOT SAVE THIS!)
+	ATTACK selected_attack = ATTACK::NONE;
+	ATTACK using_attack = ATTACK::NONE;
+
+	// true if the player has already attacked or moved or prepared that turn
 	bool attacked = false;
 	bool moved = false;
+	bool prepared = false;
 };
 
 // Mode visualization objects
@@ -437,7 +452,7 @@ struct Stats {
 	float maxhp = 100.f;
 	float mp    = 100.f;
 	float maxmp = 100.f;
-	float mpregen = 10.f;
+	float mpregen = 1.f;
 	float ep    = 100.f;
 	float maxep = 100.f;
 	float epratemove = 1.f;
@@ -510,7 +525,9 @@ enum class BUTTON_ACTION_ID {
 	CLOSE_ATTACK_DIALOG = OPEN_ATTACK_DIALOG + 1,
 	SCROLL_DOWN = CLOSE_ATTACK_DIALOG + 1,
 	SCROLL_UP = SCROLL_DOWN + 1,
-	ACTION_COUNT = SCROLL_UP + 1
+	USE_ATTACK = SCROLL_DOWN + 1,
+	PREPARE_ATTACK = USE_ATTACK + 1,
+	ACTION_COUNT = PREPARE_ATTACK + 1
 };
 const int button_action_count = (int)BUTTON_ACTION_ID::ACTION_COUNT;
 
@@ -611,7 +628,8 @@ enum class StatusType {
 	EP_REGEN = PARRYING_STANCE + 1,
 	ARCANE_FUNNEL = EP_REGEN + 1,
 	PRIMAL_RAGE = ARCANE_FUNNEL + 1,
-	FOCUSING = PRIMAL_RAGE + 1
+	FOCUSING = PRIMAL_RAGE + 1,
+	DISENGAGE_TRIGGER = FOCUSING + 1
 };
 
 struct StatusEffect {
@@ -816,6 +834,12 @@ struct ItemCard {
 	Equipment item;
 };
 
+// timer for expanding image effects
+struct ExpandTimer {
+	float counter_ms = 300;
+	float target_scale = 1.0;
+};
+
 // Artifact name map
 const std::map <ARTIFACT, std::string>artifact_names = {
 	{ARTIFACT::POISON_FANG, "Discarded Fang"},
@@ -931,6 +955,12 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 // Attack texture map TODO: finish this
 const std::map <ATTACK, TEXTURE_ASSET_ID>attack_textures = {
 	{ATTACK::NONE, TEXTURE_ASSET_ID::ATTACK_NORMAL},
+	{ATTACK::ROUNDSLASH, TEXTURE_ASSET_ID::ATTACK_ROUNDSLASH},
+	{ATTACK::SAPPING_STRIKE, TEXTURE_ASSET_ID::ATTACK_SAPPING_STRIKE},
+	{ATTACK::PIERCING_THRUST, TEXTURE_ASSET_ID::ATTACK_PIERCING_THRUST},
+	{ATTACK::PARRYING_STANCE, TEXTURE_ASSET_ID::ATTACK_PARRYING_STANCE},
+	{ATTACK::DISENGAGE, TEXTURE_ASSET_ID::ATTACK_DISENGAGE},
+	{ATTACK::TERMINUS_VERITAS, TEXTURE_ASSET_ID::ATTACK_TERMINUS_VERITAS},
 };
 
 //TODO: Fill this out
@@ -938,12 +968,50 @@ const std::map <ATTACK, TEXTURE_ASSET_ID>attack_textures = {
 const std::map <ATTACK, std::string>attack_names = {
 	{ATTACK::NONE, "Normal Attack"},
 	{ATTACK::ROUNDSLASH, "Roundslash"},
+	{ATTACK::SAPPING_STRIKE, "Sapping Strike"},
+	{ATTACK::PIERCING_THRUST, "Piercing Thrust"},
+	{ATTACK::PARRYING_STANCE, "Parrying Stance"},
+	{ATTACK::DISENGAGE, "Disengage"},
+	{ATTACK::TERMINUS_VERITAS, "Terminus Veritas"},
 };
 
 const std::map <ATTACK, std::string>attack_descriptions = {
 	{ATTACK::NONE, "Deals 100% of ATK in damage to a single target."},
+	{ATTACK::ROUNDSLASH, "Deals 80% of ATK in damage in a circle around you."},
+	{ATTACK::SAPPING_STRIKE, "Deals 80% of ATK in damage to a single target, and restores 30 MP."},
+	{ATTACK::PIERCING_THRUST, "Deals 120% of ATK in damage in a line, and ignores 40% DEF of any enemies you hit."},
+	{ATTACK::PARRYING_STANCE, "Prepares to parry until the start of your next turn, all attacks that deal <30% of your max HP are deflected, dealing its original multiplier of damage back to the attacker."},
+	{ATTACK::DISENGAGE, "Quickly jumps 300 units in target direction. Does not count as an attack. If you end your turn without attacking, gain 30 EP at the start of your next turn."},
+	{ATTACK::TERMINUS_VERITAS, "Consumes all MP, dealing 4.5% ATK damage per MP consumed in a semicircle AoE within sight range. When consuming 90 or more MP, deal 5% ATK damage per MP instead."},
 };
 
-const std::map <ATTACK, std::string>attack_costs = {
+// TODO: deprecate this
+const std::map <ATTACK, std::string>attack_costs_string = {
 	{ATTACK::NONE, "0 MP, 50 EP"},
+	{ATTACK::ROUNDSLASH, "30 MP, 50 EP"},
+	{ATTACK::SAPPING_STRIKE, "0 MP, 90 EP"},
+	{ATTACK::PIERCING_THRUST, "40 MP, 40 EP"},
+	{ATTACK::PARRYING_STANCE, "50 MP, 100 EP"},
+	{ATTACK::DISENGAGE, "30 MP, 0 EP"},
+	{ATTACK::TERMINUS_VERITAS, "60+ MP, 100 EP"},
+};
+
+const std::map <ATTACK, float>attack_mpcosts = {
+	{ATTACK::NONE, 0},
+	{ATTACK::ROUNDSLASH, 30},
+	{ATTACK::SAPPING_STRIKE, 0},
+	{ATTACK::PIERCING_THRUST, 40},
+	{ATTACK::PARRYING_STANCE, 50},
+	{ATTACK::DISENGAGE, 30},
+	{ATTACK::TERMINUS_VERITAS, 60},
+};
+
+const std::map <ATTACK, float>attack_epcosts = {
+	{ATTACK::NONE, 50},
+	{ATTACK::ROUNDSLASH, 50},
+	{ATTACK::SAPPING_STRIKE, 90},
+	{ATTACK::PIERCING_THRUST, 40},
+	{ATTACK::PARRYING_STANCE, 100},
+	{ATTACK::DISENGAGE, 0},
+	{ATTACK::TERMINUS_VERITAS, 100},
 };

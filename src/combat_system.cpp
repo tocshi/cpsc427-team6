@@ -30,10 +30,21 @@ std::string deal_damage(Entity& attacker, Entity& defender, float multiplier)
 
 	int logged_damage = round(final_damage);
 
-	std::string log = attacker_name.append(" attacked ").append(defender_name).append(" for ").append(std::to_string(logged_damage)).append(" damage!");
+	// Defender take damage, unless parried
+	if (has_status(defender, StatusType::PARRYING_STANCE) && !has_status(attacker, StatusType::PARRYING_STANCE) && final_damage < defender_stats.maxhp * 0.3) {
+		deal_damage(defender, attacker, multiplier);
+		// show attack animation
+		Motion& attacker_motion = registry.motions.get(attacker);
+		createAttackAnimation(world.renderer, { attacker_motion.position.x, attacker_motion.position.y }, ATTACK::NONE);
+		Mix_PlayChannel(-1, world.sword_parry, 0);
+		return attacker_name.append("'s attack was parried!");
+	}
+	else {
+		take_damage(defender, final_damage);
+	}
 
-	// Defender take damage
-	take_damage(defender, final_damage);
+	// create logged message
+	std::string log = attacker_name.append(" attacked ").append(defender_name).append(" for ").append(std::to_string(logged_damage)).append(" damage!");
 
 	// Set hit_by_player status
 	if (registry.players.has(attacker) && registry.enemies.has(defender)) {
@@ -310,15 +321,30 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 				case (StatusType::STUN):
 					registry.queueables.get(entity).doing_turn = false;
 					break;
+				case (StatusType::EP_REGEN):
+					if (!stats_only) {
+						if (status.percentage && registry.stats.has(entity)) {
+							stats.ep += basestats.maxep * status.value;
+						}
+						else {
+							stats.ep += status.value;
+						}
+					}
+					break;
+				default:
+					break;
 			}
+
 			// properly remove statuses that have expired, except for things with >=999 turns (we treat those as infinite)
-			if (status.turns_remaining <= 999 && !stats_only) {
-				status.turns_remaining--;
-			}
-			if (status.turns_remaining <= 0 && !stats_only) {
-				statusContainer.statuses.erase(statusContainer.statuses.begin() + i);
-				reset_stats(entity);
-				calc_stats(entity);
+			if (!stats_only) {
+				if (status.turns_remaining <= 999) {
+					status.turns_remaining--;
+				}
+				if (status.turns_remaining <= 0) {
+					statusContainer.statuses.erase(statusContainer.statuses.begin() + i);
+					reset_stats(entity);
+					calc_stats(entity);
+				}
 			}
 		}
 	}
@@ -347,8 +373,8 @@ void calc_stats(Entity& entity) {
 	Inventory& inv = registry.inventories.get(entity);
 
 	handle_status_ticks(entity, true, true);
+
 	// Artifact Effects
-	
 	// Arcane Spectcles
 	if (inv.artifact[(int)ARTIFACT::ARCANE_SPECS] > 0) {
 		stats.range += 50.f * inv.artifact[(int)ARTIFACT::ARCANE_SPECS];

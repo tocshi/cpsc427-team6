@@ -96,6 +96,12 @@ public:
 	Mix_Chunk* door_sound;
 	Mix_Chunk* switch_sound;
 	Mix_Chunk* chest_sound;
+	Mix_Chunk* special_sound;
+	Mix_Chunk* whoosh;
+	Mix_Chunk* sword_end;
+	Mix_Chunk* sword_parry;
+	Mix_Chunk* sword_pierce;
+	Mix_Chunk* sword_slash;
 	Mix_Chunk* slime_move;
 	Mix_Chunk* slime_death;
 	Mix_Chunk* caveling_death;
@@ -266,6 +272,9 @@ private:
 	// udate turn UI
 	void update_turn_ui();
 
+	// use attack
+	void use_attack(vec2 target_pos);
+
 	// play enemy death sounds
 	void playEnemyDeathSound(ENEMY_TYPE enemy_type);
 
@@ -299,5 +308,8 @@ bool has_status(Entity e, StatusType status);
 
 // Remove a number of a status effect type from entity
 void remove_status(Entity e, StatusType status, int number = 1);
+
+// return clicked enemy
+Entity& get_targeted_enemy(vec2 target_pos);
 
 extern WorldSystem world;

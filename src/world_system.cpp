@@ -1473,11 +1473,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							// load the entities in
 							loadFromData(gameData);
 							//printf("load game data?\n");
+							logText("Game state loaded!");
+							remove_fog_of_war();
+							create_fog_of_war();
 						}
-
-						logText("Game state loaded!");
-						remove_fog_of_war();
-						create_fog_of_war();
 						break;
 					case BUTTON_ACTION_ID::SAVE_QUIT:
 						if (!tutorial) {

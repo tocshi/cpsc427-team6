@@ -18,7 +18,7 @@ SpawnData TileMapParser::Parse(const std::string& file, RenderSystem *renderer, 
 	int mapsizeX = std::atoi(rootNode->first_attribute("width")->value());
 	int mapsizeY = std::atoi(rootNode->first_attribute("height")->value());
 
-	int scaleFactor = 4 * ui_scale; // TODO: determine based on tileset if we are using different tile sizes
+	int scaleFactor = 4; // TODO: determine based on tileset if we are using different tile sizes
 	float uv_padding = 0.0001;
 	// 2
 	// We iterate through each layer in the tile map

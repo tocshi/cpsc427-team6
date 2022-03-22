@@ -33,10 +33,10 @@ inline std::string mesh_path(const std::string& name) { return data_path() + "/m
 inline std::string font_path(const std::string& name) { return data_path() + "/fonts/" + std::string(name); };
 inline std::string tilemaps_path(const std::string& name) { return data_path() + "/maps/" + std::string(name); };
 
-const int window_width_px = 3840;
-const int window_height_px = 2160;
+const int window_width_px = 1920;
+const int window_height_px = 1080;
 
-const int ui_scale = 2.4;
+const float ui_scale = 1.2;
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846f

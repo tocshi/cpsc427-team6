@@ -1122,7 +1122,7 @@ Entity createItemMenu(RenderSystem* renderer, vec2 top_card_pos, Inventory inv) 
 	// create weapon card
 	createItemCard(renderer, top_card_pos, EQUIPMENT::SHARP, inv.equipped[0]);
 	// create armour card
-	createItemCard(renderer, vec2(top_card_pos.x, top_card_pos.y + 150.f), EQUIPMENT::ARMOUR, inv.equipped[1]);
+	createItemCard(renderer, vec2(top_card_pos.x, top_card_pos.y + 150.f * ui_scale), EQUIPMENT::ARMOUR, inv.equipped[1]);
 
 	return entity;
 }
@@ -1924,7 +1924,7 @@ Entity createEPFill(RenderSystem* renderer, vec2 position) {
 	motion.position = position;
 
 	// Setting initial values
-	motion.scale = vec2({ STAT_BB_WIDTH, STAT_BB_HEIGHT });
+	motion.scale = vec2({ STAT_BB_WIDTH , STAT_BB_HEIGHT });
 
 	registry.renderRequests.insert(
 		statEntity,

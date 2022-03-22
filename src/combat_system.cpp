@@ -203,7 +203,7 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 	if (attacker_inv.artifact[(int)ARTIFACT::POISON_FANG] > 0) {
 		int roll = irand(100);
 		if (roll < 30) {
-			world.logText("DEBUG: Discarded Fang Procced!");
+			world.logText("The Discarded Fang unleashes its poison!");
 			float damage = (attacker_stats.atk * 0.15) + (attacker_stats.atk * 0.1 * attacker_inv.artifact[(int)ARTIFACT::POISON_FANG] - 1);
 			std::cout << damage << std::endl;
 
@@ -218,7 +218,7 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 		int roll = irand(100);
 		int chance = 15 * attacker_inv.artifact[(int)ARTIFACT::THUNDER_TWIG];
 		if (roll < chance) {
-			world.logText("DEBUG: Thunderstruck Twig Procced!");
+			world.logText("The Thundering Twig summons a bolt of lightning!");
 			float damage = attacker_stats.atk * 0.60;
 
 			// TODO: do thunder twig effect here

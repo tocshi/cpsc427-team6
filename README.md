@@ -184,4 +184,28 @@ Implemented Features:
 	 <ul>
 		<li> turn_order_system.cpp | line 7, line 18, line 54 </li>
 	</ul>
+    </ul>   
+    
+- Parallax background
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_system.cpp | line 2876 </li>
+	</ul>
     </ul>        
+
+- Saving on Quit
+   <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_init.cpp | line 844  </li>
+	</ul>
+    </ul>        
+
+- Scaling 
+   <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_init.cpp | line tbd </li>
+	</ul>
+    </ul>     

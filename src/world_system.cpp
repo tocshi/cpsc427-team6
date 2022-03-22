@@ -1460,10 +1460,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 				switch (action_taken) {
 				case BUTTON_ACTION_ID::MENU_START: 
-					set_gamestate(GameStates::BATTLE_MENU);
-					if (current_game_state != GameStates::CUTSCENE || current_game_state != GameStates::MAIN_MENU) {
-						Mix_PlayMusic(background_music, -1);
-					}
+					set_gamestate(GameStates::GAME_START);
+					Mix_PlayMusic(background_music, -1);
 					if (tutorial) { spawn_tutorial_entities(); }
 					else { spawn_game_entities(); }
 					// spawn the actions bar
@@ -3026,9 +3024,9 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				Motion aoe = {};
 				aoe.position = dirdist_extrapolate(player_motion.position, angle, 150.f);
 				aoe.angle = angle;
-				aoe.scale = { 250.f, 5.f };
-				Entity animation = createAttackAnimation(renderer, dirdist_extrapolate(player_motion.position, angle, 200.f), player.using_attack);
-				registry.motions.get(animation).angle = angle + M_PI/3;
+				aoe.scale = { 200.f, 5.f };
+				Entity animation = createAttackAnimation(renderer, dirdist_extrapolate(player_motion.position, angle, 100.f), player.using_attack);
+				registry.motions.get(animation).angle = angle + M_PI/2 + M_PI;
 
 				// check enemies that are in area
 				for (Entity& en : registry.enemies.entities) {
@@ -3042,7 +3040,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 						Stats& enemy_stats = registry.stats.get(en);
 						float def_mod = enemy_stats.def * 0.4;
 						enemy_stats.def -= def_mod;
-						logText(deal_damage(player_main, en, 1.f));
+						logText(deal_damage(player_main, en, 120.f));
 						enemy_stats.def += def_mod;
 					}
 				}
@@ -3125,6 +3123,13 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				aoe.angle = angle;
 				aoe.scale = { player_stats.range * 2.f, player_stats.range * 2.f };
 
+				// logic for Terminus Veritas damage
+				mp_cost = player_stats.mp;
+				float multiplier = 4.5f * mp_cost;
+				if (mp_cost > 90.f) {
+					multiplier = 5.f * mp_cost;
+				}
+
 				// check enemies that are in area
 				for (Entity& en : registry.enemies.entities) {
 
@@ -3137,7 +3142,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 						}
 						Stats& enemy_stats = registry.stats.get(en);
 						float def_mod = enemy_stats.def * 0.4;
-						logText(deal_damage(player_main, en, 1.f));
+						logText(deal_damage(player_main, en, multiplier));
 					}
 				}
 

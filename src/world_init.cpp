@@ -2256,7 +2256,7 @@ Entity createAttackAnimation(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 		break;
 	case ATTACK::PIERCING_THRUST:
 		anim.frame_indices = { 12,13,14,15,16,17 };
-		motion.scale = { 126, 400 };
+		motion.scale = { 100, 200 };
 		break;
 	default:
 		anim.frame_indices = { 0,1,2,3,4,5 };

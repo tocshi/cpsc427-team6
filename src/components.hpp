@@ -975,7 +975,7 @@ const std::map <ATTACK, std::string>attack_descriptions = {
 	{ATTACK::PIERCING_THRUST, "Deals 120% of ATK in damage in a line, and ignores 40% DEF of any enemies you hit."},
 	{ATTACK::PARRYING_STANCE, "Prepares to parry until the start of your next turn, all attacks that deal <30% of your max HP are deflected, dealing its original multiplier of damage back to the attacker."},
 	{ATTACK::DISENGAGE, "Quickly jumps 300 units in target direction. Does not count as an attack. If you end your turn without attacking, gain 30 EP at the start of your next turn."},
-	{ATTACK::TERMINUS_VERITAS, "Consumes all MP, dealing 5% ATK damage per MP consumed in a semicircle AoE within sight range. When consuming 90 or more MP, deal 6% ATK damage per MP instead."},
+	{ATTACK::TERMINUS_VERITAS, "Consumes all MP, dealing 4.5% ATK damage per MP consumed in a semicircle AoE within sight range. When consuming 90 or more MP, deal 5% ATK damage per MP instead."},
 };
 
 // TODO: deprecate this

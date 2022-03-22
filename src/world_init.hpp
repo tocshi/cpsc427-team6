@@ -199,3 +199,7 @@ Entity createObjectiveCounter(RenderSystem* renderer, vec2 pos);
 Entity createAttackAnimation(RenderSystem* renderer, vec2 pos, ATTACK attack);
 // Terminus Veritas effect
 Entity createBigSlash(RenderSystem* renderer, vec2 pos, float angle, float scale);
+// menu continue
+Entity createMenuContinue(RenderSystem* renderer, vec2 pos);
+// Save and Quit Button
+Entity createSaveQuit(RenderSystem* renderer, vec2 pos);

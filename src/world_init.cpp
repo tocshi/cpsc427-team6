@@ -79,8 +79,8 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	// DEBUG
 	
-	weapon.attacks[0] = ATTACK::DISENGAGE;
-	weapon.attacks[1] = ATTACK::PARRYING_STANCE;
+	weapon.attacks[0] = ATTACK::PIERCING_THRUST;
+	weapon.attacks[1] = ATTACK::TERMINUS_VERITAS;
 	weapon.attacks[2] = ATTACK::SAPPING_STRIKE;
 	weapon.attacks[3] = ATTACK::ROUNDSLASH;
 	
@@ -2256,6 +2256,7 @@ Entity createAttackAnimation(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 		break;
 	case ATTACK::PIERCING_THRUST:
 		anim.frame_indices = { 12,13,14,15,16,17 };
+		motion.scale = { 126, 400 };
 		break;
 	default:
 		anim.frame_indices = { 0,1,2,3,4,5 };

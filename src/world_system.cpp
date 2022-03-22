@@ -1308,11 +1308,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	// temp to test config
-	if (action == GLFW_RELEASE && key == GLFW_KEY_U) {
-		configSystem.testConfig();
-	}
-
 	// LOADING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_L && get_is_player_turn() ) {
 		// if save data exists reset the game

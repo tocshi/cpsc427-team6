@@ -21,6 +21,8 @@ int main()
 	RenderSystem renderer;
 	PhysicsSystem physics;
 
+	loadConfig();
+
 	// Initializing window
 	GLFWwindow* window = world.create_window();
 	if (!window) {

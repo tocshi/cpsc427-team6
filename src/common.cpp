@@ -2,6 +2,10 @@
 #include <stdlib.h>
 #include <time.h>
 
+int window_width_px = 1600;
+int window_height_px = 900;
+float ui_scale = 1.0;
+
 
 // Note, we could also use the functions from GLM but we write the transformations here to show the uderlying math
 void Transform::scale(vec2 scale)
@@ -97,4 +101,14 @@ float degtorad(float angle) {
 // to deg
 float radtodeg(float angle) {
 	return angle * (180 / M_PI);
+}
+
+void loadConfig() {
+	std::ifstream infile(SAVE_CONFIG_PATH);
+	json data;
+	infile >> data;
+	window_height_px = data["window_height_px"];
+	window_width_px = data["window_width_px"];
+	ui_scale = data["ui_scale"];
+	printf("height: %d, width: %d, scale %f", data["window_height_px"], data["window_width_px"], data["ui_scale"]);
 }

@@ -732,6 +732,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// expand timers
+	for (Entity entity : registry.expandTimers.entities) {
+		// progress timer
+		ExpandTimer& counter = registry.expandTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+
+		Motion& motion = registry.motions.get(entity);
+		motion.scale = motion.scale * (counter.target_scale * counter.counter_ms / 200);
+
+		// remove entity once the timer has expired
+		if (counter.counter_ms < 0) {
+			registry.remove_all_components_of(entity);
+		}
+	}
+
 	// update animations 
 	for (Entity e : registry.animations.entities) {
 		AnimationData& anim = registry.animations.get(e);

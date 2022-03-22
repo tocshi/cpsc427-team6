@@ -136,7 +136,8 @@ enum class TEXTURE_ASSET_ID {
 	MOUSE_SPRITESHEET = WINDBAG + 1,
 	SLASH_SPRITESHEET = MOUSE_SPRITESHEET + 1,
 	OBJECTIVE_COUNTER = SLASH_SPRITESHEET + 1,
-	TEXTURE_COUNT = OBJECTIVE_COUNTER + 1
+	BIGSLASH = OBJECTIVE_COUNTER + 1,
+	TEXTURE_COUNT = BIGSLASH + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -831,6 +832,12 @@ struct AttackCard {
 // item card
 struct ItemCard {
 	Equipment item;
+};
+
+// timer for expanding image effects
+struct ExpandTimer {
+	float counter_ms = 200;
+	float target_scale = 1.0
 };
 
 // Artifact name map

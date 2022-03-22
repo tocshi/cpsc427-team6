@@ -2273,6 +2273,22 @@ Entity createAttackAnimation(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 	return entity;
 }
 
+Entity createBigSlash(RenderSystem* renderer, vec2 pos) {
+	Entity entity = Entity();
+	registry.expandTimers.emplace(entity);
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 600,600 };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BIGSLASH,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT });
+}
+
 Entity createExplosion(RenderSystem* renderer, vec2 pos) {
 	Entity entity = Entity();
 	AnimationData& anim = registry.animations.emplace(entity);

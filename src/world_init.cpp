@@ -77,6 +77,14 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	weapon.sprite = 0;
 	weapon.atk = 10;
 
+	// DEBUG
+	/*
+	weapon.attacks[0] = ATTACK::PIERCING_THRUST;
+	weapon.attacks[1] = ATTACK::TERMINUS_VERITAS;
+	weapon.attacks[2] = ATTACK::SAPPING_STRIKE;
+	weapon.attacks[3] = ATTACK::ROUNDSLASH;
+	*/
+
 	Equipment armour = {};
 	armour.type = EQUIPMENT::ARMOUR;
 	armour.sprite = 2;
@@ -746,6 +754,8 @@ Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID tID) {
 
 	motion.scale = vec2({ window_width_px, window_height_px });
 
+	registry.colors.insert(entity, {0.5f, 0.5f, 0.5f});
+
 	registry.renderRequests.insert(
 		entity,
 		{
@@ -1218,17 +1228,13 @@ Entity createItemEquipmentTexture(RenderSystem* renderer, vec2 pos, Equipment eq
 Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 	auto entity = Entity();
 
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
-
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
 
-	motion.scale = vec2({ ACTIONS_BUTTON_BB_WIDTH, ACTIONS_BUTTON_BB_HEIGHT });
+	motion.scale = vec2({ ACTIONS_BUTTON_BB_WIDTH * 4 / 5, ACTIONS_BUTTON_BB_HEIGHT * 4 / 5 });
 
 	AttackCard& ac = registry.attackCards.emplace(entity);
 	ac.attack = attack;
@@ -1256,12 +1262,8 @@ Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 }
 
 // Attack dialog
-Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack) {
+Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack, bool prepared) {
 	auto entity = Entity();
-
-	// Store a reference to the potentially re-used mesh object
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -1297,8 +1299,8 @@ Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 	std::vector<Entity> ctVect;
 	bool hasCT = false;
 	ctVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 80.f), "COST: ", 1.6f, vec3(0.0f)));
-	iter = attack_costs.find(attack);
-	if (iter != attack_costs.end()) {
+	iter = attack_costs_string.find(attack);
+	if (iter != attack_costs_string.end()) {
 		ad.cost = iter->second;
 		if (ad.cost.size() > 40) {
 			bool renderNewLine = true;
@@ -1332,7 +1334,7 @@ Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 	std::vector<Entity> dtVect;
 	bool hasDT = false;
 	iter = attack_descriptions.find(attack);
-	dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 350.f), "DESCRIPTION: ", 1.6f, vec3(0.0f)));
+	dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 200.f), "DESCRIPTION: ", 1.6f, vec3(0.0f)));
 	if (iter != attack_descriptions.end()) {
 		ad.description = iter->second;
 		if (ad.description.size() > 40) {
@@ -1341,7 +1343,7 @@ Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 			int iter = 1;
 			std::string descLine = ad.description.substr(0, 40);
 			while (renderNewLine) {
-				dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f + descOffset), descLine, 1.2f, vec3(0.0f)));
+				dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 250.f + descOffset), descLine, 1.2f, vec3(0.0f)));
 				descLine = ad.description.substr(40 * iter);
 				descOffset += 30.f;
 				if (descLine.size() >= 40) {
@@ -1349,7 +1351,7 @@ Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 					iter++;
 				}
 				else {
-					dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f + descOffset), descLine, 1.2f, vec3(0.0f)));
+					dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 250.f + descOffset), descLine, 1.2f, vec3(0.0f)));
 					renderNewLine = false;
 				}
 			}
@@ -1377,6 +1379,12 @@ Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 		}
 	}
 
+	// render use / prepare buttons
+	if (!prepared) {
+		createAttackDialogButton(renderer, vec2(pos.x - DESCRIPTION_DIALOG_BB_WIDTH / 4 + 3.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 - 50.f), TEXTURE_ASSET_ID::USE_BUTTON, BUTTON_ACTION_ID::USE_ATTACK);
+		createAttackDialogButton(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH / 4 - 3.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 - 50.f), TEXTURE_ASSET_ID::PREPARE_BUTTON, BUTTON_ACTION_ID::PREPARE_ATTACK);
+	}
+
 	// render the x button
 	auto close_entity = Entity();
 
@@ -1401,6 +1409,32 @@ Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 	registry.renderRequests.insert(
 		close_entity,
 		{ TEXTURE_ASSET_ID::MENU_CLOSE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI_TOP });
+
+	return entity;
+}
+
+// generic button
+Entity createAttackDialogButton(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID button_texture, BUTTON_ACTION_ID button_action) {
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ ATTACK_DIALOG_BUTTON_BB_WIDTH, ATTACK_DIALOG_BUTTON_BB_HEIGHT });
+
+	registry.attackDialogs.emplace(entity);
+
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = button_action;
+	registry.renderRequests.insert(
+		entity,
+		{ button_texture,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI_TOP });
@@ -1926,6 +1960,8 @@ Entity createEPFill(RenderSystem* renderer, vec2 position) {
 	// Setting initial values
 	motion.scale = vec2({ STAT_BB_WIDTH, STAT_BB_HEIGHT });
 
+	registry.colors.insert(statEntity, {0.9f, 0.9f, 0.f});
+
 	registry.renderRequests.insert(
 		statEntity,
 		{ TEXTURE_ASSET_ID::EPFILL,
@@ -2187,6 +2223,73 @@ Entity createMouseAnimation(RenderSystem* renderer, vec2 pos) {
 		{ TEXTURE_ASSET_ID::MOUSE_SPRITESHEET,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::ANIMATION,
+			RENDER_LAYER_ID::EFFECT });
+
+	return entity;
+}
+
+Entity createAttackAnimation(RenderSystem* renderer, vec2 pos, ATTACK attack) {
+	Entity entity = Entity();
+	AnimationData& anim = registry.animations.emplace(entity);
+	anim.spritesheet_texture = TEXTURE_ASSET_ID::SLASH_SPRITESHEET;
+	anim.frametime_ms = 80;
+	anim.spritesheet_columns = 6;
+	anim.spritesheet_rows = 3;
+	anim.spritesheet_width = 756;
+	anim.spritesheet_height = 450;
+	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
+
+	anim.loop = false;
+	anim.delete_on_finish = true;
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 126, 150 };
+
+	switch (attack) {
+	case ATTACK::NONE:
+	case ATTACK::SAPPING_STRIKE:
+		anim.frame_indices = { 0,1,2,3,4,5 };
+		break;
+	case ATTACK::ROUNDSLASH:
+		anim.frame_indices = { 6,7,8,9,10,11 };
+		motion.scale = { 504, 600 };
+		motion.position += vec2(0, 32);
+		break;
+	case ATTACK::PIERCING_THRUST:
+		anim.frame_indices = { 12,13,14,15,16,17 };
+		motion.scale = { 100, 200 };
+		break;
+	default:
+		anim.frame_indices = { 0,1,2,3,4,5 };
+		break;
+	}
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SLASH_SPRITESHEET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::ANIMATION,
+			RENDER_LAYER_ID::EFFECT });
+
+	return entity;
+}
+
+Entity createBigSlash(RenderSystem* renderer, vec2 pos, float angle, float scale) {
+	Entity entity = Entity();
+	ExpandTimer& t = registry.expandTimers.emplace(entity);
+	t.target_scale = scale;
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = angle;
+	motion.scale = { 0.1f, 0.1f };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BIGSLASH,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_LAYER_ID::EFFECT });
 
 	return entity;

@@ -29,3 +29,6 @@ float dist_to(const vec2 position1, const vec2 position2);
 
 bool collides_AABB(const Motion& motion1, const Motion& motion2);
 bool collides_circle(const Motion& motion1, const Motion& motion2);
+bool testRectangleToPoint(float rectWidth, float rectHeight, float rectRotation, float rectCenterX, float rectCenterY, float pointX, float pointY);
+bool testCircleToSegment(float circleCenterX, float circleCenterY, float circleRadius, float lineAX, float lineAY, float lineBX, float lineBY);
+bool collides_rotrect_circle(const Motion& rectmotion, const Motion& circlemotion);

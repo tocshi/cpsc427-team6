@@ -41,9 +41,86 @@ bool collides_circle(const Motion& motion1, const Motion& motion2) {
 	if (dist_to(motion1.position, motion2_edge) < dist_to(motion1.position, motion1_edge)) {
 		return true;
 	}
-	else {
-		return false;
+	if (dist_to(motion2.position, motion1_edge) < dist_to(motion2.position, motion2_edge)) {
+		return true;
 	}
+	
+	return false;
+}
+
+// helper functions for collision_rotrect_circle()
+bool testRectangleToPoint(float rectWidth, float rectHeight, float rectRotation, float rectCenterX, float rectCenterY, float pointX, float pointY) {
+	if (rectRotation == 0)   // Higher Efficiency for Rectangles with 0 rotation.
+		return abs(rectCenterX - pointX) < rectWidth / 2 && abs(rectCenterY - pointY) < rectHeight / 2;
+
+	float tx = cos(rectRotation) * pointX - sin(rectRotation) * pointY;
+	float ty = cos(rectRotation) * pointY + sin(rectRotation) * pointX;
+
+	float cx = cos(rectRotation) * rectCenterX - sin(rectRotation) * rectCenterY;
+	float cy = cos(rectRotation) * rectCenterY + sin(rectRotation) * rectCenterX;
+
+	return abs(cx - tx) < rectWidth / 2 && abs(cy - ty) < rectHeight / 2;
+}
+
+bool testCircleToSegment(float circleCenterX, float circleCenterY, float circleRadius, float lineAX, float lineAY, float lineBX, float lineBY) {
+	float lineSize = sqrt(pow(lineAX - lineBX, 2) + pow(lineAY - lineBY, 2));
+	float distance;
+
+	if (lineSize == 0) {
+		distance = sqrt(pow(circleCenterX - lineAX, 2) + pow(circleCenterY - lineAY, 2));
+		return distance < circleRadius;
+	}
+
+	float u = ((circleCenterX - lineAX) * (lineBX - lineAX) + (circleCenterY - lineAY) * (lineBY - lineAY)) / (lineSize * lineSize);
+
+	if (u < 0) {
+		distance = sqrt(pow(circleCenterX - lineAX, 2) + pow(circleCenterY - lineAY, 2));
+	}
+	else if (u > 1) {
+		distance = sqrt(pow(circleCenterX - lineBX, 2) + pow(circleCenterY - lineBY, 2));
+	}
+	else {
+		float ix = lineAX + u * (lineBX - lineAX);
+		float iy = lineAY + u * (lineBY - lineAY);
+		distance = sqrt(pow(circleCenterX - ix, 2) + pow(circleCenterY - iy, 2));
+	}
+
+	return distance < circleRadius;
+}
+
+// Rotated Rectangle to Circle collision check
+// https://stackoverflow.com/questions/5650032/collision-detection-with-rotated-rectangles
+bool collides_rotrect_circle(const Motion& rectmotion, const Motion& circlemotion) {
+	float rectWidth = rectmotion.scale.x;
+	float rectHeight = rectmotion.scale.y;
+	float rectRotation = rectmotion.angle;
+	float rectCenterX = rectmotion.position.x;
+	float rectCenterY = rectmotion.position.y;
+	float circleCenterX = circlemotion.position.x;
+	float circleCenterY = circlemotion.position.y;
+	float circleRadius = circlemotion.scale.x/2.f;
+	float tx, ty, cx, cy;
+
+	if (rectRotation == 0) { // Higher Efficiency for Rectangles with 0 rotation.
+		tx = circleCenterX;
+		ty = circleCenterY;
+
+		cx = rectCenterX;
+		cy = rectCenterY;
+	}
+	else {
+		tx = cos(rectRotation) * circleCenterX - sin(rectRotation-M_PI) * circleCenterY;
+		ty = cos(rectRotation) * circleCenterY + sin(rectRotation-M_PI) * circleCenterX;
+
+		cx = cos(rectRotation) * rectCenterX - sin(rectRotation-M_PI) * rectCenterY;
+		cy = cos(rectRotation) * rectCenterY + sin(rectRotation-M_PI) * rectCenterX;
+	}
+
+	return testRectangleToPoint(rectWidth, rectHeight, rectRotation, rectCenterX, rectCenterY, circleCenterX, circleCenterY) ||
+		testCircleToSegment(tx, ty, circleRadius, cx - rectWidth / 2, cy + rectHeight / 2, cx + rectWidth / 2, cy + rectHeight / 2) ||
+		testCircleToSegment(tx, ty, circleRadius, cx + rectWidth / 2, cy + rectHeight / 2, cx + rectWidth / 2, cy - rectHeight / 2) ||
+		testCircleToSegment(tx, ty, circleRadius, cx + rectWidth / 2, cy - rectHeight / 2, cx - rectWidth / 2, cy - rectHeight / 2) ||
+		testCircleToSegment(tx, ty, circleRadius, cx - rectWidth / 2, cy - rectHeight / 2, cx - rectWidth / 2, cy + rectHeight / 2);
 }
 
 float dist_to(const vec2 position1, const vec2 position2) {

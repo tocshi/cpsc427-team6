@@ -2921,14 +2921,16 @@ void WorldSystem::use_attack(vec2 target_pos) {
 
 			// only attack if have enough ep and mp
 			if (player_stats.ep >= ep_cost && player_stats.mp >= mp_cost) {
+				// show attack animation
+				createAttackAnimation(renderer, { player_motion.position.x, player_motion.position.y }, player.using_attack);
 				Mix_PlayChannel(-1, sword_slash, 0);
 
 				// check enemies that are in area
-				for (Entity& en : registry.enemies.entities) {
+				Motion aoe = {};
+				aoe.position = player_motion.position;
+				aoe.scale = { 300.f, 300.f };
 
-					Motion aoe = {};
-					aoe.position = player_motion.position;
-					aoe.scale = {300.f, 300.f};
+				for (Entity& en : registry.enemies.entities) {	
 
 					if (collides_circle(registry.motions.get(en), aoe)) {
 						// wobble the enemy lol

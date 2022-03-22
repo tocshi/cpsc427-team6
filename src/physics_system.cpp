@@ -41,9 +41,11 @@ bool collides_circle(const Motion& motion1, const Motion& motion2) {
 	if (dist_to(motion1.position, motion2_edge) < dist_to(motion1.position, motion1_edge)) {
 		return true;
 	}
-	else {
-		return false;
+	if (dist_to(motion2.position, motion1_edge) < dist_to(motion2.position, motion2_edge)) {
+		return true;
 	}
+	
+	return false;
 }
 
 float dist_to(const vec2 position1, const vec2 position2) {

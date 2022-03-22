@@ -2240,6 +2240,10 @@ Entity createAttackAnimation(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 	anim.loop = false;
 	anim.delete_on_finish = true;
 
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 126, 150 };
+
 	switch (attack) {
 	case ATTACK::NONE:
 	case ATTACK::SAPPING_STRIKE:
@@ -2247,6 +2251,8 @@ Entity createAttackAnimation(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 		break;
 	case ATTACK::ROUNDSLASH:
 		anim.frame_indices = { 6,7,8,9,10,11 };
+		motion.scale = { 504, 600 };
+		motion.position += vec2(0, 32);
 		break;
 	case ATTACK::PIERCING_THRUST:
 		anim.frame_indices = { 12,13,14,15,16,17 };
@@ -2255,10 +2261,6 @@ Entity createAttackAnimation(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 		anim.frame_indices = { 0,1,2,3,4,5 };
 		break;
 	}
-
-	Motion& motion = registry.motions.emplace(entity);
-	motion.position = pos;
-	motion.scale = { 126, 150 };
 
 	registry.renderRequests.insert(
 		entity,

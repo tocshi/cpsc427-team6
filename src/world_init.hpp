@@ -197,3 +197,5 @@ Entity createItemEquipmentTexture(RenderSystem* renderer, vec2 pos, Equipment eq
 Entity createObjectiveCounter(RenderSystem* renderer, vec2 pos);
 // attack animation
 Entity createAttackAnimation(RenderSystem* renderer, vec2 pos, ATTACK attack);
+// Terminus Veritas effect
+Entity createBigSlash(RenderSystem* renderer, vec2 pos, float angle, float scale);

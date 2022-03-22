@@ -836,8 +836,8 @@ struct ItemCard {
 
 // timer for expanding image effects
 struct ExpandTimer {
-	float counter_ms = 200;
-	float target_scale = 1.0
+	float counter_ms = 300;
+	float target_scale = 1.0;
 };
 
 // Artifact name map

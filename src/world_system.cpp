@@ -173,7 +173,7 @@ GLFWwindow* WorldSystem::create_window() {
 	error_sound = Mix_LoadWAV(audio_path("feedback/error.wav").c_str());
 	Mix_VolumeChunk(error_sound, 13);
 	footstep_sound = Mix_LoadWAV(audio_path("feedback/footstep.wav").c_str());
-	Mix_VolumeChunk(footstep_sound, 24);
+	Mix_VolumeChunk(footstep_sound, 30);
 	door_sound = Mix_LoadWAV(audio_path("feedback/door_open.wav").c_str());
 	Mix_VolumeChunk(door_sound, 32);
 	switch_sound = Mix_LoadWAV(audio_path("feedback/switch_click.wav").c_str());
@@ -193,13 +193,13 @@ GLFWwindow* WorldSystem::create_window() {
 	sword_slash = Mix_LoadWAV(audio_path("sfx/sword_slash.wav").c_str());
 	Mix_VolumeChunk(sword_slash, 24);
 	slime_move = Mix_LoadWAV(audio_path("feedback/slime_move.wav").c_str());
-	Mix_VolumeChunk(slime_move, 24);
+	Mix_VolumeChunk(slime_move, 20);
 	slime_death = Mix_LoadWAV(audio_path("feedback/slime_death.wav").c_str());
-	Mix_VolumeChunk(slime_death, 32);
+	Mix_VolumeChunk(slime_death, 24);
 	caveling_move = Mix_LoadWAV(audio_path("feedback/caveling_move.wav").c_str());
-	Mix_VolumeChunk(caveling_move, 32);
+	Mix_VolumeChunk(caveling_move, 14);
 	caveling_death = Mix_LoadWAV(audio_path("feedback/caveling_death.wav").c_str());
-	Mix_VolumeChunk(caveling_death, 40);
+	Mix_VolumeChunk(caveling_death, 30);
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr
 		|| error_sound == nullptr || footstep_sound == nullptr
@@ -739,7 +739,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		counter.counter_ms -= elapsed_ms_since_last_update;
 
 		Motion& motion = registry.motions.get(entity);
-		motion.scale = motion.scale * (counter.target_scale * counter.counter_ms / 200);
+		motion.scale += elapsed_ms_since_last_update * (counter.target_scale / 300);
 
 		// remove entity once the timer has expired
 		if (counter.counter_ms < 0) {
@@ -944,7 +944,7 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 
 // spawn tutorial entities
 void WorldSystem::spawn_tutorial_entities() {
-	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::TUTORIAL, true);
 	spawnData = createTiles(renderer, next_map);
 
 	// create all non-menu game objects
@@ -1014,8 +1014,8 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	//std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 
 	spawnData = createTiles(renderer, next_map);
 
@@ -1475,7 +1475,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 				switch (action_taken) {
 				case BUTTON_ACTION_ID::MENU_START: 
-					set_gamestate(GameStates::GAME_START);
+					set_gamestate(GameStates::BATTLE_MENU);
 					Mix_PlayMusic(background_music, -1);
 					if (tutorial) { spawn_tutorial_entities(); }
 					else { spawn_game_entities(); }
@@ -1762,6 +1762,11 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								}
 								else {
 									type = EQUIPMENT::ARMOUR;
+								}
+
+								// If player has no weapon, give them a weapon
+								if (registry.inventories.get(player_main).equipped[0].attacks[1] == ATTACK::NONE) {
+									type = EQUIPMENT::SHARP;
 								}
 
 								Equipment equip = createEquipment(type, player.floor);
@@ -3138,8 +3143,11 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				aoe.angle = angle;
 				aoe.scale = { player_stats.range * 2.f, player_stats.range * 2.f };
 
+				createBigSlash(renderer, player_motion.position, angle, player_stats.range*2);
+
 				// logic for Terminus Veritas damage
 				mp_cost = player_stats.mp;
+				if (player.prepared) { mp_cost += attack_mpcosts.at(player.using_attack); }
 				float multiplier = 4.5f * mp_cost;
 				if (mp_cost > 90.f) {
 					multiplier = 5.f * mp_cost;
@@ -3182,12 +3190,16 @@ void WorldSystem::use_attack(vec2 target_pos) {
 
 	// perform behaviour if attack succeeds
 	if (attack_success) {
-		player_stats.ep -= ep_cost;
-		player_stats.mp -= mp_cost;
+		player_stats.ep = max(0.f, player_stats.ep - ep_cost);
+		player_stats.mp = max(0.f, player_stats.mp - mp_cost);
 		if (player.using_attack != ATTACK::DISENGAGE) {
 			player.attacked = true;
 		}
 		player.prepared = false;
+		// hide all attack cards
+		for (Entity ac : registry.attackCards.entities) {
+			registry.remove_all_components_of(ac);
+		}
 		attackAction();
 	}
 }

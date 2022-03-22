@@ -78,12 +78,12 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	weapon.atk = 10;
 
 	// DEBUG
-	
+	/*
 	weapon.attacks[0] = ATTACK::PIERCING_THRUST;
 	weapon.attacks[1] = ATTACK::TERMINUS_VERITAS;
 	weapon.attacks[2] = ATTACK::SAPPING_STRIKE;
 	weapon.attacks[3] = ATTACK::ROUNDSLASH;
-	
+	*/
 
 	Equipment armour = {};
 	armour.type = EQUIPMENT::ARMOUR;
@@ -753,6 +753,8 @@ Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID tID) {
 	motion.position = pos;
 
 	motion.scale = vec2({ window_width_px, window_height_px });
+
+	registry.colors.insert(entity, {0.5f, 0.5f, 0.5f});
 
 	registry.renderRequests.insert(
 		entity,
@@ -2273,13 +2275,15 @@ Entity createAttackAnimation(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 	return entity;
 }
 
-Entity createBigSlash(RenderSystem* renderer, vec2 pos) {
+Entity createBigSlash(RenderSystem* renderer, vec2 pos, float angle, float scale) {
 	Entity entity = Entity();
-	registry.expandTimers.emplace(entity);
+	ExpandTimer& t = registry.expandTimers.emplace(entity);
+	t.target_scale = scale;
 
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
-	motion.scale = { 600,600 };
+	motion.angle = angle;
+	motion.scale = { 0.1f, 0.1f };
 
 	registry.renderRequests.insert(
 		entity,
@@ -2287,6 +2291,8 @@ Entity createBigSlash(RenderSystem* renderer, vec2 pos) {
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_LAYER_ID::EFFECT });
+
+	return entity;
 }
 
 Entity createExplosion(RenderSystem* renderer, vec2 pos) {

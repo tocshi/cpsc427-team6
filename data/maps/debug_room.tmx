@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.1" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="55" nextobjectid="466">
+<map version="1.8" tiledversion="1.8.2" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="55" nextobjectid="437">
  <tileset firstgid="1" name="roguelikeDungeon_transparent" tilewidth="16" tileheight="16" spacing="1" tilecount="522" columns="29">
   <image source="roguelikeDungeon_transparent.png" trans="ff00ff" width="492" height="305"/>
  </tileset>
@@ -451,241 +451,178 @@
  </objectgroup>
  <objectgroup id="10" name="enemy">
   <properties>
-   <property name="max" type="int" value="29"/>
-   <property name="min" type="int" value="29"/>
+   <property name="max" type="int" value="25"/>
+   <property name="min" type="int" value="25"/>
   </properties>
-  <object id="382" name="E" x="656" y="624">
+  <object id="128" name="E" x="720" y="80">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="383" name="E" x="672" y="624">
+  <object id="245" name="E" x="400" y="160">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="384" name="E" x="688" y="624">
+  <object id="382" name="E" x="656" y="656">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="385" name="E" x="656" y="640">
+  <object id="383" name="E" x="704" y="656">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="386" name="E" x="672" y="640">
+  <object id="384" name="E" x="752" y="656">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="387" name="E" x="688" y="640">
+  <object id="385" name="E" x="656" y="704">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="388" name="E" x="656" y="656">
+  <object id="386" name="E" x="704" y="704">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="389" name="E" x="672" y="656">
+  <object id="387" name="E" x="752" y="704">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="390" name="E" x="688" y="656">
+  <object id="388" name="E" x="656" y="752">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="391" name="E" x="656" y="576">
+  <object id="389" name="E" x="704" y="752">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="392" name="E" x="672" y="576">
+  <object id="390" name="E" x="752" y="752">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="393" name="E" x="688" y="576">
+  <object id="391" name="E" x="656" y="512">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="394" name="E" x="656" y="592">
+  <object id="392" name="E" x="704" y="512">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="395" name="E" x="672" y="592">
+  <object id="393" name="E" x="752" y="512">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="396" name="E" x="688" y="592">
+  <object id="394" name="E" x="656" y="560">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="397" name="E" x="672" y="608">
+  <object id="395" name="E" x="704" y="560">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="399" name="E" x="688" y="608">
+  <object id="396" name="E" x="752" y="560">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="449" name="E" x="624" y="624">
+  <object id="397" name="E" x="656" y="608">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="450" name="E" x="640" y="624">
+  <object id="398" name="E" x="704" y="608">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="451" name="E" x="624" y="640">
+  <object id="399" name="E" x="752" y="608">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="452" name="E" x="640" y="640">
+  <object id="418" name="E" x="640" y="240">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="453" name="E" x="624" y="656">
+  <object id="419" name="E" x="736" y="240">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="454" name="E" x="640" y="656">
+  <object id="420" name="E" x="640" y="336">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="455" name="E" x="624" y="576">
+  <object id="421" name="E" x="736" y="336">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
    </properties>
    <point/>
   </object>
-  <object id="456" name="E" x="640" y="576">
-   <properties>
-    <property name="max" type="int" value="16"/>
-    <property name="min" type="int" value="10"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="457" name="E" x="624" y="592">
-   <properties>
-    <property name="max" type="int" value="16"/>
-    <property name="min" type="int" value="10"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="458" name="E" x="640" y="592">
-   <properties>
-    <property name="max" type="int" value="16"/>
-    <property name="min" type="int" value="10"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="459" name="E" x="624" y="608">
-   <properties>
-    <property name="max" type="int" value="16"/>
-    <property name="min" type="int" value="10"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="460" name="E" x="640" y="608">
-   <properties>
-    <property name="max" type="int" value="16"/>
-    <property name="min" type="int" value="10"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="461" name="E" x="656" y="560">
-   <properties>
-    <property name="max" type="int" value="16"/>
-    <property name="min" type="int" value="10"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="462" name="E" x="672" y="560">
-   <properties>
-    <property name="max" type="int" value="16"/>
-    <property name="min" type="int" value="10"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="463" name="E" x="688" y="560">
-   <properties>
-    <property name="max" type="int" value="16"/>
-    <property name="min" type="int" value="10"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="464" name="E" x="624" y="560">
-   <properties>
-    <property name="max" type="int" value="16"/>
-    <property name="min" type="int" value="10"/>
-   </properties>
-   <point/>
-  </object>
-  <object id="465" name="E" x="640" y="560">
+  <object id="436" name="E" x="400" y="400">
    <properties>
     <property name="max" type="int" value="16"/>
     <property name="min" type="int" value="10"/>
@@ -694,7 +631,16 @@
   </object>
  </objectgroup>
  <objectgroup id="9" name="player">
-  <object id="54" name="P" x="656" y="608">
+  <object id="54" name="P" x="352" y="672">
+   <point/>
+  </object>
+  <object id="422" name="P" x="432" y="672">
+   <point/>
+  </object>
+  <object id="425" name="P" x="352" y="752">
+   <point/>
+  </object>
+  <object id="426" name="P" x="432" y="752">
    <point/>
   </object>
  </objectgroup>

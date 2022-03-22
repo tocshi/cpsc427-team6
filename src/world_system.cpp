@@ -76,11 +76,11 @@ GameStates previous_game_state = current_game_state;
 
 
 // fog stats
-float fog_radius = 300.f;
-float fog_resolution = 2000.f;
+float fog_radius = 300.f * ui_scale;
+float fog_resolution = 2000.f * ui_scale;
 
 // ep range stats
-float ep_resolution = 2000.f;
+float ep_resolution = 2000.f * ui_scale;
 
 // move audio timer
 float move_audio_timer_ms = 200.f;

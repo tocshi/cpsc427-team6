@@ -18,7 +18,7 @@ Entity createLine(vec2 position, vec2 scale)
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	motion.position = position;
-	motion.scale = scale;
+	motion.scale = scale * vec2(ui_scale, ui_scale);
 
 	registry.debugComponents.emplace(entity);
 	return entity;
@@ -2043,7 +2043,7 @@ Entity createDamageText(RenderSystem* renderer, vec2 pos, std::string text_input
 
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos - offset;
-	motion.scale = { 0.5, 0.5 };
+	motion.scale = { 0.5 * ui_scale , 0.5 * ui_scale };
 
 	registry.renderRequests.insert(
 		entity,
@@ -2069,7 +2069,7 @@ Entity createMotionText(RenderSystem* renderer, vec2 pos, std::string msg, float
 
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
-	motion.scale = { 1.f, 1.f };
+	motion.scale = { 1.f * ui_scale, 1.f * ui_scale };
 
 	registry.renderRequests.insert(
 		entity,
@@ -2150,7 +2150,7 @@ Entity createCampfire(RenderSystem* renderer, vec2 pos) {
 
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
-	motion.scale = { 64, 64 };
+	motion.scale = { 64 * ui_scale, 64 * ui_scale };
 
 	Interactable& interactable = registry.interactables.emplace(entity);
 	interactable.type = INTERACT_TYPE::CAMPFIRE;
@@ -2208,7 +2208,7 @@ Entity createExplosion(RenderSystem* renderer, vec2 pos) {
 
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
-	motion.scale = { 128 , 128 };
+	motion.scale = { 128 * ui_scale , 128 * ui_scale };
 
 	registry.renderRequests.insert(
 		entity,
@@ -2225,7 +2225,7 @@ Entity createTurnUI(RenderSystem* renderer, vec2 pos) {
 
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
-	motion.scale = { 256.f, 64.f };
+	motion.scale = { 256.f * ui_scale, 64.f * ui_scale };
 
 	registry.renderRequests.insert(
 		entity,
@@ -2242,7 +2242,7 @@ Entity createObjectiveCounter(RenderSystem* renderer, vec2 pos) {
 
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
-	motion.scale = { 512.f, 128.f };
+	motion.scale = { 512.f * ui_scale, 128.f * ui_scale };
 
 	registry.renderRequests.insert(
 		entity,
@@ -2259,7 +2259,7 @@ Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id)
 
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
-	motion.scale = { 48.f, 48.f };
+	motion.scale = { 48.f * ui_scale, 48.f * ui_scale };
 
 	registry.icons.emplace(entity);
 

@@ -150,6 +150,9 @@ private:
 	// restart level
 	void restart_game();
 
+	// start game
+	void start_game();
+
 	// spawn entities (tutorial)
 	void spawn_tutorial_entities();
 

@@ -9,6 +9,7 @@
 #include "physics_system.hpp"
 #include "render_system.hpp"
 #include "world_system.hpp"
+#include "common.hpp"
 
 using Clock = std::chrono::high_resolution_clock;
 WorldSystem world;
@@ -19,6 +20,8 @@ int main()
 	// Global systems
 	RenderSystem renderer;
 	PhysicsSystem physics;
+
+	loadConfig();
 
 	// Initializing window
 	GLFWwindow* window = world.create_window();

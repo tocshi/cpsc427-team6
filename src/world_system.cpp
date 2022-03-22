@@ -90,11 +90,11 @@ GameStates previous_game_state = current_game_state;
 
 
 // fog stats
-float fog_radius = 300.f;
-float fog_resolution = 2000.f;
+float fog_radius = 300.f * ui_scale;
+float fog_resolution = 2000.f * ui_scale;
 
 // ep range stats
-float ep_resolution = 2000.f;
+float ep_resolution = 2000.f * ui_scale;
 
 // move audio timer
 float move_audio_timer_ms = 200.f;
@@ -396,17 +396,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (current_game_state == GameStates::ATTACK_MENU && !player.prepared) {
 				// need to move everything down one in attack menu
 				// TODO: un-hard-code these
-				createKeyIcon(renderer, { window_width_px - 70.f, 140.f }, TEXTURE_ASSET_ID::KEY_ICON_1);
-				createKeyIcon(renderer, { window_width_px - 70.f, 260.f }, TEXTURE_ASSET_ID::KEY_ICON_2);
-				createKeyIcon(renderer, { window_width_px - 70.f, 380.f }, TEXTURE_ASSET_ID::KEY_ICON_3);
-				createKeyIcon(renderer, { window_width_px - 70.f, 500.f }, TEXTURE_ASSET_ID::KEY_ICON_4);
-				createKeyIcon(renderer, { window_width_px - 70.f, 620.f }, TEXTURE_ASSET_ID::KEY_ICON_5);
+				createKeyIcon(renderer, { window_width_px - 70.f, 140.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_1);
+				createKeyIcon(renderer, { window_width_px - 70.f, 260.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_2);
+				createKeyIcon(renderer, { window_width_px - 70.f, 380.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_3);
+				createKeyIcon(renderer, { window_width_px - 70.f, 500.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_4);
+				createKeyIcon(renderer, { window_width_px - 70.f, 620.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_5);
 			}
 			else if (current_game_state == GameStates::BATTLE_MENU) {
-				createKeyIcon(renderer, { window_width_px - 60.f, 150.f }, TEXTURE_ASSET_ID::KEY_ICON_1);
-				createKeyIcon(renderer, { window_width_px - 60.f, 300.f }, TEXTURE_ASSET_ID::KEY_ICON_2);
-				createKeyIcon(renderer, { window_width_px - 60.f, 450.f }, TEXTURE_ASSET_ID::KEY_ICON_3);
-				createKeyIcon(renderer, { window_width_px - 60.f, 600.f }, TEXTURE_ASSET_ID::KEY_ICON_4);
+				createKeyIcon(renderer, { window_width_px - 60.f, 150.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_1);
+				createKeyIcon(renderer, { window_width_px - 60.f, 300.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_2);
+				createKeyIcon(renderer, { window_width_px - 60.f, 450.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_3);
+				createKeyIcon(renderer, { window_width_px - 60.f, 600.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_4);
 			}
 		}
 	}
@@ -422,10 +422,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (registry.actionButtons.entities.size() < 4) {
 			// bring back all of the buttons
-			createAttackButton(renderer, { window_width_px - 125.f, 200.f });
-			createMoveButton(renderer, { window_width_px - 125.f, 350.f });
-			createGuardButton(renderer, { window_width_px - 125.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
-			createItemButton(renderer, { window_width_px - 125.f, 650.f });
+			createAttackButton(renderer, { window_width_px - 125.f, 200.f * ui_scale});
+			createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale });
+			createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+			createItemButton(renderer, { window_width_px - 125.f, 650.f * ui_scale });
 		}
 		
 		// hide all the visulaiztion tools
@@ -468,7 +468,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(gb);
 			}
 			// add end turn button
-			createGuardButton(renderer, { window_width_px - 125.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_END_TURN, TEXTURE_ASSET_ID::ACTIONS_END_TURN);
+			createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_END_TURN, TEXTURE_ASSET_ID::ACTIONS_END_TURN);
 		}
 		else if (!hideGuardButton) {
 			// remove guard button
@@ -476,7 +476,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(gb);
 			}
 			// add end turn button
-			createGuardButton(renderer, { window_width_px - 125.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+			createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
 		}
 
 		// update player motion
@@ -526,15 +526,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			switch (render_struct.used_texture) {
 			case TEXTURE_ASSET_ID::HPFILL:
 				motion_struct.scale = { min(STAT_BB_WIDTH, (hp / maxhp) * STAT_BB_WIDTH), STAT_BB_HEIGHT };
-				motion_struct.position[0] = 150.f - 150.f*(1.f - min(1.f, (hp / maxhp)));	// original pos (full bar) - (1-multiplier)
+				motion_struct.position[0] = 150.f - 150.f*(1.f - min(1.f, ui_scale*(hp / maxhp)));	// original pos (full bar) - (1-multiplier)
 				break;
 			case TEXTURE_ASSET_ID::MPFILL:
 				motion_struct.scale = { min(STAT_BB_WIDTH, (mp / maxmp) * STAT_BB_WIDTH), STAT_BB_HEIGHT };
-				motion_struct.position[0] = 150.f - 150.f*(1.f - min(1.f, (mp / maxmp)));	// original pos (full bar) - (1-multiplier)
+				motion_struct.position[0] = 150.f - 150.f*(1.f - min(1.f, ui_scale*(mp / maxmp)));	// original pos (full bar) - (1-multiplier)
 				break;
 			case TEXTURE_ASSET_ID::EPFILL:
 				motion_struct.scale = { min(STAT_BB_WIDTH, (ep / maxep) * STAT_BB_WIDTH), STAT_BB_HEIGHT };
-				motion_struct.position[0] = 150.f - 150.f*(1.f - min(1.f, (ep / maxep)));	// original pos (full bar) - (1-multiplier)
+				motion_struct.position[0] = 150.f - 150.f*(1.f - min(1.f, ui_scale*(ep / maxep)));	// original pos (full bar) - (1-multiplier)
 				break;
 			}
 
@@ -930,10 +930,10 @@ void WorldSystem::restart_game() {
 	//current_game_state = GameStates::MAIN_MENU;
 	//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
 
-	createMenuStart(renderer, { window_width_px / 2, 400.f });
-	createMenuContinue(renderer, { window_width_px / 2, 600.f });
-	createMenuQuit(renderer, { window_width_px / 2, 800.f });
-	createMenuTitle(renderer, { window_width_px / 2, 150.f });
+	createMenuStart(renderer, { window_width_px / 2, 400.f * ui_scale});
+	createMenuContinue(renderer, { window_width_px / 2, 600.f * ui_scale});
+	createMenuQuit(renderer, { window_width_px / 2, 800.f * ui_scale});
+	createMenuTitle(renderer, { window_width_px / 2, 150.f * ui_scale});
 }
 
 void WorldSystem::handle_end_player_turn(Entity player) {
@@ -1010,6 +1010,18 @@ void WorldSystem::spawn_tutorial_entities() {
 	// start first turn
 	turnOrderSystem.getNextTurn();
 
+	float statbarsX = 150.f;
+	float statbarsY = window_height_px - START_BB_HEIGHT - 55.f * ui_scale;
+	createHPFill(renderer, { statbarsX * ui_scale, statbarsY });
+	createHPBar(renderer,  { statbarsX * ui_scale, statbarsY });
+	createMPFill(renderer, { statbarsX * ui_scale, statbarsY + STAT_BB_HEIGHT });
+	createMPBar(renderer,  { statbarsX * ui_scale, statbarsY + STAT_BB_HEIGHT });
+	createEPFill(renderer, { statbarsX * ui_scale, statbarsY + STAT_BB_HEIGHT * 2 });
+	createEPBar(renderer,  { statbarsX * ui_scale, statbarsY + STAT_BB_HEIGHT * 2 });
+	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
+	objectiveCounter = createObjectiveCounter(renderer, { 256 * ui_scale, window_height_px * (1.f / 16.f) + 32 * ui_scale });
+	objectiveDescText = createText(renderer, { 272 * ui_scale, window_height_px * (1.f / 16.f) + 76 * ui_scale }, "", 2.f, {1.0, 1.0, 1.0});
+	objectiveNumberText = createText(renderer, { 272 * ui_scale, window_height_px * (1.f / 16.f) + 204 * ui_scale }, "", 2.f, { 1.0, 1.0, 1.0 });
 	remove_fog_of_war();
 	create_fog_of_war();
 
@@ -1063,8 +1075,23 @@ void WorldSystem::spawn_game_entities() {
 		createWall(renderer, { window_width_px - WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
 	}
 	*/
+
+	float statbarsX = 150.f * ui_scale;
+	float statbarsY = window_height_px - START_BB_HEIGHT - 55.f * ui_scale;
+	createHPFill(renderer, { statbarsX, statbarsY });
+	createHPBar(renderer,  { statbarsX, statbarsY });
+	createMPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createMPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
+	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
+	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
+	objectiveCounter = createObjectiveCounter(renderer, { 256 * ui_scale, window_height_px * (1.f / 16.f) });
+	objectiveDescText = createText(renderer, { 272 * ui_scale, window_height_px * (1.f / 16.f) + 76 * ui_scale }, "", 2.f, { 1.0, 1.0, 1.0 });
+	objectiveNumberText = createText(renderer, { 272 * ui_scale, window_height_px * (1.f / 16.f) + 204 * ui_scale }, "", 2.f, { 1.0, 1.0, 1.0 });
+
 	remove_fog_of_war();
 	create_fog_of_war();
+
 	roomSystem.setRandomObjective();
 }
 
@@ -1319,10 +1346,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			else {
 				set_gamestate(GameStates::PAUSE_MENU);
 				// render save and quit button
-				createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 });
+				createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale});
 
 				// render cancel button
-				createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f });
+				createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale});
 			}
 		}
 	}
@@ -1530,10 +1557,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						// inMenu = true;
 						set_gamestate(GameStates::PAUSE_MENU);
 						// render save and quit button
-						createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 });
+						createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale});
 
 					// render cancel button
-					createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f });
+					createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale});
 						
 					return;
 				case BUTTON_ACTION_ID::ACTIONS_CANCEL:
@@ -1546,7 +1573,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					else {
 						// render the collection menu
-						createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f));
+						createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale));
 						set_gamestate(GameStates::COLLECTION_MENU);
 					}
 					return;
@@ -1569,7 +1596,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					// get which icon was clicked
 					if (registry.artifactIcons.has(e)) {
 						ARTIFACT artifact = registry.artifactIcons.get(e).artifact;
-						createDescriptionDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f), artifact);
+						createDescriptionDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f * ui_scale), artifact);
 					}
 					return;
 				case BUTTON_ACTION_ID::CLOSE_DIALOG:
@@ -1588,7 +1615,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					if (registry.attackCards.has(e)) {
 						ATTACK attack = registry.attackCards.get(e).attack;
 						registry.players.get(player_main).selected_attack = attack;
-						createAttackDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f), attack, registry.players.get(player_main).prepared);
+						createAttackDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f * ui_scale), attack, registry.players.get(player_main).prepared);
 					}
 					return;
 				case BUTTON_ACTION_ID::CLOSE_ATTACK_DIALOG:
@@ -2738,7 +2765,7 @@ void WorldSystem::handleActionButtonPress() {
 	hideGuardButton = true;
 
 	// create back button and move mode text
-	createBackButton(renderer, { window_width_px - 125.f , window_height_px - 100.f });
+	createBackButton(renderer, { window_width_px - 125.f , window_height_px - 100.f * ui_scale });
 }
 
 void WorldSystem::moveAction() {
@@ -2755,7 +2782,7 @@ void WorldSystem::moveAction() {
 		// set game state to move menu
 		set_gamestate(GameStates::MOVEMENT_MENU);
 		handleActionButtonPress();
-		createMoveModeText(renderer, { window_width_px - 125.f, 350.f });
+		createMoveModeText(renderer, { window_width_px - 125.f, 350.f * ui_scale });
 	}
 }
 
@@ -2814,7 +2841,7 @@ void WorldSystem::backAction() {
 void WorldSystem::itemAction() {
 	Inventory& inv = registry.inventories.get(player_main);
 	printf("sprite: %d", inv.equipped[0].sprite);
-	createItemMenu(renderer, { window_width_px - 125.f, 200.f }, inv);
+	createItemMenu(renderer, { window_width_px - 125.f, 200.f * ui_scale }, inv);
 	
 	handleActionButtonPress();
 

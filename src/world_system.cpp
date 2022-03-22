@@ -3113,7 +3113,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 
 			// only attack if have enough ep and mp
 			if (player_stats.ep >= ep_cost && player_stats.mp >= mp_cost) {
-				logText("DEBUG: Parrying Stance Activated!");
+				logText("Parrying Stance activated!");
 				Mix_PlayChannel(-1, special_sound, 0);
 
 				StatusEffect stance = StatusEffect(0, 1, StatusType::PARRYING_STANCE, false, true);

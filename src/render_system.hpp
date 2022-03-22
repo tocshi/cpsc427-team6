@@ -92,6 +92,8 @@ class RenderSystem {
 			textures_path("turn_ui.png"),
 			textures_path("switch_default.png"),
 			textures_path("switch_active.png"),
+			textures_path("item/weapon_card.png"),
+			textures_path("item/armour_card.png"),
     		textures_path("keys/1_key.png"),
 			textures_path("keys/2_key.png"),
 			textures_path("keys/3_key.png"),
@@ -138,6 +140,7 @@ class RenderSystem {
 			textures_path("artifacts/windbag.png"),
 			textures_path("mouse_icons.png"),
 			textures_path("attacks/slash.png"),
+			textures_path("objective_counter.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

@@ -91,9 +91,6 @@ float enemy_move_audio_time_ms = 200.f;
 // button toggles
 bool hideGuardButton = false;
 
-// enemy move sounds
-std::vector<int> enemySoundChannels;
-
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
 GLFWwindow* WorldSystem::create_window() {
@@ -200,7 +197,7 @@ GLFWwindow* WorldSystem::create_window() {
 	slime_death = Mix_LoadWAV(audio_path("feedback/slime_death.wav").c_str());
 	Mix_VolumeChunk(slime_death, 32);
 	caveling_move = Mix_LoadWAV(audio_path("feedback/caveling_move.wav").c_str());
-	Mix_VolumeChunk(caveling_move, 50);
+	Mix_VolumeChunk(caveling_move, 32);
 	caveling_death = Mix_LoadWAV(audio_path("feedback/caveling_death.wav").c_str());
 	Mix_VolumeChunk(caveling_death, 40);
 
@@ -329,13 +326,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 		else {
 			enemy_move_audio_time_ms -= 20.f;
-		}
-	}
-
-	// stop all enemy move sounds on player's turn
-	if (get_is_player_turn()) {
-		for (int i = 0; i < enemySoundChannels.size(); i++) {
-			Mix_HaltChannel(enemySoundChannels[i]);
 		}
 	}
 
@@ -486,6 +476,28 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				ep = max(0.f, ep);
 			}
 		}
+
+		// update stats text
+		std::string currHpString = std::to_string((int)hp);
+		std::string maxHpString = std::to_string((int)maxhp);
+
+		std::string currMpString = std::to_string((int)mp);
+		std::string maxMpString = std::to_string((int)maxmp);
+
+		std::string currEpString = std::to_string((int)ep);
+		std::string maxEpString = std::to_string((int)maxep);
+
+		// remove previous stats text
+		for (Entity st : registry.statsText.entities) {
+			registry.remove_all_components_of(st);
+		}
+
+		float statbarsX = window_width_px * 0.14;
+		float statbarsY = window_height_px * 1.7;
+
+		createStatsText(renderer, { statbarsX, statbarsY }, currHpString + " / " + maxHpString, 1.2f, vec3(1.0f));
+		createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 }, currMpString + " / " + maxMpString, 1.2f, vec3(1.0f));
+		createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 4 }, currEpString + " / " + maxEpString, 1.2f, vec3(1.0f));
 		
 		// update Stat Bars and visibility
 		for (Entity entity : registry.motions.entities) {
@@ -976,6 +988,9 @@ void WorldSystem::spawn_tutorial_entities() {
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war();
 	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
+	objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32 });
+	objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, {1.0, 1.0, 1.0});
+	objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
 
 	// roomSystem.setRandomObjective(); // hijack for tutorial objectives?
 }
@@ -1038,6 +1053,9 @@ void WorldSystem::spawn_game_entities() {
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	create_fog_of_war();
 	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
+	objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) });
+	objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
+	objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
 
 	roomSystem.setRandomObjective();
 }
@@ -1214,8 +1232,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// SAVING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
-		if (roomSystem.current_floor != Floors::TUTORIAL) {
-			saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+		if (!tutorial) {
+			saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
 			logText("Game state saved!");
 		}
 	}
@@ -1342,6 +1360,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// simulating a new room
 	if (action == GLFW_RELEASE && key == GLFW_KEY_N && get_is_player_turn()) {
 		if (!registry.roomTransitions.has(player_main)) {
+			if (tutorial) {
+				tutorial = false;
+			}
 			RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
 			transition.floor = roomSystem.current_floor;
 		}
@@ -1754,6 +1775,13 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									Equipment prev = equip_item(player_main, equipment);
 									createEquipmentEntity(renderer, player_motion.position, prev);
 								}
+								if (current_game_state == GameStates::ITEM_MENU) {
+									// re-render the itemCards
+									for (Entity ic : registry.itemCards.entities) {
+										registry.remove_all_components_of(ic);
+									}
+									createItemMenu(renderer, { window_width_px - 125.f, 200.f }, inv);
+								}
 								if (registry.consumables.has(entity)) {
 									Consumable consumable = registry.consumables.get(entity);
 									Stats stats = registry.stats.get(player_main);
@@ -1936,6 +1964,7 @@ void WorldSystem::loadFromData(json data) {
 	json collidablesList = data["map"]["collidables"];
 	json interactablesList = data["map"]["interactables"];
 	json tilesList = data["map"]["tiles"];
+	json roomSystemJson = data["room"];
 
 	// load enemies
 	std::queue<Entity> entities;
@@ -1961,6 +1990,8 @@ void WorldSystem::loadFromData(json data) {
 	loadInteractables(interactablesList);
 	// load tiles
 	loadTiles(tilesList);
+	// load room system
+	loadRoomSystem(roomSystemJson);
 }
 
 Entity WorldSystem::loadPlayer(json playerData) {
@@ -2070,7 +2101,6 @@ void WorldSystem::loadPlayerComponent(Entity e, json playerCompData, Inventory i
 	registry.players.get(e).floor = playerCompData["floor"];
 	registry.players.get(e).room = playerCompData["room"];
 	registry.players.get(e).total_rooms = playerCompData["total_rooms"];
-	registry.players.get(e).inv = inv;
 }
 
 Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
@@ -2414,6 +2444,17 @@ void WorldSystem::loadCampfire(Entity e) {
 	registry.hidables.emplace(e);
 }
 
+void WorldSystem::loadRoomSystem(json roomSystemData) {
+	roomSystem.current_floor = roomSystemData["current_floor"];
+	roomSystem.current_room_idx = roomSystemData["current_room_idx"];
+	roomSystem.current_objective = { 
+		(ObjectiveType)roomSystemData["current_objective"]["type"], 
+		roomSystemData["current_objective"]["remaining_count"],
+		roomSystemData["current_objective"]["completed"]
+	};
+	roomSystem.updateObjective(roomSystem.current_objective.type, 0);
+}
+
 void WorldSystem::logText(std::string msg) {
 	// (note: if we want to use createText in other applications, we can create a logged text entity)
 	// shift existing logged text upwards
@@ -2587,10 +2628,10 @@ void WorldSystem::playEnemyDeathSound(ENEMY_TYPE enemy_type) {
 void WorldSystem::playEnemyMoveSound(ENEMY_TYPE enemy_type) {
 	switch (enemy_type) {
 	case ENEMY_TYPE::SLIME:
-		enemySoundChannels.push_back(Mix_PlayChannel(-1, slime_move, 0));
+		Mix_PlayChannel(-1, slime_move, 0);
 		break;
 	case ENEMY_TYPE::CAVELING:
-		enemySoundChannels.push_back(Mix_PlayChannel(-1, caveling_move, 0));
+		Mix_PlayChannel(-1, caveling_move, 0);
 		break;
 	}
 }
@@ -2677,6 +2718,11 @@ void WorldSystem::attackAction() {
 }
 
 void WorldSystem::backAction() {
+	// hide all item cards
+	for (Entity ic : registry.itemCards.entities) {
+		registry.remove_all_components_of(ic);
+	}
+
 	// hide all attack cards
 	for (Entity ac : registry.attackCards.entities) {
 		registry.remove_all_components_of(ac);
@@ -2693,8 +2739,9 @@ void WorldSystem::backAction() {
 }
 
 void WorldSystem::itemAction() {
-	// TODO: add real functionality for this
-	logText("Items Menu to be implemented later!");
+	Inventory& inv = registry.inventories.get(player_main);
+	printf("sprite: %d", inv.equipped[0].sprite);
+	createItemMenu(renderer, { window_width_px - 125.f, 200.f }, inv);
 	
 	handleActionButtonPress();
 
@@ -2746,7 +2793,7 @@ void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
 	// create an objective
 	roomSystem.setRandomObjective();
 
-	saveSystem.saveGameState(turnOrderSystem.getTurnOrder());
+	saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
 
 	if (!registry.loadingTimers.has(player_main)) {
 		registry.loadingTimers.emplace(player_main);

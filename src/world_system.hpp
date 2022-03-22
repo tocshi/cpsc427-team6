@@ -128,6 +128,9 @@ public:
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
 	Entity turnUI;
+	Entity objectiveCounter;
+	Entity objectiveDescText;
+	Entity objectiveNumberText;
 
 	// log text
 	void logText(std::string msg);
@@ -233,6 +236,9 @@ private:
 
 	// load a campfire
 	void loadCampfire(Entity e);
+
+	// load the room system
+	void loadRoomSystem(json roomSystemData);
   
 	// do turn order logic
 	void doTurnOrderLogic();

@@ -13,6 +13,8 @@ public:
 	void setRandomObjective();
 
 	Floors current_floor = Floors::FLOOR1;
+	int current_room_idx = 0;
+	Objective current_objective;
 private:
 	const std::map<Floors, std::vector<std::string>> floor_map_data = {
 		{
@@ -28,7 +30,4 @@ private:
 			{"map1.tmx", "map2.tmx", "map3.tmx"}
 		}
 	};
-
-	int current_room_idx = 0;
-	Objective current_objective;
 };

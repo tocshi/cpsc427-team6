@@ -87,7 +87,9 @@ enum class TEXTURE_ASSET_ID {
 	TURN_UI = CUTSCENE3 + 1,
 	SWITCH_DEFAULT = TURN_UI + 1,
 	SWITCH_ACTIVE = SWITCH_DEFAULT + 1,
-	KEY_ICON_1 = SWITCH_ACTIVE + 1,
+	ITEM_WEAPON_CARD = SWITCH_ACTIVE + 1,
+	ITEM_ARMOUR_CARD = ITEM_WEAPON_CARD + 1,
+	KEY_ICON_1 = ITEM_ARMOUR_CARD + 1,
 	KEY_ICON_2 = KEY_ICON_1 + 1,
 	KEY_ICON_3 = KEY_ICON_2 + 1,
 	KEY_ICON_4 = KEY_ICON_3 + 1,
@@ -133,7 +135,8 @@ enum class TEXTURE_ASSET_ID {
 	WINDBAG = WARM_CLOAK + 1,
 	MOUSE_SPRITESHEET = WINDBAG + 1,
 	SLASH_SPRITESHEET = MOUSE_SPRITESHEET + 1,
-	TEXTURE_COUNT = SLASH_SPRITESHEET + 1
+	OBJECTIVE_COUNTER = SLASH_SPRITESHEET + 1,
+	TEXTURE_COUNT = OBJECTIVE_COUNTER + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -290,7 +293,6 @@ struct Inventory
 struct Player
 {
 	float s;
-	Inventory inv;
 	int gacha_pity = 0;
 	int floor = 1; // TODO: turn this back to 0 when tutorial is implemented
 	int room = 0;
@@ -719,6 +721,10 @@ struct Icon {
 
 };
 
+struct StatsText {
+	float counter_ms = 10.f;
+};
+
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
 	LINE = COLOURED + 1,
@@ -820,6 +826,11 @@ struct Pointer {
 // attack card
 struct AttackCard {
 	ATTACK attack;
+};
+
+// item card
+struct ItemCard {
+	Equipment item;
 };
 
 // Artifact name map

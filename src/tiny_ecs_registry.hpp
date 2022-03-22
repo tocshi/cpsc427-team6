@@ -61,6 +61,7 @@ public:
 	ComponentContainer<StatusContainer> statuses;
 	ComponentContainer<KnockBack> knockbacks;
 	ComponentContainer<AttackCard> attackCards;
+	ComponentContainer<ItemCard> itemCards;
 	ComponentContainer<AttackDialog> attackDialogs;
 	ComponentContainer<Icon> icons;
 	ComponentContainer<Spritesheet> spritesheets;
@@ -70,6 +71,7 @@ public:
 	ComponentContainer<Switch> switches;  
 	ComponentContainer<Chest> chests;
 	ComponentContainer<DamageTextTimer> damageText;
+	ComponentContainer<StatsText> statsText;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -127,6 +129,7 @@ public:
 		registry_list.push_back(&knockbacks);
 		registry_list.push_back(&attackCards);
 		registry_list.push_back(&attackDialogs);
+		registry_list.push_back(&itemCards);
 		registry_list.push_back(&icons);
 		registry_list.push_back(&spritesheets);
 		registry_list.push_back(&roomTransitions);
@@ -135,6 +138,7 @@ public:
 		registry_list.push_back(&switches);
 		registry_list.push_back(&chests);
 		registry_list.push_back(&damageText);
+		registry_list.push_back(&statsText);
 	}
 
 	void clear_all_components() {

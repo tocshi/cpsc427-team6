@@ -3113,6 +3113,52 @@ void WorldSystem::use_attack(vec2 target_pos) {
 		}
 		break;
 
+	case ATTACK::TERMINUS_VERITAS:
+		// only attack if the player hasn't attacked that turn
+		if (!player.attacked) {
+
+			// only attack if have enough ep and mp
+			if (player_stats.ep >= ep_cost && player_stats.mp >= mp_cost) {
+				Mix_PlayChannel(-1, sword_end, 0);
+				Motion aoe = {};
+				aoe.position = dirdist_extrapolate(player_motion.position, angle, player_stats.range);
+				aoe.angle = angle;
+				aoe.scale = { player_stats.range * 2.f, player_stats.range * 2.f };
+				Entity animation = createAttackAnimation(renderer, dirdist_extrapolate(player_motion.position, angle, 200.f), player.using_attack);
+				registry.motions.get(animation).angle = angle + M_PI / 2;
+
+				// check enemies that are in area
+				for (Entity& en : registry.enemies.entities) {
+
+					if (collides_rotrect_circle(aoe, registry.motions.get(en))) {
+						// wobble the enemy lol
+						if (!registry.wobbleTimers.has(en)) {
+							WobbleTimer& wobble = registry.wobbleTimers.emplace(en);
+							wobble.orig_scale = registry.motions.get(en).scale;
+						}
+						Stats& enemy_stats = registry.stats.get(en);
+						float def_mod = enemy_stats.def * 0.4;
+						enemy_stats.def -= def_mod;
+						logText(deal_damage(player_main, en, 120.f));
+						enemy_stats.def += def_mod;
+					}
+				}
+
+				attack_success = true;
+			}
+			else {
+				logText("Not enough MP or EP to attack!");
+				// play error sound
+				Mix_PlayChannel(-1, error_sound, 0);
+			}
+		}
+		else {
+			logText("You already attacked this turn!");
+			// play error sound
+			Mix_PlayChannel(-1, error_sound, 0);
+		}
+		break;
+
 	default:
 		break;
 	}

@@ -153,5 +153,180 @@ Implemented Features:
 	 <ul>
 		<li> components.hpp | StatusType() | line 333 </li>
 		<li> combat_system.cpp | apply_status() | line 77 </li>
+		<li> ai_system.cpp  | StatusEffect test_poison () | line 41 </li>
 	</ul>
     </ul>
+    
+- Item Menu 
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> components.hpp | StatusType() | line 333 </li>
+		<li> combat_system.cpp | apply_status() | line 77 </li>
+		<li> ai_system.cpp  | StatusEffect test_poison () | line 41 </li>
+	</ul>
+    </ul>
+  
+ - Objective Counter
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> components.hpp | StatusType() | line 333 </li>
+		<li> combat_system.cpp | apply_status() | line 77 </li>
+		<li> ai_system.cpp  | StatusEffect test_poison () | line 41 </li>
+	</ul>
+    </ul>
+    
+ - Item/ Artifact sprites
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> components.hpp | TEXTURE_ASSET_ID | line 32 </li>
+	</ul>
+    </ul>
+    
+ - Floor 0: Tutorial
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> components.hpp | TEXTURE_ASSET_ID | line 32 </li>
+	</ul>
+    </ul> 
+    
+ - Healing Solution/ Healing Item Drop
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> components.hpp | TEXTURE_ASSET_ID | line 32 </li>
+	</ul>
+    </ul>
+    
+ - Damage Text
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> components.hpp | TEXTURE_ASSET_ID | line 32 </li>
+	</ul>
+    </ul> 
+    
+ - Chest Mechanics
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> components.hpp | TEXTURE_ASSET_ID | line 32 </li>
+	</ul>
+    </ul>    
+    
+ - Stat Calculations and Equiptment System
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> components.hpp | TEXTURE_ASSET_ID | line 32 </li>
+	</ul>
+    </ul>    
+    
+- Attack Menu / Menu Hot Keys
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> components.hpp | TEXTURE_ASSET_ID | line 32 </li>
+	</ul>
+    </ul>   
+    
+- Move buttons/ Move Actions 
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> components.hpp | TEXTURE_ASSET_ID | line 32 </li>
+	</ul>
+    </ul>  
+    
+- Pass data between Rooms 
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> components.hpp | TEXTURE_ASSET_ID | line 32 </li>
+	</ul>
+    </ul>    
+    
+- Objective System 
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> components.hpp | TEXTURE_ASSET_ID | line 32 </li>
+	</ul>
+    </ul>     
+    
+- Saving and Loading 
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> saveSystem.cpp/ saveSystem.hpp | entire file </li>
+		<li> World_Sysem.cpp | TEXTURE_ASSET_ID | line 1980 </li>
+		
+	</ul>
+    </ul>
+    
+- Cutscene State 
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_System.cpp/ saveSystem.hpp | line 823  </li>
+	</ul>
+    </ul>     
+    
+- Turn Order UI 
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_System.cpp/ saveSystem.hpp | line 823  </li>
+	</ul>
+    </ul>      
+    
+- Room System
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_System.cpp/ saveSystem.hpp | line 823  </li>
+	</ul>
+    </ul>    
+    
+- Head-Up Text Display
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_System.cpp/ saveSystem.hpp | line 823  </li>
+	</ul>
+    </ul>    
+    
+- Collection Menu and New Icons for Modes
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_System.cpp/ saveSystem.hpp | line 823  </li>
+	</ul>
+    </ul>    
+    
+- Caveling Enemy
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_System.cpp/ saveSystem.hpp | line 823  </li>
+	</ul>
+    </ul>      
+    
+- Knockback Effect
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_System.cpp/ saveSystem.hpp | line 823  </li>
+	</ul>
+    </ul>   
+    
+- Queue based on Speed stat
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_System.cpp/ saveSystem.hpp | line 823  </li>
+	</ul>
+    </ul>        

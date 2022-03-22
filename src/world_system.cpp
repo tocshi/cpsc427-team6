@@ -951,19 +951,8 @@ void WorldSystem::spawn_tutorial_entities() {
 	// start first turn
 	turnOrderSystem.getNextTurn();
 
-	float statbarsX = 150.f;
-	float statbarsY = window_height_px - START_BB_HEIGHT - 55.f;
-	createHPFill(renderer, { statbarsX, statbarsY });
-	createHPBar(renderer,  { statbarsX, statbarsY });
-	createMPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
-	createMPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT });
-	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
-	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
+	remove_fog_of_war();
 	create_fog_of_war();
-	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
-	objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32 });
-	objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, {1.0, 1.0, 1.0});
-	objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
 
 	// roomSystem.setRandomObjective(); // hijack for tutorial objectives?
 }
@@ -1016,21 +1005,8 @@ void WorldSystem::spawn_game_entities() {
 		createWall(renderer, { window_width_px - WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
 	}
 	*/
-	
-	float statbarsX = 150.f;
-	float statbarsY = window_height_px - START_BB_HEIGHT - 55.f;
-	createHPFill(renderer, { statbarsX, statbarsY });
-	createHPBar(renderer,  { statbarsX, statbarsY });
-	createMPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
-	createMPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT });
-	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
-	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
+	remove_fog_of_war();
 	create_fog_of_war();
-	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
-	objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) });
-	objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
-	objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
-
 	roomSystem.setRandomObjective();
 }
 
@@ -1429,38 +1405,15 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				switch (action_taken) {
 
 					case BUTTON_ACTION_ID::MENU_START: 
-						set_gamestate(GameStates::BATTLE_MENU);
-						if (current_game_state != GameStates::CUTSCENE || current_game_state != GameStates::MAIN_MENU) {
-							Mix_PlayMusic(background_music, -1);
-						}
+						start_game();
 						if (tutorial) { spawn_tutorial_entities(); }
 						else { spawn_game_entities(); }
-						// spawn the actions bar
-						// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
-						createAttackButton(renderer, { window_width_px - 125.f, 200.f });
-						createMoveButton(renderer, { window_width_px - 125.f, 350.f });
-						createGuardButton(renderer, { window_width_px - 125.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
-						createItemButton(renderer, { window_width_px - 125.f, 650.f });
-
-						// spawn the collection and pause buttons
-						createPauseButton(renderer, { window_width_px - 80.f, 50.f });
-						createCollectionButton(renderer, { window_width_px - 160.f, 50.f });
-
-						for (int i = registry.renderRequests.size() - 1; i >= 0; i--) {
-							if (registry.renderRequests.components[i].used_layer == RENDER_LAYER_ID::BG) {
-								registry.remove_all_components_of(registry.renderRequests.entities[i]);
-							}
-						}
-						is_player_turn = true;
-						background = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_COLOR, RENDER_LAYER_ID::BG);
-						background_back = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_BACK, RENDER_LAYER_ID::BG_1);
-						background_mid = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_MID, RENDER_LAYER_ID::BG_2);
-						background_front = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_FRONT, RENDER_LAYER_ID::BG_3);
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 					case BUTTON_ACTION_ID::CONTINUE:
 						// if save data exists reset the game
 						if (saveSystem.saveDataExists()) {
+							start_game();
 							// remove entities to load in entities
 							removeForLoad();
 							//printf("Removed for load\n");
@@ -1871,6 +1824,48 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		cancelAction();
 	}
 
+}
+
+void WorldSystem::start_game() {
+	set_gamestate(GameStates::BATTLE_MENU);
+	if (current_game_state != GameStates::CUTSCENE || current_game_state != GameStates::MAIN_MENU) {
+		Mix_PlayMusic(background_music, -1);
+	}
+	// spawn the actions bar
+	// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
+	createAttackButton(renderer, { window_width_px - 125.f, 200.f });
+	createMoveButton(renderer, { window_width_px - 125.f, 350.f });
+	createGuardButton(renderer, { window_width_px - 125.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+	createItemButton(renderer, { window_width_px - 125.f, 650.f });
+
+	// spawn the collection and pause buttons
+	createPauseButton(renderer, { window_width_px - 80.f, 50.f });
+	createCollectionButton(renderer, { window_width_px - 160.f, 50.f });
+
+	for (int i = registry.renderRequests.size() - 1; i >= 0; i--) {
+		if (registry.renderRequests.components[i].used_layer == RENDER_LAYER_ID::BG) {
+			registry.remove_all_components_of(registry.renderRequests.entities[i]);
+		}
+	}
+	is_player_turn = true;
+	background = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_COLOR, RENDER_LAYER_ID::BG);
+	background_back = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_BACK, RENDER_LAYER_ID::BG_1);
+	background_mid = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_MID, RENDER_LAYER_ID::BG_2);
+	background_front = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_FRONT, RENDER_LAYER_ID::BG_3);
+
+	float statbarsX = 150.f;
+	float statbarsY = window_height_px - START_BB_HEIGHT - 55.f;
+	createHPFill(renderer, { statbarsX, statbarsY });
+	createHPBar(renderer, { statbarsX, statbarsY });
+	createMPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createMPBar(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
+	createEPBar(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
+	
+	turnUI = createTurnUI(renderer, { window_width_px * (3.f / 4.f), window_height_px * (1.f / 16.f) });
+	objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) });
+	objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
+	objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {

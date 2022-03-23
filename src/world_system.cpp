@@ -249,7 +249,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 	// Playing background music indefinitely
 
-	Mix_PlayMusic(cutscene_music, 0);
+	Mix_PlayMusic(cutscene_music, -1);
 	fprintf(stderr, "Loaded music\n");
 	printf("%d", countCutScene);
 	//set_gamestate(GameStates::CUTSCENE);
@@ -919,7 +919,7 @@ void WorldSystem::restart_game() {
 	set_gamestate(GameStates::MAIN_MENU);
 
 	if (current_game_state == GameStates::MAIN_MENU) {
-		Mix_PlayMusic(menu_music, 0);
+		Mix_PlayMusic(menu_music, -1);
 	}
 
 	/*if (current_game_state != GameStates::MAIN_MENU) {
@@ -3174,6 +3174,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				StatusEffect stance = StatusEffect(0, 1, StatusType::PARRYING_STANCE, false, true);
 				apply_status(player_main, stance);
 
+				ep_cost = 0;
 				attack_success = true;
 			}
 			else {

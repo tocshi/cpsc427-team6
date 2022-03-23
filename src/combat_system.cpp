@@ -31,7 +31,10 @@ std::string deal_damage(Entity& attacker, Entity& defender, float multiplier)
 	int logged_damage = round(final_damage);
 
 	// Defender take damage, unless parried
-	if (has_status(defender, StatusType::PARRYING_STANCE) && !has_status(attacker, StatusType::PARRYING_STANCE) && final_damage < defender_stats.maxhp * 0.3) {
+	if (has_status(defender, StatusType::PARRYING_STANCE) && !has_status(attacker, StatusType::PARRYING_STANCE) 
+		&& final_damage < defender_stats.maxhp * 0.3
+		&& defender_stats.ep >= 30 * defender_stats.eprateatk) {
+		defender_stats.ep -= 30 * defender_stats.eprateatk;
 		deal_damage(defender, attacker, multiplier);
 		// show attack animation
 		Motion& attacker_motion = registry.motions.get(attacker);

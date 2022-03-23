@@ -1523,6 +1523,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							//printf("getting gameData\n");
 							// load the entities in
 							loadFromData(gameData);
+							Inventory test = registry.inventories.get(player_main);
 							//printf("load game data?\n");
 							logText("Game state loaded!");
 							remove_fog_of_war();
@@ -2097,7 +2098,6 @@ Entity WorldSystem::loadPlayer(json playerData) {
 	// create a player from the save data
 	// create player
 	Entity e = createPlayer(renderer, { 0, 0 });
-	player_main = e;
 
 	// load motion
 	loadMotion(e, playerData["motion"]);
@@ -2107,7 +2107,6 @@ Entity WorldSystem::loadPlayer(json playerData) {
 
 	// get inventory
 	Inventory inv = loadInventory(e, playerData["inventory"]);
-	registry.inventories.get(player_main) = inv;
 
 	// load player statuses
 	loadStatuses(e, playerData["statuses"]);
@@ -2256,8 +2255,10 @@ Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
 		i++;
 	}
 	
-	equip_item(player_main, weapon);
-	equip_item(player_main, armour);
+	equip_item(e, weapon);
+	equip_item(e, armour);
+	inv.equipped[0] = weapon;
+	inv.equipped[1] = armour;
 
 	return inv;
 }
@@ -2965,7 +2966,6 @@ void WorldSystem::use_attack(vec2 target_pos) {
 
 	// costs 0 if prepared
 	if (player.prepared) {
-		printf("testestste\n");
 		mp_cost = 0;
 		ep_cost = 0;
 	}

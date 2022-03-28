@@ -583,6 +583,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			// remove from turn queue
 			turnOrderSystem.removeFromQueue(enemy);
+			registry.solid.remove(enemy);
 			roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
 		}
 	}

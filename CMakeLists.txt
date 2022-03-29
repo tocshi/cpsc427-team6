@@ -90,6 +90,7 @@ if (IS_OS_LINUX OR IS_OS_MAC)
 
     pkg_search_module(SDL2 REQUIRED sdl)
     pkg_search_module(SDL2MIXER REQUIRED SDL_mixer)
+    find_package(Freetype REQUIRED)
 
     # Link Frameworks on OSX
     if (IS_OS_MAC)
@@ -104,7 +105,7 @@ elseif (IS_OS_WINDOWS)
 # https://stackoverflow.com/questions/17126860/cmake-link-precompiled-library-depending-on-os-and-architecture
     set(GLFW_FOUND TRUE)
     set(SDL2_FOUND TRUE)
-    set(FREETYPE_FOUND TRUE)
+    set(PE_FOUND TRUE)
 
     set(GLFW_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/include")
     set(SDL2_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/ext/sdl/include/SDL")
@@ -166,16 +167,6 @@ elseif (IS_OS_WINDOWS)
     )
 endif()
 
-# Can't find the include and lib. Quit.
-if (NOT GLFW_FOUND OR NOT SDL2_FOUND OR NOT FREETYPE_FOUND)
-   if (NOT GLFW_FOUND)
-      message(FATAL_ERROR "Can't find GLFW." )
-   elseif (NOT SDL2_FOUND)
-      message(FATAL_ERROR "Can't find SDL." )
-   else()
-      message(FATAL_ERROR "Can't find Freetype." )
-   endif()
-endif()
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${GLFW_INCLUDE_DIRS})
 target_include_directories(${PROJECT_NAME} PUBLIC ${SDL2_INCLUDE_DIRS})

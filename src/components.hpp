@@ -989,7 +989,7 @@ const std::map <ATTACK, std::string>attack_descriptions = {
 	{ATTACK::ROUNDSLASH, "Deals 80% of ATK in damage in a circle around you."},
 	{ATTACK::SAPPING_STRIKE, "Deals 80% of ATK in damage to a single target, and restores 30 MP."},
 	{ATTACK::PIERCING_THRUST, "Deals 120% of ATK in damage in a line, and ignores 40% DEF of any enemies you hit."},
-	{ATTACK::PARRYING_STANCE, "Prepares to parry until the start of your next turn, all attacks that deal <30% of your max HP are deflected, dealing its original multiplier of damage back to the attacker."},
+	{ATTACK::PARRYING_STANCE, "Prepares to parry until the start of your next turn. All attacks that deal <30% of your max HP are deflected, consuming 30 EP and dealing its original multiplier of damage back to the attacker."},
 	{ATTACK::DISENGAGE, "Quickly jumps 300 units in target direction. Does not count as an attack. If you end your turn without attacking, gain 30 EP at the start of your next turn."},
 	{ATTACK::TERMINUS_VERITAS, "Consumes all MP, dealing 4.5% ATK damage per MP consumed in a semicircle AoE within sight range. When consuming 90 or more MP, deal 5% ATK damage per MP instead."},
 };
@@ -1000,7 +1000,7 @@ const std::map <ATTACK, std::string>attack_costs_string = {
 	{ATTACK::ROUNDSLASH, "30 MP, 50 EP"},
 	{ATTACK::SAPPING_STRIKE, "0 MP, 90 EP"},
 	{ATTACK::PIERCING_THRUST, "40 MP, 40 EP"},
-	{ATTACK::PARRYING_STANCE, "50 MP, 100 EP"},
+	{ATTACK::PARRYING_STANCE, "50 MP, 30+ EP"},
 	{ATTACK::DISENGAGE, "30 MP, 0 EP"},
 	{ATTACK::TERMINUS_VERITAS, "60+ MP, 100 EP"},
 };
@@ -1020,7 +1020,7 @@ const std::map <ATTACK, float>attack_epcosts = {
 	{ATTACK::ROUNDSLASH, 50},
 	{ATTACK::SAPPING_STRIKE, 90},
 	{ATTACK::PIERCING_THRUST, 40},
-	{ATTACK::PARRYING_STANCE, 100},
+	{ATTACK::PARRYING_STANCE, 30},
 	{ATTACK::DISENGAGE, 0},
 	{ATTACK::TERMINUS_VERITAS, 100},
 };

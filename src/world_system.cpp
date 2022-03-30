@@ -249,7 +249,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 	// Playing background music indefinitely
 
-	Mix_PlayMusic(cutscene_music, 0);
+	Mix_PlayMusic(cutscene_music, -1);
 	fprintf(stderr, "Loaded music\n");
 	printf("%d", countCutScene);
 	//set_gamestate(GameStates::CUTSCENE);
@@ -462,7 +462,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 
 		// change guard button to end turn if ep is not full
-		if ((p.attacked || p.moved) && !hideGuardButton) {
+		if ((p.attacked || p.moved || ep <= 50) && !hideGuardButton) {
 			// remove guard button
 			for (Entity gb : registry.guardButtons.entities) {
 				registry.remove_all_components_of(gb);
@@ -583,6 +583,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			// remove from turn queue
 			turnOrderSystem.removeFromQueue(enemy);
+			registry.solid.remove(enemy);
 			roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
 		}
 	}
@@ -919,7 +920,7 @@ void WorldSystem::restart_game() {
 	set_gamestate(GameStates::MAIN_MENU);
 
 	if (current_game_state == GameStates::MAIN_MENU) {
-		Mix_PlayMusic(menu_music, 0);
+		Mix_PlayMusic(menu_music, -1);
 	}
 
 	/*if (current_game_state != GameStates::MAIN_MENU) {
@@ -1085,7 +1086,7 @@ void WorldSystem::spawn_game_entities() {
 	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
-	objectiveCounter = createObjectiveCounter(renderer, { 256 * ui_scale, window_height_px * (1.f / 16.f) });
+	objectiveCounter = createObjectiveCounter(renderer, { 256 * ui_scale, window_height_px * (1.f / 16.f) + 32});
 	objectiveDescText = createText(renderer, { 272 * ui_scale, window_height_px * (1.f / 16.f) + 76 * ui_scale }, "", 2.f, { 1.0, 1.0, 1.0 });
 	objectiveNumberText = createText(renderer, { 272 * ui_scale, window_height_px * (1.f / 16.f) + 204 * ui_scale }, "", 2.f, { 1.0, 1.0, 1.0 });
 
@@ -1523,6 +1524,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							//printf("getting gameData\n");
 							// load the entities in
 							loadFromData(gameData);
+							Inventory test = registry.inventories.get(player_main);
 							//printf("load game data?\n");
 							logText("Game state loaded!");
 							remove_fog_of_war();
@@ -1637,13 +1639,13 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						logText("You already attacked this turn!");
 						Mix_PlayChannel(-1, error_sound, 0);
 					}
-					else if (stats.mp < attack_mpcosts.at(p.selected_attack) || stats.ep < attack_epcosts.at(p.selected_attack)) {
+					else if (stats.mp < attack_mpcosts.at(p.selected_attack) || stats.ep < attack_epcosts.at(p.selected_attack) * stats.eprateatk) {
 						logText("Not enough MP or EP to attack!");
 						Mix_PlayChannel(-1, error_sound, 0);
 					}
 					else {
 						stats.mp -= attack_mpcosts.at(p.selected_attack);
-						stats.ep -= attack_epcosts.at(p.selected_attack);
+						stats.ep -= attack_epcosts.at(p.selected_attack) * stats.eprateatk;
 						registry.players.get(player_main).prepared = true;
 						for (Entity ad : registry.attackDialogs.entities) {
 							registry.remove_all_components_of(ad);
@@ -1983,7 +1985,6 @@ void WorldSystem::start_player_turn() {
 	p.prepared = false;
 
 	if (registry.stats.get(player_main).guard) {
-		ep = maxep * 1.5f;
 		registry.stats.get(player_main).guard = false;
 	}
 	else {
@@ -2098,7 +2099,6 @@ Entity WorldSystem::loadPlayer(json playerData) {
 	// create a player from the save data
 	// create player
 	Entity e = createPlayer(renderer, { 0, 0 });
-	player_main = e;
 
 	// load motion
 	loadMotion(e, playerData["motion"]);
@@ -2106,18 +2106,18 @@ Entity WorldSystem::loadPlayer(json playerData) {
 	// get queueable stuff
 	loadQueueable(e, playerData["queueable"]);
 
-	// load stats
-	loadStats(e, playerData["stats"]);
-
 	// get inventory
 	Inventory inv = loadInventory(e, playerData["inventory"]);
+
+	// load player statuses
+	loadStatuses(e, playerData["statuses"]);
+
+	// load stats
+	loadStats(e, playerData["stats"]);
 
 	// get player component stuff
 	loadPlayerComponent(e, playerData["player"], inv);
 
-	// load player statuses
-	loadStatuses(e, playerData["statuses"]);
-	
 	return e;
 }
 
@@ -2237,7 +2237,6 @@ Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
 		weapon.attacks[i] = attack;
 		i++;
 	}
-	inv.equipped[0] = weapon;
 
 	// get armour
 	json armourJson = inventoryData["equipped"]["armour"];
@@ -2256,6 +2255,10 @@ Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
 		armour.attacks[i] = attack;
 		i++;
 	}
+	
+	equip_item(e, weapon);
+	equip_item(e, armour);
+	inv.equipped[0] = weapon;
 	inv.equipped[1] = armour;
 
 	return inv;
@@ -2877,6 +2880,8 @@ void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
 	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
 
 	// Refill Player EP
+	reset_stats(player_main);
+	calc_stats(player_main);
 	stats.ep = stats.maxep;
 
 	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
@@ -2962,7 +2967,6 @@ void WorldSystem::use_attack(vec2 target_pos) {
 
 	// costs 0 if prepared
 	if (player.prepared) {
-		printf("testestste\n");
 		mp_cost = 0;
 		ep_cost = 0;
 	}
@@ -3171,6 +3175,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				StatusEffect stance = StatusEffect(0, 1, StatusType::PARRYING_STANCE, false, true);
 				apply_status(player_main, stance);
 
+				ep_cost = 0;
 				attack_success = true;
 			}
 			else {

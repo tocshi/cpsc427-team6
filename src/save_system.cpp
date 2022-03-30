@@ -225,8 +225,8 @@ json SaveSystem::jsonifyEquipment(Equipment e) {
 	equipt["def"] = e.def;
 	equipt["speed"] = e.speed;
 	equipt["ep"] = e.ep;
-	equipt["mp"] = e.ep;
-	equipt["hp"] = e.mp;
+	equipt["mp"] = e.mp;
+	equipt["hp"] = e.hp;
 	equipt["range"] = e.range;
 	equipt["sprite"] = e.sprite;
 	auto attacks = json::array();

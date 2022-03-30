@@ -379,11 +379,11 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 				Stats& summon_stats = registry.basestats.get(summon);
 				summon_stats.name = "Slime Prince " + std::to_string(boss.counter0);
 				summon_stats.maxhp = 10;
-				summon_stats.hp = 10;
 				summon_stats.speed = 10;
 				summon_stats.atk = 5;
 				summon_stats.def = 4;
 				summon_stats.range = 9999;
+				registry.stats.get(summon).hp = summon_stats.maxhp;
 				reset_stats(summon);
 				calc_stats(summon);
 				world.turnOrderSystem.turnQueue.addNewEntity(summon);

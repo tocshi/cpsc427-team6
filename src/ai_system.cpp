@@ -58,6 +58,9 @@ void AISystem::step(Entity e)
 				case ENEMY_TYPE::CAVELING:
 					caveling_logic(e, player);
 					break;
+				case ENEMY_TYPE::KING_SLIME:
+					king_slime_logic(e, player);
+					break;
 			}
 		}
 	}
@@ -128,10 +131,20 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 			float slime_velocity = 180.f;
 			float angle = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
 
+			// Special behaviour if special slime
+			if (stats.range > 1000.f) {
+				motion_struct.destination = { dirdist_extrapolate(motion_struct.position,
+					angle + degtorad(irandRange(-10, 10)), min(400.f, dist_to(motion_struct.position,
+					player_motion.position)) + irandRange(-20, -10))
+				};
+			}
+			else {
+				motion_struct.destination = { dirdist_extrapolate(motion_struct.position,
+					angle + degtorad(irandRange(-10, 10)), min(140.f, dist_to(motion_struct.position,
+					player_motion.position)) + irandRange(-20, -10))
+				};
+			}
 			// Teleport if out of player sight range
-			motion_struct.destination = { dirdist_extrapolate(motion_struct.position,
-				angle + degtorad(irandRange(-10, 10)), min(140.f , dist_to(motion_struct.position,
-				player_motion.position)) + irandRange(-20, -10)) };
 			if (!player_in_range(motion_struct.position, registry.stats.get(player).range) && !player_in_range(motion_struct.destination, registry.stats.get(player).range)) {
 				motion_struct.position = motion_struct.destination;
 				motion_struct.in_motion = false;
@@ -287,6 +300,111 @@ void AISystem::caveling_logic(Entity enemy, Entity& player) {
 		}
 		break;
 	}
+}
+
+void AISystem::king_slime_logic(Entity enemy, Entity& player) {
+	Motion& player_motion = registry.motions.get(player);
+	Boss& boss = registry.bosses.get(enemy);
+	Stats& stats = registry.stats.get(enemy);
+	Motion& motion_struct = registry.motions.get(enemy);
+	ENEMY_STATE& state = registry.enemies.get(enemy).state;
+	float aggroRange = stats.range;
+	float meleeRange = 100.f;
+	int num_summons = irandRange(2, 5);
+	int rotation_turns = boss.num_turns % 10;
+
+	// wake up if player is in range
+	if ((player_in_range(motion_struct.position, aggroRange) && state == ENEMY_STATE::IDLE) || (stats.hp < stats.maxhp && boss.num_turns == 1)) {
+		Mix_PlayMusic(world.boss0_music, -1);
+		boss.counter0++;
+		state = ENEMY_STATE::AGGRO;
+	}
+	if (rotation_turns == 3) {
+		state = ENEMY_STATE::SUMMON;
+	}
+
+	// perform action (trust me, I'm not YandereDev, this is just a sequential state machine)
+	switch (state) {
+	case ENEMY_STATE::IDLE:
+		printf("Turn Number %i: Doing Nothing!\n", boss.num_turns);
+		return;
+	case ENEMY_STATE::AGGRO:
+		if (rotation_turns == 0 || boss.num_turns < 3) {
+			printf("Turn Number %i: Doing Nothing!\n", boss.num_turns);
+		}
+		else if (rotation_turns == 6) {
+			printf("Turn Number %i: Charging Projectile!\n", boss.num_turns);
+			state = ENEMY_STATE::CHARGING_RANGED;
+		}
+		else if (rotation_turns == 8) {
+			printf("Turn Number %i: Jumping!\n", boss.num_turns);
+			state = ENEMY_STATE::LEAP;
+		}
+		else if (dist_to_edge(motion_struct, player_motion) <= meleeRange) {
+			printf("Turn Number %i: Charging Normal Attack!\n", boss.num_turns);
+			state = ENEMY_STATE::CHARGING_MELEE;
+		}
+		else if (dist_to_edge(motion_struct, player_motion) > meleeRange) {
+			printf("Turn Number %i: Charging Projectile!\n", boss.num_turns);
+			state = ENEMY_STATE::CHARGING_RANGED;
+		}
+		break;
+	case ENEMY_STATE::CHARGING_MELEE:
+		printf("Turn Number %i: Doing Normal Attack!\n", boss.num_turns);
+		state = ENEMY_STATE::AGGRO;
+		break;
+	case ENEMY_STATE::CHARGING_RANGED:
+		printf("Turn Number %i: Firing Projectile!\n", boss.num_turns);
+		state = ENEMY_STATE::AGGRO;
+		break;
+	case ENEMY_STATE::SUMMON:
+		printf("Turn Number %i: Summoning Adds!\n", boss.num_turns);
+		take_damage(enemy, stats.maxhp * 0.04f * num_summons);
+		while (num_summons > 0) {
+			bool valid_summon = true;
+			int distance = irandRange(ENEMY_BB_WIDTH * 2, ENEMY_BB_WIDTH * 3.5);
+			float direction = (rand() % 360) * (M_PI / 180);
+			vec2 spawnpoint = dirdist_extrapolate(motion_struct.position, direction, distance);
+			Motion test = {};
+			test.position = spawnpoint;
+			test.scale = { ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT };
+			for (Entity e : registry.solid.entities) {
+				if (collides_AABB(test, registry.motions.get(e))) {
+					valid_summon = false;
+				}
+			}
+			if (valid_summon) {
+				boss.counter0++;
+				Entity summon = createEnemy(world.renderer, spawnpoint);
+				Stats& summon_stats = registry.basestats.get(summon);
+				summon_stats.name = "Slime Prince " + std::to_string(boss.counter0);
+				summon_stats.maxhp = 10;
+				summon_stats.hp = 10;
+				summon_stats.speed = 10;
+				summon_stats.atk = 5;
+				summon_stats.def = 4;
+				summon_stats.range = 9999;
+				reset_stats(summon);
+				calc_stats(summon);
+				world.turnOrderSystem.turnQueue.addNewEntity(summon);
+				num_summons--;
+			}
+		}
+		registry.enemies.get(enemy).state = ENEMY_STATE::AGGRO;
+		break;
+	case ENEMY_STATE::LEAP:
+		printf("Turn Number %i: Landing from jump!\n", boss.num_turns);
+		state = ENEMY_STATE::AGGRO;
+		break;
+	case ENEMY_STATE::DEATH:
+		// death
+		Mix_PlayMusic(world.background_music, -1);
+		break;
+	default:
+		printf("Enemy State not supported!\n");
+	}
+
+	boss.num_turns++;
 }
 
 // returns true if the player entity is in range of the given position and radius

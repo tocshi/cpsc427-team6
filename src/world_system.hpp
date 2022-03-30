@@ -71,7 +71,7 @@ public:
 	Entity player_main;
 
 	// Tutorial flags
-	bool tutorial = true;
+	bool tutorial = false;
 	bool firstSign = false;
 	bool movementSelected = false;
 	bool epDepleted = false;
@@ -110,6 +110,7 @@ public:
 
 	Mix_Music* menu_music;
 	Mix_Music* cutscene_music;
+	Mix_Music* boss0_music;
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
@@ -128,6 +129,7 @@ public:
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
+	TurnOrderSystem turnOrderSystem;
 	Entity turnUI;
 	Entity objectiveCounter;
 	Entity objectiveDescText;
@@ -292,8 +294,6 @@ private:
 	GLFWwindow* window;
 
 	SaveSystem saveSystem;
-
-	TurnOrderSystem turnOrderSystem;
 	AISystem aiSystem;
 	RoomSystem roomSystem;
 

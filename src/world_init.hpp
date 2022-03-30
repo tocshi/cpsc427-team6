@@ -79,8 +79,8 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos);
 Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir, Entity owner);
 // Caveling
 Entity createCaveling(RenderSystem* renderer, vec2 pos);
-// Boss
-Entity createBoss(RenderSystem* renderer, vec2 pos);
+// King Slime
+Entity createKingSlime(RenderSystem* renderer, vec2 pos);
 // Equipment
 Equipment createEquipment(EQUIPMENT type, int tier);
 Entity createEquipmentEntity(RenderSystem* renderer, vec2 pos, Equipment equipment);

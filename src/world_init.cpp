@@ -130,7 +130,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	enemy.initialPosition = pos;
 	enemy.state = ENEMY_STATE::IDLE;
 	enemy.type = ENEMY_TYPE::SLIME;
-	enemy.inv = registry.inventories.emplace(entity);
+	registry.inventories.emplace(entity);
 
 	// Create slime stats
 	auto& stats = registry.stats.emplace(entity);
@@ -200,7 +200,7 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	registry.basestats.insert(entity, stats);
 
 	auto& enemy = registry.enemies.emplace(entity);
-	enemy.inv = registry.inventories.emplace(entity);
+	registry.inventories.emplace(entity);
 	enemy.initialPosition = pos;
 	enemy.state = ENEMY_STATE::IDLE;
 	enemy.type = ENEMY_TYPE::PLANT_SHOOTER;
@@ -275,7 +275,7 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 	enemy.initialPosition = pos;
 	enemy.state = ENEMY_STATE::IDLE;
 	enemy.type = ENEMY_TYPE::CAVELING;
-	enemy.inv = registry.inventories.emplace(entity);
+	registry.inventories.emplace(entity);
 
 	// Create caveling stats
 	auto& stats = registry.stats.emplace(entity);
@@ -307,8 +307,8 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-// Boss
-Entity createBoss(RenderSystem* renderer, vec2 pos)
+// Enemy slime (split into different enemies for future)
+Entity createKingSlime(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
 
@@ -317,24 +317,46 @@ Entity createBoss(RenderSystem* renderer, vec2 pos)
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
+	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 200;
 
-	motion.scale = vec2({ BOSS_BB_WIDTH, BOSS_BB_HEIGHT });
+	motion.scale = vec2({ ENEMY_BB_WIDTH*4, ENEMY_BB_HEIGHT*4 });
 
-	// Create and (empty) BOSS component to be able to refer to all bosses
-	registry.test.emplace(entity);
+	auto& enemy = registry.enemies.emplace(entity);
+	enemy.initialPosition = pos;
+	enemy.state = ENEMY_STATE::IDLE;
+	enemy.type = ENEMY_TYPE::KING_SLIME;
+	registry.inventories.emplace(entity);
+	registry.bosses.emplace(entity);
+
+	// Create king slime stats
+	auto& stats = registry.stats.emplace(entity);
+	stats.name = "Slime";
+	stats.prefix = "the";
+	stats.maxhp = 500;
+	stats.hp = stats.maxhp;
+	stats.atk = 15;
+	stats.def = 5;
+	stats.speed = 5;
+	stats.range = 300;
+
+	registry.basestats.insert(entity, stats);
+
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::BOSS,
+		{ TEXTURE_ASSET_ID::SLIME,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
+	registry.colors.insert(entity, {1.f, 0.9f, 5.f});
 
-	// add boss to queuables
+	// add enemy to queuables
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 
-	// add status container to boss
+	// add status container to slime
 	registry.statuses.emplace(entity);
-
 	return entity;
 }
 

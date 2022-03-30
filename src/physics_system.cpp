@@ -127,6 +127,10 @@ float dist_to(const vec2 position1, const vec2 position2) {
 	return sqrt(pow(position2.x - position1.x, 2) + pow(position2.y - position1.y, 2));
 }
 
+float dist_to_edge(const Motion motion1, const Motion motion2) {
+	return dist_to(motion1.position, motion2.position) - motion1.scale.x / 2 - motion2.scale.x / 2;
+}
+
 void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* renderer)
 {
 	// Resolve entity movement

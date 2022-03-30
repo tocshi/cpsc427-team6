@@ -178,7 +178,7 @@ GLFWwindow* WorldSystem::create_window() {
 	background_music = Mix_LoadMUS(audio_path("bgm/caves0.wav").c_str());
 	menu_music = Mix_LoadMUS(audio_path("bgm/menu0.wav").c_str());
 	cutscene_music = Mix_LoadMUS(audio_path("bgm/dream0.wav").c_str());
-
+	boss0_music = Mix_LoadMUS(audio_path("bgm/boss0.wav").c_str());
 
 
 	// Sounds and volumes
@@ -1033,7 +1033,7 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::BOSS1, true);
 	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 
 	spawnData = createTiles(renderer, next_map);
@@ -1093,7 +1093,8 @@ void WorldSystem::spawn_game_entities() {
 	remove_fog_of_war();
 	create_fog_of_war();
 
-	roomSystem.setRandomObjective();
+	// TODO: uncomment this
+	//roomSystem.setRandomObjective();
 }
 
 // render ep range around the given position
@@ -1143,17 +1144,18 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 	if (enemySpawns.size() > 0) {
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
-			// Spawn either a slime or PlantShooter or caveling
-			int roll = irand(4);
-			if (roll < 1) {
-				createCaveling(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-			}
-			else if (roll < 2) {
-				createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-			}
-			else {
-				createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-			}
+			//// Spawn either a slime or PlantShooter or caveling
+			//int roll = irand(4);
+			//if (roll < 1) {
+			//	createCaveling(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			//}
+			//else if (roll < 2) {
+			//	createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			//}
+			//else {
+			//	createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			//}
+			createKingSlime(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 		}
 	}
 }
@@ -2133,7 +2135,7 @@ Entity WorldSystem::loadEnemy(json enemyData) {
 		e = createCaveling(renderer, { 0, 0 });
 	}
 	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::KING_SLIME) {
-		e = createBoss(renderer, { 0, 0 });
+		e = createKingSlime(renderer, { 0, 0 });
 	}
 	// load motion
 	loadMotion(e, enemyData["motion"]);
@@ -2192,7 +2194,6 @@ void WorldSystem::loadEnemyComponent(Entity e, json enemyCompData, Inventory inv
 	registry.enemies.get(e).hit_by_player = enemyCompData["hit_by_player"];
 	registry.enemies.get(e).state = enemyCompData["state"];
 	registry.enemies.get(e).type = enemyCompData["type"];
-	registry.enemies.get(e).inv = inv;
 }
 
 void WorldSystem::loadPlayerComponent(Entity e, json playerCompData, Inventory inv) {
@@ -2584,6 +2585,10 @@ void WorldSystem::doTurnOrderLogic() {
 		// if player just finished their turn, set is player turn to false
 		if (registry.players.has(currentTurnEntity)) {
 			set_is_player_turn(false);
+		}
+		// perform specific behaviour for bosses
+		else if (registry.bosses.has(currentTurnEntity)) {
+			// TODO: something's gotta go here eventually, right?
 		}
 		// perform end-of-movement attacks for enemies
 		else {
@@ -2982,7 +2987,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				Motion m = registry.motions.get(target);
 
 				// only attack if have enough ep and is close enough
-				if (player_stats.ep >= ep_cost && dist_to(player_motion.position, m.position) <= 100.f) {
+				if (player_stats.ep >= ep_cost && dist_to_edge(player_motion, m) <= 50.f) {
 
 					// show attack animation
 					createAttackAnimation(renderer, { m.position.x, m.position.y }, player.using_attack);
@@ -3075,7 +3080,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				Motion m = registry.motions.get(target);
 
 				// only attack if have enough ep and is close enough
-				if (player_stats.ep >= ep_cost && player_stats.mp >= mp_cost && dist_to(player_motion.position, m.position) <= 100.f) {
+				if (player_stats.ep >= ep_cost && player_stats.mp >= mp_cost && dist_to_edge(player_motion, m) <= 50.f) {
 
 					// show attack animation
 					Entity anim = createAttackAnimation(renderer, { m.position.x, m.position.y }, player.using_attack);

@@ -485,7 +485,11 @@ enum class ENEMY_STATE {
 	ATTACK = AGGRO + 1,
 	DEATH = ATTACK + 1,
 	RETREAT = DEATH + 1,
-	STATE_COUNT = RETREAT + 1
+	CHARGING_MELEE = RETREAT + 1,
+	CHARGING_RANGED = CHARGING_MELEE + 1,
+	LEAP = CHARGING_RANGED + 1,
+	SUMMON = LEAP + 1,
+	STATE_COUNT = SUMMON + 1
 };
 
 enum class ENEMY_TYPE {
@@ -499,10 +503,17 @@ enum class ENEMY_TYPE {
 // simple component for all enemies
 struct Enemy {
 	vec2 initialPosition = { 0, 0 };
-	Inventory inv;
 	ENEMY_STATE state = ENEMY_STATE::STATE_COUNT;
 	ENEMY_TYPE type = ENEMY_TYPE::TYPE_COUNT;
 	bool hit_by_player = false;
+};
+
+struct Boss {
+	// counts for complex behaviour
+	int num_turns = 1;
+	int counter0 = 0;
+	int counter1 = 0;
+	int counter2 = 0;
 };
 
 struct ActionButton {
@@ -699,7 +710,8 @@ enum class Floors {
 	DEBUG = 0,
 	TUTORIAL = DEBUG + 1,
 	FLOOR1 = TUTORIAL + 1,
-	FLOOR_COUNT = FLOOR1 + 1
+	BOSS1 = FLOOR1 + 1,
+	FLOOR_COUNT = BOSS1 + 1
 };
 
 const int floor_count = (int)Floors::FLOOR_COUNT;

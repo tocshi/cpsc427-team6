@@ -28,6 +28,10 @@ private:
 		{
 			Floors::FLOOR1, 
 			{"map1.tmx", "map2.tmx", "map3.tmx"}
+		},
+		{
+			Floors::BOSS1,
+			{"boss1.tmx"}
 		}
 	};
 };

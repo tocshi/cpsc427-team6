@@ -26,6 +26,8 @@ private:
 };
 
 float dist_to(const vec2 position1, const vec2 position2);
+// distance from CIRCUMFERENCE of motion1 to CIRCUMFERENCE of motion2
+float dist_to_edge(const Motion motion1, const Motion motion2);
 
 bool collides_AABB(const Motion& motion1, const Motion& motion2);
 bool collides_circle(const Motion& motion1, const Motion& motion2);

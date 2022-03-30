@@ -319,6 +319,184 @@ void RenderSystem::drawText(Entity entity, const mat3 &projection, Camera& camer
 	gl_has_errors();
 }
 
+// assumes that all entities have the same renderRequest
+void RenderSystem::drawInstancedTiles(std::vector<Entity> entities, const mat3& projection, Camera& camera) {
+	if (entities.size() == 0) {
+		return;
+	}
+
+	// get the first renderRequest
+	RenderRequest render_request = registry.renderRequests.get(entities[0]);
+	assert(render_request.used_geometry != GEOMETRY_BUFFER_ID::GEOMETRY_COUNT);
+	assert(render_request.used_effect != EFFECT_ASSET_ID::EFFECT_COUNT);
+
+	// store transformations for instancing
+	glm::mat3* modelMatrices;
+	modelMatrices = new glm::mat3[entities.size()];
+	glm::vec2* uv_starts;
+	uv_starts = new glm::vec2[entities.size()];
+	glm::vec2* uv_ends;
+	uv_ends = new glm::vec2[entities.size()];
+	for (int i = 0; i < entities.size(); i++) {
+		Entity entity = entities[i];
+		Motion& motion = registry.motions.get(entity);
+
+		// store transformation matrices (per-instance)
+		Transform transform;
+		if (camera.active && render_request.used_layer < RENDER_LAYER_ID::UI) {
+			transform.translate(-camera.position);
+		}
+		transform.translate(motion.position);
+		transform.rotate(motion.angle);
+		transform.scale(motion.scale);
+
+		modelMatrices[i] = transform.mat;
+
+		// store texcoords (per-vertex, with 6 per instance)
+		TileUV& tileUV = registry.tileUVs.get(entity);
+		uv_starts[i] = tileUV.uv_start;
+		uv_ends[i] = tileUV.uv_end;
+	}
+
+	const GLuint used_effect_enum = (GLuint)render_request.used_effect;
+	assert(used_effect_enum != (GLuint)EFFECT_ASSET_ID::EFFECT_COUNT);
+	const GLuint program = (GLuint)effects[used_effect_enum];
+
+	// Setting shaders
+	glUseProgram(program);
+	gl_has_errors();
+
+	//// BIND TRANSFORM DATA FOR INSTANCING ////
+	// vertex buffer object
+	GLuint buffer;
+	glGenBuffers(1, &buffer);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer);
+	glBufferData(GL_ARRAY_BUFFER, entities.size() * sizeof(glm::mat3), &modelMatrices[0], GL_STATIC_DRAW);
+	gl_has_errors();
+
+	// set up the VAO
+	GLuint vao;
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
+	gl_has_errors();
+
+	GLint instanceMatrix_loc = glGetAttribLocation(program, "instanceMatrix");
+	gl_has_errors();
+	
+	// vertex attributes (transforms)
+	std::size_t vec3Size = sizeof(glm::vec3);
+	glEnableVertexAttribArray(instanceMatrix_loc);
+	glVertexAttribPointer(instanceMatrix_loc, 3, GL_FLOAT, GL_FALSE, 3 * vec3Size, (void*)0);
+	glEnableVertexAttribArray(instanceMatrix_loc + 1);
+	glVertexAttribPointer(instanceMatrix_loc + 1, 3, GL_FLOAT, GL_FALSE, 3 * vec3Size, (void*)(1 * vec3Size));
+	glEnableVertexAttribArray(instanceMatrix_loc + 2);
+	glVertexAttribPointer(instanceMatrix_loc + 2, 3, GL_FLOAT, GL_FALSE, 3 * vec3Size, (void*)(2 * vec3Size));
+	gl_has_errors();
+
+	glVertexAttribDivisor(instanceMatrix_loc, 1);
+	glVertexAttribDivisor(instanceMatrix_loc + 1, 1);
+	glVertexAttribDivisor(instanceMatrix_loc + 2, 1);
+	gl_has_errors();
+	
+	
+	//// UV COORDINATE STUFF ////
+	// uv_start
+	GLint uv_start_loc = glGetAttribLocation(program, "uv_start");
+	gl_has_errors();
+	GLint uv_end_loc = glGetAttribLocation(program, "uv_end");
+	gl_has_errors();
+	std::size_t vec2Size = sizeof(glm::vec2);
+
+	GLuint buffer2;
+	glGenBuffers(1, &buffer2);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer2);
+	glBufferData(GL_ARRAY_BUFFER, entities.size() * sizeof(glm::vec2), &uv_starts[0], GL_STATIC_DRAW);
+	gl_has_errors();
+
+	glEnableVertexAttribArray(uv_start_loc);
+	glVertexAttribPointer(uv_start_loc, 2, GL_FLOAT, GL_FALSE, vec2Size, (void*)0);
+	gl_has_errors();
+
+	glVertexAttribDivisor(uv_start_loc, 1);
+	gl_has_errors();
+
+	// uv_end
+	GLuint buffer3;
+	glGenBuffers(1, &buffer3);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer3);
+	glBufferData(GL_ARRAY_BUFFER, entities.size() * sizeof(glm::vec2), &uv_ends[0], GL_STATIC_DRAW);
+	gl_has_errors();
+
+	glEnableVertexAttribArray(uv_end_loc);
+	glVertexAttribPointer(uv_end_loc, 2, GL_FLOAT, GL_FALSE, vec2Size, (void*)0);
+	gl_has_errors();
+
+	glVertexAttribDivisor(uv_end_loc, 1);
+	gl_has_errors();
+
+
+	const GLuint vbo = vertex_buffers[(GLuint)render_request.used_geometry];
+	const GLuint ibo = index_buffers[(GLuint)render_request.used_geometry];
+
+	// Setting vertex and index buffers
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+	gl_has_errors();
+
+	GLint in_position_loc = glGetAttribLocation(program, "in_position");
+	GLint in_texcoord_loc = glGetAttribLocation(program, "in_texcoord");
+	gl_has_errors();
+	assert(in_texcoord_loc >= 0);
+
+	glEnableVertexAttribArray(in_position_loc);
+	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+		sizeof(TexturedVertex), (void*)0);
+	gl_has_errors();
+
+	glEnableVertexAttribArray(in_texcoord_loc);
+	glVertexAttribPointer(
+		in_texcoord_loc, 2, GL_FLOAT, GL_FALSE, sizeof(TexturedVertex),
+		(void*)sizeof(
+			vec3)); // note the stride to skip the preceeding vertex position
+
+	// Enabling and binding texture to slot 0
+	glActiveTexture(GL_TEXTURE0);
+	gl_has_errors();
+
+	GLuint texture_id =
+		texture_gl_handles[(GLuint)render_request.used_texture];
+
+	glBindTexture(GL_TEXTURE_2D, texture_id);
+	gl_has_errors();
+
+	// Getting uniform locations for glUniform* calls
+	GLint color_uloc = glGetUniformLocation(program, "fcolor");
+	const vec3 color = registry.colors.has(entities[0]) ? registry.colors.get(entities[0]) : vec3(1);
+	glUniform3fv(color_uloc, 1, (float*)&color);
+	gl_has_errors();
+
+	// Get number of indices from index buffer, which has elements uint16_t
+	GLint size = 0;
+	glGetBufferParameteriv(GL_ELEMENT_ARRAY_BUFFER, GL_BUFFER_SIZE, &size);
+	gl_has_errors();
+
+	GLsizei num_indices = size / sizeof(uint16_t);
+	// GLsizei num_triangles = num_indices / 3;
+
+	GLint currProgram;
+	glGetIntegerv(GL_CURRENT_PROGRAM, &currProgram);
+	// Setting uniform values to the currently bound program
+	GLuint projection_loc = glGetUniformLocation(currProgram, "projection");
+	glUniformMatrix3fv(projection_loc, 1, GL_FALSE, (float*)&projection);
+	gl_has_errors();
+
+	// Drawing of num_indices/3 triangles specified in the index buffer
+	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr, entities.size());
+	gl_has_errors();
+
+	//glBindVertexArray(VAO);
+}
+
 // draw the intermediate texture to the screen, with some distortion to simulate
 // wind
 void RenderSystem::drawToScreen()
@@ -421,8 +599,22 @@ void RenderSystem::draw()
 			break;
 		}
 	}
-	for (Entity entity : registry.renderRequests.entities)
+
+	RENDER_LAYER_ID current_layer = RENDER_LAYER_ID(0);
+	std::vector<Entity> to_instance = std::vector<Entity>();
+	for (int i = 0; i < registry.renderRequests.size(); i++)
 	{
+		int size = registry.renderRequests.size();
+		RenderRequest& rr = registry.renderRequests.components[i];
+		// check whether the upcoming render request will be on a higher layer
+		if (rr.used_layer > current_layer) {
+			if (isInstancedLayer(current_layer)) {
+				drawInstancedTiles(to_instance, projection_2D, camera);
+				to_instance.clear();
+			}
+			current_layer = rr.used_layer;
+		}
+		Entity entity = registry.renderRequests.entities[i];
 		if (registry.texts.has(entity)) {
 			drawText(entity, projection_2D, camera);
 		}
@@ -431,10 +623,17 @@ void RenderSystem::draw()
 		else if (registry.renderRequests.get(entity).used_layer < RENDER_LAYER_ID::UI &&
 			!isOnScreen(registry.motions.get(entity), camera, w, h))
 			continue;
+		else if (isInstancedLayer(rr.used_layer)) {
+			to_instance.push_back(entity);
+		}
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
 		else
 			drawTexturedMesh(entity, projection_2D, camera);
+	}
+	if (to_instance.size() > 0) {
+		drawInstancedTiles(to_instance, projection_2D, camera);
+		to_instance.clear();
 	}
 
 	// Truely render to the screen
@@ -548,4 +747,16 @@ void RenderSystem::updateSpritesheetTexCoords(Spritesheet& spritesheet) {
 	// Counterclockwise as it's the default opengl front winding direction.
 	const std::vector<uint16_t> textured_indices = { 0, 3, 1, 1, 3, 2 };
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::SPRITESHEET, textured_vertices, textured_indices);
+}
+
+bool RenderSystem::isInstancedLayer(RENDER_LAYER_ID render_layer) {
+	switch (render_layer) {
+	case RENDER_LAYER_ID::FLOOR_DECO_INSTANCED:
+	case RENDER_LAYER_ID::FLOOR_INSTANCED:
+	case RENDER_LAYER_ID::RANDOM_WALLS_INSTANCED:
+	case RENDER_LAYER_ID::WALLS_INSTANCED:
+		return true;
+	default: 
+		return false;
+	}
 }

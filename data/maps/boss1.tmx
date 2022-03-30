@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.0" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="56" nextobjectid="445">
+<map version="1.8" tiledversion="1.8.0" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="56" nextobjectid="501">
  <tileset firstgid="1" name="roguelikeDungeon_transparent" tilewidth="16" tileheight="16" spacing="1" tilecount="522" columns="29">
   <image source="roguelikeDungeon_transparent.png" width="492" height="305"/>
  </tileset>
@@ -165,17 +165,66 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="3" name="walls"/>
+ <objectgroup id="3" name="walls">
+  <object id="445" x="320" y="144" width="160" height="16"/>
+  <object id="453" x="480" y="144" width="16" height="32"/>
+  <object id="454" x="496" y="160" width="16" height="32"/>
+  <object id="455" x="512" y="176" width="16" height="32"/>
+  <object id="456" x="528" y="192" width="16" height="32"/>
+  <object id="457" x="544" y="208" width="16" height="32"/>
+  <object id="458" x="560" y="224" width="16" height="32"/>
+  <object id="459" x="576" y="240" width="16" height="32"/>
+  <object id="460" x="592" y="256" width="16" height="32"/>
+  <object id="461" x="608" y="272" width="16" height="32"/>
+  <object id="462" x="624" y="288" width="16" height="32"/>
+  <object id="463" x="160" y="480" width="16" height="32"/>
+  <object id="464" x="176" y="496" width="16" height="32"/>
+  <object id="465" x="192" y="512" width="16" height="32"/>
+  <object id="466" x="208" y="528" width="16" height="32"/>
+  <object id="467" x="224" y="544" width="16" height="32"/>
+  <object id="468" x="240" y="560" width="16" height="32"/>
+  <object id="469" x="256" y="576" width="16" height="32"/>
+  <object id="470" x="272" y="592" width="16" height="32"/>
+  <object id="471" x="288" y="608" width="16" height="32"/>
+  <object id="472" x="304" y="624" width="16" height="32"/>
+  <object id="473" x="304" y="144" width="16" height="32"/>
+  <object id="474" x="288" y="160" width="16" height="32"/>
+  <object id="475" x="272" y="176" width="16" height="32"/>
+  <object id="476" x="256" y="192" width="16" height="32"/>
+  <object id="477" x="240" y="208" width="16" height="32"/>
+  <object id="478" x="224" y="224" width="16" height="32"/>
+  <object id="479" x="208" y="240" width="16" height="32"/>
+  <object id="480" x="192" y="256" width="16" height="32"/>
+  <object id="481" x="176" y="272" width="16" height="32"/>
+  <object id="482" x="160" y="288" width="16" height="32"/>
+  <object id="483" x="624" y="480" width="16" height="32"/>
+  <object id="484" x="608" y="496" width="16" height="32"/>
+  <object id="485" x="592" y="512" width="16" height="32"/>
+  <object id="486" x="576" y="528" width="16" height="32"/>
+  <object id="487" x="560" y="544" width="16" height="32"/>
+  <object id="488" x="544" y="560" width="16" height="32"/>
+  <object id="489" x="528" y="576" width="16" height="32"/>
+  <object id="490" x="512" y="592" width="16" height="32"/>
+  <object id="491" x="496" y="608" width="16" height="32"/>
+  <object id="492" x="480" y="624" width="16" height="32"/>
+  <object id="493" x="640" y="304" width="16" height="192"/>
+  <object id="494" x="464" y="640" width="16" height="32"/>
+  <object id="495" x="320" y="640" width="16" height="32"/>
+  <object id="496" x="144" y="304" width="16" height="192"/>
+  <object id="497" x="336" y="656" width="16" height="128"/>
+  <object id="499" x="448" y="656" width="16" height="128"/>
+  <object id="500" x="352" y="768" width="96" height="16"/>
+ </objectgroup>
  <objectgroup id="8" name="item">
   <properties>
-   <property name="max" type="int" value="88"/>
-   <property name="min" type="int" value="88"/>
+   <property name="max" type="int" value="0"/>
+   <property name="min" type="int" value="0"/>
   </properties>
  </objectgroup>
  <objectgroup id="10" name="enemy">
   <properties>
-   <property name="max" type="int" value="25"/>
-   <property name="min" type="int" value="25"/>
+   <property name="max" type="int" value="1"/>
+   <property name="min" type="int" value="1"/>
   </properties>
   <object id="444" x="400" y="400">
    <point/>

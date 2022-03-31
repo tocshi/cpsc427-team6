@@ -331,12 +331,9 @@ void RenderSystem::drawInstancedTiles(std::vector<Entity> entities, const mat3& 
 	assert(render_request.used_effect != EFFECT_ASSET_ID::EFFECT_COUNT);
 
 	// store transformations for instancing
-	glm::mat3* modelMatrices;
-	modelMatrices = new glm::mat3[entities.size()];
-	glm::vec2* uv_starts;
-	uv_starts = new glm::vec2[entities.size()];
-	glm::vec2* uv_ends;
-	uv_ends = new glm::vec2[entities.size()];
+	std::vector<glm::mat3> modelMatrices = std::vector<glm::mat3>();
+	std::vector<glm::vec2> uv_starts = std::vector<glm::vec2>();
+	std::vector<glm::vec2> uv_ends = std::vector<glm::vec2>();
 	for (int i = 0; i < entities.size(); i++) {
 		Entity entity = entities[i];
 		Motion& motion = registry.motions.get(entity);
@@ -350,12 +347,12 @@ void RenderSystem::drawInstancedTiles(std::vector<Entity> entities, const mat3& 
 		transform.rotate(motion.angle);
 		transform.scale(motion.scale);
 
-		modelMatrices[i] = transform.mat;
+		modelMatrices.push_back(transform.mat);
 
 		// store texcoords (per-vertex, with 6 per instance)
 		TileUV& tileUV = registry.tileUVs.get(entity);
-		uv_starts[i] = tileUV.uv_start;
-		uv_ends[i] = tileUV.uv_end;
+		uv_starts.push_back(tileUV.uv_start);
+		uv_ends.push_back(tileUV.uv_end);
 	}
 
 	const GLuint used_effect_enum = (GLuint)render_request.used_effect;
@@ -371,7 +368,7 @@ void RenderSystem::drawInstancedTiles(std::vector<Entity> entities, const mat3& 
 	GLuint buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, entities.size() * sizeof(glm::mat3), &modelMatrices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, entities.size() * sizeof(glm::mat3), modelMatrices.data(), GL_STATIC_DRAW);
 	gl_has_errors();
 
 	// set up the VAO
@@ -410,7 +407,7 @@ void RenderSystem::drawInstancedTiles(std::vector<Entity> entities, const mat3& 
 	GLuint buffer2;
 	glGenBuffers(1, &buffer2);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer2);
-	glBufferData(GL_ARRAY_BUFFER, entities.size() * sizeof(glm::vec2), &uv_starts[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, entities.size() * sizeof(glm::vec2), uv_starts.data(), GL_STATIC_DRAW);
 	gl_has_errors();
 
 	glEnableVertexAttribArray(uv_start_loc);
@@ -424,7 +421,7 @@ void RenderSystem::drawInstancedTiles(std::vector<Entity> entities, const mat3& 
 	GLuint buffer3;
 	glGenBuffers(1, &buffer3);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer3);
-	glBufferData(GL_ARRAY_BUFFER, entities.size() * sizeof(glm::vec2), &uv_ends[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, entities.size() * sizeof(glm::vec2), uv_ends.data(), GL_STATIC_DRAW);
 	gl_has_errors();
 
 	glEnableVertexAttribArray(uv_end_loc);

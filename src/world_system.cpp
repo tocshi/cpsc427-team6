@@ -570,6 +570,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			std::string log_text = "The enemy ";
 			log_text = log_text.append(registry.stats.get(enemy).name.append(" is defeated!"));
 			logText(log_text);
+
+			registry.enemies.get(enemy).state = ENEMY_STATE::DEATH;
+
 			SquishTimer& squish = registry.squishTimers.emplace(enemy);
 			squish.orig_scale = registry.motions.get(enemy).scale;
 

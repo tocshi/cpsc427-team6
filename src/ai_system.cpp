@@ -342,6 +342,7 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 		}
 		else if (dist_to_edge(motion_struct, player_motion) <= meleeRange) {
 			printf("Turn Number %i: Charging Normal Attack!\n", boss.num_turns);
+			createAttackIndicator(world.renderer, motion_struct.position, motion_struct.scale.x + meleeRange * 2, motion_struct.scale.y + meleeRange * 2, true);
 			state = ENEMY_STATE::CHARGING_MELEE;
 		}
 		else if (dist_to_edge(motion_struct, player_motion) > meleeRange) {
@@ -351,6 +352,10 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 		break;
 	case ENEMY_STATE::CHARGING_MELEE:
 		printf("Turn Number %i: Doing Normal Attack!\n", boss.num_turns);
+		for (Entity e : registry.attackIndicators.entities) {
+			printf("Removed Attack Indicator!\n");
+			registry.remove_all_components_of(e);
+		}
 		state = ENEMY_STATE::AGGRO;
 		break;
 	case ENEMY_STATE::CHARGING_RANGED:
@@ -394,11 +399,19 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 		break;
 	case ENEMY_STATE::LEAP:
 		printf("Turn Number %i: Landing from jump!\n", boss.num_turns);
+		for (Entity e : registry.attackIndicators.entities) {
+			printf("Removed Attack Indicator!\n");
+			registry.remove_all_components_of(e);
+		}
 		state = ENEMY_STATE::AGGRO;
 		break;
 	case ENEMY_STATE::DEATH:
 		// death
 		Mix_PlayMusic(world.background_music, -1);
+		for (Entity e : registry.attackIndicators.entities) {
+			printf("Removed Attack Indicator!\n");
+			registry.remove_all_components_of(e);
+		}
 		break;
 	default:
 		printf("Enemy State not supported!\n");

@@ -130,6 +130,8 @@ Entity createAttackModeText(RenderSystem* renderer, vec2 pos);
 Entity createMoveModeText(RenderSystem* renderer, vec2 pos);
 // Stylized pointer
 Entity createPointer(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture);
+// Attack indicators
+Entity createAttackIndicator(RenderSystem* renderer, vec2 position, float x_scale, float y_scale, bool isCircle);
 // HP Bar 
 Entity createHPBar(RenderSystem* renderer, vec2 position);
 // MP Bar 

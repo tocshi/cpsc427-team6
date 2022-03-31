@@ -1879,6 +1879,46 @@ Entity createPointer(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture)
 }
 
 
+// Attack Indicator
+Entity createAttackIndicator(RenderSystem* renderer, vec2 position, float x_scale, float y_scale, bool isCircle) {
+
+	auto entity = Entity();
+
+	TEXTURE_ASSET_ID texture;
+	if (isCircle) {
+		texture = TEXTURE_ASSET_ID::ATTACK_INDICATOR_CIRCLE;
+	}
+	else {
+		texture = TEXTURE_ASSET_ID::ATTACK_INDICATOR_RECTANGLE;
+	}
+	auto statEntity = Entity();
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(statEntity, &mesh);
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(statEntity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+
+	// Setting initial values
+	motion.scale = vec2({ x_scale, y_scale });
+
+	registry.attackIndicators.emplace(entity);
+
+	registry.renderRequests.insert(
+		statEntity,
+		{ texture,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::FLOOR_DECO
+		});
+
+	return statEntity;
+
+
+}
+
 // HP Stat Bar 
 Entity createHPBar(RenderSystem* renderer, vec2 position) {
 

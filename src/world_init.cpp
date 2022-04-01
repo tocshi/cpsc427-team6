@@ -2544,6 +2544,7 @@ Entity createEnemyHPBacking(vec2 position)
 	motion.scale = vec2(100, 8) * vec2(ui_scale, ui_scale);
 
 	registry.hpDisplays.emplace(entity);
+	registry.hidables.emplace(entity);
 
 	return entity;
 }
@@ -2567,6 +2568,7 @@ Entity createEnemyHPFill(vec2 position)
 	motion.scale = vec2(0, 8) * vec2(ui_scale, ui_scale);
 
 	registry.hpDisplays.emplace(entity);
+	registry.hidables.emplace(entity);
 
 	return entity;
 }

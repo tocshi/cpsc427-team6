@@ -288,7 +288,47 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// remove pickups that have been interacted
 	for (int i = (int)registry.interactables.components.size() - 1; i >= 0; --i) {
 		Interactable& interactable = registry.interactables.components[i];
+		Entity entity = registry.interactables.entities[i];
 		if (interactable.type == INTERACT_TYPE::PICKUP && interactable.interacted) {
+			Inventory& inv = registry.inventories.get(player_main);
+			Motion& player_motion = registry.motions.get(player_main);
+			if (registry.artifacts.has(entity)) {
+				ARTIFACT artifact = registry.artifacts.get(entity).type;
+				inv.artifact[(int)artifact]++;
+				reset_stats(player_main);
+				calc_stats(player_main);
+				remove_fog_of_war();
+				create_fog_of_war();
+			}
+			if (registry.equipment.has(entity)) {
+				Equipment equipment = registry.equipment.get(entity);
+				Equipment prev = equip_item(player_main, equipment);
+				createEquipmentEntity(renderer, player_motion.position, prev);
+			}
+			if (current_game_state == GameStates::ITEM_MENU) {
+				// re-render the itemCards
+				for (Entity ic : registry.itemCards.entities) {
+					registry.remove_all_components_of(ic);
+				}
+				createItemMenu(renderer, { window_width_px - 125.f, 200.f }, inv);
+			}
+			if (registry.consumables.has(entity)) {
+				Consumable consumable = registry.consumables.get(entity);
+				Stats stats = registry.stats.get(player_main);
+				switch (consumable.type) {
+				case CONSUMABLE::REDPOT:
+					break;
+				case CONSUMABLE::BLUPOT:
+					break;
+				case CONSUMABLE::YELPOT:
+					break;
+				case CONSUMABLE::INSTANT:
+					heal(player_main, stats.maxhp * 0.3);
+					break;
+				default:
+					break;
+				}
+			}
 			registry.remove_all_components_of(registry.interactables.entities[i]);
 		}
 	}
@@ -1761,16 +1801,15 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							world_pos.y <= motion.position.y + abs(motion.scale.y / 2) &&
 							world_pos.y >= motion.position.y - abs(motion.scale.y / 2)) {
 
-							bool prev_interacted = interactable.interacted;
-							interactable.interacted = true;
-
 							// Sign behaviour
 							if (registry.signs.has(entity)) {
 								Sign& sign = registry.signs.get(entity);
 								sign.playing = true;
+								interactable.interacted = true;
 							}
 							// Chest behaviour
 							else if (interactable.type == INTERACT_TYPE::ARTIFACT_CHEST && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+								interactable.interacted = true;
 								Chest& chest = registry.chests.get(entity);
 								if (chest.opened) {
 									continue;
@@ -1812,6 +1851,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								break;
 							}
 							else if (interactable.type == INTERACT_TYPE::ITEM_CHEST && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+								interactable.interacted = true;
 								Chest& chest = registry.chests.get(entity);
 								if (chest.opened) {
 									continue;
@@ -1845,49 +1885,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							}
 							// Pickup item behaviour
 							else if (interactable.type == INTERACT_TYPE::PICKUP && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
-								Inventory& inv = registry.inventories.get(player_main);
-								Motion& player_motion = registry.motions.get(player_main);
-								if (registry.artifacts.has(entity)) {
-									ARTIFACT artifact = registry.artifacts.get(entity).type;
-									inv.artifact[(int)artifact]++;
-									reset_stats(player_main);
-									calc_stats(player_main);
-									remove_fog_of_war();
-									create_fog_of_war();
-								}
-								if (registry.equipment.has(entity)) {
-									Equipment equipment = registry.equipment.get(entity);
-									Equipment prev = equip_item(player_main, equipment);
-									createEquipmentEntity(renderer, player_motion.position, prev);
-								}
-								if (current_game_state == GameStates::ITEM_MENU) {
-									// re-render the itemCards
-									for (Entity ic : registry.itemCards.entities) {
-										registry.remove_all_components_of(ic);
-									}
-									createItemMenu(renderer, { window_width_px - 125.f, 200.f }, inv);
-								}
-								if (registry.consumables.has(entity)) {
-									Consumable consumable = registry.consumables.get(entity);
-									Stats stats = registry.stats.get(player_main);
-									switch (consumable.type) {
-									case CONSUMABLE::REDPOT:
-										break;
-									case CONSUMABLE::BLUPOT:
-										break;
-									case CONSUMABLE::YELPOT:
-										break;
-									case CONSUMABLE::INSTANT:
-										heal(player_main, stats.maxhp * 0.3);
-										break;
-									default:
-										break;
-									}
-								}
+								interactable.interacted = true;
 								break;
 							}
 							// Door Behaviour
 							else if (interactable.type == INTERACT_TYPE::DOOR && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+								interactable.interacted = true;
 								if (!registry.roomTransitions.has(player_main)) {
 									RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
 									transition.floor = roomSystem.current_floor;
@@ -1895,6 +1898,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							}
 							// Switch Behaviour
 							else if (interactable.type == INTERACT_TYPE::SWITCH && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+								interactable.interacted = true;
 								Switch& switch_component = registry.switches.get(entity);
 								if (!switch_component.activated) {
 									switch_component.activated = true;
@@ -1906,9 +1910,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								}
 							}
 							else if (interactable.type == INTERACT_TYPE::CAMPFIRE && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
-								if (!prev_interacted) {
+								if (!interactable.interacted) {
 									Stats& stats = registry.stats.get(player_main);
 									heal(player_main, stats.maxhp);
+									interactable.interacted = true;
 									break;
 								}
 							}
@@ -2330,7 +2335,7 @@ void WorldSystem::loadTiles(json tileList) {
 		RenderRequest renderRequest = {
 		static_cast<TEXTURE_ASSET_ID>(tile["renderRequest"]["used_texture"]),
 		EFFECT_ASSET_ID::TILE,
-		GEOMETRY_BUFFER_ID::TILEMAP,
+		GEOMETRY_BUFFER_ID::SPRITE,
 		static_cast<RENDER_LAYER_ID>(tile["renderRequest"]["used_layer"])
 		};
 		registry.renderRequests.insert(e, renderRequest);

@@ -2298,8 +2298,8 @@ void WorldSystem::loadTiles(json tileList) {
 
 		RenderRequest renderRequest = {
 		static_cast<TEXTURE_ASSET_ID>(tile["renderRequest"]["used_texture"]),
-		EFFECT_ASSET_ID::TEXTURED,
-		GEOMETRY_BUFFER_ID::TILEMAP,
+		EFFECT_ASSET_ID::TILE,
+		GEOMETRY_BUFFER_ID::SPRITE,
 		static_cast<RENDER_LAYER_ID>(tile["renderRequest"]["used_layer"])
 		};
 		registry.renderRequests.insert(e, renderRequest);

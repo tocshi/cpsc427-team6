@@ -170,8 +170,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 
 	// add hp bar 
 	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
-	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, -48));
-	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, -48));
+	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
+	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
 
 	return entity;
 }
@@ -223,6 +223,11 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 
 	// add status container to plantshooter
 	registry.statuses.emplace(entity);
+
+	// add hp bar 
+	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
+	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
+	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
 
 	return entity;
 }
@@ -309,6 +314,11 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 
 	// add status container to caveling
 	registry.statuses.emplace(entity);
+
+	// add hp bar 
+	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
+	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
+	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
 
 	return entity;
 }

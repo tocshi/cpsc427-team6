@@ -358,7 +358,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Motion& hpbacking_motion = registry.motions.get(hpbar.hpBacking);
 		Motion& hpfill_motion = registry.motions.get(hpbar.hpFill);
 
-		hpbacking_motion.position = enemy_motion.position + vec2(0, -48);
+		hpbacking_motion.position = enemy_motion.position + vec2(0, ENEMY_HP_BAR_OFFSET);
 		hpfill_motion.scale.x = hpbacking_motion.scale.x * (stats.hp / stats.maxhp);
 		hpfill_motion.position = hpbacking_motion.position - vec2((hpbacking_motion.scale.x - hpfill_motion.scale.x) / 2, 0);
 	}
@@ -2054,8 +2054,11 @@ void WorldSystem::removeForLoad() {
 	for (Entity tileUV : registry.tileUVs.entities) {
 		registry.remove_all_components_of(tileUV);
 	}
-	
-	
+
+	// remove enemy hp bars/fills
+	for (Entity hpdisplay : registry.hpDisplays.entities) {
+		registry.remove_all_components_of(hpdisplay);
+	}
 }
 
 void WorldSystem::removeForNewRoom() {
@@ -2082,6 +2085,11 @@ void WorldSystem::removeForNewRoom() {
 	// remove interactables
 	for (Entity interactable : registry.interactables.entities) {
 		registry.remove_all_components_of(interactable);
+	}
+
+	// remove enemy hp bars/fills
+	for (Entity hpdisplay : registry.hpDisplays.entities) {
+		registry.remove_all_components_of(hpdisplay);
 	}
 }
 
@@ -2321,7 +2329,7 @@ void WorldSystem::loadTiles(json tileList) {
 
 		RenderRequest renderRequest = {
 		static_cast<TEXTURE_ASSET_ID>(tile["renderRequest"]["used_texture"]),
-		EFFECT_ASSET_ID::TEXTURED,
+		EFFECT_ASSET_ID::TILE,
 		GEOMETRY_BUFFER_ID::TILEMAP,
 		static_cast<RENDER_LAYER_ID>(tile["renderRequest"]["used_layer"])
 		};

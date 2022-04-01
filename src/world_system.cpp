@@ -721,8 +721,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (registry.squishTimers.has(entity)) { break; }
 		// progress timer
 		WobbleTimer& counter = registry.wobbleTimers.get(entity);
-		//float x_scale = (counter.orig_scale.x / 4) * sin(counter.counter_ms/100) + counter.orig_scale.x;
-		//float y_scale = (counter.orig_scale.x / 4) * sin(counter.counter_ms/100 + M_PI) + counter.orig_scale.x;
 		float x_scale = (pow(counter.counter_ms, 2) / 800000) * cos(counter.counter_ms / 50) + counter.orig_scale.x;
 		float y_scale = (pow(counter.counter_ms, 2) / 800000) * cos(counter.counter_ms / 50 + M_PI) + counter.orig_scale.x;
 		registry.motions.get(entity).scale = {x_scale, y_scale};
@@ -732,6 +730,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (counter.counter_ms < 0) {
 			registry.motions.get(entity).scale = counter.orig_scale;
 			registry.wobbleTimers.remove(entity);
+
+			if (registry.enemies.get(entity).type == ENEMY_TYPE::KING_SLIME && !registry.solid.has(entity)) {
+				registry.solid.emplace(entity);
+			}
 		}
 	}
 

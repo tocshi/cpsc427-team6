@@ -332,7 +332,7 @@ Entity createKingSlime(RenderSystem* renderer, vec2 pos)
 
 	// Create king slime stats
 	auto& stats = registry.stats.emplace(entity);
-	stats.name = "Slime";
+	stats.name = "King Slime";
 	stats.prefix = "the";
 	stats.maxhp = 500;
 	stats.hp = stats.maxhp;
@@ -1891,12 +1891,9 @@ Entity createAttackIndicator(RenderSystem* renderer, vec2 position, float x_scal
 	else {
 		texture = TEXTURE_ASSET_ID::ATTACK_INDICATOR_RECTANGLE;
 	}
-	auto statEntity = Entity();
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(statEntity, &mesh);
 
 	// Initialize the motion
-	auto& motion = registry.motions.emplace(statEntity);
+	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	motion.position = position;
@@ -1907,16 +1904,14 @@ Entity createAttackIndicator(RenderSystem* renderer, vec2 position, float x_scal
 	registry.attackIndicators.emplace(entity);
 
 	registry.renderRequests.insert(
-		statEntity,
+		entity,
 		{ texture,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::FLOOR_DECO
 		});
 
-	return statEntity;
-
-
+	return entity;
 }
 
 // HP Stat Bar 

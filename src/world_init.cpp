@@ -2160,7 +2160,7 @@ Entity createDamageText(RenderSystem* renderer, vec2 pos, std::string text_input
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 			EFFECT_ASSET_ID::TEXT,
 			GEOMETRY_BUFFER_ID::TEXTQUAD,
-			RENDER_LAYER_ID::EFFECT });
+			RENDER_LAYER_ID::DAMAGE_TEXT });
 	registry.damageText.emplace(entity);
 
 	return entity;
@@ -2533,7 +2533,7 @@ Entity createEnemyHPBacking(vec2 position)
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 		 EFFECT_ASSET_ID::LINE,
 		 GEOMETRY_BUFFER_ID::DEBUG_LINE,
-		RENDER_LAYER_ID::EFFECT});
+		RENDER_LAYER_ID::HP_BACKING});
 	registry.colors.insert(entity, {0,0,0});
 
 	// Create motion
@@ -2558,7 +2558,7 @@ Entity createEnemyHPFill(vec2 position)
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 		 EFFECT_ASSET_ID::LINE,
 		 GEOMETRY_BUFFER_ID::DEBUG_LINE,
-		RENDER_LAYER_ID::EFFECT });
+		RENDER_LAYER_ID::HP_FILL });
 
 	// Create motion
 	Motion& motion = registry.motions.emplace(entity);

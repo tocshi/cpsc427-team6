@@ -204,3 +204,7 @@ Entity createBigSlash(RenderSystem* renderer, vec2 pos, float angle, float scale
 Entity createMenuContinue(RenderSystem* renderer, vec2 pos);
 // Save and Quit Button
 Entity createSaveQuit(RenderSystem* renderer, vec2 pos);
+// Enemy HP bar's backing (black line)
+Entity createEnemyHPBacking(vec2 position);
+// Enemy HP bar's fill (red line)
+Entity createEnemyHPFill(vec2 position);

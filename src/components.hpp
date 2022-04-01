@@ -730,6 +730,21 @@ struct StatsText {
 	float counter_ms = 10.f;
 };
 
+struct HPDisplay {
+
+};
+
+struct EnemyHPBar {
+	Entity hpBacking;
+	Entity hpFill;
+};
+
+struct BossHPBar {
+	Entity icon;
+	Entity hpBacking;
+	Entity hpFill;
+};
+
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
 	LINE = COLOURED + 1,

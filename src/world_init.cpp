@@ -167,6 +167,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 
 	// add status container to slime
 	registry.statuses.emplace(entity);
+	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
+	shadow_container.shadow_entity = createShadow(pos);
 	return entity;
 }
 
@@ -2504,6 +2506,25 @@ Entity createConsumable(RenderSystem* renderer, vec2 pos, CONSUMABLE type) {
 	auto& interactable = registry.interactables.emplace(entity);
 	interactable.type = INTERACT_TYPE::PICKUP;
 	registry.hidables.emplace(entity);
+
+	return entity;
+}
+
+Entity createShadow(vec2 pos) {
+	Entity entity = Entity();
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = {0,0};
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SHADOW,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::SHADOW });
+	registry.hidables.emplace(entity);
+	registry.shadows.emplace(entity);
 
 	return entity;
 }

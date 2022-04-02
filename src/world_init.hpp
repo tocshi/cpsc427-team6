@@ -204,3 +204,5 @@ Entity createBigSlash(RenderSystem* renderer, vec2 pos, float angle, float scale
 Entity createMenuContinue(RenderSystem* renderer, vec2 pos);
 // Save and Quit Button
 Entity createSaveQuit(RenderSystem* renderer, vec2 pos);
+// shadow for enemies
+Entity createShadow(vec2 pos);

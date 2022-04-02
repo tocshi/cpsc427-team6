@@ -139,7 +139,8 @@ enum class TEXTURE_ASSET_ID {
 	SLASH_SPRITESHEET = MOUSE_SPRITESHEET + 1,
 	OBJECTIVE_COUNTER = SLASH_SPRITESHEET + 1,
 	BIGSLASH = OBJECTIVE_COUNTER + 1,
-	TEXTURE_COUNT = BIGSLASH + 1
+	SHADOW = BIGSLASH + 1,
+	TEXTURE_COUNT = SHADOW + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -730,6 +731,14 @@ struct StatsText {
 	float counter_ms = 10.f;
 };
 
+struct ShadowContainer {
+	Entity shadow_entity;
+};
+
+struct Shadow {
+
+};
+
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
 	LINE = COLOURED + 1,
@@ -767,7 +776,8 @@ enum class RENDER_LAYER_ID {
 	FLOOR = FLOOR_INSTANCED + 1,
 	FLOOR_DECO_INSTANCED = FLOOR + 1,
 	FLOOR_DECO = FLOOR_DECO_INSTANCED + 1,
-	SPRITE = FLOOR_DECO + 1,
+	SHADOW = FLOOR_DECO + 1,
+	SPRITE = SHADOW + 1,
 	PLAYER = SPRITE + 1,
 	WALLS_INSTANCED = PLAYER + 1,
 	WALLS = WALLS_INSTANCED + 1,

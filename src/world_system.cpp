@@ -425,7 +425,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 		shadow_motion.scale = vec2(enemy_motion.scale.x * length_scale, enemy_motion.scale.y);
 		shadow_motion.angle = angle;
-		shadow_motion.position = dirdist_extrapolate(enemy_motion.position, angle, shadow_motion.scale.x/2);
+		shadow_motion.position = dirdist_extrapolate(enemy_motion.position, angle, shadow_motion.scale.x/2 - enemy_motion.scale.x/4);
+		// shift if enemy is a plantshooter
+		if (registry.enemies.has(enemy) && registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER) {
+			shadow_motion.position += vec2(0, 0.25 * enemy_motion.scale.y);
+		}
 	}
 
 	for (Entity p : registry.players.entities) {
@@ -2089,6 +2093,11 @@ void WorldSystem::removeForLoad() {
 	for (Entity hpdisplay : registry.hpDisplays.entities) {
 		registry.remove_all_components_of(hpdisplay);
 	}
+
+	// remove shadows
+	for (Entity shadow : registry.shadows.entities) {
+		registry.remove_all_components_of(shadow);
+	}
 }
 
 void WorldSystem::removeForNewRoom() {
@@ -2120,6 +2129,11 @@ void WorldSystem::removeForNewRoom() {
 	// remove enemy hp bars/fills
 	for (Entity hpdisplay : registry.hpDisplays.entities) {
 		registry.remove_all_components_of(hpdisplay);
+	}
+
+	// remove shadows
+	for (Entity shadow : registry.shadows.entities) {
+		registry.remove_all_components_of(shadow);
 	}
 }
 

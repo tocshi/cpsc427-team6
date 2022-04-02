@@ -221,33 +221,32 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir, Entity owner)
+Entity createProjectile(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, float dir, float multiplier, TEXTURE_ASSET_ID texture)
 {
 	auto entity = Entity();
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = dir;
+	motion.movement_speed = 400.f;
 	motion.position = pos;
-	motion.destination = pos + (dir * 500.f);
+	motion.scale = scale;
+	motion.velocity = dirdist_extrapolate(pos, dir, motion.movement_speed);
+	motion.destination = dirdist_extrapolate(pos, dir, window_width_px);
+	motion.angle = dir;
 	motion.in_motion = true;
-	motion.movement_speed = 300.f;
-
-	motion.scale = vec2({ PLANT_PROJECTILE_BB_WIDTH, PLANT_PROJECTILE_BB_HEIGHT });
 
 	// Initilalize stats
-	// hp = 20, atk = 8, queue = 7, def = 2, range = 400
 	auto& stat = registry.stats.emplace(entity);
 	stat = registry.stats.get(owner);
 
 	auto& projectileTimer = registry.projectileTimers.emplace(entity);
 	projectileTimer.owner = owner;
+	projectileTimer.multiplier = multiplier;
 	// Create and (empty) Enemy component to be able to refer to all enemies
 	// registry.enemies.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::PLANT_PROJECTILE,
+		{ texture,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
@@ -345,11 +344,10 @@ Entity createKingSlime(RenderSystem* renderer, vec2 pos)
 
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::SLIME,
+		{ TEXTURE_ASSET_ID::KINGSLIME,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
-	registry.colors.insert(entity, {1.f, 0.9f, 5.f});
 
 	// add enemy to queuables
 	registry.queueables.emplace(entity);
@@ -1897,6 +1895,7 @@ Entity createAttackIndicator(RenderSystem* renderer, vec2 position, float x_scal
 	motion.angle = 0.f;
 	motion.velocity = { 0, 0 };
 	motion.position = position;
+	motion.movement_speed = 0.f;
 
 	// Setting initial values
 	motion.scale = vec2({ x_scale, y_scale });

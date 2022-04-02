@@ -661,6 +661,30 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// incredibly hacky, but this is where I update attack indicators
+	// that are supposed to update per step
+	for (Entity e : registry.attackIndicators.entities) {
+		Motion& motion = registry.motions.get(e);
+		if (motion.movement_speed > 0) {
+			// Don't you lecture me with your 30 dollar raycasting
+			Motion player_motion = registry.motions.get(player_main);
+			float length = 0;
+			float dir = atan2(player_motion.position.y - motion.destination.y, player_motion.position.x - motion.destination.x);
+			bool stop = false;
+			while (!stop) {
+				for (Entity i : registry.solid.entities) {
+					if (collides_point_circle(dirdist_extrapolate(motion.destination, dir, length), registry.motions.get(i)) && !registry.bosses.has(i)) {
+						stop = true;
+					}
+				}
+				length += 10;
+			}
+			motion.position = dirdist_extrapolate(motion.destination, dir, length/2);
+			motion.scale.x = length;
+			motion.angle = dir;
+		}
+	}
+
 	// Damage text timer
 	// 0-150 ms: increase size to slightly more than 1
 	// 150-200 ms: decrease to normal size and stay there
@@ -696,9 +720,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		ProjectileTimer& counter = registry.projectileTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
 
-		// remove text once the text timer has expired
+		// remove projectile once the text timer has expired
 		if (counter.counter_ms < 0) {
 			registry.motions.get(counter.owner).in_motion = false;
+			if (!registry.solid.has(counter.owner)) {
+				registry.solid.emplace(counter.owner);
+			}
 			registry.remove_all_components_of(entity);
 		}
 	}

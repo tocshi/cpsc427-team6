@@ -191,8 +191,9 @@ void AISystem::plant_shooter_logic(Entity plant_shooter, Entity& player) {
 			// Perform  attack if close enough
 			if (player_in_range(motion_struct.position, aggroRange)) {
 				// spawn projectile, etc
-				vec2 dir = normalize(player_motion.position - motion_struct.position);
-				createPlantProjectile(world.renderer, motion_struct.position + (dir*motion_struct.scale), dir, plant_shooter);
+				float dir = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
+				createProjectile(world.renderer, plant_shooter, motion_struct.position, {PLANT_PROJECTILE_BB_WIDTH, PLANT_PROJECTILE_BB_HEIGHT}, dir, 100, TEXTURE_ASSET_ID::PLANT_PROJECTILE);
+				registry.solid.remove(plant_shooter);
 				registry.motions.get(plant_shooter).in_motion = true;
 			}
 			break;
@@ -310,6 +311,7 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 	ENEMY_STATE& state = registry.enemies.get(enemy).state;
 	float aggroRange = stats.range;
 	float meleeRange = 100.f;
+	float dir = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
 	int num_summons = irandRange(2, 5);
 	int rotation_turns = boss.num_turns % 10;
 
@@ -335,6 +337,11 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 		else if (rotation_turns == 6) {
 			printf("Turn Number %i: Charging Projectile!\n", boss.num_turns);
 			world.logText("The King Slime is charging up an attack!");
+			Entity indicator = createAttackIndicator(world.renderer, motion_struct.position, 1000, 8, false);
+			registry.renderRequests.get(indicator).used_layer = RENDER_LAYER_ID::PLAYER;
+			registry.motions.get(indicator).destination = motion_struct.position;
+			registry.motions.get(indicator).movement_speed = 1;
+			registry.colors.insert(indicator, {1.f, 0.5f, 0.5f});
 			state = ENEMY_STATE::CHARGING_RANGED;
 		}
 		else if (rotation_turns == 8) {
@@ -353,14 +360,24 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 		else if (dist_to_edge(motion_struct, player_motion) > meleeRange) {
 			printf("Turn Number %i: Charging Projectile!\n", boss.num_turns);
 			world.logText("The King Slime is charging up an attack!");
+			Entity indicator = createAttackIndicator(world.renderer, motion_struct.position, 1000, 8, false);
+			registry.renderRequests.get(indicator).used_layer = RENDER_LAYER_ID::PLAYER;
+			registry.motions.get(indicator).destination = motion_struct.position;
+			registry.motions.get(indicator).movement_speed = 1;
+			registry.colors.insert(indicator, { 1.f, 0.5f, 0.5f });
 			state = ENEMY_STATE::CHARGING_RANGED;
 		}
 		break;
 	case ENEMY_STATE::CHARGING_MELEE:
 		printf("Turn Number %i: Doing Normal Attack!\n", boss.num_turns);
 		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
-			if (collides_circle(registry.motions.get(registry.attackIndicators.entities[i]), player_motion)) {
+			if (player_in_range(motion_struct.position, registry.motions.get(registry.attackIndicators.entities[i]).scale.x / 2)) {
 				world.logText(deal_damage(enemy, player, 200));
+			}
+			if (!registry.wobbleTimers.has(enemy)) {
+				WobbleTimer& wobble = registry.wobbleTimers.emplace(enemy);
+				wobble.orig_scale = motion_struct.scale;
+				wobble.counter_ms = 1000;
 			}
 			printf("Removed Attack Indicator!\n");
 			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
@@ -369,10 +386,21 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 		break;
 	case ENEMY_STATE::CHARGING_RANGED:
 		printf("Turn Number %i: Firing Projectile!\n", boss.num_turns);
-		// temporary until I make a different projectile
-		vec2 dir = normalize(player_motion.position - motion_struct.position);
-		createPlantProjectile(world.renderer, motion_struct.position + (dir * motion_struct.scale), dir, enemy);
+		createProjectile(world.renderer, enemy, motion_struct.position, { 64, 34 }, dir, 120, TEXTURE_ASSET_ID::SLIMEPROJECTILE);
+		registry.solid.remove(enemy);
 		registry.motions.get(enemy).in_motion = true;
+
+		// wobble for effect
+		if (!registry.wobbleTimers.has(enemy)) {
+			WobbleTimer& wobble = registry.wobbleTimers.emplace(enemy);
+			wobble.orig_scale = motion_struct.scale;
+			wobble.counter_ms = 1000;
+			registry.solid.remove(enemy);
+		}
+		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
+			printf("Removed Attack Indicator!\n");
+			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
+		}
 		state = ENEMY_STATE::AGGRO;
 		break;
 	case ENEMY_STATE::SUMMON:
@@ -400,7 +428,7 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 				summon_stats.speed = 10;
 				summon_stats.atk = 5;
 				summon_stats.def = 4;
-				summon_stats.range = 9999;
+				summon_stats.range = 3000;
 				registry.stats.get(summon).hp = summon_stats.maxhp;
 				reset_stats(summon);
 				calc_stats(summon);
@@ -422,6 +450,7 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 				registry.solid.remove(enemy);
 			}
 
+			// absorb adds
 			for (int j = (int)registry.enemies.components.size() - 1; j >= 0; --j) {
 				if (registry.enemies.entities[j] != enemy
 					&& collides_circle(registry.motions.get(registry.attackIndicators.entities[i]), registry.motions.get(registry.enemies.entities[j]))) {
@@ -434,7 +463,8 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 			// move to destination
 			motion_struct.position = registry.motions.get(registry.attackIndicators.entities[i]).position;
 
-			if (collides_circle(registry.motions.get(registry.attackIndicators.entities[i]), player_motion)) {
+			// damage player
+			if (player_in_range(motion_struct.position, registry.motions.get(registry.attackIndicators.entities[i]).scale.x/2)) {
 				world.logText(deal_damage(enemy, player, 300));
 				if (!registry.knockbacks.has(player)) {
 					KnockBack& knockback = registry.knockbacks.emplace(player);
@@ -443,7 +473,9 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 				}
 			}
 			
-			heal(enemy, stats.maxhp * 0.03f * num_summons);
+			if (num_summons > 0) {
+				heal(enemy, stats.maxhp * 0.03f * num_summons);
+			}
 			printf("Removed Attack Indicator!\n");
 			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
 		}

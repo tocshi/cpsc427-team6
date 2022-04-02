@@ -48,6 +48,10 @@ bool collides_circle(const Motion& motion1, const Motion& motion2) {
 	return false;
 }
 
+bool collides_point_circle(vec2 position, const Motion& motion) {
+	return dist_to(motion.position, position) < (motion.scale.x / 2);
+}
+
 // helper functions for collision_rotrect_circle()
 bool testRectangleToPoint(float rectWidth, float rectHeight, float rectRotation, float rectCenterX, float rectCenterY, float pointX, float pointY) {
 	if (rectRotation == 0)   // Higher Efficiency for Rectangles with 0 rotation.
@@ -153,15 +157,17 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 		if (registry.projectileTimers.has(entity)) {
 			Entity player = registry.players.entities[0];
 			Motion& player_motion = motion_registry.get(player);
-			if (collides_circle(motion_registry.get(entity), motion_registry.get(player))) {
+			ProjectileTimer& timer = registry.projectileTimers.get(entity);
+
+			if (timer.counter_ms > 0 && collides_circle(motion_registry.get(entity), motion_registry.get(player))) {
 				// hit player
 				Entity enemy = registry.projectileTimers.get(entity).owner;
 				createExplosion(renderer, player_motion.position);
 				Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
-				world->logText(deal_damage(enemy, player, 100));
+				world->logText(deal_damage(enemy, player, timer.multiplier));
 				Entity& e = registry.projectileTimers.get(entity).owner;
 				motion_registry.get(e).in_motion = false;
-				registry.remove_all_components_of(entity);
+				timer.counter_ms = 0;
 			}
 		}
 
@@ -218,16 +224,17 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 							Entity& player = registry.players.entities[0];
 							Motion& player_motion = motion_registry.get(player);
 							Entity& enemy = registry.projectileTimers.get(entity).owner;
+							ProjectileTimer& timer = registry.projectileTimers.get(entity);
 
 							// did it hit player?
-							if (collides_circle(motion_registry.get(entity), motion_registry.get(player))) {
+							if (timer.counter_ms > 0 && collides_circle(motion_registry.get(entity), motion_registry.get(player))) {
 								createExplosion(renderer, player_motion.position);
 								Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
 								world->logText(deal_damage(enemy, player, 100));
 							}
 
 							motion_registry.get(enemy).in_motion = false;
-							registry.remove_all_components_of(entity);
+							timer.counter_ms = 0;
 							break;
 						}
 					}
@@ -247,9 +254,10 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 				motion.velocity = { 0,0 };
 				motion.in_motion = false;
 				if (registry.projectileTimers.has(entity)) {
+					ProjectileTimer& timer = registry.projectileTimers.get(entity);
 					Entity& e = registry.projectileTimers.get(entity).owner;
 					motion_registry.get(e).in_motion = false;
-					registry.remove_all_components_of(entity);
+					timer.counter_ms = 0;
 				}
 			}
 		}

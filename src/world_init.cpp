@@ -231,6 +231,9 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
 	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
 
+	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
+	shadow_container.shadow_entity = createShadow(pos);
+
 	return entity;
 }
 
@@ -321,6 +324,9 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
 	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
 	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
+
+	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
+	shadow_container.shadow_entity = createShadow(pos);
 
 	return entity;
 }
@@ -2573,7 +2579,6 @@ Entity createEnemyHPFill(vec2 position)
 	registry.hidables.emplace(entity);
 
 	return entity;
-}
 }
 
 Entity createShadow(vec2 pos) {

@@ -403,6 +403,31 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		hpfill_motion.position = hpbacking_motion.position - vec2((hpbacking_motion.scale.x - hpfill_motion.scale.x) / 2, 0);
 	}
 
+	// update per-enemy shadows
+	for (int i = 0; i < registry.shadowContainers.size(); i++) {
+		Entity enemy = registry.shadowContainers.entities[i];
+		ShadowContainer& shadow_container = registry.shadowContainers.components[i];
+		if (!registry.motions.has(shadow_container.shadow_entity)) {
+			continue;
+		}
+		Motion& shadow_motion = registry.motions.get(shadow_container.shadow_entity);
+		Motion& player_motion = registry.motions.get(player_main);
+		Motion& enemy_motion = registry.motions.get(enemy);
+
+		float angle = atan2(enemy_motion.position.y - player_motion.position.y, enemy_motion.position.x - player_motion.position.x);
+		float distance = dist_to(enemy_motion.position, player_motion.position);
+		float length_scale = 1;
+		if (distance < 64) {
+			length_scale = distance / 64.f;
+		}
+		else {
+		length_scale = 1 + min(distance, 300.f) / 300.f;
+		}
+		shadow_motion.scale = vec2(enemy_motion.scale.x * length_scale, enemy_motion.scale.y);
+		shadow_motion.angle = angle;
+		shadow_motion.position = dirdist_extrapolate(enemy_motion.position, angle, shadow_motion.scale.x/2);
+	}
+
 	for (Entity p : registry.players.entities) {
 		Player player = registry.players.get(p);
 		Motion player_motion = registry.motions.get(player_main);

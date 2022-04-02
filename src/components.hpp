@@ -751,7 +751,7 @@ struct ShadowContainer {
 };
 
 struct Shadow {
-
+	Entity caster;
 };
 
 enum class EFFECT_ASSET_ID {

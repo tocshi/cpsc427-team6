@@ -210,4 +210,4 @@ Entity createEnemyHPBacking(vec2 position);
 // Enemy HP bar's fill (red line)
 Entity createEnemyHPFill(vec2 position);
 // shadow for enemies
-Entity createShadow(vec2 pos);
+Entity createShadow(vec2 pos, Entity caster);

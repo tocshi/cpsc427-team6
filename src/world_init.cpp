@@ -174,7 +174,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
 
 	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
-	shadow_container.shadow_entity = createShadow(pos);
+	shadow_container.shadow_entity = createShadow(pos, entity);
 	return entity;
 }
 
@@ -232,7 +232,7 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
 
 	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
-	shadow_container.shadow_entity = createShadow(pos);
+	shadow_container.shadow_entity = createShadow(pos, entity);
 
 	return entity;
 }
@@ -326,7 +326,7 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
 
 	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
-	shadow_container.shadow_entity = createShadow(pos);
+	shadow_container.shadow_entity = createShadow(pos, entity);
 
 	return entity;
 }
@@ -2581,7 +2581,7 @@ Entity createEnemyHPFill(vec2 position)
 	return entity;
 }
 
-Entity createShadow(vec2 pos) {
+Entity createShadow(vec2 pos, Entity caster) {
 	Entity entity = Entity();
 
 	Motion& motion = registry.motions.emplace(entity);
@@ -2594,8 +2594,8 @@ Entity createShadow(vec2 pos) {
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_LAYER_ID::SHADOW });
-	registry.hidables.emplace(entity);
-	registry.shadows.emplace(entity);
+	Shadow& shadow = registry.shadows.emplace(entity);
+	shadow.caster = caster;
 
 	return entity;
 }

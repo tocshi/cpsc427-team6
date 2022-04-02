@@ -421,12 +421,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			length_scale = distance / 64.f;
 		}
 		else {
-		length_scale = 1 + min(distance, 300.f) / 300.f;
+			length_scale = 1 + min(distance, 300.f) / 300.f;
 		}
 		shadow_motion.scale = vec2(enemy_motion.scale.x * length_scale, enemy_motion.scale.y);
 		shadow_motion.angle = angle;
 		shadow_motion.position = dirdist_extrapolate(enemy_motion.position, angle, shadow_motion.scale.x/2 - enemy_motion.scale.x/4);
-		// shift if enemy is a plantshooter
+		// shift the shadow a little if enemy is a plantshooter
 		if (registry.enemies.has(enemy) && registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER) {
 			shadow_motion.position += vec2(0, 0.25 * enemy_motion.scale.y);
 		}

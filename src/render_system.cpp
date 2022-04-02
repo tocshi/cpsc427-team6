@@ -625,8 +625,14 @@ void RenderSystem::draw()
 		}
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
-		else
+		else {
+			if (registry.shadows.has(entity)) {
+				Entity caster_entity = registry.shadows.get(entity).caster;
+				if (registry.hidden.has(caster_entity))
+					continue;
+			}
 			drawTexturedMesh(entity, projection_2D, camera);
+		}
 	}
 	if (to_instance.size() > 0) {
 		drawInstancedTiles(to_instance, projection_2D, camera);

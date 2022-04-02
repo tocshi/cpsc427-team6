@@ -731,6 +731,21 @@ struct StatsText {
 	float counter_ms = 10.f;
 };
 
+struct HPDisplay {
+
+};
+
+struct EnemyHPBar {
+	Entity hpBacking;
+	Entity hpFill;
+};
+
+struct BossHPBar {
+	Entity icon;
+	Entity hpBacking;
+	Entity hpFill;
+};
+
 struct ShadowContainer {
 	Entity shadow_entity;
 };
@@ -784,7 +799,10 @@ enum class RENDER_LAYER_ID {
 	RANDOM_WALLS_INSTANCED = WALLS + 1,
 	RANDOM_WALLS = RANDOM_WALLS_INSTANCED + 1,
 	EFFECT = RANDOM_WALLS + 1,
-	UI = EFFECT + 1,
+	HP_BACKING = EFFECT + 1,
+	HP_FILL = HP_BACKING + 1,
+	DAMAGE_TEXT = HP_FILL + 1,
+	UI = HP_FILL + 1,
 	ARTIFACT_ICONS = UI + 1,
 	TEXT = ARTIFACT_ICONS + 1,
 	DIALOG = TEXT + 1,

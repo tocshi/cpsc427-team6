@@ -385,6 +385,24 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// update per-enemy hp bar positions
+	for (int i = 0; i < registry.enemyHPBars.size(); i++) {
+		Entity enemy = registry.enemyHPBars.entities[i];
+		EnemyHPBar& hpbar = registry.enemyHPBars.components[i];
+		if (!registry.motions.has(hpbar.hpBacking) || !registry.motions.has(hpbar.hpFill)) {
+			continue;
+		}
+		Stats& stats = registry.stats.get(enemy);
+
+		Motion& enemy_motion = registry.motions.get(enemy);
+		Motion& hpbacking_motion = registry.motions.get(hpbar.hpBacking);
+		Motion& hpfill_motion = registry.motions.get(hpbar.hpFill);
+
+		hpbacking_motion.position = enemy_motion.position + vec2(0, ENEMY_HP_BAR_OFFSET);
+		hpfill_motion.scale.x = hpbacking_motion.scale.x * (stats.hp / stats.maxhp);
+		hpfill_motion.position = hpbacking_motion.position - vec2((hpbacking_motion.scale.x - hpfill_motion.scale.x) / 2, 0);
+	}
+
 	for (Entity p : registry.players.entities) {
 		Player player = registry.players.get(p);
 		Motion player_motion = registry.motions.get(player_main);
@@ -624,6 +642,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// remove from turn queue
 			turnOrderSystem.removeFromQueue(enemy);
 			registry.solid.remove(enemy);
+
 			roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
 		}
 	}
@@ -785,6 +804,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// remove entity once the timer has expired
 		if (counter.counter_ms < 0) {
+			// delete HP bar
+			if (registry.enemyHPBars.has(entity)) {
+				EnemyHPBar& hpbar = registry.enemyHPBars.get(entity);
+				registry.remove_all_components_of(hpbar.hpBacking);
+				registry.remove_all_components_of(hpbar.hpFill);
+			}
 			registry.remove_all_components_of(entity);
 		}
 	}
@@ -2013,6 +2038,9 @@ void WorldSystem::removeForLoad() {
 
 	// remove enemies
 	for (Entity enemy : registry.enemies.entities) {
+		if (registry.enemyHPBars.has(enemy)) {
+			EnemyHPBar& hpBar = registry.enemyHPBars.get(enemy);
+		}
 		registry.remove_all_components_of(enemy);
 	}
 
@@ -2031,8 +2059,11 @@ void WorldSystem::removeForLoad() {
 	for (Entity tileUV : registry.tileUVs.entities) {
 		registry.remove_all_components_of(tileUV);
 	}
-	
-	
+
+	// remove enemy hp bars/fills
+	for (Entity hpdisplay : registry.hpDisplays.entities) {
+		registry.remove_all_components_of(hpdisplay);
+	}
 }
 
 void WorldSystem::removeForNewRoom() {
@@ -2059,6 +2090,11 @@ void WorldSystem::removeForNewRoom() {
 	// remove interactables
 	for (Entity interactable : registry.interactables.entities) {
 		registry.remove_all_components_of(interactable);
+	}
+
+	// remove enemy hp bars/fills
+	for (Entity hpdisplay : registry.hpDisplays.entities) {
+		registry.remove_all_components_of(hpdisplay);
 	}
 }
 

@@ -206,6 +206,6 @@ Entity createMenuContinue(RenderSystem* renderer, vec2 pos);
 // Save and Quit Button
 Entity createSaveQuit(RenderSystem* renderer, vec2 pos);
 // Enemy HP bar's backing (black line)
-Entity createEnemyHPBacking(vec2 position);
+Entity createEnemyHPBacking(vec2 position, Entity parent);
 // Enemy HP bar's fill (red line)
-Entity createEnemyHPFill(vec2 position);
+Entity createEnemyHPFill(vec2 position, Entity parent);

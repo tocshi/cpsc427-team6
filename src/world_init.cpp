@@ -170,8 +170,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 
 	// add hp bar 
 	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
-	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
-	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
+	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 
 	return entity;
 }
@@ -226,8 +226,8 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 
 	// add hp bar 
 	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
-	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
-	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
+	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 
 	return entity;
 }
@@ -317,8 +317,8 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 
 	// add hp bar 
 	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
-	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
-	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET));
+	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 
 	return entity;
 }
@@ -2524,7 +2524,7 @@ Entity createConsumable(RenderSystem* renderer, vec2 pos, CONSUMABLE type) {
 	return entity;
 }
 
-Entity createEnemyHPBacking(vec2 position)
+Entity createEnemyHPBacking(vec2 position, Entity parent)
 {
 	Entity entity = Entity();
 
@@ -2543,13 +2543,13 @@ Entity createEnemyHPBacking(vec2 position)
 	motion.position = position;
 	motion.scale = vec2(100, 8) * vec2(ui_scale, ui_scale);
 
-	registry.hpDisplays.emplace(entity);
-	registry.hidables.emplace(entity);
+	HPDisplay& hp_display = registry.hpDisplays.emplace(entity);
+	hp_display.parent = parent;
 
 	return entity;
 }
 
-Entity createEnemyHPFill(vec2 position)
+Entity createEnemyHPFill(vec2 position, Entity parent)
 {
 	Entity entity = Entity();
 
@@ -2567,8 +2567,8 @@ Entity createEnemyHPFill(vec2 position)
 	motion.position = position;
 	motion.scale = vec2(0, 8) * vec2(ui_scale, ui_scale);
 
-	registry.hpDisplays.emplace(entity);
-	registry.hidables.emplace(entity);
+	HPDisplay& hp_display = registry.hpDisplays.emplace(entity);
+	hp_display.parent = parent;
 
 	return entity;
 }

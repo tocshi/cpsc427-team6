@@ -731,7 +731,7 @@ struct StatsText {
 };
 
 struct HPDisplay {
-
+	Entity parent;
 };
 
 struct EnemyHPBar {

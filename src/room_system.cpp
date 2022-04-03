@@ -37,8 +37,8 @@ void RoomSystem::setObjective(ObjectiveType type, int quantity) {
 	case ObjectiveType::DESTROY_SPAWNER:
 		world.logText("Find and destroy the enemy hive!");
 		break;
-	case ObjectiveType::SURVIVE_TURNS:
-		world.logText("Survive " + std::to_string(quantity) + " turns to proceed!");
+	case ObjectiveType::DEFEAT_BOSS:
+		world.logText("Defeat the boss monster.");
 		break;
 	default:
 		break;
@@ -59,9 +59,6 @@ void RoomSystem::setRandomObjective() {
 		break;
 	case ObjectiveType::DESTROY_SPAWNER:
 		quantity = 1;
-		break;
-	case ObjectiveType::SURVIVE_TURNS:
-		quantity = irandRange(8, 13);
 		break;
 	default:
 		break;
@@ -87,8 +84,8 @@ void RoomSystem::updateObjective(ObjectiveType type, int quantity) {
 	case ObjectiveType::DESTROY_SPAWNER:
 		desc.message = "Destroy the enemy hive";
 		break;
-	case ObjectiveType::SURVIVE_TURNS:
-		desc.message = "Survive the remaining turns";
+	case ObjectiveType::DEFEAT_BOSS:
+		desc.message = "Defeat the boss monster";
 		break;
 	default:
 		desc.message = "";

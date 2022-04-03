@@ -594,6 +594,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			turnOrderSystem.removeFromQueue(enemy);
 			registry.solid.remove(enemy);
 			roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
+			if (registry.bosses.has(enemy)) {
+				roomSystem.updateObjective(ObjectiveType::DEFEAT_BOSS, 1);
+			}
 		}
 	}
 
@@ -2974,7 +2977,12 @@ void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
 	turnOrderSystem.getNextTurn();
 
 	// create an objective
-	roomSystem.setRandomObjective();
+	if (roomSystem.current_floor == Floors::BOSS1) {
+		roomSystem.setObjective(ObjectiveType::DEFEAT_BOSS, 1);
+	}
+	else {
+		roomSystem.setRandomObjective();
+	}
 	roomSystem.updateClearCount();
 
 	saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);

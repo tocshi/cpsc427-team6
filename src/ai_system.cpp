@@ -367,6 +367,7 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 				registry.wobbleTimers.remove(enemy);
 			}
 			motion_struct.scale = { 0, 0 };
+			motion_struct.position = { 0, 0 };
 			Mix_PlayChannel(-1, world.kingslime_jump, 0);
 			state = ENEMY_STATE::LEAP;
 		}

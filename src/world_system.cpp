@@ -3109,7 +3109,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 					logText(deal_damage(player_main, target, 100.f));
 
 					// wobble the enemy lol
-					if (!registry.wobbleTimers.has(target)) {
+					if (!registry.wobbleTimers.has(target) && !registry.knockbacks.has(target)) {
 						WobbleTimer& wobble = registry.wobbleTimers.emplace(target);
 						wobble.orig_scale = m.scale;
 					}
@@ -3158,7 +3158,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 
 					if (collides_circle(registry.motions.get(en), aoe)) {
 						// wobble the enemy lol
-						if (!registry.wobbleTimers.has(en)) {
+						if (!registry.wobbleTimers.has(en) && !registry.knockbacks.has(en)) {
 							WobbleTimer& wobble = registry.wobbleTimers.emplace(en);
 							wobble.orig_scale = registry.motions.get(en).scale;
 						}
@@ -3203,7 +3203,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 					logText(deal_damage(player_main, target, 80.f));
 
 					// wobble the enemy lol
-					if (!registry.wobbleTimers.has(target)) {
+					if (!registry.wobbleTimers.has(target) && !registry.knockbacks.has(target)) {
 						WobbleTimer& wobble = registry.wobbleTimers.emplace(target);
 						wobble.orig_scale = m.scale;
 					}
@@ -3252,7 +3252,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 
 					if (collides_rotrect_circle(aoe, registry.motions.get(en))) {
 						// wobble the enemy lol
-						if (!registry.wobbleTimers.has(en)) {
+						if (!registry.wobbleTimers.has(en) && !registry.knockbacks.has(en)) {
 							WobbleTimer& wobble = registry.wobbleTimers.emplace(en);
 							wobble.orig_scale = registry.motions.get(en).scale;
 						}
@@ -3359,7 +3359,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 					if (collides_rotrect_circle(aoe, registry.motions.get(en)) 
 						&& dist_to(player_motion.position, registry.motions.get(en).position) <= player_stats.range) {
 						// wobble the enemy lol
-						if (!registry.wobbleTimers.has(en)) {
+						if (!registry.wobbleTimers.has(en) && !registry.knockbacks.has(en)) {
 							WobbleTimer& wobble = registry.wobbleTimers.emplace(en);
 							wobble.orig_scale = registry.motions.get(en).scale;
 						}

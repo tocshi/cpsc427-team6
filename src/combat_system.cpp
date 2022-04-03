@@ -329,6 +329,14 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 						stats.atk += status.value;
 					}
 					break;
+				case (StatusType::SLIMED):
+					if (status.percentage && registry.stats.has(entity)) {
+						stats.epratemove *= status.value;
+					}
+					else {
+						stats.epratemove += status.value;
+					}
+					break;
 				case (StatusType::STUN):
 					registry.queueables.get(entity).doing_turn = false;
 					break;

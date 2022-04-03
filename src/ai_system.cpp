@@ -134,7 +134,7 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 			// Special behaviour if special slime
 			if (stats.range > 1000.f) {
 				motion_struct.destination = { dirdist_extrapolate(motion_struct.position,
-					angle + degtorad(irandRange(-10, 10)), min(400.f, dist_to(motion_struct.position,
+					angle + degtorad(irandRange(-10, 10)), min(300.f, dist_to(motion_struct.position,
 					player_motion.position)) + irandRange(-20, -10))
 				};
 			}
@@ -347,8 +347,24 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 		else if (rotation_turns == 8) {
 			printf("Turn Number %i: Jumping!\n", boss.num_turns);
 			world.logText("The King Slime leaps into the air!");
-			createAttackIndicator(world.renderer, player_motion.position, motion_struct.scale.x + meleeRange * 2, motion_struct.scale.y + meleeRange * 2, true);
+			Entity indicator = createAttackIndicator(world.renderer, player_motion.position, motion_struct.scale.x + meleeRange * 2, motion_struct.scale.y + meleeRange * 2, true);
+			Motion& indicator_motion = registry.motions.get(indicator);
+			int hits = 10;
+			float length = 0;
+			float dir = atan2(motion_struct.position.y - player_motion.position.y, motion_struct.position.x - player_motion.position.x);
+			while (hits > 4) {
+				hits = 0;
+				indicator_motion.position = dirdist_extrapolate(player_motion.position, dir, length);
+				for (Entity i : registry.solid.entities) {
+					if (registry.enemies.has(i)) { continue; }
+					if (collides_AABB(indicator_motion, registry.motions.get(i))) {
+						hits++;
+					}
+				}
+				length += 10;
+			}
 			motion_struct.scale = { 0, 0 };
+			Mix_PlayChannel(-1, world.kingslime_jump, 0);
 			state = ENEMY_STATE::LEAP;
 		}
 		else if (dist_to_edge(motion_struct, player_motion) <= meleeRange) {
@@ -377,11 +393,12 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 			if (!registry.wobbleTimers.has(enemy)) {
 				WobbleTimer& wobble = registry.wobbleTimers.emplace(enemy);
 				wobble.orig_scale = motion_struct.scale;
-				wobble.counter_ms = 1000;
+				wobble.counter_ms = 2000;
 			}
 			printf("Removed Attack Indicator!\n");
 			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
 		}
+		Mix_PlayChannel(-1, world.kingslime_attack, 0);
 		state = ENEMY_STATE::AGGRO;
 		break;
 	case ENEMY_STATE::CHARGING_RANGED:
@@ -394,18 +411,19 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 		if (!registry.wobbleTimers.has(enemy)) {
 			WobbleTimer& wobble = registry.wobbleTimers.emplace(enemy);
 			wobble.orig_scale = motion_struct.scale;
-			wobble.counter_ms = 1000;
+			wobble.counter_ms = 2000;
 			registry.solid.remove(enemy);
 		}
 		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
 			printf("Removed Attack Indicator!\n");
 			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
 		}
+		Mix_PlayChannel(-1, world.kingslime_attack, 0);
 		state = ENEMY_STATE::AGGRO;
 		break;
 	case ENEMY_STATE::SUMMON:
 		printf("Turn Number %i: Summoning Adds!\n", boss.num_turns);
-		take_damage(enemy, stats.maxhp * 0.04f * num_summons);
+		take_damage(enemy, min(stats.hp - 1, stats.maxhp * 0.04f * num_summons));
 		while (num_summons > 0) {
 			bool valid_summon = true;
 			int distance = irandRange(ENEMY_BB_WIDTH * 2, ENEMY_BB_WIDTH * 3.5);
@@ -436,6 +454,7 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 				num_summons--;
 			}
 		}
+		Mix_PlayChannel(-1, world.kingslime_summon, 0);
 		registry.enemies.get(enemy).state = ENEMY_STATE::AGGRO;
 		break;
 	case ENEMY_STATE::LEAP:
@@ -446,7 +465,7 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 			if (!registry.wobbleTimers.has(enemy)) {
 				WobbleTimer& wobble = registry.wobbleTimers.emplace(enemy);
 				wobble.orig_scale = motion_struct.scale;
-				wobble.counter_ms = 1000;
+				wobble.counter_ms = 2000;
 				registry.solid.remove(enemy);
 			}
 
@@ -479,6 +498,7 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 			printf("Removed Attack Indicator!\n");
 			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
 		}
+		Mix_PlayChannel(-1, world.kingslime_attack, 0);
 		state = ENEMY_STATE::AGGRO;
 		break;
 	case ENEMY_STATE::DEATH:

@@ -216,6 +216,12 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(caveling_death, 30);
 	ui_click = Mix_LoadWAV(audio_path("feedback/ui_click.wav").c_str());
 	Mix_VolumeChunk(ui_click, 32);
+	kingslime_attack = Mix_LoadWAV(audio_path("sfx/slimeattack.wav").c_str());
+	Mix_VolumeChunk(kingslime_attack, 24);
+	kingslime_jump = Mix_LoadWAV(audio_path("sfx/slimejump.wav").c_str());
+	Mix_VolumeChunk(kingslime_jump, 24);
+	kingslime_summon = Mix_LoadWAV(audio_path("sfx/slimesummon.wav").c_str());
+	Mix_VolumeChunk(kingslime_summon, 24);
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr
 		|| error_sound == nullptr || footstep_sound == nullptr
@@ -2789,6 +2795,8 @@ void remove_status(Entity e, StatusType status, int number) {
 			index++;
 		}
 	}
+	reset_stats(e);
+	calc_stats(e);
 	return;
 }
   

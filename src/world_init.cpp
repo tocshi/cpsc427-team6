@@ -230,7 +230,7 @@ Entity createProjectile(RenderSystem* renderer, Entity owner, vec2 pos, vec2 sca
 	motion.movement_speed = 400.f;
 	motion.position = pos;
 	motion.scale = scale;
-	motion.velocity = dirdist_extrapolate(pos, dir, motion.movement_speed);
+	motion.velocity = dirdist_extrapolate(pos, dir, motion.movement_speed) - pos;
 	motion.destination = dirdist_extrapolate(pos, dir, window_width_px);
 	motion.angle = dir;
 	motion.in_motion = true;

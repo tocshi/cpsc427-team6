@@ -1341,6 +1341,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\nrange: %f\nepmove: %f\nepatk: %f\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp, stats.range, stats.epratemove, stats.eprateatk);
 	}
 
+	if (action == GLFW_RELEASE && key == GLFW_KEY_O) {
+		roomSystem.updateObjective(roomSystem.current_objective.type, 100);
+	}
+
 	// SAVING THE GAME
 	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
 		if (!tutorial) {

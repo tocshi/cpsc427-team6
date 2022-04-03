@@ -302,21 +302,21 @@ Entity TileMapParser::createTileFromData(std::shared_ptr<Tile> tile, int tileSiz
 
 	RenderRequest renderRequest = {
 		static_cast<TEXTURE_ASSET_ID>(tileInfo->textureID),
-		EFFECT_ASSET_ID::TEXTURED,
-		GEOMETRY_BUFFER_ID::TILEMAP,
+		EFFECT_ASSET_ID::TILE,
+		GEOMETRY_BUFFER_ID::SPRITE,
 	};
 	std::string layerName = layer_name;
 	if (layerName == "floor deco") {
-		renderRequest.used_layer = RENDER_LAYER_ID::FLOOR_DECO;
+		renderRequest.used_layer = RENDER_LAYER_ID::FLOOR_DECO_INSTANCED;
 	}
 	else if (layerName == "walls") {
-		renderRequest.used_layer = RENDER_LAYER_ID::WALLS;
+		renderRequest.used_layer = RENDER_LAYER_ID::WALLS_INSTANCED;
 	}
 	else if (layerName == "random_walls") {
-		renderRequest.used_layer = RENDER_LAYER_ID::RANDOM_WALLS;
+		renderRequest.used_layer = RENDER_LAYER_ID::RANDOM_WALLS_INSTANCED;
 	}
 	else {
-		renderRequest.used_layer = RENDER_LAYER_ID::FLOOR;
+		renderRequest.used_layer = RENDER_LAYER_ID::FLOOR_INSTANCED;
 	}
 	registry.renderRequests.insert(entity, renderRequest);
 	return entity;

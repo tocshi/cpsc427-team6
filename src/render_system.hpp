@@ -158,7 +158,8 @@ class RenderSystem {
 		shader_path("wind"),
 		shader_path("text"),
 		shader_path("fog"),
-		shader_path("ep_range")
+		shader_path("ep_range"),
+		shader_path("tile"),
 	};
 
 	std::array<GLuint, geometry_count> vertex_buffers;
@@ -216,11 +217,13 @@ private:
 	// Internal drawing functions for each entity type
 	void drawTexturedMesh(Entity entity, const mat3& projection, Camera& camera);
 	void drawText(Entity entity, const mat3& projection, Camera& camera);
+	void drawInstancedTiles(std::vector<Entity> entities, const mat3& projection, Camera& camera);
 	void drawToScreen();
 	void updateTileMapCoords(TileUV& tileUV);
 	void updateAnimTexCoords(AnimationData& anim);
 	void updateSpritesheetTexCoords(Spritesheet& spritesheet);
 	bool isOnScreen(Motion& motion, Camera& camera, int window_width, int window_height);
+	bool isInstancedLayer(RENDER_LAYER_ID render_layer);
 
 	TileUV prev_tileUV = TileUV();
 	AnimationData prev_animdata = AnimationData();

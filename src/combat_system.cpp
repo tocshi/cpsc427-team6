@@ -6,7 +6,7 @@
 
 // Attacker deals damage to Defender based on a "multiplier" of the attacker's ATK stat
 // Parameters subject to change
-std::string deal_damage(Entity& attacker, Entity& defender, float multiplier)
+std::string deal_damage(Entity& attacker, Entity& defender, float multiplier, bool doProcs)
 {
 	// Damage Calculation
 	Stats& attacker_stats = registry.stats.get(attacker);

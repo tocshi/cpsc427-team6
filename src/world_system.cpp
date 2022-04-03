@@ -1620,7 +1620,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					case BUTTON_ACTION_ID::MENU_START: 
 						start_game();
 						if (tutorial) { spawn_tutorial_entities(); }
-						else { spawn_game_entities(); }
+						else { 
+							roomSystem.current_floor = Floors::FLOOR1;
+							spawn_game_entities(); 
+						}
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 					case BUTTON_ACTION_ID::CONTINUE:

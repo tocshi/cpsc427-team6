@@ -1233,7 +1233,7 @@ void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int
 }
 
 // spawn door entities in random locations
-void WorldSystem::spawn_doors_random_location(int quantity) {
+void WorldSystem::spawn_doors_random_location(int quantity, bool has_boss_doors) {
 	std::random_shuffle(spawnData.playerSpawns.begin(), spawnData.playerSpawns.end());
 	if (spawnData.playerSpawns.size() > 0) {
 		Motion& motion = registry.motions.get(player_main);
@@ -1244,6 +1244,7 @@ void WorldSystem::spawn_doors_random_location(int quantity) {
 
 		int spawned = 0;
 		int i = 0;
+		int boss_doors_to_spawn = has_boss_doors ? irandRange(1, 3) : 0;
 		while (spawned < quantity && i < spawnData.playerSpawns.size()) {
 			// temporary, later we can also randomize the item types
 			if (range > 0) {
@@ -1252,7 +1253,14 @@ void WorldSystem::spawn_doors_random_location(int quantity) {
 					continue;
 				}
 			}
-			createDoor(renderer, { spawnData.playerSpawns[i].x, spawnData.playerSpawns[i].y });
+			if (boss_doors_to_spawn > 0) {
+				createDoor(renderer, { spawnData.playerSpawns[i].x, spawnData.playerSpawns[i].y }, true);
+				boss_doors_to_spawn--;
+			}
+			else {
+				createDoor(renderer, { spawnData.playerSpawns[i].x, spawnData.playerSpawns[i].y });
+			}
+			
 			spawned++;
 			i++;
 		}
@@ -1908,6 +1916,14 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									transition.floor = roomSystem.current_floor;
 								}
 							}
+							// Boss Door Behaviour
+							else if (interactable.type == INTERACT_TYPE::BOSS_DOOR && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+								if (!registry.roomTransitions.has(player_main)) {
+									RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
+									transition.floor = Floors((int)roomSystem.current_floor + 1);
+									roomSystem.setNextFloor(transition.floor);
+								}
+							}
 							// Switch Behaviour
 							else if (interactable.type == INTERACT_TYPE::SWITCH && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
 								Switch& switch_component = registry.switches.get(entity);
@@ -2374,6 +2390,9 @@ void WorldSystem::loadInteractables(json interactablesList) {
 		case INTERACT_TYPE::DOOR: // door
 			loadDoor(e);
 			break;
+		case INTERACT_TYPE::BOSS_DOOR:
+			loadBossDoor(e);
+			break;
 		case INTERACT_TYPE::STAIRS: // stairs
 			break;
 		case INTERACT_TYPE::SIGN: // sign
@@ -2467,6 +2486,20 @@ void WorldSystem::loadChest(Entity e, json chestData) {
 void WorldSystem::loadDoor(Entity e) {
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(e, &mesh);
+	registry.solid.emplace(e);
+
+	registry.renderRequests.insert(
+		e,
+		{ TEXTURE_ASSET_ID::DOOR,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+}
+
+void WorldSystem::loadBossDoor(Entity e) {
+	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(e, &mesh);
+	registry.solid.emplace(e);
+	registry.colors.insert(e, vec3(1, 0.4, 0.4));
 
 	registry.renderRequests.insert(
 		e,
@@ -2942,12 +2975,14 @@ void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
 
 	// create an objective
 	roomSystem.setRandomObjective();
+	roomSystem.updateClearCount();
 
 	saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
 
 	if (!registry.loadingTimers.has(player_main)) {
 		registry.loadingTimers.emplace(player_main);
 	}
+	printf("rooms cleared on current floor: %d\n", roomSystem.rooms_cleared_current_floor);
 }
 
 void WorldSystem::update_turn_ui() {

@@ -584,7 +584,7 @@ Entity createChest(RenderSystem* renderer, vec2 pos, bool isArtifact)
 }
 
 // Door
-Entity createDoor(RenderSystem* renderer, vec2 pos)
+Entity createDoor(RenderSystem* renderer, vec2 pos, bool boss_door)
 {
 	auto entity = Entity();
 
@@ -606,7 +606,13 @@ Entity createDoor(RenderSystem* renderer, vec2 pos)
 
 	registry.solid.emplace(entity);
 	auto& interactable = registry.interactables.emplace(entity);
-	interactable.type = INTERACT_TYPE::DOOR;
+	if (boss_door) {
+		interactable.type = INTERACT_TYPE::BOSS_DOOR;
+		registry.colors.insert(entity, vec3(1, 0.4, 0.4));
+	}
+	else {
+		interactable.type = INTERACT_TYPE::DOOR;
+	}
 
 	return entity;
 }

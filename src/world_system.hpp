@@ -141,7 +141,7 @@ public:
 	// log text
 	void logText(std::string msg);
 
-	void spawn_doors_random_location(int quantity);
+	void spawn_doors_random_location(int quantity, bool has_boss_doors=false);
 	void spawn_switches_random_location(int quantity);
 
 private:
@@ -236,6 +236,9 @@ private:
 
 	// load a door
 	void loadDoor(Entity e);
+
+	// load boss door
+	void loadBossDoor(Entity e);
 
 	// load a consumable
 	void loadConsumable(Entity e, json consumableData);

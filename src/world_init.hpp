@@ -91,7 +91,7 @@ Entity createConsumable(RenderSystem* renderer, vec2 pos);
 // Chest
 Entity createChest(RenderSystem* renderer, vec2 pos, bool isArtifact);
 // Door
-Entity createDoor(RenderSystem* renderer, vec2 pos);
+Entity createDoor(RenderSystem* renderer, vec2 pos, bool boss_door=false);
 // Sign
 Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::pair<std::string, int>>& messages);
 // Stair

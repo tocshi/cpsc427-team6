@@ -71,7 +71,7 @@ public:
 	Entity player_main;
 
 	// Tutorial flags
-	bool tutorial = false;
+	bool tutorial = true;
 	bool firstSign = false;
 	bool movementSelected = false;
 	bool epDepleted = false;

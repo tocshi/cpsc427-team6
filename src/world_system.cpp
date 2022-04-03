@@ -577,8 +577,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			log_text = log_text.append(registry.stats.get(enemy).name.append(" is defeated!"));
 			logText(log_text);
 
-			registry.enemies.get(enemy).state = ENEMY_STATE::DEATH;
-
 			SquishTimer& squish = registry.squishTimers.emplace(enemy);
 			squish.orig_scale = registry.motions.get(enemy).scale;
 
@@ -596,6 +594,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
 			if (registry.bosses.has(enemy)) {
 				roomSystem.updateObjective(ObjectiveType::DEFEAT_BOSS, 1);
+				// TODO: replace with stairs when implemented
+				createDoor(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f }, false);
+				roomSystem.current_floor = Floors::FLOOR1;
+				createCampfire(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y + 64.f });
+				registry.enemies.get(enemy).state = ENEMY_STATE::DEATH;
+				aiSystem.step(enemy);
 			}
 		}
 	}
@@ -1074,7 +1078,7 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	std::string next_map = roomSystem.getRandomRoom(Floors::BOSS1, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
 	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 
 	spawnData = createTiles(renderer, next_map);
@@ -1185,18 +1189,24 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 	if (enemySpawns.size() > 0) {
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
-			//// Spawn either a slime or PlantShooter or caveling
-			//int roll = irand(4);
-			//if (roll < 1) {
-			//	createCaveling(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-			//}
-			//else if (roll < 2) {
-			//	createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-			//}
-			//else {
-			//	createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-			//}
-			createKingSlime(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			int roll = irand(4);
+			switch (roomSystem.current_floor) {
+			case Floors::FLOOR1:
+				// Spawn either a slime or PlantShooter or caveling
+				if (roll < 1) {
+					createCaveling(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				}
+				else if (roll < 2) {
+					createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				}
+				else {
+					createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				}
+				break;
+			case Floors::BOSS1:
+				createKingSlime(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				break;
+			}
 		}
 	}
 }
@@ -1215,19 +1225,25 @@ void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int
 		int spawned = 0;
 		int i = 0;
 		while (spawned < numberToSpawn && i < itemSpawns.size()) {
-			// temporary, later we can also randomize the item types
-			if (range > 0) {
-				if (dist_to(motion.position, itemSpawns[i]) <= range) {
-					i++;
-					continue;
+			
+			switch (roomSystem.current_floor) {
+			case Floors::BOSS1:
+				createCampfire(renderer, { itemSpawns[i].x, itemSpawns[i].y });
+			default:
+				// temporary, later we can also randomize the item types
+				if (range > 0) {
+					if (dist_to(motion.position, itemSpawns[i]) <= range) {
+						i++;
+						continue;
+					}
 				}
-			}
-			float roll = irand(100);
-			if (roll < 30) {
-				createChest(renderer, { itemSpawns[i].x, itemSpawns[i].y }, false);
-			}
-			else {
-				createChest(renderer, { itemSpawns[i].x, itemSpawns[i].y }, true);
+				float roll = irand(100);
+				if (roll < 30) {
+					createChest(renderer, { itemSpawns[i].x, itemSpawns[i].y }, false);
+				}
+				else {
+					createChest(renderer, { itemSpawns[i].x, itemSpawns[i].y }, true);
+				}
 			}
 			spawned++;
 			i++;
@@ -1261,7 +1277,7 @@ void WorldSystem::spawn_doors_random_location(int quantity, bool has_boss_doors)
 				boss_doors_to_spawn--;
 			}
 			else {
-				createDoor(renderer, { spawnData.playerSpawns[i].x, spawnData.playerSpawns[i].y });
+				createDoor(renderer, { spawnData.playerSpawns[i].x, spawnData.playerSpawns[i].y }, false);
 			}
 			
 			spawned++;

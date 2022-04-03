@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.2" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="56" nextobjectid="527">
+<map version="1.8" tiledversion="1.8.2" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="56" nextobjectid="540">
  <tileset firstgid="1" name="roguelikeDungeon_transparent" tilewidth="16" tileheight="16" spacing="1" tilecount="522" columns="29">
   <image source="roguelikeDungeon_transparent.png" width="492" height="305"/>
  </tileset>
@@ -166,7 +166,7 @@
 </data>
  </layer>
  <objectgroup id="3" name="walls">
-  <object id="445" x="352" y="144" width="32" height="16"/>
+  <object id="445" x="352" y="144" width="48" height="16"/>
   <object id="453" x="480" y="144" width="16" height="32"/>
   <object id="454" x="496" y="160" width="16" height="32"/>
   <object id="455" x="512" y="176" width="16" height="32"/>
@@ -207,33 +207,24 @@
   <object id="490" x="512" y="592" width="16" height="32"/>
   <object id="491" x="496" y="608" width="16" height="32"/>
   <object id="492" x="480" y="624" width="16" height="32"/>
-  <object id="493" x="640" y="304" width="16" height="32"/>
   <object id="494" x="464" y="640" width="16" height="32"/>
   <object id="495" x="320" y="640" width="16" height="32"/>
-  <object id="497" x="336" y="656" width="16" height="32"/>
-  <object id="499" x="448" y="656" width="16" height="32"/>
+  <object id="497" x="336" y="656" width="16" height="96"/>
+  <object id="499" x="448" y="656" width="16" height="96"/>
   <object id="500" x="352" y="768" width="96" height="16"/>
-  <object id="506" x="640" y="336" width="16" height="32"/>
-  <object id="507" x="640" y="368" width="16" height="32"/>
-  <object id="508" x="640" y="400" width="16" height="32"/>
-  <object id="509" x="640" y="432" width="16" height="32"/>
-  <object id="510" x="640" y="464" width="16" height="32"/>
-  <object id="511" x="144" y="304" width="16" height="32"/>
-  <object id="512" x="144" y="336" width="16" height="32"/>
-  <object id="513" x="144" y="368" width="16" height="32"/>
-  <object id="514" x="144" y="400" width="16" height="32"/>
-  <object id="515" x="144" y="432" width="16" height="32"/>
-  <object id="516" x="144" y="464" width="16" height="32"/>
+  <object id="511" x="144" y="304" width="16" height="192"/>
   <object id="517" x="320" y="144" width="32" height="16"/>
-  <object id="518" x="384" y="144" width="32" height="16"/>
-  <object id="519" x="416" y="144" width="32" height="16"/>
+  <object id="519" x="400" y="144" width="48" height="16"/>
   <object id="520" x="448" y="144" width="32" height="16"/>
-  <object id="521" x="336" y="688" width="16" height="32"/>
-  <object id="522" x="336" y="720" width="16" height="32"/>
   <object id="523" x="336" y="752" width="16" height="32"/>
-  <object id="524" x="448" y="688" width="16" height="32"/>
-  <object id="525" x="448" y="720" width="16" height="32"/>
   <object id="526" x="448" y="752" width="16" height="32"/>
+  <object id="530" x="640" y="304" width="16" height="192"/>
+  <object id="534" x="128" y="368" width="16" height="16"/>
+  <object id="535" x="128" y="416" width="16" height="16"/>
+  <object id="536" x="656" y="368" width="16" height="16"/>
+  <object id="537" x="656" y="416" width="16" height="16"/>
+  <object id="538" x="656" y="384" width="16" height="32"/>
+  <object id="539" x="128" y="384" width="16" height="32"/>
  </objectgroup>
  <objectgroup id="8" name="item">
   <properties>

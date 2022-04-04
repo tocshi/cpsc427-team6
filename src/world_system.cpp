@@ -2695,6 +2695,7 @@ void WorldSystem::loadAttackIndicators(json indicatorList) {
 		GEOMETRY_BUFFER_ID::SPRITE,
 		RENDER_LAYER_ID::FLOOR_DECO
 		};
+		registry.attackIndicators.emplace(e);
 		registry.renderRequests.insert(e, renderRequest);
 	}
 }

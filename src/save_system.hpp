@@ -40,5 +40,7 @@ private:
 	json jsonifyConsumable(Consumable c);
 	json jsonifyAnimationData(AnimationData& a);
 	json jsonifyRoomSystem(RoomSystem& r);
+	json jsonifyBoss(Boss& b);
+	json jsonifyAttackIndicators();
 	//json jsonify
 };

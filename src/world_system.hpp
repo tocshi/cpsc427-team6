@@ -214,7 +214,7 @@ private:
 	void loadStatuses(Entity e, json statusData);
 
 	// load tiles
-	void loadTiles(json tileData);
+	void loadTiles(json tileList);
 
 	// load collidables
 	void loadCollidables(json collidableData);
@@ -251,6 +251,12 @@ private:
 
 	// load the room system
 	void loadRoomSystem(json roomSystemData);
+
+	// load the boss component
+	void loadBoss(Entity e, json bossData);
+
+	// load attack indicators
+	void loadAttackIndicators(json indicatorList);
   
 	// do turn order logic
 	void doTurnOrderLogic();

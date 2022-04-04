@@ -74,7 +74,7 @@ public:
 	ComponentContainer<DamageTextTimer> damageText;
 	ComponentContainer<StatsText> statsText;
 	ComponentContainer<ExpandTimer> expandTimers;
-	ComponentContainer<Entity> attackIndicators;
+	ComponentContainer<Test> attackIndicators;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!

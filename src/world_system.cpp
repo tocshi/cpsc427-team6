@@ -2114,7 +2114,10 @@ void WorldSystem::removeForLoad() {
 		registry.remove_all_components_of(tileUV);
 	}
 	
-	
+	// remove attack indicators
+	for (Entity indicator : registry.attackIndicators.entities) {
+		registry.remove_all_components_of(indicator);
+	}
 }
 
 void WorldSystem::removeForNewRoom() {
@@ -2142,6 +2145,11 @@ void WorldSystem::removeForNewRoom() {
 	for (Entity interactable : registry.interactables.entities) {
 		registry.remove_all_components_of(interactable);
 	}
+
+	// remove attack indicators
+	for (Entity indicator : registry.attackIndicators.entities) {
+		registry.remove_all_components_of(indicator);
+	}
 }
 
 void WorldSystem::loadFromData(json data) {
@@ -2153,6 +2161,7 @@ void WorldSystem::loadFromData(json data) {
 	json interactablesList = data["map"]["interactables"];
 	json tilesList = data["map"]["tiles"];
 	json roomSystemJson = data["room"];
+	json attackIndicatorList = data["attack_indicators"];
 
 	// load enemies
 	std::queue<Entity> entities;
@@ -2180,6 +2189,8 @@ void WorldSystem::loadFromData(json data) {
 	loadTiles(tilesList);
 	// load room system
 	loadRoomSystem(roomSystemJson);
+	// load attack indicators
+	loadAttackIndicators(attackIndicatorList);
 }
 
 Entity WorldSystem::loadPlayer(json playerData) {
@@ -2221,6 +2232,7 @@ Entity WorldSystem::loadEnemy(json enemyData) {
 	}
 	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::KING_SLIME) {
 		e = createKingSlime(renderer, { 0, 0 });
+		loadBoss(e, enemyData["boss"]);
 	}
 	// load motion
 	loadMotion(e, enemyData["motion"]);
@@ -2653,12 +2665,38 @@ void WorldSystem::loadCampfire(Entity e) {
 void WorldSystem::loadRoomSystem(json roomSystemData) {
 	roomSystem.current_floor = roomSystemData["current_floor"];
 	roomSystem.current_room_idx = roomSystemData["current_room_idx"];
+	roomSystem.rooms_cleared_current_floor = roomSystemData["rooms_cleared_current_floor"];
 	roomSystem.current_objective = { 
 		(ObjectiveType)roomSystemData["current_objective"]["type"], 
 		roomSystemData["current_objective"]["remaining_count"],
 		roomSystemData["current_objective"]["completed"]
 	};
 	roomSystem.updateObjective(roomSystem.current_objective.type, 0);
+}
+
+void WorldSystem::loadBoss(Entity e, json bossData) {
+	Boss& boss = registry.bosses.get(e);
+	boss.num_turns = bossData["num_turns"];
+	boss.counter0 = bossData["counter0"];
+	boss.counter1 = bossData["counter1"];
+	boss.counter2 = bossData["counter2"];
+}
+
+void WorldSystem::loadAttackIndicators(json indicatorList) {
+	for (auto& indicator : indicatorList) {
+		Entity e = Entity();
+
+		registry.motions.emplace(e);
+		loadMotion(e, indicator["motion"]);
+
+		RenderRequest renderRequest = {
+		static_cast<TEXTURE_ASSET_ID>(indicator["renderRequest"]["used_texture"]),
+		EFFECT_ASSET_ID::TEXTURED,
+		GEOMETRY_BUFFER_ID::SPRITE,
+		RENDER_LAYER_ID::FLOOR_DECO
+		};
+		registry.renderRequests.insert(e, renderRequest);
+	}
 }
 
 void WorldSystem::logText(std::string msg) {

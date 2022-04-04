@@ -30,6 +30,8 @@ void SaveSystem::saveGameState(std::queue<Entity> entities, RoomSystem& roomSyst
 	saveState["map"]["interactables"] = jsonifyInteractables();
 	saveState["map"]["tiles"] = jsonifyTiles();
 
+	saveState["attack_indicators"] = jsonifyAttackIndicators();
+
 	saveState["room"] = jsonifyRoomSystem(roomSystem);
 
 	saveToFile(saveState);
@@ -201,6 +203,11 @@ json SaveSystem::jsonifyEnemy(Entity enemy) {
 
 	// jsonify statuses
 	enemyData["statuses"] = jsonifyStatus(enemy);
+
+	// jsonify Boss struct
+	if (registry.bosses.has(enemy)) {
+		enemyData["boss"] = jsonifyBoss(registry.bosses.get(enemy));
+	}
 
 	return enemyData;
 }
@@ -413,8 +420,32 @@ json SaveSystem::jsonifyRoomSystem(RoomSystem& r) {
 	json roomSystemJson;
 	roomSystemJson["current_floor"] = r.current_floor;
 	roomSystemJson["current_room_idx"] = r.current_room_idx;
+	roomSystemJson["rooms_cleared_current_floor"] = r.rooms_cleared_current_floor;
 	roomSystemJson["current_objective"]["type"] = r.current_objective.type;
 	roomSystemJson["current_objective"]["remaining_count"] = r.current_objective.remaining_count;
 	roomSystemJson["current_objective"]["completed"] = r.current_objective.completed;
 	return roomSystemJson;
+}
+
+json SaveSystem::jsonifyBoss(Boss& b) {
+	json bossJson;
+	bossJson["num_turns"] = b.num_turns;
+	bossJson["counter0"] = b.counter0;
+	bossJson["counter1"] = b.counter1;
+	bossJson["counter2"] = b.counter2;
+	return bossJson;
+}
+
+json SaveSystem::jsonifyAttackIndicators() {
+	auto indicatorList = json::array();
+	for (Entity e : registry.attackIndicators.entities) {
+		json indicatorJson;
+		Motion m = registry.motions.get(e);
+		RenderRequest rr = registry.renderRequests.get(e);
+		indicatorJson["motion"] = jsonifyMotion(m);
+		indicatorJson["renderRequest"]["used_texture"] = (int)rr.used_texture;
+		indicatorJson["renderRequest"]["used_layer"] = (int)rr.used_layer;
+		indicatorList.push_back(indicatorJson);
+	}
+	return indicatorList;
 }

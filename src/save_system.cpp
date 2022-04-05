@@ -33,6 +33,7 @@ void SaveSystem::saveGameState(std::queue<Entity> entities, RoomSystem& roomSyst
 	saveState["attack_indicators"] = jsonifyAttackIndicators();
 
 	saveState["room"] = jsonifyRoomSystem(roomSystem);
+	saveState["music"] = world.current_music;
 
 	saveToFile(saveState);
 }

@@ -2152,6 +2152,9 @@ void WorldSystem::removeForNewRoom() {
 }
 
 void WorldSystem::loadFromData(json data) {
+	if (data["music"] != nullptr) {
+		playMusic(data["music"]);
+	}
 	tutorial = data["tutorial"] == nullptr ? false : data["tutorial"];
 
 	// load player

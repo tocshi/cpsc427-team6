@@ -89,7 +89,6 @@ public:
 	Entity tutorial_floor_text;
 
 	// music references
-	Mix_Music* background_music;
 	Mix_Chunk* fire_explosion_sound;
 	Mix_Chunk* error_sound;
 	Mix_Chunk* footstep_sound;
@@ -111,9 +110,13 @@ public:
 	Mix_Chunk* kingslime_jump;
 	Mix_Chunk* kingslime_summon;
 
+	Mix_Music* background_music;
 	Mix_Music* menu_music;
 	Mix_Music* cutscene_music;
 	Mix_Music* boss0_music;
+
+	Music current_music = Music::NONE;
+
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
@@ -143,6 +146,8 @@ public:
 
 	void spawn_doors_random_location(int quantity, bool has_boss_doors=false);
 	void spawn_switches_random_location(int quantity);
+
+	void playMusic(Music music);
 
 private:
 	// Input callback functions

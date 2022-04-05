@@ -180,7 +180,6 @@ GLFWwindow* WorldSystem::create_window() {
 	cutscene_music = Mix_LoadMUS(audio_path("bgm/dream0.wav").c_str());
 	boss0_music = Mix_LoadMUS(audio_path("bgm/boss0.wav").c_str());
 
-
 	// Sounds and volumes
 	fire_explosion_sound = Mix_LoadWAV(audio_path("feedback/fire_explosion.wav").c_str());
 	Mix_VolumeChunk(fire_explosion_sound, 13);
@@ -255,7 +254,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	this->renderer = renderer_arg;
 	// Playing background music indefinitely
 
-	Mix_PlayMusic(cutscene_music, -1);
+	playMusic(Music::CUTSCENE);
 	fprintf(stderr, "Loaded music\n");
 	printf("%d", countCutScene);
 	//set_gamestate(GameStates::CUTSCENE);
@@ -1005,7 +1004,7 @@ void WorldSystem::restart_game() {
 	set_gamestate(GameStates::MAIN_MENU);
 
 	if (current_game_state == GameStates::MAIN_MENU) {
-		Mix_PlayMusic(menu_music, -1);
+		playMusic(Music::MENU);
 	}
 
 	/*if (current_game_state != GameStates::MAIN_MENU) {
@@ -2003,7 +2002,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 void WorldSystem::start_game() {
 	set_gamestate(GameStates::BATTLE_MENU);
 	if (current_game_state != GameStates::CUTSCENE || current_game_state != GameStates::MAIN_MENU) {
-		Mix_PlayMusic(background_music, -1);
+		playMusic(Music::BACKGROUND);
 	}
 	// spawn the actions bar
 	// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
@@ -3458,4 +3457,32 @@ Entity& get_targeted_enemy(vec2 target_pos) {
 		}
 	}
 	throw 0;
+}
+
+void WorldSystem::playMusic(Music music) {
+	if (current_music == music)
+		return;
+	switch (music) {
+	case Music::NONE:
+		Mix_PauseMusic();
+		break;
+	case Music::BACKGROUND:
+		current_music = music;
+		Mix_PlayMusic(background_music, -1);
+		break;
+	case Music::MENU:
+		current_music = music;
+		Mix_PlayMusic(menu_music, -1);
+		break;
+	case Music::CUTSCENE:
+		current_music = music;
+		Mix_PlayMusic(cutscene_music, -1);
+		break;
+	case Music::BOSS0:
+		current_music = music;
+		Mix_PlayMusic(boss0_music, -1);
+		break;
+	default:
+		printf("unsupported Music enum value %d\n", music);
+	}
 }

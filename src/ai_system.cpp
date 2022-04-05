@@ -317,7 +317,7 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 
 	// wake up if player is in range
 	if ((player_in_range(motion_struct.position, aggroRange) && state == ENEMY_STATE::IDLE) || (stats.hp < stats.maxhp && boss.num_turns == 1)) {
-		Mix_PlayMusic(world.boss0_music, -1);
+		world.playMusic(Music::BOSS0);
 		boss.counter0++;
 		state = ENEMY_STATE::AGGRO;
 	}
@@ -507,7 +507,7 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 		break;
 	case ENEMY_STATE::DEATH:
 		// death
-		Mix_PlayMusic(world.background_music, -1);
+		world.playMusic(Music::BACKGROUND);
 		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
 			printf("Removed Attack Indicator!\n");
 			registry.remove_all_components_of(registry.attackIndicators.entities[i]);

@@ -321,6 +321,14 @@ struct ModeVisualization {
 
 };
 
+enum class Music {
+	NONE = 0,
+	BACKGROUND = NONE + 1,
+	MENU = BACKGROUND + 1,
+	CUTSCENE = MENU + 1,
+	BOSS0 = CUTSCENE + 1
+};
+
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2 position = { 0, 0 };

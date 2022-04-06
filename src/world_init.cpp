@@ -1554,7 +1554,7 @@ Entity createAttackDialogButton(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_
 }
 
 // Collection menu
-Entity createCollectionMenu(RenderSystem* renderer, vec2 pos) {
+Entity createCollectionMenu(RenderSystem* renderer, vec2 pos, Entity player) {
 	auto entity = Entity();
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
@@ -1616,7 +1616,7 @@ Entity createCollectionMenu(RenderSystem* renderer, vec2 pos) {
 			static_cast<ARTIFACT>(artifact));
 
 		// need to render the current count beside it
-		Inventory inv = registry.inventories.components[0];
+		Inventory inv = registry.inventories.get(player);
 
 		int size = inv.artifact[(int)artifact];
 		std::string sizeStr = std::to_string(size);

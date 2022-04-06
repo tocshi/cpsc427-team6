@@ -166,7 +166,7 @@ Entity createCampfire(RenderSystem* renderer, vec2 pos);
 // Animated explosion
 Entity createExplosion(RenderSystem* renderer, vec2 pos);
 // Collection menu
-Entity createCollectionMenu(RenderSystem* renderer, vec2 pos);
+Entity createCollectionMenu(RenderSystem* renderer, vec2 pos, Entity player);
 // Artifact card
 Entity createArtifactIcon(RenderSystem* renderer, vec2 pos, ARTIFACT artifact);
 // Description Dialog (artifact version) - todo: add more definitions with other items (attacks etc.)

@@ -1746,7 +1746,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					else {
 						// render the collection menu
-						createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale));
+						createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player_main);
 						set_gamestate(GameStates::COLLECTION_MENU);
 					}
 					return;

@@ -379,6 +379,9 @@ Entity createKingSlime(RenderSystem* renderer, vec2 pos)
 
 	// add status container to slime
 	registry.statuses.emplace(entity);
+
+	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
+	shadow_container.shadow_entity = createShadow(pos, entity);
 	return entity;
 }
 

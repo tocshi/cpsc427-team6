@@ -883,6 +883,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(hpbar.hpBacking);
 				registry.remove_all_components_of(hpbar.hpFill);
 			}
+			if (registry.shadowContainers.has(entity)) {
+				ShadowContainer& shadow_container = registry.shadowContainers.get(entity);
+				registry.remove_all_components_of(shadow_container.shadow_entity);
+			}
 			registry.remove_all_components_of(entity);
 		}
 	}

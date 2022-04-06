@@ -1384,6 +1384,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			else if (current_game_state == GameStates::PAUSE_MENU) {
 				backAction();
 			}
+			else if (current_game_state == GameStates::ATTACK_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ITEM_MENU) {
+				printf("In Attack Menu or Item or Movement and escape to go back to main menu\n");
+				cancelAction();
+
+			}
 			else {
 				set_gamestate(GameStates::PAUSE_MENU);
 				// render save and quit button

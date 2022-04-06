@@ -42,7 +42,7 @@ void TurnQueue::addNewEntity(Entity entity) {
 	}
 
 	// if entity is slower than player, just place it in the back
-	if (playerSpeed > s.speed) {
+	if (playerSpeed >= s.speed) {
 		push(entity);
 		return;
 	}

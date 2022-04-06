@@ -491,7 +491,11 @@ void RenderSystem::drawInstancedTiles(std::vector<Entity> entities, const mat3& 
 	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr, entities.size());
 	gl_has_errors();
 
-	//glBindVertexArray(VAO);
+	glBindVertexArray(VAO);
+	glDeleteBuffers(1, &buffer);
+	glDeleteBuffers(1, &buffer2);
+	glDeleteBuffers(1, &buffer3);
+	glDeleteVertexArrays(1, &vao);
 }
 
 // draw the intermediate texture to the screen, with some distortion to simulate
@@ -625,8 +629,14 @@ void RenderSystem::draw()
 		}
 		// Note, its not very efficient to access elements indirectly via the entity
 		// albeit iterating through all Sprites in sequence. A good point to optimize
-		else
+		else {
+			if (registry.hpDisplays.has(entity)) {
+				Entity parent = registry.hpDisplays.get(entity).parent;
+				if (registry.hidden.has(parent))
+					continue;
+			}
 			drawTexturedMesh(entity, projection_2D, camera);
+		}
 	}
 	if (to_instance.size() > 0) {
 		drawInstancedTiles(to_instance, projection_2D, camera);

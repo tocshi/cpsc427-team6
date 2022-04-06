@@ -58,6 +58,9 @@ void AISystem::step(Entity e)
 				case ENEMY_TYPE::CAVELING:
 					caveling_logic(e, player);
 					break;
+				case ENEMY_TYPE::KING_SLIME:
+					king_slime_logic(e, player);
+					break;
 			}
 		}
 	}
@@ -128,10 +131,20 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 			float slime_velocity = 180.f;
 			float angle = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
 
+			// Special behaviour if special slime
+			if (stats.range > 1000.f) {
+				motion_struct.destination = { dirdist_extrapolate(motion_struct.position,
+					angle + degtorad(irandRange(-10, 10)), min(300.f, dist_to(motion_struct.position,
+					player_motion.position)) + irandRange(-20, -10))
+				};
+			}
+			else {
+				motion_struct.destination = { dirdist_extrapolate(motion_struct.position,
+					angle + degtorad(irandRange(-10, 10)), min(140.f, dist_to(motion_struct.position,
+					player_motion.position)) + irandRange(-20, -10))
+				};
+			}
 			// Teleport if out of player sight range
-			motion_struct.destination = { dirdist_extrapolate(motion_struct.position,
-				angle + degtorad(irandRange(-10, 10)), min(140.f , dist_to(motion_struct.position,
-				player_motion.position)) + irandRange(-20, -10)) };
 			if (!player_in_range(motion_struct.position, registry.stats.get(player).range) && !player_in_range(motion_struct.destination, registry.stats.get(player).range)) {
 				motion_struct.position = motion_struct.destination;
 				motion_struct.in_motion = false;
@@ -178,8 +191,9 @@ void AISystem::plant_shooter_logic(Entity plant_shooter, Entity& player) {
 			// Perform  attack if close enough
 			if (player_in_range(motion_struct.position, aggroRange)) {
 				// spawn projectile, etc
-				vec2 dir = normalize(player_motion.position - motion_struct.position);
-				createPlantProjectile(world.renderer, motion_struct.position + (dir*motion_struct.scale), dir, plant_shooter);
+				float dir = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
+				createProjectile(world.renderer, plant_shooter, motion_struct.position, {PLANT_PROJECTILE_BB_WIDTH, PLANT_PROJECTILE_BB_HEIGHT}, dir, 100, TEXTURE_ASSET_ID::PLANT_PROJECTILE);
+				registry.solid.remove(plant_shooter);
 				registry.motions.get(plant_shooter).in_motion = true;
 			}
 			break;
@@ -287,6 +301,223 @@ void AISystem::caveling_logic(Entity enemy, Entity& player) {
 		}
 		break;
 	}
+}
+
+void AISystem::king_slime_logic(Entity enemy, Entity& player) {
+	Motion& player_motion = registry.motions.get(player);
+	Boss& boss = registry.bosses.get(enemy);
+	Stats& stats = registry.stats.get(enemy);
+	Motion& motion_struct = registry.motions.get(enemy);
+	ENEMY_STATE& state = registry.enemies.get(enemy).state;
+	float aggroRange = stats.range;
+	float meleeRange = 100.f;
+	float dir = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
+	int num_summons = irandRange(2, 5);
+	int rotation_turns = boss.num_turns % 10;
+
+	// wake up if player is in range
+	if ((player_in_range(motion_struct.position, aggroRange) && state == ENEMY_STATE::IDLE) || (stats.hp < stats.maxhp && boss.num_turns == 1)) {
+		world.playMusic(Music::BOSS0);
+		boss.counter0++;
+		state = ENEMY_STATE::AGGRO;
+	}
+	if (rotation_turns == 3) {
+		state = ENEMY_STATE::SUMMON;
+	}
+
+	// perform action (trust me, I'm not YandereDev, this is just a sequential state machine)
+	switch (state) {
+	case ENEMY_STATE::IDLE:
+		printf("Turn Number %i: Doing Nothing!\n", boss.num_turns);
+		return;
+	case ENEMY_STATE::AGGRO:
+		if (rotation_turns == 0 || boss.num_turns < 3) {
+			printf("Turn Number %i: Doing Nothing!\n", boss.num_turns);
+		}
+		else if (rotation_turns == 6) {
+			printf("Turn Number %i: Charging Projectile!\n", boss.num_turns);
+			world.logText("The King Slime is charging up an attack!");
+			Entity indicator = createAttackIndicator(world.renderer, motion_struct.position, 1000, 8, false);
+			registry.renderRequests.get(indicator).used_layer = RENDER_LAYER_ID::PLAYER;
+			registry.motions.get(indicator).destination = motion_struct.position;
+			registry.motions.get(indicator).movement_speed = 1;
+			registry.colors.insert(indicator, {1.f, 0.5f, 0.5f});
+			state = ENEMY_STATE::CHARGING_RANGED;
+		}
+		else if (rotation_turns == 8) {
+			printf("Turn Number %i: Jumping!\n", boss.num_turns);
+			world.logText("The King Slime leaps into the air!");
+			Entity indicator = createAttackIndicator(world.renderer, player_motion.position, motion_struct.scale.x + meleeRange * 2, motion_struct.scale.y + meleeRange * 2, true);
+			Motion& indicator_motion = registry.motions.get(indicator);
+			int hits = 10;
+			float length = 0;
+			float dir = atan2(motion_struct.position.y - player_motion.position.y, motion_struct.position.x - player_motion.position.x);
+			while (hits > 4) {
+				hits = 0;
+				indicator_motion.position = dirdist_extrapolate(player_motion.position, dir, length);
+				for (Entity i : registry.solid.entities) {
+					if (registry.enemies.has(i)) { continue; }
+					if (collides_AABB(indicator_motion, registry.motions.get(i))) {
+						hits++;
+					}
+				}
+				length += 10;
+			}
+			if (registry.wobbleTimers.has(enemy)) {
+				registry.wobbleTimers.remove(enemy);
+			}
+			motion_struct.scale = { 0, 0 };
+			motion_struct.position = { 0, 0 };
+			Mix_PlayChannel(-1, world.kingslime_jump, 0);
+			state = ENEMY_STATE::LEAP;
+		}
+		else if (dist_to_edge(motion_struct, player_motion) <= meleeRange) {
+			printf("Turn Number %i: Charging Normal Attack!\n", boss.num_turns);
+			world.logText("The King Slime is charging up an attack!");
+			createAttackIndicator(world.renderer, motion_struct.position, motion_struct.scale.x + meleeRange * 2, motion_struct.scale.y + meleeRange * 2, true);
+			state = ENEMY_STATE::CHARGING_MELEE;
+		}
+		else if (dist_to_edge(motion_struct, player_motion) > meleeRange) {
+			printf("Turn Number %i: Charging Projectile!\n", boss.num_turns);
+			world.logText("The King Slime is charging up an attack!");
+			Entity indicator = createAttackIndicator(world.renderer, motion_struct.position, 1000, 8, false);
+			registry.renderRequests.get(indicator).used_layer = RENDER_LAYER_ID::PLAYER;
+			registry.motions.get(indicator).destination = motion_struct.position;
+			registry.motions.get(indicator).movement_speed = 1;
+			registry.colors.insert(indicator, { 1.f, 0.5f, 0.5f });
+			state = ENEMY_STATE::CHARGING_RANGED;
+		}
+		break;
+	case ENEMY_STATE::CHARGING_MELEE:
+		printf("Turn Number %i: Doing Normal Attack!\n", boss.num_turns);
+		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
+			if (player_in_range(motion_struct.position, registry.motions.get(registry.attackIndicators.entities[i]).scale.x / 2)) {
+				world.logText(deal_damage(enemy, player, 200));
+			}
+			if (!registry.wobbleTimers.has(enemy)) {
+				WobbleTimer& wobble = registry.wobbleTimers.emplace(enemy);
+				wobble.orig_scale = motion_struct.scale;
+				wobble.counter_ms = 2000;
+			}
+			printf("Removed Attack Indicator!\n");
+			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
+		}
+		Mix_PlayChannel(-1, world.kingslime_attack, 0);
+		state = ENEMY_STATE::AGGRO;
+		break;
+	case ENEMY_STATE::CHARGING_RANGED:
+		printf("Turn Number %i: Firing Projectile!\n", boss.num_turns);
+		createProjectile(world.renderer, enemy, motion_struct.position, { 64, 34 }, dir, 120, TEXTURE_ASSET_ID::SLIMEPROJECTILE);
+		registry.solid.remove(enemy);
+		registry.motions.get(enemy).in_motion = true;
+
+		// wobble for effect
+		if (!registry.wobbleTimers.has(enemy)) {
+			WobbleTimer& wobble = registry.wobbleTimers.emplace(enemy);
+			wobble.orig_scale = motion_struct.scale;
+			wobble.counter_ms = 2000;
+			registry.solid.remove(enemy);
+		}
+		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
+			printf("Removed Attack Indicator!\n");
+			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
+		}
+		Mix_PlayChannel(-1, world.kingslime_attack, 0);
+		state = ENEMY_STATE::AGGRO;
+		break;
+	case ENEMY_STATE::SUMMON:
+		printf("Turn Number %i: Summoning Adds!\n", boss.num_turns);
+		take_damage(enemy, min(stats.hp - 1, stats.maxhp * 0.04f * num_summons));
+		while (num_summons > 0) {
+			bool valid_summon = true;
+			int distance = irandRange(ENEMY_BB_WIDTH * 2, ENEMY_BB_WIDTH * 3.5);
+			float direction = (rand() % 360) * (M_PI / 180);
+			vec2 spawnpoint = dirdist_extrapolate(motion_struct.position, direction, distance);
+			Motion test = {};
+			test.position = spawnpoint;
+			test.scale = { ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT };
+			for (Entity e : registry.solid.entities) {
+				if (collides_AABB(test, registry.motions.get(e))) {
+					valid_summon = false;
+				}
+			}
+			if (valid_summon) {
+				boss.counter0++;
+				Entity summon = createEnemy(world.renderer, spawnpoint);
+				Stats& summon_stats = registry.basestats.get(summon);
+				summon_stats.name = "Slime Prince " + std::to_string(boss.counter0);
+				summon_stats.maxhp = 10;
+				summon_stats.speed = 10;
+				summon_stats.atk = 5;
+				summon_stats.def = 4;
+				summon_stats.range = 3000;
+				registry.stats.get(summon).hp = summon_stats.maxhp;
+				reset_stats(summon);
+				calc_stats(summon);
+				world.turnOrderSystem.turnQueue.addNewEntity(summon);
+				num_summons--;
+			}
+		}
+		Mix_PlayChannel(-1, world.kingslime_summon, 0);
+		registry.enemies.get(enemy).state = ENEMY_STATE::AGGRO;
+		break;
+	case ENEMY_STATE::LEAP:
+		num_summons = 0;
+		printf("Turn Number %i: Landing from jump!\n", boss.num_turns);
+		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
+			motion_struct.scale = { ENEMY_BB_WIDTH * 4, ENEMY_BB_HEIGHT * 4 };
+			if (!registry.wobbleTimers.has(enemy)) {
+				WobbleTimer& wobble = registry.wobbleTimers.emplace(enemy);
+				wobble.orig_scale = motion_struct.scale;
+				wobble.counter_ms = 2000;
+				registry.solid.remove(enemy);
+			}
+
+			// absorb adds
+			for (int j = (int)registry.enemies.components.size() - 1; j >= 0; --j) {
+				if (registry.enemies.entities[j] != enemy
+					&& collides_circle(registry.motions.get(registry.attackIndicators.entities[i]), registry.motions.get(registry.enemies.entities[j]))) {
+					deal_damage(enemy, registry.enemies.entities[j], 1000);
+					registry.solid.remove(registry.enemies.entities[j]);
+					num_summons++;
+				}
+			}
+
+			// move to destination
+			motion_struct.position = registry.motions.get(registry.attackIndicators.entities[i]).position;
+
+			// damage player
+			if (player_in_range(motion_struct.position, registry.motions.get(registry.attackIndicators.entities[i]).scale.x/2)) {
+				world.logText(deal_damage(enemy, player, 300));
+				if (!registry.knockbacks.has(player)) {
+					KnockBack& knockback = registry.knockbacks.emplace(player);
+					knockback.remaining_distance = 200;
+					knockback.angle = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
+				}
+			}
+			
+			if (num_summons > 0) {
+				heal(enemy, stats.maxhp * 0.03f * num_summons);
+			}
+			printf("Removed Attack Indicator!\n");
+			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
+		}
+		Mix_PlayChannel(-1, world.kingslime_attack, 0);
+		state = ENEMY_STATE::AGGRO;
+		break;
+	case ENEMY_STATE::DEATH:
+		// death
+		world.playMusic(Music::BACKGROUND);
+		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
+			printf("Removed Attack Indicator!\n");
+			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
+		}
+		break;
+	default:
+		printf("Enemy State not supported!\n");
+	}
+
+	boss.num_turns++;
 }
 
 // returns true if the player entity is in range of the given position and radius

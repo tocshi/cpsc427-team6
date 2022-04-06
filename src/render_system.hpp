@@ -41,7 +41,8 @@ class RenderSystem {
 			textures_path("enemy/plant_shooter/plant_shooter.png"),
 			textures_path("enemy/plant_shooter/projectile.png"),
 			textures_path("enemy/caveling.png"),
-			textures_path("boss.png"),
+			textures_path("enemy/kingslime.png"),
+			textures_path("attacks/slimeprojectile.png"),
 			textures_path("artifact.png"),
 			textures_path("consumable.png"),
 			textures_path("item/equipment.png"),
@@ -144,6 +145,8 @@ class RenderSystem {
 			textures_path("attacks/slash.png"),
 			textures_path("objective_counter.png"),
 			textures_path("attacks/bigslash.png"),
+			textures_path("attacks/indicator_circle.png"),
+			textures_path("attacks/indicator_rectangle.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

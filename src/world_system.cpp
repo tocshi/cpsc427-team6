@@ -1512,6 +1512,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			else if (current_game_state == GameStates::PAUSE_MENU) {
 				backAction();
 			}
+			else if (current_game_state == GameStates::ATTACK_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ITEM_MENU|| current_game_state == GameStates::COLLECTION_MENU) {
+				printf("In Attack Menu or Item or Movement and escape to go back to main menu\n");
+				backAction();
+
+			}
 			else {
 				set_gamestate(GameStates::PAUSE_MENU);
 				// render save and quit button
@@ -3067,6 +3072,15 @@ void WorldSystem::backAction() {
 		registry.remove_all_components_of(ki);
 	}
 
+	// remove all attack dialog 
+	for (Entity ad : registry.attackDialogs.entities) {
+		registry.remove_all_components_of(ad);
+	}
+
+	// remove the artifact dialogs
+	for (Entity dd : registry.descriptionDialogs.entities) {
+		registry.remove_all_components_of(dd);
+	}
 	// set gamestate back to normal
 	set_gamestate(GameStates::BATTLE_MENU);
 

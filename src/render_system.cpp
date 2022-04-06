@@ -491,7 +491,11 @@ void RenderSystem::drawInstancedTiles(std::vector<Entity> entities, const mat3& 
 	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr, entities.size());
 	gl_has_errors();
 
-	//glBindVertexArray(VAO);
+	glBindVertexArray(VAO);
+	glDeleteBuffers(1, &buffer);
+	glDeleteBuffers(1, &buffer2);
+	glDeleteBuffers(1, &buffer3);
+	glDeleteVertexArrays(1, &vao);
 }
 
 // draw the intermediate texture to the screen, with some distortion to simulate

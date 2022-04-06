@@ -404,7 +404,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Motion& hpfill_motion = registry.motions.get(hpbar.hpFill);
 
 		hpbacking_motion.position = enemy_motion.position + vec2(0, ENEMY_HP_BAR_OFFSET);
-		hpfill_motion.scale.x = hpbacking_motion.scale.x * (stats.hp / stats.maxhp);
+		hpfill_motion.scale.x = hpbacking_motion.scale.x * max(0.f, (stats.hp / stats.maxhp));
 		hpfill_motion.position = hpbacking_motion.position - vec2((hpbacking_motion.scale.x - hpfill_motion.scale.x) / 2, 0);
 	}
 

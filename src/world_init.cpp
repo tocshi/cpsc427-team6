@@ -130,7 +130,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	enemy.initialPosition = pos;
 	enemy.state = ENEMY_STATE::IDLE;
 	enemy.type = ENEMY_TYPE::SLIME;
-	enemy.inv = registry.inventories.emplace(entity);
+	registry.inventories.emplace(entity);
 
 	// Create slime stats
 	auto& stats = registry.stats.emplace(entity);
@@ -200,7 +200,7 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	registry.basestats.insert(entity, stats);
 
 	auto& enemy = registry.enemies.emplace(entity);
-	enemy.inv = registry.inventories.emplace(entity);
+	registry.inventories.emplace(entity);
 	enemy.initialPosition = pos;
 	enemy.state = ENEMY_STATE::IDLE;
 	enemy.type = ENEMY_TYPE::PLANT_SHOOTER;
@@ -221,33 +221,32 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir, Entity owner)
+Entity createProjectile(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, float dir, float multiplier, TEXTURE_ASSET_ID texture)
 {
 	auto entity = Entity();
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = dir;
+	motion.movement_speed = 400.f;
 	motion.position = pos;
-	motion.destination = pos + (dir * 500.f);
+	motion.scale = scale;
+	motion.velocity = dirdist_extrapolate(pos, dir, motion.movement_speed) - pos;
+	motion.destination = dirdist_extrapolate(pos, dir, window_width_px);
+	motion.angle = dir;
 	motion.in_motion = true;
-	motion.movement_speed = 300.f;
-
-	motion.scale = vec2({ PLANT_PROJECTILE_BB_WIDTH, PLANT_PROJECTILE_BB_HEIGHT });
 
 	// Initilalize stats
-	// hp = 20, atk = 8, queue = 7, def = 2, range = 400
 	auto& stat = registry.stats.emplace(entity);
 	stat = registry.stats.get(owner);
 
 	auto& projectileTimer = registry.projectileTimers.emplace(entity);
 	projectileTimer.owner = owner;
+	projectileTimer.multiplier = multiplier;
 	// Create and (empty) Enemy component to be able to refer to all enemies
 	// registry.enemies.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::PLANT_PROJECTILE,
+		{ texture,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
@@ -275,7 +274,7 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 	enemy.initialPosition = pos;
 	enemy.state = ENEMY_STATE::IDLE;
 	enemy.type = ENEMY_TYPE::CAVELING;
-	enemy.inv = registry.inventories.emplace(entity);
+	registry.inventories.emplace(entity);
 
 	// Create caveling stats
 	auto& stats = registry.stats.emplace(entity);
@@ -307,8 +306,8 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-// Boss
-Entity createBoss(RenderSystem* renderer, vec2 pos)
+// Enemy slime (split into different enemies for future)
+Entity createKingSlime(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
 
@@ -317,24 +316,45 @@ Entity createBoss(RenderSystem* renderer, vec2 pos)
 	motion.angle = 0.f;
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
+	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 200;
 
-	motion.scale = vec2({ BOSS_BB_WIDTH, BOSS_BB_HEIGHT });
+	motion.scale = vec2({ ENEMY_BB_WIDTH*4, ENEMY_BB_HEIGHT*4 });
 
-	// Create and (empty) BOSS component to be able to refer to all bosses
-	registry.test.emplace(entity);
+	auto& enemy = registry.enemies.emplace(entity);
+	enemy.initialPosition = pos;
+	enemy.state = ENEMY_STATE::IDLE;
+	enemy.type = ENEMY_TYPE::KING_SLIME;
+	registry.inventories.emplace(entity);
+	registry.bosses.emplace(entity);
+
+	// Create king slime stats
+	auto& stats = registry.stats.emplace(entity);
+	stats.name = "King Slime";
+	stats.prefix = "the";
+	stats.maxhp = 500;
+	stats.hp = stats.maxhp;
+	stats.atk = 15;
+	stats.def = 5;
+	stats.speed = 5;
+	stats.range = 300;
+
+	registry.basestats.insert(entity, stats);
+
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::BOSS,
+		{ TEXTURE_ASSET_ID::KINGSLIME,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 	registry.hidables.emplace(entity);
 
-	// add boss to queuables
+	// add enemy to queuables
 	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
 
-	// add status container to boss
+	// add status container to slime
 	registry.statuses.emplace(entity);
-
 	return entity;
 }
 
@@ -564,7 +584,7 @@ Entity createChest(RenderSystem* renderer, vec2 pos, bool isArtifact)
 }
 
 // Door
-Entity createDoor(RenderSystem* renderer, vec2 pos)
+Entity createDoor(RenderSystem* renderer, vec2 pos, bool boss_door)
 {
 	auto entity = Entity();
 
@@ -586,7 +606,13 @@ Entity createDoor(RenderSystem* renderer, vec2 pos)
 
 	registry.solid.emplace(entity);
 	auto& interactable = registry.interactables.emplace(entity);
-	interactable.type = INTERACT_TYPE::DOOR;
+	if (boss_door) {
+		interactable.type = INTERACT_TYPE::BOSS_DOOR;
+		registry.colors.insert(entity, vec3(1, 0.4, 0.4));
+	}
+	else {
+		interactable.type = INTERACT_TYPE::DOOR;
+	}
 
 	return entity;
 }
@@ -1856,6 +1882,42 @@ Entity createPointer(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture)
 	return entity;
 }
 
+
+// Attack Indicator
+Entity createAttackIndicator(RenderSystem* renderer, vec2 position, float x_scale, float y_scale, bool isCircle) {
+
+	auto entity = Entity();
+
+	TEXTURE_ASSET_ID texture;
+	if (isCircle) {
+		texture = TEXTURE_ASSET_ID::ATTACK_INDICATOR_CIRCLE;
+	}
+	else {
+		texture = TEXTURE_ASSET_ID::ATTACK_INDICATOR_RECTANGLE;
+	}
+
+	// Initialize the motion
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.movement_speed = 0.f;
+
+	// Setting initial values
+	motion.scale = vec2({ x_scale, y_scale });
+
+	registry.attackIndicators.emplace(entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::FLOOR_DECO
+		});
+
+	return entity;
+}
 
 // HP Stat Bar 
 Entity createHPBar(RenderSystem* renderer, vec2 position) {

@@ -36,8 +36,9 @@ enum class TEXTURE_ASSET_ID {
 	PLANT_SHOOTER = SLIME + 1,
 	PLANT_PROJECTILE = PLANT_SHOOTER + 1,
 	CAVELING = PLANT_PROJECTILE + 1,
-	BOSS = CAVELING + 1,
-	ARTIFACT = BOSS + 1,
+	KINGSLIME = CAVELING + 1,
+	SLIMEPROJECTILE = KINGSLIME + 1,
+	ARTIFACT = SLIMEPROJECTILE + 1,
 	CONSUMABLE = ARTIFACT + 1,
 	EQUIPMENT = CONSUMABLE + 1,
 	CHEST_ITEM_CLOSED = EQUIPMENT + 1,
@@ -139,7 +140,9 @@ enum class TEXTURE_ASSET_ID {
 	SLASH_SPRITESHEET = MOUSE_SPRITESHEET + 1,
 	OBJECTIVE_COUNTER = SLASH_SPRITESHEET + 1,
 	BIGSLASH = OBJECTIVE_COUNTER + 1,
-	TEXTURE_COUNT = BIGSLASH + 1
+	ATTACK_INDICATOR_CIRCLE = BIGSLASH + 1,
+	ATTACK_INDICATOR_RECTANGLE = ATTACK_INDICATOR_CIRCLE + 1,
+	TEXTURE_COUNT = ATTACK_INDICATOR_RECTANGLE + 1
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -318,6 +321,14 @@ struct ModeVisualization {
 
 };
 
+enum class Music {
+	NONE = 0,
+	BACKGROUND = NONE + 1,
+	MENU = BACKGROUND + 1,
+	CUTSCENE = MENU + 1,
+	BOSS0 = CUTSCENE + 1
+};
+
 // All data relevant to the shape and motion of entities
 struct Motion {
 	vec2 position = { 0, 0 };
@@ -384,6 +395,7 @@ struct WobbleTimer
 struct ProjectileTimer
 {
 	float counter_ms = 3000;
+	float multiplier = 100;
 	Entity owner;
 };
 
@@ -426,7 +438,8 @@ enum class INTERACT_TYPE {
 	ARTIFACT_CHEST = 0,
 	ITEM_CHEST = ARTIFACT_CHEST + 1,
 	DOOR = ITEM_CHEST + 1,
-	STAIRS = DOOR + 1,
+	BOSS_DOOR = DOOR + 1,
+	STAIRS = BOSS_DOOR + 1,
 	SIGN = STAIRS + 1,
 	PICKUP = SIGN + 1,
 	SWITCH = PICKUP + 1,
@@ -485,7 +498,11 @@ enum class ENEMY_STATE {
 	ATTACK = AGGRO + 1,
 	DEATH = ATTACK + 1,
 	RETREAT = DEATH + 1,
-	STATE_COUNT = RETREAT + 1
+	CHARGING_MELEE = RETREAT + 1,
+	CHARGING_RANGED = CHARGING_MELEE + 1,
+	LEAP = CHARGING_RANGED + 1,
+	SUMMON = LEAP + 1,
+	STATE_COUNT = SUMMON + 1
 };
 
 enum class ENEMY_TYPE {
@@ -499,10 +516,17 @@ enum class ENEMY_TYPE {
 // simple component for all enemies
 struct Enemy {
 	vec2 initialPosition = { 0, 0 };
-	Inventory inv;
 	ENEMY_STATE state = ENEMY_STATE::STATE_COUNT;
 	ENEMY_TYPE type = ENEMY_TYPE::TYPE_COUNT;
 	bool hit_by_player = false;
+};
+
+struct Boss {
+	// counts for complex behaviour
+	int num_turns = 1;
+	int counter0 = 0;
+	int counter1 = 0;
+	int counter2 = 0;
 };
 
 struct ActionButton {
@@ -633,7 +657,8 @@ enum class StatusType {
 	ARCANE_FUNNEL = EP_REGEN + 1,
 	PRIMAL_RAGE = ARCANE_FUNNEL + 1,
 	FOCUSING = PRIMAL_RAGE + 1,
-	DISENGAGE_TRIGGER = FOCUSING + 1
+	DISENGAGE_TRIGGER = FOCUSING + 1,
+	SLIMED = DISENGAGE_TRIGGER + 1,
 };
 
 struct StatusEffect {
@@ -679,8 +704,8 @@ enum class ObjectiveType {
 	KILL_ENEMIES = 0,
 	ACTIVATE_SWITCHES = KILL_ENEMIES + 1,
 	DESTROY_SPAWNER = ACTIVATE_SWITCHES + 1,
-	SURVIVE_TURNS = DESTROY_SPAWNER + 1,
-	OBJECTIVE_COUNT = SURVIVE_TURNS + 1
+	DEFEAT_BOSS = DESTROY_SPAWNER + 1,
+	OBJECTIVE_COUNT = DEFEAT_BOSS + 1
 };
 const int objective_count = (int)ObjectiveType::OBJECTIVE_COUNT;
 
@@ -699,7 +724,8 @@ enum class Floors {
 	DEBUG = 0,
 	TUTORIAL = DEBUG + 1,
 	FLOOR1 = TUTORIAL + 1,
-	FLOOR_COUNT = FLOOR1 + 1
+	BOSS1 = FLOOR1 + 1,
+	FLOOR_COUNT = BOSS1 + 1
 };
 
 const int floor_count = (int)Floors::FLOOR_COUNT;
@@ -982,6 +1008,18 @@ const std::map <ATTACK, std::string>attack_names = {
 	{ATTACK::PARRYING_STANCE, "Parrying Stance"},
 	{ATTACK::DISENGAGE, "Disengage"},
 	{ATTACK::TERMINUS_VERITAS, "Terminus Veritas"},
+	{ATTACK::WILD_SWINGS, "Wild Swings"},
+	{ATTACK::ARMOURCRUSHER, "Armourcrusher"},
+	{ATTACK::DISORIENTING_BASH, "Disorienting Bash"},
+	{ATTACK::TECTONIC_SLAM, "Tectonic Slam"},
+	{ATTACK::FERVENT_CHARGE, "Fervent Charge"},
+	{ATTACK::PRIMAL_RAGE, "Primal Rage"},
+	{ATTACK::SPREAD_SHOT, "Spread Shot"},
+	{ATTACK::BINDING_ARROW, "Binding Arrow"},
+	{ATTACK::LUMINOUS_ARROW, "Luminous Arrow"},
+	{ATTACK::HOOK_SHOT, "Hook Shot"},
+	{ATTACK::FOCUSED_SHOT, "Focused Shot"},
+	{ATTACK::SKYBORNE_RAIN, "Skyborne Rain"},
 };
 
 const std::map <ATTACK, std::string>attack_descriptions = {
@@ -991,7 +1029,19 @@ const std::map <ATTACK, std::string>attack_descriptions = {
 	{ATTACK::PIERCING_THRUST, "Deals 120% of ATK in damage in a line, and ignores 40% DEF of any enemies you hit."},
 	{ATTACK::PARRYING_STANCE, "Prepares to parry until the start of your next turn. All attacks that deal <30% of your max HP are deflected, consuming 30 EP and dealing its original multiplier of damage back to the attacker."},
 	{ATTACK::DISENGAGE, "Quickly jumps 300 units in target direction. Does not count as an attack. If you end your turn without attacking, gain 30 EP at the start of your next turn."},
-	{ATTACK::TERMINUS_VERITAS, "Consumes all MP, dealing 4.5% ATK damage per MP consumed in a semicircle AoE within sight range. When consuming 90 or more MP, deal 5% ATK damage per MP instead."},
+	{ATTACK::TERMINUS_VERITAS, "Consumes all MP, dealing 4.5% ATK damage per MP consumed in a semicircle within sight range. When consuming 90 or more MP, deal 5% ATK damage per MP instead."},
+	{ATTACK::WILD_SWINGS, "Deals 40% damage 4 times to up to 4 random targets in a small area in front of you."},
+	{ATTACK::ARMOURCRUSHER, "Deals 90% of ATK in damage to a single target, the target then loses 30% DEF for 3 turns."},
+	{ATTACK::DISORIENTING_BASH, "Deals 100% of ATK to a single target and stuns them for 1 turn."},
+	{ATTACK::TECTONIC_SLAM, "Deals 80% of ATK damage in a small area in front of you, and create a temporary wall at target location, lasting for 3 turns."},
+	{ATTACK::FERVENT_CHARGE, "Charge forward, dealing 80% ATK damage to enemies in your path. If you collide with a wall, deal an additional 120% ATK damage in a circle, and lose 50 EP at the start of your next turn."},
+	{ATTACK::PRIMAL_RAGE, "Become invincible for 1 turn. Drains 100 MP and 25 EP at the start of each turn, but normal attacks deal 145% ATK damage, plus 15% ATK in bonus damage per turn of this effect remaining, for 5 turns."},
+	{ATTACK::SPREAD_SHOT, "Fires 5 arrows in a cone, each dealing 90% ATK damage. Multiple arrows that hit the same target deal 30% ATK damage instead."},
+	{ATTACK::BINDING_ARROW, "Deals 120% ATK damage and binds the target for 1 turn."},
+	{ATTACK::LUMINOUS_ARROW, "Deals 70% ATK damage and applies “Illumination” to the target for 5 turns. Illumination decreases the target’s DEF by 20% and makes the target always visible, even outside of sight range."},
+	{ATTACK::HOOK_SHOT, "Deals 110% ATK damage, pulls target towards you unless it is a wall or boss, which instead pulls you towards the target."},
+	{ATTACK::FOCUSED_SHOT, "Gathers focus to unleash a long-range piercing line shot that deals 250% ATK damage at the start of your next turn. If you are hit while gathering focus, stop charging and gain 60 MP instead."},
+	{ATTACK::SKYBORNE_RAIN, "Rain down numerous arrows at target location, dealing 175% ATK damage in a large circle for 3 turns."},
 };
 
 // TODO: deprecate this
@@ -1003,6 +1053,18 @@ const std::map <ATTACK, std::string>attack_costs_string = {
 	{ATTACK::PARRYING_STANCE, "50 MP, 30+ EP"},
 	{ATTACK::DISENGAGE, "30 MP, 0 EP"},
 	{ATTACK::TERMINUS_VERITAS, "60+ MP, 100 EP"},
+	{ATTACK::WILD_SWINGS, "Wild Swings"},
+	{ATTACK::ARMOURCRUSHER, "Armourcrusher"},
+	{ATTACK::DISORIENTING_BASH, "Disorienting Bash"},
+	{ATTACK::TECTONIC_SLAM, "Tectonic Slam"},
+	{ATTACK::FERVENT_CHARGE, "Fervent Charge"},
+	{ATTACK::PRIMAL_RAGE, "Primal Rage"},
+	{ATTACK::SPREAD_SHOT, "Spread Shot"},
+	{ATTACK::BINDING_ARROW, "Binding Arrow"},
+	{ATTACK::LUMINOUS_ARROW, "Luminous Arrow"},
+	{ATTACK::HOOK_SHOT, "Hook Shot"},
+	{ATTACK::FOCUSED_SHOT, "Focused Shot"},
+	{ATTACK::SKYBORNE_RAIN, "Skyborne Rain"},
 };
 
 const std::map <ATTACK, float>attack_mpcosts = {
@@ -1013,6 +1075,18 @@ const std::map <ATTACK, float>attack_mpcosts = {
 	{ATTACK::PARRYING_STANCE, 50},
 	{ATTACK::DISENGAGE, 30},
 	{ATTACK::TERMINUS_VERITAS, 60},
+	{ATTACK::WILD_SWINGS, 30},
+	{ATTACK::ARMOURCRUSHER, 0},
+	{ATTACK::DISORIENTING_BASH, 40},
+	{ATTACK::TECTONIC_SLAM, 50},
+	{ATTACK::FERVENT_CHARGE, 30},
+	{ATTACK::PRIMAL_RAGE, 60},
+	{ATTACK::SPREAD_SHOT, 30},
+	{ATTACK::BINDING_ARROW, 0},
+	{ATTACK::LUMINOUS_ARROW, 40},
+	{ATTACK::HOOK_SHOT, 50},
+	{ATTACK::FOCUSED_SHOT, 30},
+	{ATTACK::SKYBORNE_RAIN, 60},
 };
 
 const std::map <ATTACK, float>attack_epcosts = {
@@ -1023,4 +1097,16 @@ const std::map <ATTACK, float>attack_epcosts = {
 	{ATTACK::PARRYING_STANCE, 30},
 	{ATTACK::DISENGAGE, 0},
 	{ATTACK::TERMINUS_VERITAS, 100},
+	{ATTACK::WILD_SWINGS, 30},
+	{ATTACK::ARMOURCRUSHER, 0},
+	{ATTACK::DISORIENTING_BASH, 40},
+	{ATTACK::TECTONIC_SLAM, 50},
+	{ATTACK::FERVENT_CHARGE, 30},
+	{ATTACK::PRIMAL_RAGE, 60},
+	{ATTACK::SPREAD_SHOT, 30},
+	{ATTACK::BINDING_ARROW, 0},
+	{ATTACK::LUMINOUS_ARROW, 40},
+	{ATTACK::HOOK_SHOT, 50},
+	{ATTACK::FOCUSED_SHOT, 30},
+	{ATTACK::SKYBORNE_RAIN, 60},
 };

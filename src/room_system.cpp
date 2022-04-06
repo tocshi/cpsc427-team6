@@ -37,8 +37,8 @@ void RoomSystem::setObjective(ObjectiveType type, int quantity) {
 	case ObjectiveType::DESTROY_SPAWNER:
 		world.logText("Find and destroy the enemy hive!");
 		break;
-	case ObjectiveType::SURVIVE_TURNS:
-		world.logText("Survive " + std::to_string(quantity) + " turns to proceed!");
+	case ObjectiveType::DEFEAT_BOSS:
+		world.logText("Defeat the boss monster.");
 		break;
 	default:
 		break;
@@ -59,9 +59,6 @@ void RoomSystem::setRandomObjective() {
 		break;
 	case ObjectiveType::DESTROY_SPAWNER:
 		quantity = 1;
-		break;
-	case ObjectiveType::SURVIVE_TURNS:
-		quantity = irandRange(8, 13);
 		break;
 	default:
 		break;
@@ -87,8 +84,8 @@ void RoomSystem::updateObjective(ObjectiveType type, int quantity) {
 	case ObjectiveType::DESTROY_SPAWNER:
 		desc.message = "Destroy the enemy hive";
 		break;
-	case ObjectiveType::SURVIVE_TURNS:
-		desc.message = "Survive the remaining turns";
+	case ObjectiveType::DEFEAT_BOSS:
+		desc.message = "Defeat the boss monster";
 		break;
 	default:
 		desc.message = "";
@@ -98,9 +95,27 @@ void RoomSystem::updateObjective(ObjectiveType type, int quantity) {
 	if (current_objective.remaining_count == 0) {
 		if (!current_objective.completed) {
 			current_objective.completed = true;
-			world.logText("You hear the sounds of several doors opening in the distance...");
-			world.spawn_doors_random_location(3);
-			Mix_PlayChannel(-1, world.door_sound, 0);
+			if (rooms_cleared_current_floor >= 2) {
+				world.logText("You feel a strong presence coming from a red door...");
+				world.spawn_doors_random_location(3, true);
+				Mix_PlayChannel(-1, world.door_sound, 0); // TODO: use different sound
+			}
+			else {
+				world.logText("You hear the sounds of several doors opening in the distance...");
+				world.spawn_doors_random_location(3, false);
+				Mix_PlayChannel(-1, world.door_sound, 0);
+			}
 		}
 	}
+}
+
+void RoomSystem::updateClearCount() {
+	if (!world.tutorial) {
+		rooms_cleared_current_floor += 1;
+	}
+}
+
+void RoomSystem::setNextFloor(Floors floor) {
+	current_floor = floor;
+	rooms_cleared_current_floor = 0;
 }

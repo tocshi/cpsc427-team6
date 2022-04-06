@@ -77,11 +77,11 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos);
 // Plant Shooter
 Entity createPlantShooter(RenderSystem* renderer, vec2 pos);
 // Plant Projectile
-Entity createPlantProjectile(RenderSystem* renderer, vec2 pos, vec2 dir, Entity owner);
+Entity createProjectile(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, float dir, float multiplier, TEXTURE_ASSET_ID texture);
 // Caveling
 Entity createCaveling(RenderSystem* renderer, vec2 pos);
-// Boss
-Entity createBoss(RenderSystem* renderer, vec2 pos);
+// King Slime
+Entity createKingSlime(RenderSystem* renderer, vec2 pos);
 // Equipment
 Equipment createEquipment(EQUIPMENT type, int tier);
 Entity createEquipmentEntity(RenderSystem* renderer, vec2 pos, Equipment equipment);
@@ -92,7 +92,7 @@ Entity createConsumable(RenderSystem* renderer, vec2 pos);
 // Chest
 Entity createChest(RenderSystem* renderer, vec2 pos, bool isArtifact);
 // Door
-Entity createDoor(RenderSystem* renderer, vec2 pos);
+Entity createDoor(RenderSystem* renderer, vec2 pos, bool boss_door=false);
 // Sign
 Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::pair<std::string, int>>& messages);
 // Stair
@@ -131,6 +131,8 @@ Entity createAttackModeText(RenderSystem* renderer, vec2 pos);
 Entity createMoveModeText(RenderSystem* renderer, vec2 pos);
 // Stylized pointer
 Entity createPointer(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture);
+// Attack indicators
+Entity createAttackIndicator(RenderSystem* renderer, vec2 position, float x_scale, float y_scale, bool isCircle);
 // HP Bar 
 Entity createHPBar(RenderSystem* renderer, vec2 position);
 // MP Bar 
@@ -206,8 +208,8 @@ Entity createMenuContinue(RenderSystem* renderer, vec2 pos);
 // Save and Quit Button
 Entity createSaveQuit(RenderSystem* renderer, vec2 pos);
 // Enemy HP bar's backing (black line)
-Entity createEnemyHPBacking(vec2 position);
+Entity createEnemyHPBacking(vec2 position, Entity parent);
 // Enemy HP bar's fill (red line)
-Entity createEnemyHPFill(vec2 position);
+Entity createEnemyHPFill(vec2 position, Entity parent);
 // shadow for enemies
 Entity createShadow(vec2 pos, Entity caster);

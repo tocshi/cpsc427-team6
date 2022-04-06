@@ -6,7 +6,7 @@
 
 // Attacker deals damage to Defender based on a "multiplier" of the attacker's ATK stat
 // Parameters subject to change
-std::string deal_damage(Entity& attacker, Entity& defender, float multiplier)
+std::string deal_damage(Entity& attacker, Entity& defender, float multiplier, bool doProcs)
 {
 	// Damage Calculation
 	Stats& attacker_stats = registry.stats.get(attacker);
@@ -191,8 +191,9 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 			int stun_duration = 2 + defender_inv.artifact[(int)ARTIFACT::WINDBAG];
 			if (defender_stats.hp - final_damage <= defender_stats.maxhp * hp_threshold) {
 				for (Entity e : registry.enemies.entities) {
+					if (registry.bosses.has(e)) { continue; }
 					Motion enemy_motion = registry.motions.get(e);
-					if (dist_to(defender_motion.position, enemy_motion.position) <= 200) {
+					if (dist_to_edge(enemy_motion, defender_motion) <= 150.f) {
 						if (!registry.knockbacks.has(e)) {
 							KnockBack& knockback = registry.knockbacks.emplace(e);
 							knockback.remaining_distance = 300;
@@ -252,22 +253,22 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 	}
 
 	//// Pious Prayer
-	//if (defender_inv.artifact[(int)ARTIFACT::PIOUS_PRAYER] > 0 && dist_to(attacker_motion.position, defender_motion.position) > 100) {
+	//if (defender_inv.artifact[(int)ARTIFACT::PIOUS_PRAYER] > 0 && dist_to(attacker_motion.position, defender_motion.position) > 150) {
 	//	final_damage = max(1.f, final_damage - 3.f * defender_inv.artifact[(int)ARTIFACT::PIOUS_PRAYER]);
 	//}
 
 	// Blade Polish Kit
-	if (attacker_inv.artifact[(int)ARTIFACT::BLADE_POLISH] > 0 && dist_to(attacker_motion.position, defender_motion.position) <= 100) {
+	if (attacker_inv.artifact[(int)ARTIFACT::BLADE_POLISH] > 0 && dist_to_edge(attacker_motion, defender_motion) <= 100.f) {
 		final_damage *= 1 + 0.2 * attacker_inv.artifact[(int)ARTIFACT::BLADE_POLISH];
 	}
 
 	// High-Quality Fletching
-	if (attacker_inv.artifact[(int)ARTIFACT::HQ_FLETCHING] > 0 && dist_to(attacker_motion.position, defender_motion.position) > 100) {
+	if (attacker_inv.artifact[(int)ARTIFACT::HQ_FLETCHING] > 0 && dist_to_edge(attacker_motion, defender_motion) <= 100.f) {
 		final_damage *= 1 + 0.2 * attacker_inv.artifact[(int)ARTIFACT::HQ_FLETCHING];
 	}
 
 	// Rubber Mallet
-	if (attacker_inv.artifact[(int)ARTIFACT::KB_MALLET] > 0 && dist_to(attacker_motion.position, defender_motion.position) <= 100) {
+	if (attacker_inv.artifact[(int)ARTIFACT::KB_MALLET] > 0 && dist_to_edge(attacker_motion, defender_motion) <= 100.f && !registry.bosses.has(defender)) {
 		float kb_dist = 50 + 50 * attacker_inv.artifact[(int)ARTIFACT::KB_MALLET];
 
 		if (!registry.knockbacks.has(defender)) {
@@ -326,6 +327,14 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 					}
 					else {
 						stats.atk += status.value;
+					}
+					break;
+				case (StatusType::SLIMED):
+					if (status.percentage && registry.stats.has(entity)) {
+						stats.epratemove *= status.value;
+					}
+					else {
+						stats.epratemove += status.value;
 					}
 					break;
 				case (StatusType::STUN):

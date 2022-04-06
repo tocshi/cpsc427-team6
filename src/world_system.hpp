@@ -105,7 +105,6 @@ public:
 	Entity tutorial_door;
 
 	// music references
-	Mix_Music* background_music;
 	Mix_Chunk* fire_explosion_sound;
 	Mix_Chunk* error_sound;
 	Mix_Chunk* footstep_sound;
@@ -123,9 +122,17 @@ public:
 	Mix_Chunk* caveling_death;
 	Mix_Chunk* caveling_move;
 	Mix_Chunk* ui_click;
+	Mix_Chunk* kingslime_attack;
+	Mix_Chunk* kingslime_jump;
+	Mix_Chunk* kingslime_summon;
 
+	Mix_Music* background_music;
 	Mix_Music* menu_music;
 	Mix_Music* cutscene_music;
+	Mix_Music* boss0_music;
+
+	Music current_music = Music::NONE;
+
 	// Game state
 	RenderSystem* renderer;
 	float current_speed;
@@ -144,6 +151,7 @@ public:
 	std::default_random_engine rng;
 	std::uniform_real_distribution<float> uniform_dist; // number between 0..1
 
+	TurnOrderSystem turnOrderSystem;
 	Entity turnUI;
 	Entity objectiveCounter;
 	Entity objectiveDescText;
@@ -154,8 +162,10 @@ public:
 	// log text
 	void logText(std::string msg);
 
-	void spawn_doors_random_location(int quantity);
+	void spawn_doors_random_location(int quantity, bool has_boss_doors=false);
 	void spawn_switches_random_location(int quantity);
+
+	void playMusic(Music music);
 
 private:
 	// Input callback functions
@@ -230,7 +240,7 @@ private:
 	void loadStatuses(Entity e, json statusData);
 
 	// load tiles
-	void loadTiles(json tileData);
+	void loadTiles(json tileList);
 
 	// load collidables
 	void loadCollidables(json collidableData);
@@ -253,6 +263,9 @@ private:
 	// load a door
 	void loadDoor(Entity e);
 
+	// load boss door
+	void loadBossDoor(Entity e);
+
 	// load a consumable
 	void loadConsumable(Entity e, json consumableData);
 
@@ -264,6 +277,12 @@ private:
 
 	// load the room system
 	void loadRoomSystem(json roomSystemData);
+
+	// load the boss component
+	void loadBoss(Entity e, json bossData);
+
+	// load attack indicators
+	void loadAttackIndicators(json indicatorList);
   
 	// do turn order logic
 	void doTurnOrderLogic();
@@ -313,8 +332,6 @@ private:
 	GLFWwindow* window;
 
 	SaveSystem saveSystem;
-
-	TurnOrderSystem turnOrderSystem;
 	AISystem aiSystem;
 	RoomSystem roomSystem;
 

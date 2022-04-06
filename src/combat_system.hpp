@@ -7,7 +7,7 @@
 #include "common.hpp"
 
 
-std::string deal_damage(Entity& attacker, Entity& defender, float multiplier);
+std::string deal_damage(Entity& attacker, Entity& defender, float multiplier, bool doProcs = true);
 void take_damage(Entity& entity, float damage);
 void take_damage_mp(Entity& entity, float damage);
 void take_damage_ep(Entity& entity, float damage);

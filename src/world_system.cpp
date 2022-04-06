@@ -381,7 +381,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			enemy_move_audio_time_ms = 200.f;
 		}
 		else {
-			enemy_move_audio_time_ms -= 20.f;
+			enemy_move_audio_time_ms -= elapsed_ms_since_last_update;
 		}
 	}
 
@@ -407,7 +407,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					move_audio_timer_ms = 200.f;
 				}
 				else {
-					move_audio_timer_ms -= 20.f;
+					move_audio_timer_ms -= elapsed_ms_since_last_update;
 				}
 
 				// remove old ep range

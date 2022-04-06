@@ -167,6 +167,12 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 
 	// add status container to slime
 	registry.statuses.emplace(entity);
+
+	// add hp bar 
+	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
+	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+
 	return entity;
 }
 
@@ -217,6 +223,11 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 
 	// add status container to plantshooter
 	registry.statuses.emplace(entity);
+
+	// add hp bar 
+	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
+	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 
 	return entity;
 }
@@ -302,6 +313,11 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 
 	// add status container to caveling
 	registry.statuses.emplace(entity);
+
+	// add hp bar 
+	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
+	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 
 	return entity;
 }
@@ -2206,7 +2222,7 @@ Entity createDamageText(RenderSystem* renderer, vec2 pos, std::string text_input
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
 			EFFECT_ASSET_ID::TEXT,
 			GEOMETRY_BUFFER_ID::TEXTQUAD,
-			RENDER_LAYER_ID::EFFECT });
+			RENDER_LAYER_ID::DAMAGE_TEXT });
 	registry.damageText.emplace(entity);
 
 	return entity;
@@ -2566,6 +2582,55 @@ Entity createConsumable(RenderSystem* renderer, vec2 pos, CONSUMABLE type) {
 	auto& interactable = registry.interactables.emplace(entity);
 	interactable.type = INTERACT_TYPE::PICKUP;
 	registry.hidables.emplace(entity);
+
+	return entity;
+}
+
+Entity createEnemyHPBacking(vec2 position, Entity parent)
+{
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 EFFECT_ASSET_ID::LINE,
+		 GEOMETRY_BUFFER_ID::DEBUG_LINE,
+		RENDER_LAYER_ID::HP_BACKING});
+	registry.colors.insert(entity, {0,0,0});
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2(100, 8) * vec2(ui_scale, ui_scale);
+
+	HPDisplay& hp_display = registry.hpDisplays.emplace(entity);
+	hp_display.parent = parent;
+
+	return entity;
+}
+
+Entity createEnemyHPFill(vec2 position, Entity parent)
+{
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 EFFECT_ASSET_ID::LINE,
+		 GEOMETRY_BUFFER_ID::DEBUG_LINE,
+		RENDER_LAYER_ID::HP_FILL });
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2(0, 8) * vec2(ui_scale, ui_scale);
+
+	HPDisplay& hp_display = registry.hpDisplays.emplace(entity);
+	hp_display.parent = parent;
 
 	return entity;
 }

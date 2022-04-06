@@ -58,6 +58,7 @@ const float POINTER_BB_WIDTH = 64.f * ui_scale;
 const float POINTER_BB_HEIGHT = 64.f * ui_scale;
 const float SWITCH_BB_WIDTH = 64.f * ui_scale;
 const float SWITCH_BB_HEIGHT = 64.f * ui_scale;
+const float ENEMY_HP_BAR_OFFSET = -48.f;
 
 // want to make fog small so it can be rendered a lot TODO: this is a bad implementation and will need to be changed later to use shadows or drawing circles or something better
 const float FOG_BB_WIDTH = 0.6f * 100.f * ui_scale;
@@ -206,3 +207,7 @@ Entity createBigSlash(RenderSystem* renderer, vec2 pos, float angle, float scale
 Entity createMenuContinue(RenderSystem* renderer, vec2 pos);
 // Save and Quit Button
 Entity createSaveQuit(RenderSystem* renderer, vec2 pos);
+// Enemy HP bar's backing (black line)
+Entity createEnemyHPBacking(vec2 position, Entity parent);
+// Enemy HP bar's fill (red line)
+Entity createEnemyHPFill(vec2 position, Entity parent);

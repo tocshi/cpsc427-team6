@@ -1102,13 +1102,13 @@ void WorldSystem::spawn_tutorial_entities() {
 	// create all non-menu game objects
 	// spawn the player and enemy in random locations
 	spawn_player_random_location(spawnData.playerSpawns);
-	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
-	spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
+	// spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
+	// spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
 
 	Entity player = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player);
 
-	
+	// spawn signs at appropriate locations
 	std::vector<std::vector<std::string>> messages = {
 		{
 			"",
@@ -1119,45 +1119,8 @@ void WorldSystem::spawn_tutorial_entities() {
 			"test221212"
 		}
 	};
-	tutorial_sign_1 = createSign2(renderer, { player_motion.position.x - 64, player_motion.position.y - 64 }, messages);
-	// std::vector<std::string> lines = {
-	// 	"test1",
-	// 	"thiajfiajf faif oe fkafea",
-	// 	"test"
-	// };
-	// createTextbox(renderer, vec2(window_width_px * (1.f/2.f), window_height_px * (1.f/2.f)), lines);
-
-	// std::vector<std::pair<std::string, int>> messages_1 = {
-	// 	{"Welcome to Adrift in Somnium!", 0},
-	// 	{"Click on the move icon or press [2] to access the move menu", 2000}};
-
-	// tutorial_sign_1 = createSign(
-	// 	renderer,
-	// 	{ player_motion.position.x - 64, player_motion.position.y - 64 },
-	// 	messages_1);
-
-	// //createMotionText(renderer, { player_motion.position.x - 160, player_motion.position.y - 96 }, "CLICK ME", 3.f, vec3(1.f));
-	createMouseAnimation(renderer, { player_motion.position.x - 64, player_motion.position.y - 128 });
-
-	// std::vector<std::pair<std::string, int>> messages_2 = {
-	// 	{"There is a slime enemy ahead!", 0},
-	// 	{"You will need enough EP and be within range to attack the enemy", 3000},
-	// 	{"You can click the attack icon or press [1] to access the attack menu", 6000},
-	// 	{"If you don't have enough EP, end your turn", 9000}};
-
-	// tutorial_sign_2 = createSign(
-	// 	renderer,
-	// 	{ player_motion.position.x - 64, player_motion.position.y - 1280 },
-	// 	messages_2);
-
-	// std::vector<std::pair<std::string, int>> messages_3 = {
-	// 	{"Good Luck adventurer!", 0},
-	// 	{"Go through the door to proceed", 3000}};
-
-	// tutorial_sign_3 = createSign(
-	// 	renderer,
-	// 	{ player_motion.position.x - 64, player_motion.position.y - 2016 },
-	// 	messages_3);
+	tutorial_sign_1 = createSign2(renderer, { player_motion.position.x - 64*ui_scale, player_motion.position.y - 64*ui_scale }, messages);
+	createMouseAnimation(renderer, { player_motion.position.x - 64*ui_scale, player_motion.position.y - 2*64*ui_scale });
 
 	std::vector<std::vector<std::string>> messages2 = {
 		{
@@ -1168,8 +1131,8 @@ void WorldSystem::spawn_tutorial_entities() {
 			"explain combat"
 		}
 	};
-	tutorial_sign_2 = createSign2(renderer, { player_motion.position.x - 64, player_motion.position.y - 256 }, messages2);
-	createMouseAnimation(renderer, { player_motion.position.x - 64, player_motion.position.y - 320 });
+	tutorial_sign_2 = createSign2(renderer, { player_motion.position.x + 11*64*ui_scale, player_motion.position.y - 10*64*ui_scale }, messages2);
+	createMouseAnimation(renderer, { player_motion.position.x + 11*64*ui_scale, player_motion.position.y - 11*64*ui_scale });
 
 	std::vector<std::vector<std::string>> messages3 = {
 		{
@@ -1180,8 +1143,8 @@ void WorldSystem::spawn_tutorial_entities() {
 			"Weapon"
 		}
 	};
-	tutorial_sign_3 = createSign2(renderer, { player_motion.position.x - 64, player_motion.position.y - 384 }, messages3);
-	createMouseAnimation(renderer, { player_motion.position.x - 64, player_motion.position.y - 448 });
+	tutorial_sign_3 = createSign2(renderer, { player_motion.position.x + 10*64*ui_scale + 32*ui_scale, player_motion.position.y - 28*64*ui_scale }, messages3);
+	createMouseAnimation(renderer, { player_motion.position.x + 10*64*ui_scale + 32*ui_scale, player_motion.position.y - 29*64*ui_scale });
 
 	std::vector<std::vector<std::string>> messages4 = {
 		{
@@ -1191,8 +1154,8 @@ void WorldSystem::spawn_tutorial_entities() {
 			"Use Items"
 		}
 	};
-	tutorial_sign_4 = createSign2(renderer, { player_motion.position.x - 64, player_motion.position.y - 512 }, messages4);
-	createMouseAnimation(renderer, { player_motion.position.x - 64, player_motion.position.y - 576 });
+	tutorial_sign_4 = createSign2(renderer, { player_motion.position.x, player_motion.position.y - 25*64*ui_scale }, messages4);
+	createMouseAnimation(renderer, { player_motion.position.x, player_motion.position.y - 26*64*ui_scale });
 
 	std::vector<std::vector<std::string>> messages5 = {
 		{
@@ -1202,8 +1165,12 @@ void WorldSystem::spawn_tutorial_entities() {
 			"Types of objectives"
 		}
 	};
-	tutorial_sign_5 = createSign2(renderer, { player_motion.position.x - 64, player_motion.position.y - 640 }, messages5);
-	createMouseAnimation(renderer, { player_motion.position.x - 64, player_motion.position.y - 704 });
+	tutorial_sign_5 = createSign2(renderer, { player_motion.position.x, player_motion.position.y - 37*64*ui_scale }, messages5);
+	createMouseAnimation(renderer, { player_motion.position.x, player_motion.position.y - 38*64*ui_scale });
+
+	// spawn chests at appropriate locations
+	tutorial_chest_1 = createChest(renderer, { player_motion.position.x + 8*64*ui_scale, player_motion.position.y - 32*64*ui_scale }, false);
+	tutorial_chest_2 = createChest(renderer, { player_motion.position.x + 14*64*ui_scale, player_motion.position.y - 32*64*ui_scale }, true);
 
 	// setup turn order system
 	turnOrderSystem.setUpTurnOrder();
@@ -3145,7 +3112,7 @@ void WorldSystem::updateTutorial() {
 			tutorial_flags = tutorial_flags | SIGN_3;
 			// spawn chests? or preplaces?
 			Motion& sign_motion = registry.motions.get(tutorial_sign_3);
-			tutorial_chest_1 = createChest(renderer, sign_motion.position + vec2(64.f, 0.f), false);
+			// tutorial_chest_1 = createChest(renderer, sign_motion.position + vec2(64.f, 0.f), false);
 		}
 	}
 	else if (!(tutorial_flags & CHEST_1)) {
@@ -3174,7 +3141,7 @@ void WorldSystem::updateTutorial() {
 			tutorial_flags = tutorial_flags | SLIME2_DEFEATED;
 			set_gamestate(GameStates::DIALOGUE);
 			// spawn chests? or preplaces?
-			tutorial_chest_2 = createChest(renderer, player_motion.position + vec2(64.f, 0.f), true);
+			// tutorial_chest_2 = createChest(renderer, player_motion.position + vec2(64.f, 0.f), true);
 			std::vector<std::vector<std::string>> messages = {
 				{
 					"Camfires will recover your HP and MP to full!",

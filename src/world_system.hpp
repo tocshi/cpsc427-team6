@@ -101,8 +101,14 @@ public:
 	Entity tutorial_campfire;
 	Entity tutorial_chest_1;
 	Entity tutorial_chest_2;
-	Entity tutorial_chest_3;
+	// Entity tutorial_chest_3;
 	Entity tutorial_door;
+	Entity tutorial_wall_1;
+	Entity tutorial_wall_2;
+	Entity tutorial_wall_3;
+	Entity tutorial_wall_4;
+	Entity tutorial_wall_5;
+	Entity tutorial_wall_6;
 
 	// music references
 	Mix_Chunk* fire_explosion_sound;

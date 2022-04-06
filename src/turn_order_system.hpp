@@ -18,8 +18,8 @@ public:
 	void removeFromQueue(Entity e);
 	void emptyQueue();
 	void addNewEntity(Entity e);
+	TurnQueue turnQueue;
 private:
 	Entity currentEntity;
-	TurnQueue turnQueue;
 	bool firstTurn = false;
 };

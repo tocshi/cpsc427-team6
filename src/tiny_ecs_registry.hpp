@@ -32,6 +32,7 @@ public:
 	ComponentContainer<Test> test;	// for testing
 	ComponentContainer<Solid> solid;
 	ComponentContainer<Enemy> enemies;
+	ComponentContainer<Boss> bosses;
 	ComponentContainer<KeyIcon> keyIcons;
 	ComponentContainer<ActionButton> actionButtons;
 	ComponentContainer<GuardButton> guardButtons;
@@ -73,6 +74,7 @@ public:
 	ComponentContainer<DamageTextTimer> damageText;
 	ComponentContainer<StatsText> statsText;
 	ComponentContainer<ExpandTimer> expandTimers;
+	ComponentContainer<Test> attackIndicators;
 	ComponentContainer<HPDisplay> hpDisplays;
 	ComponentContainer<EnemyHPBar> enemyHPBars;
 	ComponentContainer<BossHPBar> bossHPBars;
@@ -102,6 +104,7 @@ public:
 		registry_list.push_back(&test);
 		registry_list.push_back(&solid);
 		registry_list.push_back(&enemies);
+		registry_list.push_back(&bosses);
 		registry_list.push_back(&keyIcons);
 		registry_list.push_back(&actionButtons);
 		registry_list.push_back(&guardButtons);
@@ -144,6 +147,7 @@ public:
 		registry_list.push_back(&damageText);
 		registry_list.push_back(&statsText);
 		registry_list.push_back(&expandTimers);
+		registry_list.push_back(&attackIndicators);
 		registry_list.push_back(&hpDisplays);
 		registry_list.push_back(&enemyHPBars);
 		registry_list.push_back(&bossHPBars);

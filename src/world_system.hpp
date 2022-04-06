@@ -72,21 +72,37 @@ public:
 
 	// Tutorial flags
 	bool tutorial = true;
-	bool firstSign = false;
-	bool movementSelected = false;
-	bool epDepleted = false;
-	bool secondSign = false;
-	bool slimeDefeated = false;
-	bool interactedCampfire = false;
-	bool thirdSign = false;
+	unsigned short tutorial_flags = 0x0; // 16 bits
+	enum flags {
+		SIGN_1 = 1, // welcome -> movement
+		MOVEMENT_SELECTED = 2,
+		EP_DEPLETED = 4,
+		SIGN_2 = 8, // spawn slime -> basic combat
+		SLIME1_DEFEATED = 16,
+		CAMPFIRE_INTERACTED = 32,
+		SIGN_3 = 64, // Chests / Interactables
+		CHEST_1 = 128, // weapons
+		SLIME2_DEFEATED = 256,
+		CHEST_2 = 512, // artifacts
+		// CHEST_3 = 1024, // shield
+		SIGN_4 = 2048, // items (consumables)
+		SIGN_5 = 4096, // objectives (buttons)
+		EXIT = 8192, // leaving tutorial (reset stats/inventory)
+		FILLER = 16392,
+		FILLER2 = 32784
+	};
 
 	Entity tutorial_sign_1;
 	Entity tutorial_sign_2;
 	Entity tutorial_sign_3;
+	Entity tutorial_sign_4;
+	Entity tutorial_sign_5;
 	Entity tutorial_slime;
 	Entity tutorial_campfire;
+	Entity tutorial_chest_1;
+	Entity tutorial_chest_2;
+	Entity tutorial_chest_3;
 	Entity tutorial_door;
-	Entity tutorial_floor_text;
 
 	// music references
 	Mix_Music* background_music;
@@ -133,6 +149,8 @@ public:
 	Entity objectiveDescText;
 	Entity objectiveNumberText;
 
+	Entity activeTextbox;
+
 	// log text
 	void logText(std::string msg);
 
@@ -153,6 +171,9 @@ private:
 
 	// start game
 	void start_game();
+
+	// tutorial initialization
+	void start_tutorial();
 
 	// spawn entities (tutorial)
 	void spawn_tutorial_entities();

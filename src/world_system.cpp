@@ -443,10 +443,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				createKeyIcon(renderer, { window_width_px - 70.f, 620.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_5);
 			}
 			else if (current_game_state == GameStates::BATTLE_MENU) {
-				createKeyIcon(renderer, { window_width_px - 60.f, 150.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_1);
-				createKeyIcon(renderer, { window_width_px - 60.f, 300.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_2);
-				createKeyIcon(renderer, { window_width_px - 60.f, 450.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_3);
-				createKeyIcon(renderer, { window_width_px - 60.f, 600.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_4);
+				if (tutorial) {
+
+				} else {
+					createKeyIcon(renderer, { window_width_px - 60.f, 150.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_1);
+					createKeyIcon(renderer, { window_width_px - 60.f, 300.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_2);
+					createKeyIcon(renderer, { window_width_px - 60.f, 450.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_3);
+					createKeyIcon(renderer, { window_width_px - 60.f, 600.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_4);
+				}
 			}
 		}
 	}
@@ -462,10 +466,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (registry.actionButtons.entities.size() < 4) {
 			// bring back all of the buttons
-			createAttackButton(renderer, { window_width_px - 125.f, 200.f * ui_scale});
-			createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale });
-			createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
-			createItemButton(renderer, { window_width_px - 125.f, 650.f * ui_scale });
+			// TODO: tutorial (sequentially add buttons depending on flags)
+			if (tutorial) {
+				if (tutorial_flags & flags::SIGN_2) { createAttackButton(renderer, { window_width_px - 125.f, 200.f * ui_scale}); }
+				if (tutorial_flags & SIGN_1) { createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale }); }
+				if (tutorial_flags & EP_DEPLETED) { createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD); }
+				if (tutorial_flags & SIGN_4) { createItemButton(renderer, { window_width_px - 125.f, 650.f * ui_scale }); }
+
+			} else {
+				createAttackButton(renderer, { window_width_px - 125.f, 200.f * ui_scale});
+				createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale });
+				createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+				createItemButton(renderer, { window_width_px - 125.f, 650.f * ui_scale });
+			}
 		}
 		
 		// hide all the visulaiztion tools
@@ -508,7 +521,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(gb);
 			}
 			// add end turn button
-			createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_END_TURN, TEXTURE_ASSET_ID::ACTIONS_END_TURN);
+			// TODO tutorial: tutorial flag
+			if (tutorial) {
+				if (tutorial_flags & EP_DEPLETED) { createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_END_TURN, TEXTURE_ASSET_ID::ACTIONS_END_TURN); }
+			} else {
+				createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_END_TURN, TEXTURE_ASSET_ID::ACTIONS_END_TURN);
+			}
 		}
 		else if (!hideGuardButton) {
 			// remove guard button
@@ -516,7 +534,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(gb);
 			}
 			// add end turn button
-			createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+			// TODO tutorial: tutorial flag
+			if (tutorial) {
+				if (tutorial_flags & EP_DEPLETED) { createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD); }
+			} else {
+				createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+			}
 		}
 
 		// update player motion
@@ -524,8 +547,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Stats& player_stats = registry.stats.get(player);
 		if (player_motion.in_motion) {
 			if (ep <= 0) {
-				player_motion.destination = player_motion.position;
-				set_gamestate(GameStates::BATTLE_MENU);
+				if (registry.textboxes.size() == 0) {
+					player_motion.destination = player_motion.position;
+					set_gamestate(GameStates::BATTLE_MENU);
+				}
 			}
 			else { 
 				ep -= 0.06f * player_stats.epratemove * elapsed_ms_since_last_update; 
@@ -624,7 +649,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// remove from turn queue
 			turnOrderSystem.removeFromQueue(enemy);
 			registry.solid.remove(enemy);
-			roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
+			if (!tutorial)
+				roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
 		}
 	}
 
@@ -1014,55 +1040,108 @@ void WorldSystem::spawn_tutorial_entities() {
 	Entity player = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player);
 
-	std::vector<std::pair<std::string, int>> messages_1 = {
-		{"Welcome to Adrift in Somnium!", 0},
-		{"Click on the move icon or press [2] to access the move menu", 2000}};
+	
+	std::vector<std::vector<std::string>> messages = {
+		{
+			"",
+			"Welcome To ADRIFT IN SOMNIUM"
+		},
+		{
+			"explain moving",
+			"test221212"
+		}
+	};
+	tutorial_sign_1 = createSign2(renderer, { player_motion.position.x - 64, player_motion.position.y - 64 }, messages);
+	// std::vector<std::string> lines = {
+	// 	"test1",
+	// 	"thiajfiajf faif oe fkafea",
+	// 	"test"
+	// };
+	// createTextbox(renderer, vec2(window_width_px * (1.f/2.f), window_height_px * (1.f/2.f)), lines);
 
-	tutorial_sign_1 = createSign(
-		renderer,
-		{ player_motion.position.x - 64, player_motion.position.y - 64 },
-		messages_1);
+	// std::vector<std::pair<std::string, int>> messages_1 = {
+	// 	{"Welcome to Adrift in Somnium!", 0},
+	// 	{"Click on the move icon or press [2] to access the move menu", 2000}};
 
-	//createMotionText(renderer, { player_motion.position.x - 160, player_motion.position.y - 96 }, "CLICK ME", 3.f, vec3(1.f));
+	// tutorial_sign_1 = createSign(
+	// 	renderer,
+	// 	{ player_motion.position.x - 64, player_motion.position.y - 64 },
+	// 	messages_1);
+
+	// //createMotionText(renderer, { player_motion.position.x - 160, player_motion.position.y - 96 }, "CLICK ME", 3.f, vec3(1.f));
 	createMouseAnimation(renderer, { player_motion.position.x - 64, player_motion.position.y - 128 });
 
-	std::vector<std::pair<std::string, int>> messages_2 = {
-		{"There is a slime enemy ahead!", 0},
-		{"You will need enough EP and be within range to attack the enemy", 3000},
-		{"You can click the attack icon or press [1] to access the attack menu", 6000},
-		{"If you don't have enough EP, end your turn", 9000}};
+	// std::vector<std::pair<std::string, int>> messages_2 = {
+	// 	{"There is a slime enemy ahead!", 0},
+	// 	{"You will need enough EP and be within range to attack the enemy", 3000},
+	// 	{"You can click the attack icon or press [1] to access the attack menu", 6000},
+	// 	{"If you don't have enough EP, end your turn", 9000}};
 
-	tutorial_sign_2 = createSign(
-		renderer,
-		{ player_motion.position.x - 64, player_motion.position.y - 1280 },
-		messages_2);
+	// tutorial_sign_2 = createSign(
+	// 	renderer,
+	// 	{ player_motion.position.x - 64, player_motion.position.y - 1280 },
+	// 	messages_2);
 
-	std::vector<std::pair<std::string, int>> messages_3 = {
-		{"Good Luck adventurer!", 0},
-		{"Go through the door to proceed", 3000}};
+	// std::vector<std::pair<std::string, int>> messages_3 = {
+	// 	{"Good Luck adventurer!", 0},
+	// 	{"Go through the door to proceed", 3000}};
 
-	tutorial_sign_3 = createSign(
-		renderer,
-		{ player_motion.position.x - 64, player_motion.position.y - 2016 },
-		messages_3);
+	// tutorial_sign_3 = createSign(
+	// 	renderer,
+	// 	{ player_motion.position.x - 64, player_motion.position.y - 2016 },
+	// 	messages_3);
+
+	std::vector<std::vector<std::string>> messages2 = {
+		{
+			"WATCH OUT!",
+			"Slime ahead"
+		},
+		{
+			"explain combat"
+		}
+	};
+	tutorial_sign_2 = createSign2(renderer, { player_motion.position.x - 64, player_motion.position.y - 256 }, messages2);
+	createMouseAnimation(renderer, { player_motion.position.x - 64, player_motion.position.y - 320 });
+
+	std::vector<std::vector<std::string>> messages3 = {
+		{
+			"Chest",
+			"Types of chests"
+		},
+		{
+			"Weapon"
+		}
+	};
+	tutorial_sign_3 = createSign2(renderer, { player_motion.position.x - 64, player_motion.position.y - 384 }, messages3);
+	createMouseAnimation(renderer, { player_motion.position.x - 64, player_motion.position.y - 448 });
+
+	std::vector<std::vector<std::string>> messages4 = {
+		{
+			"Items Consumables"
+		},
+		{
+			"Use Items"
+		}
+	};
+	tutorial_sign_4 = createSign2(renderer, { player_motion.position.x - 64, player_motion.position.y - 512 }, messages4);
+	createMouseAnimation(renderer, { player_motion.position.x - 64, player_motion.position.y - 576 });
+
+	std::vector<std::vector<std::string>> messages5 = {
+		{
+			"Objectives"
+		},
+		{
+			"Types of objectives"
+		}
+	};
+	tutorial_sign_5 = createSign2(renderer, { player_motion.position.x - 64, player_motion.position.y - 640 }, messages5);
+	createMouseAnimation(renderer, { player_motion.position.x - 64, player_motion.position.y - 704 });
 
 	// setup turn order system
 	turnOrderSystem.setUpTurnOrder();
 	// start first turn
 	turnOrderSystem.getNextTurn();
-
-	float statbarsX = 150.f;
-	float statbarsY = window_height_px - START_BB_HEIGHT - 55.f * ui_scale;
-	createHPFill(renderer, { statbarsX * ui_scale, statbarsY });
-	createHPBar(renderer,  { statbarsX * ui_scale, statbarsY });
-	createMPFill(renderer, { statbarsX * ui_scale, statbarsY + STAT_BB_HEIGHT });
-	createMPBar(renderer,  { statbarsX * ui_scale, statbarsY + STAT_BB_HEIGHT });
-	createEPFill(renderer, { statbarsX * ui_scale, statbarsY + STAT_BB_HEIGHT * 2 });
-	createEPBar(renderer,  { statbarsX * ui_scale, statbarsY + STAT_BB_HEIGHT * 2 });
-	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
-	objectiveCounter = createObjectiveCounter(renderer, { 256 * ui_scale, window_height_px * (1.f / 16.f) + 32 * ui_scale });
-	objectiveDescText = createText(renderer, { 272 * ui_scale, window_height_px * (1.f / 16.f) + 76 * ui_scale }, "", 2.f, {1.0, 1.0, 1.0});
-	objectiveNumberText = createText(renderer, { 272 * ui_scale, window_height_px * (1.f / 16.f) + 204 * ui_scale }, "", 2.f, { 1.0, 1.0, 1.0 });
+	// fog of war
 	remove_fog_of_war();
 	create_fog_of_war();
 
@@ -1300,6 +1379,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		Mix_PlayChannel(-1, ui_click, 0);
 	}
 
+	if (action == GLFW_RELEASE && key == GLFW_KEY_KP_9) {
+		printf("%u\n", tutorial_flags);
+	}
+
 	// DEBUG: HEAL PLAYER
 	if (action == GLFW_RELEASE && key == GLFW_KEY_EQUAL) {
 		Stats& stat = registry.stats.get(player_main);
@@ -1325,10 +1408,15 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	///////////////////////////
 	// menu hotkeys
 	///////////////////////////
+	// TODO tutorial: tutorial flags
 	if (action == GLFW_RELEASE && key == GLFW_KEY_1) {
 		// attack
 		if (current_game_state == GameStates::BATTLE_MENU) {
-			attackAction();
+			if (tutorial) {
+
+			} else {
+				attackAction();
+			}
 		}
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_2) {
@@ -1339,29 +1427,37 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				Mix_PlayChannel(-1, error_sound, 0);
 			}
 			else {
-				moveAction();
+				if (tutorial) {
+
+				} else {
+					moveAction();
+				}
 			}
 		}
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_3) {
 		// end turn/ guard
 		if (current_game_state == GameStates::BATTLE_MENU) {
-			for (Entity e : registry.guardButtons.entities) {
-				if (!registry.guardButtons.has(e)) {
-						continue;
-				}
-				// perform action based on button ENUM
-				BUTTON_ACTION_ID action = registry.guardButtons.get(e).action;
+			if (tutorial) {
 
-				switch (action) {
-				case BUTTON_ACTION_ID::ACTIONS_GUARD:
-					logText("You brace yourself...");
-					registry.stats.get(player_main).guard = true;
-					handle_end_player_turn(player_main);
-					break;
-				case BUTTON_ACTION_ID::ACTIONS_END_TURN:
-					handle_end_player_turn(player_main);
-					break;
+			} else {
+				for (Entity e : registry.guardButtons.entities) {
+					if (!registry.guardButtons.has(e)) {
+							continue;
+					}
+					// perform action based on button ENUM
+					BUTTON_ACTION_ID action = registry.guardButtons.get(e).action;
+
+					switch (action) {
+					case BUTTON_ACTION_ID::ACTIONS_GUARD:
+						logText("You brace yourself...");
+						registry.stats.get(player_main).guard = true;
+						handle_end_player_turn(player_main);
+						break;
+					case BUTTON_ACTION_ID::ACTIONS_END_TURN:
+						handle_end_player_turn(player_main);
+						break;
+					}
 				}
 			}
 		}
@@ -1369,7 +1465,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (action == GLFW_RELEASE && key == GLFW_KEY_4) {
 		// item
 		if (current_game_state == GameStates::BATTLE_MENU) {
-			itemAction();
+			if (tutorial) {
+
+			} else {
+				itemAction();
+			}
 		}
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
@@ -1491,6 +1591,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	current_speed = fmax(0.f, current_speed);
 }
 
+// TODO tutorial: DIALOGUE state
 // On mouse click callback
 void WorldSystem::on_mouse(int button, int action, int mod) {
 
@@ -1521,6 +1622,36 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			return;
 		}
 
+		if (current_game_state == GameStates::DIALOGUE) {
+			if (registry.textboxes.size() == 0) {
+				set_gamestate(GameStates::BATTLE_MENU);
+			}
+			Textbox& textbox = registry.textboxes.get(activeTextbox);
+			// clear lines
+			for (Entity text : textbox.lines) {
+				registry.remove_all_components_of(text);
+			}
+			textbox.lines.clear();
+			textbox.num_lines = 0;
+			if (textbox.next_message >= textbox.num_messages) {
+				// clear textbox
+				for (Entity textbox : registry.textboxes.entities) {
+					registry.remove_all_components_of(textbox);
+				}
+				set_gamestate(previous_game_state);
+				return;
+			}
+			vec2 pos = registry.motions.get(activeTextbox).position;
+			std::vector<std::string> message = textbox.messages[textbox.next_message];
+			for (std::string line : message) {
+				textbox.num_lines++;
+				Entity text = createText(renderer, pos*2.f + vec2(-TEXTBOX_BB_WIDTH + 100.f, -TEXTBOX_BB_HEIGHT + 75.f * textbox.num_lines), line, 2.0f, vec3(1.f));
+				textbox.lines.push_back(text);
+			}
+			textbox.next_message++;
+			return;
+		}
+
 		///////////////////////////
 		// logic for button presses
 		///////////////////////////
@@ -1547,9 +1678,14 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				switch (action_taken) {
 
 					case BUTTON_ACTION_ID::MENU_START: 
-						start_game();
-						if (tutorial) { spawn_tutorial_entities(); }
-						else { spawn_game_entities(); }
+						if (tutorial) { 
+							start_tutorial();
+							spawn_tutorial_entities();
+						}
+						else {
+							start_game();
+							spawn_game_entities();
+						}
 						break;
 					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 					case BUTTON_ACTION_ID::CONTINUE:
@@ -1892,6 +2028,14 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									break;
 								}
 							}
+							else if (interactable.type == INTERACT_TYPE::SIGN_2) {
+								interactable.interacted = true;
+								if (registry.signs2.has(entity)) {
+									Sign2& sign = registry.signs2.get(entity);
+									activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), sign.messages);
+									set_gamestate(GameStates::DIALOGUE);
+								}
+							}
 						}
 					}
 				}
@@ -1958,6 +2102,51 @@ void WorldSystem::start_game() {
 	objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32});
 	objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
 	objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
+}
+
+void WorldSystem::start_tutorial() {
+	// set flags
+	tutorial_flags = 0x0;
+
+	set_gamestate(GameStates::BATTLE_MENU);
+	if (current_game_state != GameStates::CUTSCENE || current_game_state != GameStates::MAIN_MENU) {
+		Mix_PlayMusic(background_music, -1);
+	}
+	// spawn the actions bar
+	// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
+	// createAttackButton(renderer, { window_width_px - 125.f, 200.f });
+	// createMoveButton(renderer, { window_width_px - 125.f, 350.f });
+	// createGuardButton(renderer, { window_width_px - 125.f, 500.f }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
+	// createItemButton(renderer, { window_width_px - 125.f, 650.f });
+
+	// spawn the collection and pause buttons
+	createPauseButton(renderer, { window_width_px - 80.f, 50.f });
+	createCollectionButton(renderer, { window_width_px - 160.f, 50.f });
+
+	for (int i = registry.renderRequests.size() - 1; i >= 0; i--) {
+		if (registry.renderRequests.components[i].used_layer == RENDER_LAYER_ID::BG) {
+			registry.remove_all_components_of(registry.renderRequests.entities[i]);
+		}
+	}
+	is_player_turn = true;
+	background = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_COLOR, RENDER_LAYER_ID::BG);
+	background_back = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_BACK, RENDER_LAYER_ID::BG_1);
+	background_mid = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_MID, RENDER_LAYER_ID::BG_2);
+	background_front = createGameBackground(renderer, { 0.f, 0.f }, TEXTURE_ASSET_ID::CAVE_FRONT, RENDER_LAYER_ID::BG_3);
+
+	float statbarsX = 150.f;
+	float statbarsY = window_height_px - START_BB_HEIGHT - 55.f * ui_scale;
+	createHPFill(renderer, { statbarsX, statbarsY });
+	createHPBar(renderer, { statbarsX, statbarsY });
+	createMPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createMPBar(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
+	createEPBar(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
+	
+	turnUI = createTurnUI(renderer, { window_width_px * (3.f / 4.f), window_height_px * (1.f / 16.f) });
+	// objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32});
+	// objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
+	// objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
@@ -2318,6 +2507,7 @@ void WorldSystem::loadCollidables(json collidablesList) {
 	}
 }
 
+// TODO tutorial: save/load new signs
 void WorldSystem::loadInteractables(json interactablesList) {
 	for (auto& interactable : interactablesList) {
 		Entity e = Entity();
@@ -2626,72 +2816,233 @@ void WorldSystem::doTurnOrderLogic() {
 }
 
 void WorldSystem::updateTutorial() {
-	if (!movementSelected) {
-		if (current_game_state == GameStates::MOVEMENT_MENU) {
-			movementSelected = true;
-			logText("Left click to move around the room");
+	// if (!movementSelected) {
+	// 	if (current_game_state == GameStates::MOVEMENT_MENU) {
+	// 		movementSelected = true;
+	// 		logText("Left click to move around the room");
+	// 	}
+	// }
+	// else if (!epDepleted) {
+	// 	// check ep depleted
+	// 	if (registry.stats.get(player_main).ep <= 0) {
+	// 		epDepleted = true;
+	// 		logText("You ran out of EP!");
+	// 		logText("Movement and attacks consumes EP");
+	// 		logText("To end your turn, click end turn or by press [3]");
+	// 		Motion& player_motion = registry.motions.get(player_main);
+	// 		tutorial_floor_text = createMotionText(renderer, { player_motion.position.x - 64, player_motion.position.y - 64 }, "GO NORTH", 3.f, vec3(1.f));
+	// 	}
+	// }
+	// // use else if, if want prior flags to be true
+	// if (!secondSign) {
+	// 	if (registry.interactables.has(tutorial_sign_2) && registry.interactables.get(tutorial_sign_2).interacted) {
+	// 		secondSign = true;
+	// 		// spawn slime
+	// 		Motion& sign_motion = registry.motions.get(tutorial_sign_2);
+	// 		tutorial_slime = createEnemy(renderer, { sign_motion.position.x - 64.f, sign_motion.position.y - 256.f });
+	// 		turnOrderSystem.addNewEntity(tutorial_slime);
+	// 	}
+	// }
+	// else if (!slimeDefeated) {
+	// 	Motion& player_motion = registry.motions.get(player_main);
+	// 	if (registry.enemies.size() <= 0) {
+	// 		slimeDefeated = true;
+	// 		// spawn campfire
+	// 		tutorial_campfire = createCampfire(renderer, { player_motion.position.x, player_motion.position.y - 96.f });
+	// 		logText("Left click on the campfire to interact with it");
+	// 	}
+	// }
+	// else if (!interactedCampfire) {
+	// 	if (registry.interactables.has(tutorial_campfire) && registry.interactables.get(tutorial_campfire).interacted) {
+	// 		interactedCampfire = true;
+	// 		std::vector<std::pair<std::string, int>> messages = {
+	// 			{"Campfires will recover your HP and MP to full", 0},
+	// 			{"There are several items that you can interact with", 3000},
+	// 			{"Left click treasures and items to interact with them", 6000},
+	// 			{"You can view artifacts by clicking the book in the top right", 9000}};
+
+	// 		Entity campfire_sign = createSign(
+	// 			renderer,
+	// 			{ -64.f, -64.f },
+	// 			messages);
+
+	// 		registry.signs.get(campfire_sign).playing = true;
+	// 	}
+	// }
+	// // use else if, if want prior flags to be true
+	// if (!thirdSign) {
+	// 	if (registry.interactables.has(tutorial_sign_3) && registry.interactables.get(tutorial_sign_3).interacted) {
+	// 		thirdSign = true;
+	// 		// spawn stairs (or door)
+	// 		Motion& sign_motion = registry.motions.get(tutorial_sign_3);
+	// 		tutorial_door = createDoor(renderer, { sign_motion.position.x + 64.f, sign_motion.position.y });
+	// 	}
+	// }
+	// else if (registry.interactables.has(tutorial_door) && registry.interactables.get(tutorial_door).interacted) {
+	// 	tutorial = false;
+	// 	registry.remove_all_components_of(tutorial_floor_text);
+	// }
+
+	if (!(tutorial_flags & SIGN_1)) {
+		if (registry.interactables.has(tutorial_sign_1) && registry.interactables.get(tutorial_sign_1).interacted) {
+			tutorial_flags = tutorial_flags | SIGN_1;
 		}
 	}
-	else if (!epDepleted) {
+	else if (!(tutorial_flags & MOVEMENT_SELECTED)) {
+		if (current_game_state == GameStates::MOVEMENT_MENU) {
+			tutorial_flags = tutorial_flags | MOVEMENT_SELECTED;
+			set_gamestate(GameStates::DIALOGUE);
+			std::vector<std::vector<std::string>> messages = {
+				{
+					"movement"
+				}
+			};
+			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
+		}
+	}
+	else if (!(tutorial_flags & EP_DEPLETED)) {
 		// check ep depleted
 		if (registry.stats.get(player_main).ep <= 0) {
-			epDepleted = true;
-			logText("You ran out of EP!");
-			logText("Movement and attacks consumes EP");
-			logText("To end your turn, click end turn or by press [3]");
-			Motion& player_motion = registry.motions.get(player_main);
-			tutorial_floor_text = createMotionText(renderer, { player_motion.position.x - 64, player_motion.position.y - 64 }, "GO NORTH", 3.f, vec3(1.f));
+			tutorial_flags = tutorial_flags | EP_DEPLETED;
+			printf("%u\n", tutorial_flags);
+			set_gamestate(GameStates::BATTLE_MENU);
+			set_gamestate(GameStates::DIALOGUE);
+			std::vector<std::vector<std::string>> messages = {
+				{
+					"You have run out of EP!",
+					"EP..."
+				},
+				{
+					"End your turn"
+				}
+			};
+			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
 		}
 	}
-	// use else if, if want prior flags to be true
-	if (!secondSign) {
+	else if (!(tutorial_flags & SIGN_2)) {
 		if (registry.interactables.has(tutorial_sign_2) && registry.interactables.get(tutorial_sign_2).interacted) {
-			secondSign = true;
+			tutorial_flags = tutorial_flags | SIGN_2;
+			// spawn slime
+			Motion& sign_motion = registry.motions.get(tutorial_sign_2);
+			tutorial_slime = createEnemy(renderer, { sign_motion.position.x - 64.f, sign_motion.position.y - 256.f });
+			registry.stats.get(tutorial_slime).hp = 14;
+			turnOrderSystem.addNewEntity(tutorial_slime);
+		}
+	}
+	else if (!(tutorial_flags & SLIME1_DEFEATED)) {
+		Motion& player_motion = registry.motions.get(player_main);
+		if (registry.enemies.size() <= 0) {
+			tutorial_flags = tutorial_flags | SLIME1_DEFEATED;
+			// spawn campfire
+			tutorial_campfire = createCampfire(renderer, { player_motion.position.x, player_motion.position.y - 96.f });
+			set_gamestate(GameStates::DIALOGUE);
+			std::vector<std::vector<std::string>> messages = {
+				{
+					"Camfires will recover your HP and MP to full!",
+				},
+				{
+					"Approach and Interact with it."
+				}
+			};
+			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
+		}
+	}
+	else if (!(tutorial_flags & CAMPFIRE_INTERACTED)) {
+		if (registry.interactables.has(tutorial_campfire) && registry.interactables.get(tutorial_campfire).interacted) {
+			tutorial_flags = tutorial_flags | CAMPFIRE_INTERACTED;
+			set_gamestate(GameStates::DIALOGUE);
+			std::vector<std::vector<std::string>> messages = {
+				{
+					"Camfires will recover your HP and MP to full!",
+				},
+				{
+					"Explain Interaction with interactables"
+				}
+			};
+			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
+		}
+	}
+	else if (!(tutorial_flags & SIGN_3)) {
+		if (registry.interactables.has(tutorial_sign_3) && registry.interactables.get(tutorial_sign_3).interacted) {
+			tutorial_flags = tutorial_flags | SIGN_3;
+			// spawn chests? or preplaces?
+			Motion& sign_motion = registry.motions.get(tutorial_sign_3);
+			tutorial_chest_1 = createChest(renderer, sign_motion.position + vec2(64.f, 0.f), false);
+		}
+	}
+	else if (!(tutorial_flags & CHEST_1)) {
+		if (registry.interactables.has(tutorial_chest_1) && registry.interactables.get(tutorial_chest_1).interacted) {
+			tutorial_flags = tutorial_flags | CHEST_1;
+			set_gamestate(GameStates::DIALOGUE);
+			std::vector<std::vector<std::string>> messages = {
+				{
+					"Grab the sword!",
+				},
+				{
+					"Explain Advanced Attacks",
+					"Explain Move preparation"
+				}
+			};
+			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
 			// spawn slime
 			Motion& sign_motion = registry.motions.get(tutorial_sign_2);
 			tutorial_slime = createEnemy(renderer, { sign_motion.position.x - 64.f, sign_motion.position.y - 256.f });
 			turnOrderSystem.addNewEntity(tutorial_slime);
 		}
 	}
-	else if (!slimeDefeated) {
+	else if (!(tutorial_flags & SLIME2_DEFEATED)) {
 		Motion& player_motion = registry.motions.get(player_main);
 		if (registry.enemies.size() <= 0) {
-			slimeDefeated = true;
-			// spawn campfire
-			tutorial_campfire = createCampfire(renderer, { player_motion.position.x, player_motion.position.y - 96.f });
-			logText("Left click on the campfire to interact with it");
+			tutorial_flags = tutorial_flags | SLIME2_DEFEATED;
+			set_gamestate(GameStates::DIALOGUE);
+			// spawn chests? or preplaces?
+			tutorial_chest_2 = createChest(renderer, player_motion.position + vec2(64.f, 0.f), true);
+			std::vector<std::vector<std::string>> messages = {
+				{
+					"Camfires will recover your HP and MP to full!",
+				},
+				{
+					"Approach and Interact with it."
+				}
+			};
+			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
 		}
 	}
-	else if (!interactedCampfire) {
-		if (registry.interactables.has(tutorial_campfire) && registry.interactables.get(tutorial_campfire).interacted) {
-			interactedCampfire = true;
-			std::vector<std::pair<std::string, int>> messages = {
-				{"Campfires will recover your HP and MP to full", 0},
-				{"There are several items that you can interact with", 3000},
-				{"Left click treasures and items to interact with them", 6000},
-				{"You can view artifacts by clicking the book in the top right", 9000}};
+	else if (!(tutorial_flags & CHEST_2)) {
+		if (registry.interactables.has(tutorial_chest_2) && registry.interactables.get(tutorial_chest_2).interacted) {
+			tutorial_flags = tutorial_flags | CHEST_2;
+			set_gamestate(GameStates::DIALOGUE);
+			std::vector<std::vector<std::string>> messages = {
+				{
+					"Artifacts",
+				},
+				{
+					"Explain Artifacts",
+					"View Book"
+				}
+			};
+			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
+		}
+	}
+	else if (!(tutorial_flags & SIGN_4)) {
+		if (registry.interactables.has(tutorial_sign_4) && registry.interactables.get(tutorial_sign_4).interacted) {
+			tutorial_flags = tutorial_flags | SIGN_4;
+			// spawn potion?
+		}
+	}
+	else if (!(tutorial_flags & SIGN_5)) {
+		if (registry.interactables.has(tutorial_sign_5) && registry.interactables.get(tutorial_sign_5).interacted) {
+			tutorial_flags = tutorial_flags | SIGN_5;
+			objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32});
+			objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
+			objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
+			roomSystem.setObjective(ObjectiveType::ACTIVATE_SWITCHES, 2);
+		}
+	}
+	else if (!(tutorial_flags & EXIT)) {
+		// reset stats
+	}
 
-			Entity campfire_sign = createSign(
-				renderer,
-				{ -64.f, -64.f },
-				messages);
-
-			registry.signs.get(campfire_sign).playing = true;
-		}
-	}
-	// use else if, if want prior flags to be true
-	if (!thirdSign) {
-		if (registry.interactables.has(tutorial_sign_3) && registry.interactables.get(tutorial_sign_3).interacted) {
-			thirdSign = true;
-			// spawn stairs (or door)
-			Motion& sign_motion = registry.motions.get(tutorial_sign_3);
-			tutorial_door = createDoor(renderer, { sign_motion.position.x + 64.f, sign_motion.position.y });
-		}
-	}
-	else if (registry.interactables.has(tutorial_door) && registry.interactables.get(tutorial_door).interacted) {
-		tutorial = false;
-		registry.remove_all_components_of(tutorial_floor_text);
-	}
 }
 
 // Set attack state for enemies who attack after moving

@@ -26,6 +26,8 @@ enum class GameStates {
 	ATTACK_MENU,
 	ITEM_MENU,
 	COLLECTION_MENU,
+	// TODO tutorial: DIAGLOGUE, // for textboxes
+	DIALOGUE,
 
 	ENEMY_TURN,
 	

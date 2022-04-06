@@ -22,6 +22,8 @@ const float DOOR_BB_WIDTH = 0.6f * 150.f * ui_scale;
 const float DOOR_BB_HEIGHT = 0.6f * 150.f * ui_scale;
 const float SIGN_BB_WIDTH = 64.f * ui_scale;
 const float SIGN_BB_HEIGHT = 64.f * ui_scale;
+const float TEXTBOX_BB_WIDTH = 1200.f * ui_scale;
+const float TEXTBOX_BB_HEIGHT = 300.f * ui_scale;
 const float STAIR_BB_WIDTH = 0.6f * 150.f * ui_scale;
 const float STAIR_BB_HEIGHT = 0.6f * 150.f * ui_scale;
 const float WALL_BB_WIDTH = 100.f * ui_scale;
@@ -59,7 +61,7 @@ const float POINTER_BB_HEIGHT = 64.f * ui_scale;
 const float SWITCH_BB_WIDTH = 64.f * ui_scale;
 const float SWITCH_BB_HEIGHT = 64.f * ui_scale;
 
-// want to make fog small so it can be rendered a lot TODO: this is a bad implementation and will need to be changed later to use shadows or drawing circles or something better
+// want to make fog small so it can be rendered a lot
 const float FOG_BB_WIDTH = 0.6f * 100.f * ui_scale;
 const float FOG_BB_HEIGHT = 0.6f * 100.f * ui_scale;
 
@@ -94,6 +96,10 @@ Entity createChest(RenderSystem* renderer, vec2 pos, bool isArtifact);
 Entity createDoor(RenderSystem* renderer, vec2 pos);
 // Sign
 Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::pair<std::string, int>>& messages);
+// TODO tutorial: Sign using textboxes
+Entity createSign2(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std::string>>& messages);
+// TODO tutorial: Textbox
+Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std::string>>& messages);
 // Stair
 Entity createStair(RenderSystem* renderer, vec2 pos);
 // Wall

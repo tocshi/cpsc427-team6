@@ -173,6 +173,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 
+	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
+	shadow_container.shadow_entity = createShadow(pos, entity);
 	return entity;
 }
 
@@ -228,6 +230,9 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
 	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+
+	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
+	shadow_container.shadow_entity = createShadow(pos, entity);
 
 	return entity;
 }
@@ -319,6 +324,9 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 
+	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
+	shadow_container.shadow_entity = createShadow(pos, entity);
+
 	return entity;
 }
 
@@ -371,6 +379,9 @@ Entity createKingSlime(RenderSystem* renderer, vec2 pos)
 
 	// add status container to slime
 	registry.statuses.emplace(entity);
+
+	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
+	shadow_container.shadow_entity = createShadow(pos, entity);
 	return entity;
 }
 
@@ -1543,7 +1554,7 @@ Entity createAttackDialogButton(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_
 }
 
 // Collection menu
-Entity createCollectionMenu(RenderSystem* renderer, vec2 pos) {
+Entity createCollectionMenu(RenderSystem* renderer, vec2 pos, Entity player) {
 	auto entity = Entity();
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
@@ -1605,7 +1616,7 @@ Entity createCollectionMenu(RenderSystem* renderer, vec2 pos) {
 			static_cast<ARTIFACT>(artifact));
 
 		// need to render the current count beside it
-		Inventory inv = registry.inventories.components[0];
+		Inventory inv = registry.inventories.get(player);
 
 		int size = inv.artifact[(int)artifact];
 		std::string sizeStr = std::to_string(size);
@@ -2631,6 +2642,25 @@ Entity createEnemyHPFill(vec2 position, Entity parent)
 
 	HPDisplay& hp_display = registry.hpDisplays.emplace(entity);
 	hp_display.parent = parent;
+
+	return entity;
+}
+
+Entity createShadow(vec2 pos, Entity caster) {
+	Entity entity = Entity();
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = {0,0};
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SHADOW,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::SHADOW });
+	Shadow& shadow = registry.shadows.emplace(entity);
+	shadow.caster = caster;
 
 	return entity;
 }

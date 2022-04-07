@@ -1114,14 +1114,10 @@ void WorldSystem::spawn_tutorial_entities() {
 	// spawn signs at appropriate locations
 	std::vector<std::vector<std::string>> messages = {
 		{
-			"",
 			"Welcome To ADRIFT IN SOMNIUM"
 		},
 		{
-			"explain menu navigation"
-		},
-		{
-			"Choose move or press [2] to continue."
+			"Click on the move icon or press [2] to continue."
 		}
 	};
 	tutorial_sign_1 = createSign2(renderer, { player_motion.position.x - 64*ui_scale, player_motion.position.y - 64*ui_scale }, messages);
@@ -1132,10 +1128,12 @@ void WorldSystem::spawn_tutorial_entities() {
 	std::vector<std::vector<std::string>> messages2 = {
 		{
 			"WATCH OUT!",
-			"Slime ahead"
+			"",
+			"A weakened slime has appeared!"
 		},
 		{
-			"explain combat"
+			"Move towards the slime and",
+			"click on the attack icon or press [1] to continue."
 		}
 	};
 	tutorial_sign_2 = createSign2(renderer, { player_motion.position.x + 11*64*ui_scale, player_motion.position.y - 10*64*ui_scale }, messages2);
@@ -1145,11 +1143,23 @@ void WorldSystem::spawn_tutorial_entities() {
 
 	std::vector<std::vector<std::string>> messages3 = {
 		{
-			"Chest",
-			"Types of chests"
+			"Speaking of interactables,",
+			"You can find many chests."
 		},
 		{
-			"Weapon"
+			"There are 2 kinds of chests."
+		},
+		{
+			"The chests with round corners contain weapons!",
+			"Different weapons have different abilities.",
+			"Be sure to experiement with different weapons!"
+		},
+		{
+			"The chests with square corners contain artifacts!",
+			"Artifacts give you special stat boost!"
+		},
+		{
+			"Open the chest on the right to move on."
 		}
 	};
 	tutorial_sign_3 = createSign2(renderer, { player_motion.position.x + 10*64*ui_scale + 32*ui_scale, player_motion.position.y - 28*64*ui_scale }, messages3);
@@ -1159,10 +1169,8 @@ void WorldSystem::spawn_tutorial_entities() {
 
 	std::vector<std::vector<std::string>> messages4 = {
 		{
-			"Items Consumables"
-		},
-		{
-			"Use Items"
+			"You can view your current equipment using the equipment menu.",
+			"click on the item icon or press [3] to enter the equipement menu."
 		}
 	};
 	tutorial_sign_4 = createSign2(renderer, { player_motion.position.x, player_motion.position.y - 25*64*ui_scale }, messages4);
@@ -1172,10 +1180,16 @@ void WorldSystem::spawn_tutorial_entities() {
 
 	std::vector<std::vector<std::string>> messages5 = {
 		{
-			"Objectives"
+			"To proceed through the rooms, you have to complete objectives.",
+			"Your current objective will be shown in the top left!"
 		},
 		{
-			"Types of objectives"
+			"The Objective remaining shows you how much progress you have left",
+			"Once the objective is complete, a door will open somewhere in the map"
+		},
+		{
+			"When a door appears,",
+			"find your way to the door and left click it to move to the next room!"
 		}
 	};
 	tutorial_sign_5 = createSign2(renderer, { player_motion.position.x, player_motion.position.y - 37*64*ui_scale }, messages5);
@@ -3012,15 +3026,15 @@ void WorldSystem::updateTutorial() {
 					"You are in movement mode!",
 				},
 				{
-					"In movement mode, click anywhere on the screen to move to that location",
-					"EP will be depleted as you move."
+					"In movement mode, click anywhere on the screen to move to that location.",
+					"Energy Points (EP) will be depleted as you move."
 				},
 				{
-					"To exit movement mode, click on the back button,",
-					"or right click, or hit ESC."
+					"To exit movement mode, click on the back button.",
+					"You can also right click or hit ESC to exit movement mode."
 				},
 				{
-					"move until you run out of EP."
+					"Move until you run out of EP."
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
@@ -3035,11 +3049,11 @@ void WorldSystem::updateTutorial() {
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
 				{
-					"You have run out of EP!",
-					"EP..."
+					"You have run out of EP!"
 				},
 				{
-					"End your turn"
+					"Your actions are limited with 0 EP.",
+					"To refill your EP, end your turn."
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
@@ -3072,12 +3086,13 @@ void WorldSystem::updateTutorial() {
 					"Simply left click on a nearby enemy to hit it."
 				},
 				{
-					"You will need 50 EP to perform you attack!",
-					"If you do not have enough, refresh it by ending your turn."
+					"You will need 50 EP to perform your basic attack!",
+					"And you can only attack once per turn!",
+					"If you do not have enough EP, refresh it by ending your turn."
 				},
 				{
 					"To exit attack mode, click on the back button,",
-					"or right click, or hit ESC."
+					"You can also right click or hit ESC to exit attack mode."
 				},
 				{
 					"Defeat the slime to move on."
@@ -3096,10 +3111,14 @@ void WorldSystem::updateTutorial() {
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
 				{
+					"A campfire has appeared!"
+				},
+				{
 					"Camfires will recover your HP and MP to full!",
 				},
 				{
-					"Approach and Interact with it."
+					"To interact with a campfire move close to it",
+					"and left click when not in a sub menu to interact with it."
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
@@ -3112,7 +3131,10 @@ void WorldSystem::updateTutorial() {
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
 				{
-					"Explain Interaction with interactables"
+					"There are many things that you can interact with.",
+					"If something looks interesting, approach it",
+					"and left click to interact with it!"
+					"Remember to exit out of sub menus before interacting!"
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
@@ -3133,11 +3155,29 @@ void WorldSystem::updateTutorial() {
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
 				{
-					"Grab the sword!",
+					"You are ambushed by an enemy slime!"
+					"",
+					"Grab the sword by getting close and left clicking!",
 				},
 				{
-					"Explain Advanced Attacks",
-					"Explain Move preparation"
+					"With this new sword, you will see new abilities in attack mode!",
+					"Click the icons to view the attacks."
+				},
+				{
+					"Advanced combat tip:",
+					"If you want to move but still be able to attack,",
+					"you can prepare an attack action!"
+				},
+				{
+					"Click on an attack and choose 'prepare'",
+					"You can now move without the worry of running low on EP!",
+				},
+				{
+					"To use the prepared attack,",
+					"Enter attack mode and left click an enemy to use your attack!"
+				},
+				{
+					"Defeat the slime to move on."
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
@@ -3155,7 +3195,7 @@ void WorldSystem::updateTutorial() {
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
 				{
-					"Wall has opened up",
+					"A path to the other chest opened up!"
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
@@ -3169,12 +3209,13 @@ void WorldSystem::updateTutorial() {
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
 				{
-					"Artifacts",
-					"click to pick it up"
+					"Artifacts gives you many stat buffs!",
+					"Left click the artifact to pick it up!"
 				},
 				{
-					"Explain Artifacts",
-					"View Book"
+					"You can see what the artifacts do in the glossary!",
+					"Click the book in the top right to view all the artifacts!",
+					"To see what an artifact does, click on an artifact in the book!"
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);

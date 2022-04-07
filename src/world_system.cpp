@@ -1152,11 +1152,11 @@ void WorldSystem::spawn_tutorial_entities() {
 		{
 			"The chests with round corners contain weapons!",
 			"Different weapons have different abilities.",
-			"Be sure to experiement with different weapons!"
+			"Be sure to experiment with different weapons!"
 		},
 		{
 			"The chests with square corners contain artifacts!",
-			"Artifacts give you special stat boost!"
+			"Artifacts can give you various beneficial effects!"
 		},
 		{
 			"Open the chest on the right to move on."
@@ -3133,7 +3133,7 @@ void WorldSystem::updateTutorial() {
 				{
 					"There are many things that you can interact with.",
 					"If something looks interesting, approach it",
-					"and left click to interact with it!"
+					"and left click to interact with it!",
 					"Remember to exit out of sub menus before interacting!"
 				}
 			};
@@ -3209,7 +3209,7 @@ void WorldSystem::updateTutorial() {
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
 				{
-					"Artifacts gives you many stat buffs!",
+					"Artifacts gives you various beneficial effects!",
 					"Left click the artifact to pick it up!"
 				},
 				{

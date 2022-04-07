@@ -2425,8 +2425,8 @@ Entity createMouseAnimation(RenderSystem* renderer, vec2 pos) {
 	anim.frame_indices = { 3, 0 };
 	anim.spritesheet_columns = 1;
 	anim.spritesheet_rows = 4;
-	anim.spritesheet_width = 50;
-	anim.spritesheet_height = 200;
+	anim.spritesheet_width = 16;
+	anim.spritesheet_height = 64;
 	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
 
 	Motion& motion = registry.motions.emplace(entity);

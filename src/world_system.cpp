@@ -1727,35 +1727,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		}
 
 		if (current_game_state == GameStates::DIALOGUE) {
-			if (registry.textboxes.size() == 0) {
-				set_gamestate(GameStates::BATTLE_MENU);
-			}
-			Textbox& textbox = registry.textboxes.get(activeTextbox);
-			// clear lines
-			for (Entity text : textbox.lines) {
-				registry.remove_all_components_of(text);
-			}
-			textbox.lines.clear();
-			textbox.num_lines = 0;
-			if (textbox.next_message >= textbox.num_messages) {
-				// clear textbox (no more messages)
-				if (registry.animations.has(textbox.icon)) {
-					registry.remove_all_components_of(textbox.icon);
-				}
-				for (Entity textbox : registry.textboxes.entities) {
-					registry.remove_all_components_of(textbox);
-				}
-				set_gamestate(previous_game_state);
-				return;
-			}
-			vec2 pos = registry.motions.get(activeTextbox).position;
-			std::vector<std::string> message = textbox.messages[textbox.next_message];
-			for (std::string line : message) {
-				textbox.num_lines++;
-				Entity text = createText(renderer, pos*2.f + vec2(-TEXTBOX_BB_WIDTH + 100.f, -TEXTBOX_BB_HEIGHT + 75.f * textbox.num_lines), line, 2.0f, vec3(1.f));
-				textbox.lines.push_back(text);
-			}
-			textbox.next_message++;
+			advanceTextbox();
 			return;
 		}
 
@@ -3444,6 +3416,39 @@ void WorldSystem::itemAction() {
 void WorldSystem::cancelAction() {
 	backAction();
 }
+
+void WorldSystem::advanceTextbox() {
+	if (registry.textboxes.size() == 0) {
+			set_gamestate(GameStates::BATTLE_MENU);
+		}
+		Textbox& textbox = registry.textboxes.get(activeTextbox);
+		// clear lines
+		for (Entity text : textbox.lines) {
+			registry.remove_all_components_of(text);
+		}
+		textbox.lines.clear();
+		textbox.num_lines = 0;
+		if (textbox.next_message >= textbox.num_messages) {
+			// clear textbox (no more messages)
+			if (registry.animations.has(textbox.icon)) {
+				registry.remove_all_components_of(textbox.icon);
+			}
+			for (Entity textbox : registry.textboxes.entities) {
+				registry.remove_all_components_of(textbox);
+			}
+			set_gamestate(previous_game_state);
+			return;
+		}
+		vec2 pos = registry.motions.get(activeTextbox).position;
+		std::vector<std::string> message = textbox.messages[textbox.next_message];
+		for (std::string line : message) {
+			textbox.num_lines++;
+			Entity text = createText(renderer, pos*2.f + vec2(-TEXTBOX_BB_WIDTH + 100.f, -TEXTBOX_BB_HEIGHT + 75.f * textbox.num_lines), line, 2.0f, vec3(1.f));
+			textbox.lines.push_back(text);
+		}
+		textbox.next_message++;
+}
+
 void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
 	// save game (should be just player stuff)
 	json playerData = saveSystem.jsonifyPlayer(player_main);

@@ -313,6 +313,10 @@ private:
 
 	// action button helper
 	void handleActionButtonPress();
+
+	// next textbox
+	void advanceTextbox();
+
 	// generate and setup a new room
 	void generateNewRoom(Floors floor, bool repeat_allowed);
 

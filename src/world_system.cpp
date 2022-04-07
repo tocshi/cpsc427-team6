@@ -3106,7 +3106,7 @@ void WorldSystem::updateTutorial() {
 					"If you do not have enough EP, refresh it by ending your turn."
 				},
 				{
-					"To exit attack mode, click on the back button,",
+					"To exit attack mode, click on the back button.",
 					"You can also right click or hit ESC to exit attack mode."
 				},
 				{

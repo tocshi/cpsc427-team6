@@ -10,6 +10,17 @@
 // Source: trust me bro
 //class WorldSystem;
 
+struct AstarNode {
+	AstarNode* parent;
+	std::vector<AstarNode*> children;
+	vec2 position;
+	float g_cost;
+	float h_cost;
+
+	// g_cost + h_cost
+	float f_cost;
+};
+
 class AISystem
 {
 public:
@@ -20,4 +31,3 @@ public:
 	void king_slime_logic(Entity enemy, Entity& player);
 	bool player_in_range(vec2 position, float radius);
 };
-

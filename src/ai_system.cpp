@@ -7,6 +7,400 @@
 #include "world_init.hpp"
 #include "physics_system.hpp"
 
+// returns true if there is a (non-player) entity at the current location
+bool entityAtLocation(vec2 pos) {
+	// walls
+	for (Entity w : registry.collidables.entities) {
+		vec2 wallPos = registry.motions.get(w).position;
+
+		// if colliding with wall, return true;
+		return (wallPos.x + WALL_BB_WIDTH >= pos.x && wallPos.x - WALL_BB_WIDTH <= pos.x
+			&& wallPos.y + WALL_BB_HEIGHT >= pos.y && wallPos.y - WALL_BB_HEIGHT <= pos.y);
+	}
+
+	// todo: implement for other enemies
+
+	return false;
+}
+
+// returns true if the given node is in the list based on the position of the nodes
+AstarNode* nodeInList(AstarNode* node, std::vector<AstarNode*> list) {
+	for (int i = 0; i < list.size(); i++) {
+		if (list[i]->position == node->position) {
+			return list[i];
+		}
+	}
+	return nullptr;
+}
+
+void removeFromList(AstarNode* node, std::vector<AstarNode*>* list) {
+	std::vector<AstarNode*>& listRef = *list;
+	for (int i = 0; i < listRef.size(); i++) {
+		if (listRef[i] == node) {
+			listRef.erase(listRef.begin() + i);
+			return;
+		}
+	}
+}
+
+// returns the node with the lowest f_cost in the given list
+AstarNode* getLowestCostNodeInList(std::vector<AstarNode*> list) {
+	AstarNode* lowest = list[0];
+	for (int i = 1; i < list.size(); i++) {
+		if (list[i]->f_cost < lowest->f_cost) {
+			lowest = list[i];
+		}
+	}
+	return lowest;
+}
+
+// Astar returns a root AstarNode, then the ai step exectutes a move to each of those steps in sequence
+AstarNode* AstarPathfinding(Entity enemy, float range) {
+	// initialize the open and closed lists
+	std::vector<AstarNode*> openSet;
+	std::vector<AstarNode*> closedSet;
+
+	vec2 enemyPos = registry.motions.get(enemy).position;
+
+	// get player position
+	vec2 playerPos = vec2(0.f, 0.f);
+	for (Entity p : registry.players.entities) {
+		playerPos = registry.motions.get(p).position;
+	}
+
+	AstarNode* startNode = new AstarNode;
+	startNode->position = enemyPos;
+
+	openSet.push_back(startNode);
+
+	AstarNode* endNode = new AstarNode;
+	AstarNode* currNode;
+
+	while (openSet.size() > 0) {
+		// get the next node to look at on the list
+		currNode = getLowestCostNodeInList(openSet);
+		printf("%f", currNode->position.x);
+		removeFromList(currNode, &openSet);
+
+		closedSet.push_back(currNode);
+
+		// need to check each of the squares + 32 pixels away
+
+		// 10 g_cost for the 4 sides
+		
+		// right side
+		if (currNode->position.x - enemyPos.x <= range && !entityAtLocation(currNode->position + vec2(32.f, 0.f))) {
+			AstarNode* node = new AstarNode;
+			node->position = currNode->position + vec2(32.f, 0.f);
+			node->parent = currNode;
+			node->g_cost = currNode->g_cost + 10.f;
+			// h_cost is the distance to the player
+			node->h_cost = sqrt(pow(playerPos.x - node->position.x, 2) + pow(playerPos.y - node->position.y, 2));
+			node->f_cost = node->g_cost + node->h_cost;
+
+			// if the node is at the player break
+			if (node->h_cost <= 32.f) {
+				printf("here right");
+				endNode->position = node->position;
+				endNode->parent = node->parent;
+				endNode->g_cost = node->g_cost;
+				endNode->f_cost = node->f_cost;
+				break;
+			}
+
+			// don't look at the node if it's in the closedSet
+			if (!nodeInList(node, closedSet)) {
+				AstarNode* list_node = nodeInList(node, openSet);
+				if (list_node) {
+					if (node->g_cost < list_node->g_cost) {
+						// remove the old position from the openSet
+						removeFromList(list_node, &openSet);
+						// add the new node to the list instead
+						openSet.push_back(node);
+					}
+				}
+				else {
+					openSet.push_back(node);
+				}
+			}			
+		}
+
+		// left side
+		if (currNode->position.x - enemyPos.x <= range && !entityAtLocation(currNode->position + vec2(32.f, 0.f))) {
+			AstarNode* node = new AstarNode;
+			node->position = currNode->position - vec2(32.f, 0.f);
+			node->parent = currNode;
+			node->g_cost = currNode->g_cost + 10.f;
+			// h_cost is the distance to the player
+			node->h_cost = sqrt(pow(playerPos.x - node->position.x, 2) + pow(playerPos.y - node->position.y, 2));
+			node->f_cost = node->g_cost + node->h_cost;
+
+			// if the node is at the player break
+			if (node->h_cost <= 32.f) {
+				printf("here left");
+				endNode->position = node->position;
+				endNode->parent = node->parent;
+				endNode->g_cost = node->g_cost;
+				endNode->f_cost = node->f_cost;
+				break;
+			}
+
+			// don't look at the node if it's in the closedSet
+			if (!nodeInList(node, closedSet)) {
+				AstarNode* list_node = nodeInList(node, openSet);
+				if (list_node) {
+					if (node->g_cost < list_node->g_cost) {
+						// remove the old position from the openSet
+						removeFromList(list_node, &openSet);
+						// add the new node to the list instead
+						openSet.push_back(node);
+					}
+				}
+				else {
+					openSet.push_back(node);
+				}
+			}
+		}
+
+		// top
+		if (currNode->position.x - enemyPos.x <= range && !entityAtLocation(currNode->position + vec2(32.f, 0.f))) {
+			AstarNode* node = new AstarNode;
+			node->position = currNode->position - vec2(0.f, 32.f);
+			node->parent = currNode;
+			node->g_cost = currNode->g_cost + 10.f;
+			// h_cost is the distance to the player
+			node->h_cost = sqrt(pow(playerPos.x - node->position.x, 2) + pow(playerPos.y - node->position.y, 2));
+			node->f_cost = node->g_cost + node->h_cost;
+
+			// if the node is at the player break
+			if (node->h_cost <= 32.f) {
+				printf("here top");
+				endNode->position = node->position;
+				endNode->parent = node->parent;
+				endNode->g_cost = node->g_cost;
+				endNode->f_cost = node->f_cost;
+				break;
+			}
+
+			// don't look at the node if it's in the closedSet
+			if (!nodeInList(node, closedSet)) {
+				AstarNode* list_node = nodeInList(node, openSet);
+				if (list_node) {
+					if (node->g_cost < list_node->g_cost) {
+						// remove the old position from the openSet
+						removeFromList(list_node, &openSet);
+						// add the new node to the list instead
+						openSet.push_back(node);
+					}
+				}
+				else {
+					openSet.push_back(node);
+				}
+			}
+		}
+
+		// bottom
+		if (currNode->position.x - enemyPos.x <= range && !entityAtLocation(currNode->position + vec2(32.f, 0.f))) {
+			AstarNode* node = new AstarNode;
+			node->position = currNode->position + vec2(0.f, 32.f);
+			node->parent = currNode;
+			node->g_cost = currNode->g_cost + 10.f;
+			// h_cost is the distance to the player
+			node->h_cost = sqrt(pow(playerPos.x - node->position.x, 2) + pow(playerPos.y - node->position.y, 2));
+			node->f_cost = node->g_cost + node->h_cost;
+
+			// if the node is at the player break
+			if (node->h_cost <= 32.f) {
+				printf("here bottom");
+				endNode->position = node->position;
+				endNode->parent = node->parent;
+				endNode->g_cost = node->g_cost;
+				endNode->f_cost = node->f_cost;
+				break;
+			}
+
+			// don't look at the node if it's in the closedSet
+			if (!nodeInList(node, closedSet)) {
+				AstarNode* list_node = nodeInList(node, openSet);
+				if (list_node) {
+					if (node->g_cost < list_node->g_cost) {
+						// remove the old position from the openSet
+						removeFromList(list_node, &openSet);
+						// add the new node to the list instead
+						openSet.push_back(node);
+					}
+				}
+				else {
+					openSet.push_back(node);
+				}
+			}
+		}
+
+		// 14 g_cost for the diagonals
+
+		// top right
+		if (currNode->position.x - enemyPos.x <= range && !entityAtLocation(currNode->position + vec2(32.f, 0.f))) {
+			AstarNode* node = new AstarNode;
+			node->position = currNode->position + vec2(32.f, -32.f);
+			node->parent = currNode;
+			node->g_cost = currNode->g_cost + 14.f;
+			// h_cost is the distance to the player
+			node->h_cost = sqrt(pow(playerPos.x - node->position.x, 2) + pow(playerPos.y - node->position.y, 2));
+			node->f_cost = node->g_cost + node->h_cost;
+
+			// if the node is at the player break
+			if (node->h_cost <= 32.f) {
+				printf("here top right");
+				endNode->position = node->position;
+				endNode->parent = node->parent;
+				endNode->g_cost = node->g_cost;
+				endNode->f_cost = node->f_cost;
+				break;
+			}
+
+			// don't look at the node if it's in the closedSet
+			if (!nodeInList(node, closedSet)) {
+				AstarNode* list_node = nodeInList(node, openSet);
+				if (list_node) {
+					if (node->g_cost < list_node->g_cost) {
+						// remove the old position from the openSet
+						removeFromList(list_node, &openSet);
+						// add the new node to the list instead
+						openSet.push_back(node);
+					}
+				}
+				else {
+					openSet.push_back(node);
+				}
+			}
+		}
+
+		// top left
+		if (currNode->position.x - enemyPos.x <= range && !entityAtLocation(currNode->position + vec2(32.f, 0.f))) {
+			AstarNode* node = new AstarNode;
+			node->position = currNode->position - vec2(32.f, 32.f);
+			node->parent = currNode;
+			node->g_cost = currNode->g_cost + 14.f;
+			// h_cost is the distance to the player
+			node->h_cost = sqrt(pow(playerPos.x - node->position.x, 2) + pow(playerPos.y - node->position.y, 2));
+			node->f_cost = node->g_cost + node->h_cost;
+
+			// if the node is at the player break
+			if (node->h_cost <= 32.f) {
+				printf("here top left");
+				endNode->position = node->position;
+				endNode->parent = node->parent;
+				endNode->g_cost = node->g_cost;
+				endNode->f_cost = node->f_cost;
+				break;
+			}
+
+			// don't look at the node if it's in the closedSet
+			if (!nodeInList(node, closedSet)) {
+				AstarNode* list_node = nodeInList(node, openSet);
+				if (list_node) {
+					if (node->g_cost < list_node->g_cost) {
+						// remove the old position from the openSet
+						removeFromList(list_node, &openSet);
+						// add the new node to the list instead
+						openSet.push_back(node);
+					}
+				}
+				else {
+					openSet.push_back(node);
+				}
+			}
+		}
+
+		// bottom right
+		if (currNode->position.x - enemyPos.x <= range && !entityAtLocation(currNode->position + vec2(32.f, 0.f))) {
+			AstarNode* node = new AstarNode;
+			node->position = currNode->position + vec2(32.f, 32.f);
+			node->parent = currNode;
+			node->g_cost = currNode->g_cost + 14.f;
+			// h_cost is the distance to the player
+			node->h_cost = sqrt(pow(playerPos.x - node->position.x, 2) + pow(playerPos.y - node->position.y, 2));
+			node->f_cost = node->g_cost + node->h_cost;
+
+			// if the node is at the player break
+			if (node->h_cost <= 32.f) {
+				printf("here bottom right");
+				endNode->position = node->position;
+				endNode->parent = node->parent;
+				endNode->g_cost = node->g_cost;
+				endNode->f_cost = node->f_cost;
+				break;
+			}
+
+			// don't look at the node if it's in the closedSet
+			if (!nodeInList(node, closedSet)) {
+				AstarNode* list_node = nodeInList(node, openSet);
+				if (list_node) {
+					if (node->g_cost < list_node->g_cost) {
+						// remove the old position from the openSet
+						removeFromList(list_node, &openSet);
+						// add the new node to the list instead
+						openSet.push_back(node);
+					}
+				}
+				else {
+					openSet.push_back(node);
+				}
+			}
+		}
+
+		// bottom left
+		if (currNode->position.x - enemyPos.x <= range && !entityAtLocation(currNode->position + vec2(32.f, 0.f))) {
+			AstarNode* node = new AstarNode;
+			node->position = currNode->position + vec2(-32.f, 32.f);
+			node->parent = currNode;
+			node->g_cost = currNode->g_cost + 14.f;
+			// h_cost is the distance to the player
+			node->h_cost = sqrt(pow(playerPos.x - node->position.x, 2) + pow(playerPos.y - node->position.y, 2));
+			node->f_cost = node->g_cost + node->h_cost;
+
+			// if the node is at the player break
+			if (node->h_cost <= 32.f) {
+				printf("here bottom left");
+				endNode->position = node->position;
+				endNode->parent = node->parent;
+				endNode->g_cost = node->g_cost;
+				endNode->f_cost = node->f_cost;
+				break;
+			}
+
+			// don't look at the node if it's in the closedSet
+			if (!nodeInList(node, closedSet)) {
+				AstarNode* list_node = nodeInList(node, openSet);
+				if (list_node) {
+					if (node->g_cost < list_node->g_cost) {
+						// remove the old position from the openSet
+						removeFromList(list_node, &openSet);
+						// add the new node to the list instead
+						openSet.push_back(node);
+					}
+				}
+				else {
+					openSet.push_back(node);
+				}
+			}
+		}
+	}
+
+	// need to reverse the endNode
+	AstarNode* childNode = endNode;
+	printf("\nchildNode: %f\n", childNode->position.x);
+	AstarNode* reverseNode = endNode->parent;
+	printf("reverseNode: %f\n", reverseNode->position.x);
+	while (childNode != nullptr) {
+		reverseNode->children.push_back(childNode);
+		childNode = endNode->parent;
+	}
+
+	// start node will contain the tree for the shortest path
+	return reverseNode;
+}
+
 // check adjacent points and set a goal direction
 vec2 simple_path_find(vec2 start, vec2 end, Entity enemy) {
 	bool in_the_way = false;
@@ -150,6 +544,16 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 				motion_struct.in_motion = false;
 			}
 			else {
+				// TODO: want to make a simple path to follow
+				AstarNode* currNode = AstarPathfinding(slime, 140.f);
+				// for now just print the node pos'
+				// TODO: actually make slime follow the path
+				while (currNode->children.size() > 0) {
+					printf("x: %f, y: %f ", currNode->children[0]->position.x, currNode->children[0]->position.y);
+					currNode = currNode->children[0];
+				}
+
+				// IDEA 1: divide movment into chunks (prob of like 4), then do the in motion there for each dir chunck
 				vec2 direction = simple_path_find(motion_struct.position, player_motion.position, slime);
 				motion_struct.velocity = slime_velocity * direction;
 				motion_struct.in_motion = true;

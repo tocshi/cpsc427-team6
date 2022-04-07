@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <fstream>
+#include <string>
 
 #include "physics_system.hpp"
 #include "combat_system.hpp"
@@ -467,7 +468,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			else if (current_game_state == GameStates::BATTLE_MENU) {
 				if (tutorial) {
-
+					if (tutorial_flags & SIGN_1 && registry.keyIcons.entities.size() < 1) { createKeyIcon(renderer, { window_width_px - 60.f, 300.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_2); }
+					if (tutorial_flags & EP_DEPLETED && registry.keyIcons.entities.size() < 2) { createKeyIcon(renderer, { window_width_px - 60.f, 450.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_3); }
+					if (tutorial_flags & SIGN_2 && registry.keyIcons.entities.size() < 3) { createKeyIcon(renderer, { window_width_px - 60.f, 150.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_1); }
+					if (tutorial_flags & SIGN_4 && registry.keyIcons.entities.size() < 4) { createKeyIcon(renderer, { window_width_px - 60.f, 600.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_4); }
 				} else {
 					createKeyIcon(renderer, { window_width_px - 60.f, 150.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_1);
 					createKeyIcon(renderer, { window_width_px - 60.f, 300.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_2);
@@ -491,11 +495,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// bring back all of the buttons
 			// TODO: tutorial (sequentially add buttons depending on flags)
 			if (tutorial) {
-				if (tutorial_flags & flags::SIGN_2) { createAttackButton(renderer, { window_width_px - 125.f, 200.f * ui_scale}); }
-				if (tutorial_flags & SIGN_1) { createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale }); }
-				if (tutorial_flags & EP_DEPLETED) { createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD); }
-				if (tutorial_flags & SIGN_4) { createItemButton(renderer, { window_width_px - 125.f, 650.f * ui_scale }); }
-
+				if (tutorial_flags & SIGN_1 && registry.actionButtons.entities.size() < 1) { createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale }); }
+				if (tutorial_flags & EP_DEPLETED && registry.actionButtons.entities.size() < 2) { createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD); }
+				if (tutorial_flags & SIGN_2 && registry.actionButtons.entities.size() < 3) { createAttackButton(renderer, { window_width_px - 125.f, 200.f * ui_scale}); }
+				if (tutorial_flags & SIGN_4 && registry.actionButtons.entities.size() < 4) { createItemButton(renderer, { window_width_px - 125.f, 650.f * ui_scale }); }
 			} else {
 				createAttackButton(renderer, { window_width_px - 125.f, 200.f * ui_scale});
 				createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale });
@@ -1115,12 +1118,16 @@ void WorldSystem::spawn_tutorial_entities() {
 			"Welcome To ADRIFT IN SOMNIUM"
 		},
 		{
-			"explain moving",
-			"test221212"
+			"explain menu navigation"
+		},
+		{
+			"Choose move or press [2] to continue."
 		}
 	};
 	tutorial_sign_1 = createSign2(renderer, { player_motion.position.x - 64*ui_scale, player_motion.position.y - 64*ui_scale }, messages);
-	createMouseAnimation(renderer, { player_motion.position.x - 64*ui_scale, player_motion.position.y - 2*64*ui_scale });
+	registry.hidables.emplace(tutorial_sign_1);
+	Entity m1 = createMouseAnimation(renderer, { player_motion.position.x - 64*ui_scale, player_motion.position.y - 2*64*ui_scale });
+	registry.hidables.emplace(m1);
 
 	std::vector<std::vector<std::string>> messages2 = {
 		{
@@ -1132,7 +1139,9 @@ void WorldSystem::spawn_tutorial_entities() {
 		}
 	};
 	tutorial_sign_2 = createSign2(renderer, { player_motion.position.x + 11*64*ui_scale, player_motion.position.y - 10*64*ui_scale }, messages2);
-	createMouseAnimation(renderer, { player_motion.position.x + 11*64*ui_scale, player_motion.position.y - 11*64*ui_scale });
+	registry.hidables.emplace(tutorial_sign_2);
+	Entity m2 = createMouseAnimation(renderer, { player_motion.position.x + 11*64*ui_scale, player_motion.position.y - 11*64*ui_scale });
+	registry.hidables.emplace(m2);
 
 	std::vector<std::vector<std::string>> messages3 = {
 		{
@@ -1144,7 +1153,9 @@ void WorldSystem::spawn_tutorial_entities() {
 		}
 	};
 	tutorial_sign_3 = createSign2(renderer, { player_motion.position.x + 10*64*ui_scale + 32*ui_scale, player_motion.position.y - 28*64*ui_scale }, messages3);
-	createMouseAnimation(renderer, { player_motion.position.x + 10*64*ui_scale + 32*ui_scale, player_motion.position.y - 29*64*ui_scale });
+	registry.hidables.emplace(tutorial_sign_3);
+	Entity m3 = createMouseAnimation(renderer, { player_motion.position.x + 10*64*ui_scale + 32*ui_scale, player_motion.position.y - 29*64*ui_scale });
+	registry.hidables.emplace(m3);
 
 	std::vector<std::vector<std::string>> messages4 = {
 		{
@@ -1155,7 +1166,9 @@ void WorldSystem::spawn_tutorial_entities() {
 		}
 	};
 	tutorial_sign_4 = createSign2(renderer, { player_motion.position.x, player_motion.position.y - 25*64*ui_scale }, messages4);
-	createMouseAnimation(renderer, { player_motion.position.x, player_motion.position.y - 26*64*ui_scale });
+	registry.hidables.emplace(tutorial_sign_4);
+	Entity m4 = createMouseAnimation(renderer, { player_motion.position.x, player_motion.position.y - 26*64*ui_scale });
+	registry.hidables.emplace(m4);
 
 	std::vector<std::vector<std::string>> messages5 = {
 		{
@@ -1166,11 +1179,21 @@ void WorldSystem::spawn_tutorial_entities() {
 		}
 	};
 	tutorial_sign_5 = createSign2(renderer, { player_motion.position.x, player_motion.position.y - 37*64*ui_scale }, messages5);
-	createMouseAnimation(renderer, { player_motion.position.x, player_motion.position.y - 38*64*ui_scale });
+	registry.hidables.emplace(tutorial_sign_5);
+	Entity m5 = createMouseAnimation(renderer, { player_motion.position.x, player_motion.position.y - 38*64*ui_scale });
+	registry.hidables.emplace(m5);
 
 	// spawn chests at appropriate locations
-	tutorial_chest_1 = createChest(renderer, { player_motion.position.x + 8*64*ui_scale, player_motion.position.y - 32*64*ui_scale }, false);
-	tutorial_chest_2 = createChest(renderer, { player_motion.position.x + 14*64*ui_scale, player_motion.position.y - 32*64*ui_scale }, true);
+	tutorial_chest_1 = createChest(renderer, { player_motion.position.x + 14*64*ui_scale, player_motion.position.y - 32*64*ui_scale }, false);
+	tutorial_chest_2 = createChest(renderer, { player_motion.position.x + 8*64*ui_scale, player_motion.position.y - 32*64*ui_scale }, true);
+
+	// spawn removable walls
+	tutorial_wall_1 = createWall(renderer, { player_motion.position.x + 5*64*ui_scale, player_motion.position.y - 13*64*ui_scale });
+	tutorial_wall_2 = createWall(renderer, { player_motion.position.x + 10*64*ui_scale + 32*ui_scale, player_motion.position.y - 17*64*ui_scale });
+	tutorial_wall_3 = createWall(renderer, { player_motion.position.x + 14*64*ui_scale, player_motion.position.y - 30*64*ui_scale });
+	tutorial_wall_4 = createWall(renderer, { player_motion.position.x + 8*64*ui_scale, player_motion.position.y - 30*64*ui_scale });
+	tutorial_wall_5 = createWall(renderer, { player_motion.position.x + 5*64*ui_scale, player_motion.position.y - 27*64*ui_scale });
+	tutorial_wall_6 = createWall(renderer, { player_motion.position.x, player_motion.position.y - 34*64*ui_scale });
 
 	// setup turn order system
 	turnOrderSystem.setUpTurnOrder();
@@ -1436,10 +1459,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		Mix_PlayChannel(-1, ui_click, 0);
 	}
 
-	if (action == GLFW_RELEASE && key == GLFW_KEY_KP_9) {
-		printf("%u\n", tutorial_flags);
-	}
-
 	// DEBUG: HEAL PLAYER
 	if (action == GLFW_RELEASE && key == GLFW_KEY_EQUAL) {
 		Stats& stat = registry.stats.get(player_main);
@@ -1474,7 +1493,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		// attack
 		if (current_game_state == GameStates::BATTLE_MENU) {
 			if (tutorial) {
-
+				if (tutorial_flags & SIGN_2) {
+					attackAction();
+				}
 			} else {
 				attackAction();
 			}
@@ -1489,7 +1510,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 			else {
 				if (tutorial) {
-
+					if (tutorial_flags & SIGN_1) {
+						moveAction();
+					}
 				} else {
 					moveAction();
 				}
@@ -1500,7 +1523,26 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		// end turn/ guard
 		if (current_game_state == GameStates::BATTLE_MENU) {
 			if (tutorial) {
+				if (tutorial_flags & EP_DEPLETED) {
+					for (Entity e : registry.guardButtons.entities) {
+						if (!registry.guardButtons.has(e)) {
+								continue;
+						}
+						// perform action based on button ENUM
+						BUTTON_ACTION_ID action = registry.guardButtons.get(e).action;
 
+						switch (action) {
+						case BUTTON_ACTION_ID::ACTIONS_GUARD:
+							logText("You brace yourself...");
+							registry.stats.get(player_main).guard = true;
+							handle_end_player_turn(player_main);
+							break;
+						case BUTTON_ACTION_ID::ACTIONS_END_TURN:
+							handle_end_player_turn(player_main);
+							break;
+						}
+					}
+				}
 			} else {
 				for (Entity e : registry.guardButtons.entities) {
 					if (!registry.guardButtons.has(e)) {
@@ -1527,13 +1569,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		// item
 		if (current_game_state == GameStates::BATTLE_MENU) {
 			if (tutorial) {
-
+				if (tutorial_flags & SIGN_4) {
+					itemAction();
+				}
 			} else {
 				itemAction();
 			}
 		}
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ESCAPE) {
+		if (current_game_state == GameStates::DIALOGUE) {
+			return;
+		}
 		// pause menu
 		// close the menu if pressed again
 		if (current_game_state != GameStates::MAIN_MENU) {
@@ -2103,7 +2150,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									break;
 								}
 							}
-							else if (interactable.type == INTERACT_TYPE::SIGN_2) {
+							else if (interactable.type == INTERACT_TYPE::SIGN_2 && dist_to(registry.motions.get(player_main).position, motion.position) <= 150) {
 								interactable.interacted = true;
 								if (registry.signs2.has(entity)) {
 									Sign2& sign = registry.signs2.get(entity);
@@ -2120,6 +2167,9 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 
 	if (button == GLFW_MOUSE_BUTTON_2 && action == GLFW_RELEASE && get_is_player_turn() && !player_move_click && current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE) {
+		if (current_game_state == GameStates::DIALOGUE) {
+			return;
+		}
 		if (current_game_state == GameStates::ATTACK_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ITEM_MENU) {
 			backAction();
 		}
@@ -3035,16 +3085,29 @@ void WorldSystem::updateTutorial() {
 
 	if (!(tutorial_flags & SIGN_1)) {
 		if (registry.interactables.has(tutorial_sign_1) && registry.interactables.get(tutorial_sign_1).interacted) {
+			printf("flag 1 triggered\n");
 			tutorial_flags = tutorial_flags | SIGN_1;
 		}
 	}
 	else if (!(tutorial_flags & MOVEMENT_SELECTED)) {
 		if (current_game_state == GameStates::MOVEMENT_MENU) {
+			printf("flag 2 triggered\n");
 			tutorial_flags = tutorial_flags | MOVEMENT_SELECTED;
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
 				{
-					"movement"
+					"You are in movement mode!",
+				},
+				{
+					"In movement mode, click anywhere on the screen to move to that location",
+					"EP will be depleted as you move."
+				},
+				{
+					"To exit movement mode, click on the back button,",
+					"or right click, or hit ESC."
+				},
+				{
+					"move until you run out of EP."
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
@@ -3053,8 +3116,8 @@ void WorldSystem::updateTutorial() {
 	else if (!(tutorial_flags & EP_DEPLETED)) {
 		// check ep depleted
 		if (registry.stats.get(player_main).ep <= 0) {
+			printf("flag 3 triggered\n");
 			tutorial_flags = tutorial_flags | EP_DEPLETED;
-			printf("%u\n", tutorial_flags);
 			set_gamestate(GameStates::BATTLE_MENU);
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
@@ -3067,24 +3130,56 @@ void WorldSystem::updateTutorial() {
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
+			registry.remove_all_components_of(tutorial_wall_1);
 		}
 	}
 	else if (!(tutorial_flags & SIGN_2)) {
 		if (registry.interactables.has(tutorial_sign_2) && registry.interactables.get(tutorial_sign_2).interacted) {
+			printf("flag 4 triggered\n");
 			tutorial_flags = tutorial_flags | SIGN_2;
+			printf("%u\n", registry.keyIcons.entities.size());
 			// spawn slime
 			Motion& sign_motion = registry.motions.get(tutorial_sign_2);
-			tutorial_slime = createEnemy(renderer, { sign_motion.position.x - 64.f, sign_motion.position.y - 256.f });
+			tutorial_slime = createEnemy(renderer, { sign_motion.position.x, sign_motion.position.y + 256.f*ui_scale });
 			registry.stats.get(tutorial_slime).hp = 14;
 			turnOrderSystem.addNewEntity(tutorial_slime);
 		}
 	}
+	else if (!(tutorial_flags & ATTACK_SELECTED)) {
+		if (current_game_state == GameStates::ATTACK_MENU) {
+			printf("flag 5 triggered\n");
+			tutorial_flags = tutorial_flags | ATTACK_SELECTED;
+			set_gamestate(GameStates::DIALOGUE);
+			std::vector<std::vector<std::string>> messages = {
+				{
+					"You are in attack mode!",
+				},
+				{
+					"In attack mode, your basic attack will always be pre-selected.",
+					"Simply left click on a nearby enemy to hit it."
+				},
+				{
+					"You will need 50 EP to perform you attack!",
+					"If you do not have enough, refresh it by ending your turn."
+				},
+				{
+					"To exit attack mode, click on the back button,",
+					"or right click, or hit ESC."
+				},
+				{
+					"Defeat the slime to move on."
+				}
+			};
+			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
+		}
+	}
 	else if (!(tutorial_flags & SLIME1_DEFEATED)) {
-		Motion& player_motion = registry.motions.get(player_main);
+		Motion& sign_motion = registry.motions.get(tutorial_sign_2);
 		if (registry.enemies.size() <= 0) {
+			printf("flag 6 triggered\n");
 			tutorial_flags = tutorial_flags | SLIME1_DEFEATED;
 			// spawn campfire
-			tutorial_campfire = createCampfire(renderer, { player_motion.position.x, player_motion.position.y - 96.f });
+			tutorial_campfire = createCampfire(renderer, { sign_motion.position.x, sign_motion.position.y + 96.f*ui_scale });
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
 				{
@@ -3099,29 +3194,28 @@ void WorldSystem::updateTutorial() {
 	}
 	else if (!(tutorial_flags & CAMPFIRE_INTERACTED)) {
 		if (registry.interactables.has(tutorial_campfire) && registry.interactables.get(tutorial_campfire).interacted) {
+			printf("flag 7 triggered\n");
 			tutorial_flags = tutorial_flags | CAMPFIRE_INTERACTED;
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
-				{
-					"Camfires will recover your HP and MP to full!",
-				},
 				{
 					"Explain Interaction with interactables"
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
+			registry.remove_all_components_of(tutorial_wall_2);
 		}
 	}
 	else if (!(tutorial_flags & SIGN_3)) {
 		if (registry.interactables.has(tutorial_sign_3) && registry.interactables.get(tutorial_sign_3).interacted) {
+			printf("flag 8 triggered\n");
 			tutorial_flags = tutorial_flags | SIGN_3;
-			// spawn chests? or preplaces?
-			Motion& sign_motion = registry.motions.get(tutorial_sign_3);
-			// tutorial_chest_1 = createChest(renderer, sign_motion.position + vec2(64.f, 0.f), false);
+			registry.remove_all_components_of(tutorial_wall_3);
 		}
 	}
 	else if (!(tutorial_flags & CHEST_1)) {
 		if (registry.interactables.has(tutorial_chest_1) && registry.interactables.get(tutorial_chest_1).interacted) {
+			printf("flag 9 triggered\n");
 			tutorial_flags = tutorial_flags | CHEST_1;
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
@@ -3135,36 +3229,35 @@ void WorldSystem::updateTutorial() {
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
 			// spawn slime
-			Motion& sign_motion = registry.motions.get(tutorial_sign_2);
-			tutorial_slime = createEnemy(renderer, { sign_motion.position.x - 64.f, sign_motion.position.y - 256.f });
+			Motion& sign_motion = registry.motions.get(tutorial_sign_3);
+			tutorial_slime = createEnemy(renderer, { sign_motion.position.x + 64.f*ui_scale, sign_motion.position.y + 64.f*ui_scale });
 			turnOrderSystem.addNewEntity(tutorial_slime);
 		}
 	}
 	else if (!(tutorial_flags & SLIME2_DEFEATED)) {
 		Motion& player_motion = registry.motions.get(player_main);
 		if (registry.enemies.size() <= 0) {
+			printf("flag 10 triggered\n");
 			tutorial_flags = tutorial_flags | SLIME2_DEFEATED;
 			set_gamestate(GameStates::DIALOGUE);
-			// spawn chests? or preplaces?
-			// tutorial_chest_2 = createChest(renderer, player_motion.position + vec2(64.f, 0.f), true);
 			std::vector<std::vector<std::string>> messages = {
 				{
-					"Camfires will recover your HP and MP to full!",
-				},
-				{
-					"Approach and Interact with it."
+					"Wall has opened up",
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
+			registry.remove_all_components_of(tutorial_wall_4);
 		}
 	}
 	else if (!(tutorial_flags & CHEST_2)) {
 		if (registry.interactables.has(tutorial_chest_2) && registry.interactables.get(tutorial_chest_2).interacted) {
+			printf("flag 11 triggered\n");
 			tutorial_flags = tutorial_flags | CHEST_2;
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
 				{
 					"Artifacts",
+					"click to pick it up"
 				},
 				{
 					"Explain Artifacts",
@@ -3172,16 +3265,21 @@ void WorldSystem::updateTutorial() {
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
+			registry.remove_all_components_of(tutorial_wall_5);
 		}
 	}
 	else if (!(tutorial_flags & SIGN_4)) {
 		if (registry.interactables.has(tutorial_sign_4) && registry.interactables.get(tutorial_sign_4).interacted) {
+			printf("flag 12 triggered\n");
 			tutorial_flags = tutorial_flags | SIGN_4;
-			// spawn potion?
+			Motion& sign_motion = registry.motions.get(tutorial_sign_4);
+			createConsumable(renderer, {sign_motion.position.x, sign_motion.position.y + 64.f*ui_scale}, CONSUMABLE::REDPOT);
+			registry.remove_all_components_of(tutorial_wall_6);
 		}
 	}
 	else if (!(tutorial_flags & SIGN_5)) {
 		if (registry.interactables.has(tutorial_sign_5) && registry.interactables.get(tutorial_sign_5).interacted) {
+			printf("flag 13 triggered\n");
 			tutorial_flags = tutorial_flags | SIGN_5;
 			objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32});
 			objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
@@ -3190,7 +3288,27 @@ void WorldSystem::updateTutorial() {
 		}
 	}
 	else if (!(tutorial_flags & EXIT)) {
-		// reset stats
+		if (registry.texts.has(objectiveNumberText)) {
+			int remain_obj = std::stoi(registry.texts.get(objectiveNumberText).message);
+			if (remain_obj == 0) {
+				printf("flag 14 triggered\n");
+				tutorial_flags = tutorial_flags | EXIT;
+				// remove door that spawned from objective system
+				for (Entity e : registry.interactables.entities) {
+					if (registry.interactables.get(e).type == INTERACT_TYPE::DOOR) {
+						registry.remove_all_components_of(e);
+					}
+				}
+				// spawn exit staircase
+				tutorial_door = createDoor(renderer, { 4*64*ui_scale, 4*64*ui_scale }, false );
+			}
+		}
+	}
+	else if (registry.interactables.has(tutorial_door) && registry.interactables.get(tutorial_door).interacted) {
+		Stats& stat = registry.stats.get(player_main);
+		stat.hp = stat.maxhp;
+		stat.mp = stat.maxmp;
+		stat.ep = stat.maxep;
 	}
 
 }

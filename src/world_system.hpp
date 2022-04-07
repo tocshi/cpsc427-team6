@@ -88,8 +88,8 @@ public:
 		SIGN_4 = 2048, // items (consumables)
 		SIGN_5 = 4096, // objectives (buttons)
 		EXIT = 8192, // leaving tutorial (reset stats/inventory)
-		FILLER = 16392,
-		FILLER2 = 32784
+		ATTACK_SELECTED = 16384,
+		FILLER2 = 32768
 	};
 
 	Entity tutorial_sign_1;

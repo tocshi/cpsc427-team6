@@ -1188,12 +1188,12 @@ void WorldSystem::spawn_tutorial_entities() {
 	tutorial_chest_2 = createChest(renderer, { player_motion.position.x + 8*64*ui_scale, player_motion.position.y - 32*64*ui_scale }, true);
 
 	// spawn removable walls
-	tutorial_wall_1 = createWall(renderer, { player_motion.position.x + 5*64*ui_scale, player_motion.position.y - 13*64*ui_scale });
-	tutorial_wall_2 = createWall(renderer, { player_motion.position.x + 10*64*ui_scale + 32*ui_scale, player_motion.position.y - 17*64*ui_scale });
-	tutorial_wall_3 = createWall(renderer, { player_motion.position.x + 14*64*ui_scale, player_motion.position.y - 30*64*ui_scale });
-	tutorial_wall_4 = createWall(renderer, { player_motion.position.x + 8*64*ui_scale, player_motion.position.y - 30*64*ui_scale });
-	tutorial_wall_5 = createWall(renderer, { player_motion.position.x + 5*64*ui_scale, player_motion.position.y - 27*64*ui_scale });
-	tutorial_wall_6 = createWall(renderer, { player_motion.position.x, player_motion.position.y - 34*64*ui_scale });
+	tutorial_wall_1 = createWall(renderer, { player_motion.position.x + 4*64*ui_scale + 32*ui_scale, player_motion.position.y - 13*64*ui_scale }, { 48*ui_scale, 6*64*ui_scale } );
+	tutorial_wall_2 = createWall(renderer, { player_motion.position.x + 10*64*ui_scale + 32*ui_scale, player_motion.position.y - 17*64*ui_scale }, { 6*64*ui_scale, 48*ui_scale });
+	tutorial_wall_3 = createWall(renderer, { player_motion.position.x + 13*64*ui_scale + 32*ui_scale, player_motion.position.y - 30*64*ui_scale }, { 6*64*ui_scale, 48*ui_scale });
+	tutorial_wall_4 = createWall(renderer, { player_motion.position.x + 7*64*ui_scale + 32*ui_scale, player_motion.position.y - 30*64*ui_scale }, { 6*64*ui_scale, 48*ui_scale });
+	tutorial_wall_5 = createWall(renderer, { player_motion.position.x + 4*64*ui_scale + 32*ui_scale, player_motion.position.y - 27*64*ui_scale }, { 48*ui_scale, 5*64*ui_scale });
+	tutorial_wall_6 = createWall(renderer, { player_motion.position.x, player_motion.position.y - 34*64*ui_scale }, { 10*64*ui_scale, 48*ui_scale });
 
 	// setup turn order system
 	turnOrderSystem.setUpTurnOrder();
@@ -1224,35 +1224,10 @@ void WorldSystem::spawn_game_entities() {
 	Entity player = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player);
 
-	// std::vector<std::pair<std::string, int>> messages = {
-	// 	{"Welcome to Adrift in Somnium!", 0},
-	// 	{"Left click the buttons at the bottom to switch between actions.", 2000},
-	// 	{"In Move mode, you can click to move as long as you have EP.", 6000},
-	// 	{"EP is the yellow bar at the top of the screen, which gets expended as you move and attack.", 10000},
-	// 	{"In Attack mode, you can click on an enemy close to you to deal damage at the cost of half your EP.", 15000},
-	// 	{"Use your attacks wisely. You can only attack once per turn.", 20000},
-	// 	{"After your EP hits 0 or you click on End Turn, the enemies will have a turn to move and attack you.", 24000},
-	// 	{"Good luck, nameless adventurer.", 30000}};
-
-	// createSign(
-	// 	renderer, 
-	// 	{ player_motion.position.x - 64, player_motion.position.y - 64 },
-	// 	messages);
-
 	// setup turn order system
 	turnOrderSystem.setUpTurnOrder();
 	// start first turn
 	turnOrderSystem.getNextTurn();
-	/*
-	for (uint i = 0; WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i < window_width_px; i++) {
-		createWall(renderer, { WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i, WALL_BB_HEIGHT / 2 });
-		createWall(renderer, { WALL_BB_WIDTH / 2 + WALL_BB_WIDTH * i, window_height_px - WALL_BB_HEIGHT / 2 });
-	}
-	for (uint i = 1; WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i < window_height_px - WALL_BB_HEIGHT; i++) {
-		createWall(renderer, { WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
-		createWall(renderer, { window_width_px - WALL_BB_WIDTH / 2, WALL_BB_HEIGHT / 2 + WALL_BB_HEIGHT * i });
-	}
-	*/
 
 	float statbarsX = 150.f * ui_scale;
 	float statbarsY = window_height_px - START_BB_HEIGHT - 55.f * ui_scale;
@@ -1269,9 +1244,6 @@ void WorldSystem::spawn_game_entities() {
 
 	remove_fog_of_war();
 	create_fog_of_war();
-
-	// TODO: uncomment this
-	//roomSystem.setRandomObjective();
 }
 
 // render ep range around the given position
@@ -1660,6 +1632,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (action == GLFW_RELEASE && key == GLFW_KEY_N && get_is_player_turn()) {
 		if (!registry.roomTransitions.has(player_main)) {
 			if (tutorial) {
+				if (!registry.motions.has(objectiveCounter)) {
+					objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32});
+					objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
+					objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
+				}
 				tutorial = false;
 			}
 			RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
@@ -1747,7 +1724,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			textbox.lines.clear();
 			textbox.num_lines = 0;
 			if (textbox.next_message >= textbox.num_messages) {
-				// clear textbox
+				// clear textbox (no more messages)
+				if (registry.animations.has(textbox.icon)) {
+					registry.remove_all_components_of(textbox.icon);
+				}
 				for (Entity textbox : registry.textboxes.entities) {
 					registry.remove_all_components_of(textbox);
 				}
@@ -3016,73 +2996,6 @@ void WorldSystem::doTurnOrderLogic() {
 }
 
 void WorldSystem::updateTutorial() {
-	// if (!movementSelected) {
-	// 	if (current_game_state == GameStates::MOVEMENT_MENU) {
-	// 		movementSelected = true;
-	// 		logText("Left click to move around the room");
-	// 	}
-	// }
-	// else if (!epDepleted) {
-	// 	// check ep depleted
-	// 	if (registry.stats.get(player_main).ep <= 0) {
-	// 		epDepleted = true;
-	// 		logText("You ran out of EP!");
-	// 		logText("Movement and attacks consumes EP");
-	// 		logText("To end your turn, click end turn or by press [3]");
-	// 		Motion& player_motion = registry.motions.get(player_main);
-	// 		tutorial_floor_text = createMotionText(renderer, { player_motion.position.x - 64, player_motion.position.y - 64 }, "GO NORTH", 3.f, vec3(1.f));
-	// 	}
-	// }
-	// // use else if, if want prior flags to be true
-	// if (!secondSign) {
-	// 	if (registry.interactables.has(tutorial_sign_2) && registry.interactables.get(tutorial_sign_2).interacted) {
-	// 		secondSign = true;
-	// 		// spawn slime
-	// 		Motion& sign_motion = registry.motions.get(tutorial_sign_2);
-	// 		tutorial_slime = createEnemy(renderer, { sign_motion.position.x - 64.f, sign_motion.position.y - 256.f });
-	// 		turnOrderSystem.addNewEntity(tutorial_slime);
-	// 	}
-	// }
-	// else if (!slimeDefeated) {
-	// 	Motion& player_motion = registry.motions.get(player_main);
-	// 	if (registry.enemies.size() <= 0) {
-	// 		slimeDefeated = true;
-	// 		// spawn campfire
-	// 		tutorial_campfire = createCampfire(renderer, { player_motion.position.x, player_motion.position.y - 96.f });
-	// 		logText("Left click on the campfire to interact with it");
-	// 	}
-	// }
-	// else if (!interactedCampfire) {
-	// 	if (registry.interactables.has(tutorial_campfire) && registry.interactables.get(tutorial_campfire).interacted) {
-	// 		interactedCampfire = true;
-	// 		std::vector<std::pair<std::string, int>> messages = {
-	// 			{"Campfires will recover your HP and MP to full", 0},
-	// 			{"There are several items that you can interact with", 3000},
-	// 			{"Left click treasures and items to interact with them", 6000},
-	// 			{"You can view artifacts by clicking the book in the top right", 9000}};
-
-	// 		Entity campfire_sign = createSign(
-	// 			renderer,
-	// 			{ -64.f, -64.f },
-	// 			messages);
-
-	// 		registry.signs.get(campfire_sign).playing = true;
-	// 	}
-	// }
-	// // use else if, if want prior flags to be true
-	// if (!thirdSign) {
-	// 	if (registry.interactables.has(tutorial_sign_3) && registry.interactables.get(tutorial_sign_3).interacted) {
-	// 		thirdSign = true;
-	// 		// spawn stairs (or door)
-	// 		Motion& sign_motion = registry.motions.get(tutorial_sign_3);
-	// 		tutorial_door = createDoor(renderer, { sign_motion.position.x + 64.f, sign_motion.position.y });
-	// 	}
-	// }
-	// else if (registry.interactables.has(tutorial_door) && registry.interactables.get(tutorial_door).interacted) {
-	// 	tutorial = false;
-	// 	registry.remove_all_components_of(tutorial_floor_text);
-	// }
-
 	if (!(tutorial_flags & SIGN_1)) {
 		if (registry.interactables.has(tutorial_sign_1) && registry.interactables.get(tutorial_sign_1).interacted) {
 			printf("flag 1 triggered\n");

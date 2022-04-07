@@ -731,6 +731,7 @@ Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<s
 		}
 	}
 	textbox.next_message = 1;
+	textbox.icon = createMouseAnimationUI(renderer, { pos[0] + TEXTBOX_BB_WIDTH/2.f - 64.f*ui_scale, pos[1] + TEXTBOX_BB_HEIGHT/2.f - 64.f*ui_scale });
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -779,7 +780,7 @@ Entity createStair(RenderSystem* renderer, vec2 pos)
 }
 
 // Wall
-Entity createWall(RenderSystem* renderer, vec2 pos)
+Entity createWall(RenderSystem* renderer, vec2 pos, vec2 scale)
 {
 	auto entity = Entity();
 
@@ -789,17 +790,17 @@ Entity createWall(RenderSystem* renderer, vec2 pos)
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
 
-	motion.scale = vec2({ WALL_BB_WIDTH, WALL_BB_HEIGHT });
+	motion.scale = scale;
 
-	// Create and (empty) DOOR component to be able to refer to all doors
-	registry.test.emplace(entity);
+	// Create and (empty) WALL component to be able to refer to all doors
 	registry.solid.emplace(entity);
 	registry.collidables.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::WALL,
 		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::PLAYER });
 
 	return entity;
 }
@@ -2438,6 +2439,32 @@ Entity createMouseAnimation(RenderSystem* renderer, vec2 pos) {
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::ANIMATION,
 			RENDER_LAYER_ID::EFFECT });
+
+	return entity;
+}
+
+Entity createMouseAnimationUI(RenderSystem* renderer, vec2 pos) {
+	Entity entity = Entity();
+	AnimationData& anim = registry.animations.emplace(entity);
+	anim.spritesheet_texture = TEXTURE_ASSET_ID::MOUSE_SPRITESHEET;
+	anim.frametime_ms = 1000;
+	anim.frame_indices = { 3, 0 };
+	anim.spritesheet_columns = 1;
+	anim.spritesheet_rows = 4;
+	anim.spritesheet_width = 50;
+	anim.spritesheet_height = 200;
+	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 64, 64 };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::MOUSE_SPRITESHEET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::ANIMATION,
+			RENDER_LAYER_ID::UI_TOP });
 
 	return entity;
 }

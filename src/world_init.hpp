@@ -104,7 +104,7 @@ Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<s
 // Stair
 Entity createStair(RenderSystem* renderer, vec2 pos);
 // Wall
-Entity createWall(RenderSystem* renderer, vec2 pos);
+Entity createWall(RenderSystem* renderer, vec2 pos, vec2 scale);
 // Menu start
 Entity createMenuStart(RenderSystem* renderer, vec2 pos);
 // Menu quit
@@ -195,6 +195,8 @@ Entity createAttackDialogButton(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_
 Entity createConsumable(RenderSystem* renderer, vec2 pos, CONSUMABLE type);
 // left mouse click animation
 Entity createMouseAnimation(RenderSystem* renderer, vec2 pos);
+// left mouse click animation
+Entity createMouseAnimationUI(RenderSystem* renderer, vec2 pos);
 // item card
 Entity createItemCard(RenderSystem* renderer, vec2 pos, EQUIPMENT type, Equipment item);
 // item menu

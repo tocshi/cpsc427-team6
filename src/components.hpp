@@ -650,6 +650,7 @@ struct Textbox {
 	int next_message = 0;
 	std::vector<std::vector<std::string>> messages;
 	std::vector<Entity> lines = std::vector<Entity>();
+	Entity icon;
 };
 
 enum class StatusType {

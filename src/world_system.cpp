@@ -714,6 +714,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.enemies.get(enemy).state = ENEMY_STATE::DEATH;
 				aiSystem.step(enemy);
 			}
+			if (registry.shadowContainers.has(enemy)) {
+				ShadowContainer& shadow_container = registry.shadowContainers.get(enemy);
+				registry.remove_all_components_of(shadow_container.shadow_entity);
+				registry.shadowContainers.remove(enemy);
+			}
 		}
 	}
 
@@ -908,10 +913,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				EnemyHPBar& hpbar = registry.enemyHPBars.get(entity);
 				registry.remove_all_components_of(hpbar.hpBacking);
 				registry.remove_all_components_of(hpbar.hpFill);
-			}
-			if (registry.shadowContainers.has(entity)) {
-				ShadowContainer& shadow_container = registry.shadowContainers.get(entity);
-				registry.remove_all_components_of(shadow_container.shadow_entity);
 			}
 			registry.remove_all_components_of(entity);
 		}

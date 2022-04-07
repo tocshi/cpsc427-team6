@@ -1200,8 +1200,8 @@ void WorldSystem::spawn_tutorial_entities() {
 
 	std::vector<std::vector<std::string>> messages4 = {
 		{
-			"You can view your current equipment using the equipment menu.",
-			"click on the item icon or press [3] to enter the equipement menu."
+			"Sometimes you can find potions that you can click to use.",
+			"Healing potions will heal a portion of your HP over several turns."
 		}
 	};
 	tutorial_sign_4 = createSign2(renderer, { player_motion.position.x, player_motion.position.y - 25*64*ui_scale }, messages4);
@@ -3238,7 +3238,7 @@ void WorldSystem::updateTutorial() {
 			printf("flag 12 triggered\n");
 			tutorial_flags = tutorial_flags | SIGN_4;
 			Motion& sign_motion = registry.motions.get(tutorial_sign_4);
-			createConsumable(renderer, {sign_motion.position.x, sign_motion.position.y + 64.f*ui_scale}, CONSUMABLE::REDPOT);
+			createConsumable(renderer, {sign_motion.position.x, sign_motion.position.y + 64.f*ui_scale}, CONSUMABLE::INSTANT);
 			registry.remove_all_components_of(tutorial_wall_6);
 		}
 	}

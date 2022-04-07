@@ -320,6 +320,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (registry.consumables.has(entity)) {
 				Consumable consumable = registry.consumables.get(entity);
 				Stats stats = registry.stats.get(player_main);
+				Stats basestats = registry.basestats.get(player_main);
+				StatusEffect regen = StatusEffect(stats.maxhp * 0.06, 5, StatusType::HP_REGEN, false, true);
 				switch (consumable.type) {
 				case CONSUMABLE::REDPOT:
 					break;
@@ -328,7 +330,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				case CONSUMABLE::YELPOT:
 					break;
 				case CONSUMABLE::INSTANT:
-					heal(player_main, stats.maxhp * 0.3);
+					if (has_status(player_main, StatusType::HP_REGEN)) { remove_status(player_main, StatusType::HP_REGEN); }
+					apply_status(player_main, regen);
+
+					// Guide to Healthy Eating
+					if (inv.artifact[(int)ARTIFACT::GUIDE_HEALBUFF] > 0) {
+						StatusEffect buff = StatusEffect(0.2 * inv.artifact[(int)ARTIFACT::GUIDE_HEALBUFF], 5, StatusType::ATK_BUFF, true, true);
+						if (has_status(player_main, StatusType::ATK_BUFF)) { remove_status(player_main, StatusType::ATK_BUFF); }
+						apply_status(player_main, buff);
+					}
 					break;
 				default:
 					break;
@@ -1400,6 +1410,34 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		registry.players.get(player_main).attacked = false;
 	}
 
+	// DEBUG: Testing artifact/stacking
+	if (action == GLFW_RELEASE && key == GLFW_KEY_9) {
+		int give = (int)ARTIFACT::GUIDE_HEALBUFF;
+		for (Entity& p : registry.players.entities) {
+			Inventory& inv = registry.inventories.get(p);
+			inv.artifact[give]++;
+
+			std::string name = artifact_names.at((ARTIFACT)give);
+			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
+			reset_stats(p);
+			calc_stats(p);
+		}
+	}
+
+	// DEBUG: Testing artifact/stacking
+	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
+		int give = (int)ARTIFACT::WARM_CLOAK;
+		for (Entity& p : registry.players.entities) {
+			Inventory& inv = registry.inventories.get(p);
+			inv.artifact[give]++;
+
+			std::string name = artifact_names.at((ARTIFACT)give);
+			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
+			reset_stats(p);
+			calc_stats(p);
+		}
+	}
+
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
 		auto& stats = registry.stats.get(player_main);
 		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\nrange: %f\nepmove: %f\nepatk: %f\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp, stats.range, stats.epratemove, stats.eprateatk);
@@ -1495,27 +1533,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	// DEBUG: Testing artifact/stacking
-	if (action == GLFW_RELEASE && key == GLFW_KEY_8) {
-		int give = (int)ARTIFACT::KB_MALLET;
-		for (Entity& p : registry.players.entities) {
-			Inventory& inv = registry.inventories.get(p);
-			inv.artifact[give]++;
-
-			std::string name = artifact_names.at((ARTIFACT)give);
-			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
-		}
-	}
-	if (action == GLFW_RELEASE && key == GLFW_KEY_9) {
-		int give = (int)ARTIFACT::WINDBAG;
-		for (Entity& p : registry.players.entities) {
-			Inventory& inv = registry.inventories.get(p);
-			inv.artifact[give]++;
-
-			std::string name = artifact_names.at((ARTIFACT)give);
-			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
-		}
-	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_Q) {
 		for (Entity& p : registry.players.entities) {
 			StatusEffect test = StatusEffect(20, 5, StatusType::ATK_BUFF, false, true);
@@ -1999,6 +2016,13 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								if (!interactable.interacted) {
 									Stats& stats = registry.stats.get(player_main);
 									heal(player_main, stats.maxhp);
+									stats.mp = stats.maxmp;
+									// Guide to Healthy Eating
+									if (registry.inventories.get(player_main).artifact[(int)ARTIFACT::GUIDE_HEALBUFF] > 0) {
+										StatusEffect buff = StatusEffect(0.2 * registry.inventories.get(player_main).artifact[(int)ARTIFACT::GUIDE_HEALBUFF], 5, StatusType::ATK_BUFF, true, true);
+										if (has_status(player_main, StatusType::ATK_BUFF)) { remove_status(player_main, StatusType::ATK_BUFF); }
+										apply_status(player_main, buff);
+									}
 									interactable.interacted = true;
 									break;
 								}

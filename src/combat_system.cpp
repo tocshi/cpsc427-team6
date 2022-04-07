@@ -349,6 +349,15 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 							stats.ep += status.value;
 						}
 					}
+				case (StatusType::HP_REGEN):
+					if (!stats_only) {
+						if (status.percentage && registry.stats.has(entity)) {
+							heal(entity, basestats.maxhp * status.value);
+						}
+						else {
+							heal(entity, status.value);
+						}
+					}
 					break;
 				default:
 					break;
@@ -415,6 +424,16 @@ void calc_stats(Entity& entity) {
 			stats.eprateatk *= 0.93f;
 			stack--;
 		}
+	}
+
+	// Messenger's Cap
+	if (inv.artifact[(int)ARTIFACT::MESSENGER_CAP] > 0) {
+		stats.speed += (0.05 + 0.05 * inv.artifact[(int)ARTIFACT::MESSENGER_CAP]) * basestats.atk;
+	}
+
+	// Warm Cloak
+	if (inv.artifact[(int)ARTIFACT::WARM_CLOAK] > 0) {
+		stats.def += (0.05 + 0.05 * inv.artifact[(int)ARTIFACT::WARM_CLOAK]) * basestats.atk;
 	}
 }
 

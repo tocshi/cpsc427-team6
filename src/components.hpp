@@ -659,6 +659,7 @@ enum class StatusType {
 	FOCUSING = PRIMAL_RAGE + 1,
 	DISENGAGE_TRIGGER = FOCUSING + 1,
 	SLIMED = DISENGAGE_TRIGGER + 1,
+	HP_REGEN = SLIMED + 1,
 };
 
 struct StatusEffect {
@@ -987,7 +988,7 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::WARM_CLOAK, "10% (+5% per stack) of your base ATK stat is added onto your DEF stat."},
 	{ARTIFACT::THUNDER_TWIG, "Attacks have a 15% (+15% per stack) chance to summon a lightning bolt that deals 60% ATK damage in a small AoE."},
 	{ARTIFACT::LUCKY_CHIP, "7% (+7% per stack) chance for your attack to deal 777% damage. 7 % (+7% per stack) chance to reduce incoming damage by 777. Lowest damage taken per attack is 1."},
-	{ARTIFACT::GUIDE_HEALBUFF, "Health-restoring items and interactables grant a 30% (+30% per stack) ATK buff for 5 turns."},
+	{ARTIFACT::GUIDE_HEALBUFF, "Health-restoring items and interactables grant a 20% (+20% per stack) ATK buff for 5 turns."},
 	{ARTIFACT::THICK_TOME, "Upon taking lethal damage, survive with 1 HP and gain 3 turns of invincibility. This artifact is consumed when this effect activates."},
 	{ARTIFACT::GOLIATH_BELT, "When HP is above 80%, increases ATK by 20% (+20% per stack)."},
 	{ARTIFACT::BLOOD_RUBY, "When HP is below 40%, increases ATK by 20% (+20% per stack)."},

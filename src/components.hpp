@@ -443,7 +443,6 @@ enum class INTERACT_TYPE {
 	BOSS_DOOR = DOOR + 1,
 	STAIRS = BOSS_DOOR + 1,
 	SIGN = STAIRS + 1,
-	// TODO tutorial: SIGN_2
 	SIGN_2 = SIGN + 1,
 	PICKUP = SIGN_2 + 1,
 	SWITCH = PICKUP + 1,

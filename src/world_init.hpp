@@ -97,9 +97,9 @@ Entity createChest(RenderSystem* renderer, vec2 pos, bool isArtifact);
 Entity createDoor(RenderSystem* renderer, vec2 pos, bool boss_door=false);
 // Sign
 Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::pair<std::string, int>>& messages);
-// TODO tutorial: Sign using textboxes
+// Sign using textboxes
 Entity createSign2(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std::string>>& messages);
-// TODO tutorial: Textbox
+// Textbox
 Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std::string>>& messages);
 // Stair
 Entity createStair(RenderSystem* renderer, vec2 pos);

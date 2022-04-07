@@ -684,7 +684,6 @@ Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::pair<std::s
 	return entity;
 }
 
-// TODO tutorial: Sign using textboxes
 Entity createSign2(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std::string>>& messages)
 {
 	auto entity = Entity();
@@ -725,7 +724,6 @@ Entity createSign2(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std
 	return entity;
 }
 
-// TODO tutorial: Textbox
 Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std::string>>& messages)
 {
 	auto entity = Entity();

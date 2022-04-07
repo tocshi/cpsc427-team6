@@ -576,7 +576,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(gb);
 			}
 			// add end turn button
-			// TODO tutorial: tutorial flag
 			if (tutorial) {
 				if (tutorial_flags & EP_DEPLETED) { createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_END_TURN, TEXTURE_ASSET_ID::ACTIONS_END_TURN); }
 			} else {
@@ -589,7 +588,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(gb);
 			}
 			// add end turn button
-			// TODO tutorial: tutorial flag
 			if (tutorial) {
 				if (tutorial_flags & EP_DEPLETED) { createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD); }
 			} else {
@@ -1507,7 +1505,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	///////////////////////////
 	// menu hotkeys
 	///////////////////////////
-	// TODO tutorial: tutorial flags
 	if (action == GLFW_RELEASE && key == GLFW_KEY_1) {
 		// attack
 		if (current_game_state == GameStates::BATTLE_MENU) {
@@ -1728,7 +1725,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	current_speed = fmax(0.f, current_speed);
 }
 
-// TODO tutorial: DIALOGUE state
 // On mouse click callback
 void WorldSystem::on_mouse(int button, int action, int mod) {
 

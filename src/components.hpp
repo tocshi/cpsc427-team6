@@ -216,8 +216,8 @@ enum class ARTIFACT {
 	SMOKE_POWDER = BURRBAG + 1,
 	LIVELY_BULB = SMOKE_POWDER + 1,
 	MALEDICTION = LIVELY_BULB + 1,
-	CHIMERARM = MALEDICTION + 1,
-	ARTIFACT_COUNT = CHIMERARM + 1
+	//CHIMERARM = MALEDICTION + 1,
+	ARTIFACT_COUNT = MALEDICTION + 1
 };
 
 // Artifact Rarity Arrays
@@ -919,7 +919,7 @@ const std::map <ARTIFACT, std::string>artifact_names = {
 	{ARTIFACT::SMOKE_POWDER, "Smoke Powder"},
 	{ARTIFACT::LIVELY_BULB, "Lively Bulb"},
 	{ARTIFACT::MALEDICTION, "Malediction"},
-	{ARTIFACT::CHIMERARM, "Chimera's Arm"}
+	//{ARTIFACT::CHIMERARM, "Chimera's Arm"}
 };
 
 // Artifact description map
@@ -947,7 +947,7 @@ const std::map <ARTIFACT, std::string>artifact_descriptions = {
 	{ARTIFACT::SMOKE_POWDER, "\"Come get it today! Our newly patented powder that, when thrown on the ground, produces a cloud of smoke that lets you slip out of sight far easier than ever before!\""},
 	{ARTIFACT::LIVELY_BULB, "You may have unintentionally allowed this plant to think you\'re its parent. You also may have named it \"Bobby\"."},
 	{ARTIFACT::MALEDICTION, "\"Your suffering...I want to savour it!\""},
-	{ARTIFACT::CHIMERARM, "A disfigured limb belonging to a monster of unknown origin. It seems to be wrapped in a strange aura that warps nearby weapons in an inexplicable way. You hear a strange voice from the back of your head saying that you can use it to create an armament of unparalleled power."}
+	//{ARTIFACT::CHIMERARM, "A disfigured limb belonging to a monster of unknown origin. It seems to be wrapped in a strange aura that warps nearby weapons in an inexplicable way. You hear a strange voice from the back of your head saying that you can use it to create an armament of unparalleled power."}
 };
 
 // Artifact texture map
@@ -975,7 +975,7 @@ const std::map <ARTIFACT, TEXTURE_ASSET_ID>artifact_textures = {
 	{ARTIFACT::SMOKE_POWDER, TEXTURE_ASSET_ID::SMOKE_POWDER},
 	{ARTIFACT::LIVELY_BULB, TEXTURE_ASSET_ID::LIVELY_BULB},
 	{ARTIFACT::MALEDICTION, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
-	{ARTIFACT::CHIMERARM, TEXTURE_ASSET_ID::CHIMERARM}
+	//{ARTIFACT::CHIMERARM, TEXTURE_ASSET_ID::CHIMERARM}
 };
 
 // Artifact effect map
@@ -1003,7 +1003,7 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::SMOKE_POWDER, "Upon picking up an item, release a cloud of smoke that halves the aggro range of enemies within 200 (+75 per stack) units for 1 turn. Has a 5 turn cooldown."},
 	{ARTIFACT::LIVELY_BULB, "Whenever you perform a Normal Attack, fire 1 (+1 per stack) seed projectile that deals 90% ATK damage towards the lowest HP enemy within your sight range."},
 	{ARTIFACT::MALEDICTION, "When you are attacked, all enemies in sight range will be affected with a curse that reduces their ATK by 40% for 3 turns. Has a 10 (-1 per stack) turn cooldown."},
-	{ARTIFACT::CHIMERARM, "Your current weapon, and newly generated weapons will have +4 ATK (+4 ATK per stack), and its 2nd Attack Skill will become a random attack skill from any weapon type."}
+	//{ARTIFACT::CHIMERARM, "Your current weapon, and newly generated weapons will have +4 ATK (+4 ATK per stack), and its 2nd Attack Skill will become a random attack skill from any weapon type."}
 };
 
 // Attack texture map TODO: finish this

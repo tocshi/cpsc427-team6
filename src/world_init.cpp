@@ -442,13 +442,14 @@ Equipment createEquipment(EQUIPMENT type, int tier) {
 		}
 
 		// Check for Chimera's Arm and resolve effect
+		/*
 		if (registry.inventories.get(registry.players.entities[0]).artifact[(int)ARTIFACT::CHIMERARM] > 0) {
 			equipment.atk += 4 * registry.inventories.get(registry.players.entities[0]).artifact[(int)ARTIFACT::CHIMERARM];
 			combined_attacks.insert(combined_attacks.end(), sharp_attacks.begin(), sharp_attacks.end());
 			combined_attacks.insert(combined_attacks.end(), blunt_attacks.begin(), blunt_attacks.end());
 			combined_attacks.insert(combined_attacks.end(), ranged_attacks.begin(), ranged_attacks.end());
 			equipment.attacks[1] = combined_attacks[irand(combined_attacks.size())];
-		}
+		}*/
 	}
 	else if (type == EQUIPMENT::ARMOUR) {
 		equipment.def = 0 + 2 * tier;

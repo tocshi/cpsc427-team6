@@ -148,6 +148,7 @@ class RenderSystem {
 			textures_path("attacks/bigslash.png"),
 			textures_path("attacks/indicator_circle.png"),
 			textures_path("attacks/indicator_rectangle.png"),
+			textures_path("shadow.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

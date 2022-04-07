@@ -635,6 +635,11 @@ void RenderSystem::draw()
 				if (registry.hidden.has(parent))
 					continue;
 			}
+			if (registry.shadows.has(entity)) {
+				Entity caster_entity = registry.shadows.get(entity).caster;
+				if (registry.hidden.has(caster_entity))
+					continue;
+			}
 			drawTexturedMesh(entity, projection_2D, camera);
 		}
 	}

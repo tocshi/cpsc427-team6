@@ -80,6 +80,8 @@ public:
 	ComponentContainer<HPDisplay> hpDisplays;
 	ComponentContainer<EnemyHPBar> enemyHPBars;
 	ComponentContainer<BossHPBar> bossHPBars;
+	ComponentContainer<ShadowContainer> shadowContainers;
+	ComponentContainer<Shadow> shadows;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -155,6 +157,8 @@ public:
 		registry_list.push_back(&hpDisplays);
 		registry_list.push_back(&enemyHPBars);
 		registry_list.push_back(&bossHPBars);
+		registry_list.push_back(&shadowContainers);
+		registry_list.push_back(&shadows);
 	}
 
 	void clear_all_components() {

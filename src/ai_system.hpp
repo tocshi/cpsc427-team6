@@ -11,14 +11,14 @@
 //class WorldSystem;
 
 struct AstarNode {
-	AstarNode* parent;
+	AstarNode* parent = 0;
 	std::vector<AstarNode*> children;
-	vec2 position;
-	float g_cost;
-	float h_cost;
+	vec2 position = vec2(0.f, 0.f);
+	float g_cost = 0;
+	float h_cost = 0;
 
 	// g_cost + h_cost
-	float f_cost;
+	float f_cost= 0;
 };
 
 class AISystem

@@ -14,8 +14,10 @@ bool entityAtLocation(vec2 pos) {
 		vec2 wallPos = registry.motions.get(w).position;
 
 		// if colliding with wall, return true;
-		return (wallPos.x + WALL_BB_WIDTH >= pos.x && wallPos.x - WALL_BB_WIDTH <= pos.x
-			&& wallPos.y + WALL_BB_HEIGHT >= pos.y && wallPos.y - WALL_BB_HEIGHT <= pos.y);
+		if (wallPos.x + WALL_BB_WIDTH >= pos.x && wallPos.x - WALL_BB_WIDTH <= pos.x
+			&& wallPos.y + WALL_BB_HEIGHT >= pos.y && wallPos.y - WALL_BB_HEIGHT <= pos.y) {
+			return true;
+		}
 	}
 
 	// todo: implement for other enemies
@@ -54,8 +56,14 @@ AstarNode* getLowestCostNodeInList(std::vector<AstarNode*> list) {
 	return lowest;
 }
 
+// overwrite the < operator (for 2 nodes) to compare node f_costs
+inline bool operator < (const AstarNode& node1, const AstarNode& node2)
+{
+	return node1.f_cost < node2.f_cost;
+}
+
 // Astar returns a root AstarNode, then the ai step exectutes a move to each of those steps in sequence
-AstarNode* AstarPathfinding(Entity enemy, float range) {
+std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 	// initialize the open and closed lists
 	std::vector<AstarNode*> openSet;
 	std::vector<AstarNode*> closedSet;
@@ -74,12 +82,15 @@ AstarNode* AstarPathfinding(Entity enemy, float range) {
 	openSet.push_back(startNode);
 
 	AstarNode* endNode = new AstarNode;
-	AstarNode* currNode;
+	AstarNode* currNode = 0;
 
 	while (openSet.size() > 0) {
 		// get the next node to look at on the list
 		currNode = getLowestCostNodeInList(openSet);
-		printf("%f", currNode->position.x);
+
+		// just in case player is out of range (move to the lowest cost node)
+		// endNode = currNode;
+
 		removeFromList(currNode, &openSet);
 
 		closedSet.push_back(currNode);
@@ -89,9 +100,9 @@ AstarNode* AstarPathfinding(Entity enemy, float range) {
 		// 10 g_cost for the 4 sides
 		
 		// right side
-		if (currNode->position.x - enemyPos.x <= range && !entityAtLocation(currNode->position + vec2(32.f, 0.f))) {
+		if (!entityAtLocation(currNode->position + vec2(64.f, 0.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position + vec2(32.f, 0.f);
+			node->position = currNode->position + vec2(64.f, 0.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 10.f;
 			// h_cost is the distance to the player
@@ -126,9 +137,9 @@ AstarNode* AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// left side
-		if (currNode->position.x - enemyPos.x <= range && !entityAtLocation(currNode->position + vec2(32.f, 0.f))) {
+		if (!entityAtLocation(currNode->position - vec2(64.f, 0.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position - vec2(32.f, 0.f);
+			node->position = currNode->position - vec2(64.f, 0.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 10.f;
 			// h_cost is the distance to the player
@@ -163,9 +174,9 @@ AstarNode* AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// top
-		if (currNode->position.x - enemyPos.x <= range && !entityAtLocation(currNode->position + vec2(32.f, 0.f))) {
+		if (!entityAtLocation(currNode->position - vec2(0.f, 64.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position - vec2(0.f, 32.f);
+			node->position = currNode->position - vec2(0.f, 64.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 10.f;
 			// h_cost is the distance to the player
@@ -200,9 +211,9 @@ AstarNode* AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// bottom
-		if (currNode->position.x - enemyPos.x <= range && !entityAtLocation(currNode->position + vec2(32.f, 0.f))) {
+		if (!entityAtLocation(currNode->position + vec2(0.f, 64.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position + vec2(0.f, 32.f);
+			node->position = currNode->position + vec2(0.f, 64.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 10.f;
 			// h_cost is the distance to the player
@@ -239,9 +250,9 @@ AstarNode* AstarPathfinding(Entity enemy, float range) {
 		// 14 g_cost for the diagonals
 
 		// top right
-		if (currNode->position.x - enemyPos.x <= range && !entityAtLocation(currNode->position + vec2(32.f, 0.f))) {
+		if (!entityAtLocation(currNode->position + vec2(64.f, -64.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position + vec2(32.f, -32.f);
+			node->position = currNode->position + vec2(64.f, -64.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 14.f;
 			// h_cost is the distance to the player
@@ -276,9 +287,9 @@ AstarNode* AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// top left
-		if (currNode->position.x - enemyPos.x <= range && !entityAtLocation(currNode->position + vec2(32.f, 0.f))) {
+		if (!entityAtLocation(currNode->position - vec2(64.f, 64.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position - vec2(32.f, 32.f);
+			node->position = currNode->position - vec2(64.f, 64.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 14.f;
 			// h_cost is the distance to the player
@@ -313,9 +324,9 @@ AstarNode* AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// bottom right
-		if (currNode->position.x - enemyPos.x <= range && !entityAtLocation(currNode->position + vec2(32.f, 0.f))) {
+		if (!entityAtLocation(currNode->position + vec2(64.f, 64.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position + vec2(32.f, 32.f);
+			node->position = currNode->position + vec2(64.f, 64.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 14.f;
 			// h_cost is the distance to the player
@@ -350,9 +361,9 @@ AstarNode* AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// bottom left
-		if (currNode->position.x - enemyPos.x <= range && !entityAtLocation(currNode->position + vec2(32.f, 0.f))) {
+		if (!entityAtLocation(currNode->position + vec2(64.f, 64.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position + vec2(-32.f, 32.f);
+			node->position = currNode->position + vec2(-64.f, 64.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 14.f;
 			// h_cost is the distance to the player
@@ -388,17 +399,22 @@ AstarNode* AstarPathfinding(Entity enemy, float range) {
 	}
 
 	// need to reverse the endNode
-	AstarNode* childNode = endNode;
-	printf("\nchildNode: %f\n", childNode->position.x);
-	AstarNode* reverseNode = endNode->parent;
-	printf("reverseNode: %f\n", reverseNode->position.x);
-	while (childNode != nullptr) {
+	AstarNode* childNode = endNode->children[0];
+	AstarNode* reverseNode = endNode;
+	while (childNode != 0) {
 		reverseNode->children.push_back(childNode);
-		childNode = endNode->parent;
+		childNode = childNode->parent;
 	}
 
-	// start node will contain the tree for the shortest path
-	return reverseNode;
+	std::vector<AstarNode*> pathVector;
+	pathVector.push_back(reverseNode);
+	while (reverseNode->children.size() > 0) {
+		pathVector.push_back(reverseNode->children[0]);
+		reverseNode = reverseNode->children[0];
+	}
+
+	// return the path vector
+	return pathVector;
 }
 
 // check adjacent points and set a goal direction
@@ -463,7 +479,8 @@ void AISystem::step(Entity e)
 void AISystem::slime_logic(Entity slime, Entity& player) {
 	Motion& player_motion = registry.motions.get(player);
 	Stats& stats = registry.stats.get(slime);
-	float chaseRange = stats.range;
+	//float chaseRange = stats.range;
+	float chaseRange = 1000.f;
 	float meleeRange = 100.f;
 
 	Motion& motion_struct = registry.motions.get(slime);
@@ -545,18 +562,22 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 			}
 			else {
 				// TODO: want to make a simple path to follow
-				AstarNode* currNode = AstarPathfinding(slime, 140.f);
+				std::vector<AstarNode*> starVector = AstarPathfinding(slime, 140.f);
 				// for now just print the node pos'
 				// TODO: actually make slime follow the path
-				while (currNode->children.size() > 0) {
-					printf("x: %f, y: %f ", currNode->children[0]->position.x, currNode->children[0]->position.y);
-					currNode = currNode->children[0];
+
+				for (int i = 0; i < starVector.size(); i++) {
+					printf("node %d's x: %f", i, starVector[i]->position.x);
+					bool motion = true;
+					motion_struct.destination = starVector[i]->position;
+					motion_struct.velocity = slime_velocity * normalize(starVector[i]->position - motion_struct.position);
+					motion_struct.in_motion = true;
 				}
 
-				// IDEA 1: divide movment into chunks (prob of like 4), then do the in motion there for each dir chunck
-				vec2 direction = simple_path_find(motion_struct.position, player_motion.position, slime);
-				motion_struct.velocity = slime_velocity * direction;
-				motion_struct.in_motion = true;
+				//// IDEA 1: divide movment into chunks (prob of like 4), then do the in motion there for each dir chunck
+				//vec2 direction = simple_path_find(motion_struct.position, player_motion.position, slime);
+				//motion_struct.velocity = slime_velocity * direction;
+				//motion_struct.in_motion = true;
 			}
 		}
 		break;

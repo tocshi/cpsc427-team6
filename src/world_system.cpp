@@ -2291,13 +2291,15 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData) {
 
 	// get artifacts
 	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
-	int x = 0;
 	int i = 0;
+	// looping the list of artifacts 
 	for (auto& artifact : inventoryData["artifact"]) {
-		inv.artifact[x] = artifact;
-		x++;
+		inv.artifact[i] = artifact;
+		//printf("%d \n",i);
+		i++;
 	}
-	printf("%d number of artifacts in it", x);
+	printf("%d number of artifacts in it", i);
+
 	// I don't need to return inventory, just need to check (1) if weapon/ artifact exist if yes 
 	// render the stupid sprite
 
@@ -3260,17 +3262,7 @@ void WorldSystem::update_background_collection() {
 					loadPlayerCollectionTitleScreen(entity);
 					//player_main = e; 
 				}
-				else {
-					//printf(" 1111 type is enemy ... loading enemy\n");
-					// = loadEnemy(entity);
-					printf("111 loading enemy done\n ");
-				}
-				entities.push(e);
 			}
-			//printf("getting gameData\n");
-			// load the entities in
-			//loadFromData(gameData);
-			//printf("load game data?\n");
 		}
 		/*for (int artifact = 0; artifact < (int)ARTIFACT::ARTIFACT_COUNT; artifact++) {
 			printf("!QQQ\n");

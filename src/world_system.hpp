@@ -34,7 +34,7 @@ public:
 	GLFWwindow* create_window();
 
 	// starts the game
-	void init (RenderSystem* renderer);
+	void init(RenderSystem* renderer);
 
 	// Releases all associated resources
 	~WorldSystem();
@@ -144,7 +144,7 @@ public:
 	// log text
 	void logText(std::string msg);
 
-	void spawn_doors_random_location(int quantity, bool has_boss_doors=false);
+	void spawn_doors_random_location(int quantity, bool has_boss_doors = false);
 	void spawn_switches_random_location(int quantity);
 
 	void playMusic(Music music);
@@ -154,10 +154,10 @@ private:
 	void on_key(int key, int, int action, int mod);
 	void on_mouse(int button, int action, int mod);
 	void on_mouse_move(vec2 pos);
-	
+
 	// start of cut scene 
 	void cut_scene_start();
-	
+
 	// restart level
 	void restart_game();
 
@@ -193,7 +193,10 @@ private:
 
 	// load player from data
 	Entity loadPlayer(json playerData);
-  
+
+	// load player inventory screen stuff 
+	Inventory loadPlayerCollectionTitleScreen(json playerData);
+
 	// load enemies from data
 	Entity loadEnemy(json enemyData);
 
@@ -262,7 +265,7 @@ private:
 
 	// load attack indicators
 	void loadAttackIndicators(json indicatorList);
-  
+
 	// do turn order logic
 	void doTurnOrderLogic();
 
@@ -295,6 +298,9 @@ private:
 	// udate turn UI
 	void update_turn_ui();
 
+	// update background screen with collection artifacts
+	void update_background_collection();
+
 	// use attack
 	void use_attack(vec2 target_pos);
 
@@ -307,6 +313,7 @@ private:
 	// update tutorial flags
 	void WorldSystem::updateTutorial();
 
+
 	// OpenGL window handle
 	GLFWwindow* window;
 
@@ -315,9 +322,11 @@ private:
 	RoomSystem roomSystem;
 
 	SpawnData spawnData;
-	
+
 	int countCutScene = 0;
 };
+
+
 
 // Set attack state for enemies that attack after moving
 void set_enemy_state_attack(Entity enemy);

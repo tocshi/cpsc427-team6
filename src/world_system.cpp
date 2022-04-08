@@ -226,7 +226,7 @@ GLFWwindow* WorldSystem::create_window() {
 		|| error_sound == nullptr || footstep_sound == nullptr
 		|| menu_music == nullptr || cutscene_music == nullptr
 		|| door_sound == nullptr || switch_sound == nullptr
-		|| chest_sound == nullptr || slime_move == nullptr 
+		|| chest_sound == nullptr || slime_move == nullptr
 		|| slime_death == nullptr || caveling_death == nullptr
 		|| caveling_move == nullptr) {
 		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n make sure the data directory is present",
@@ -263,6 +263,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	// Set all states to default  
 
    // restart_game();
+
 }
 
 // Update our game world
@@ -274,7 +275,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
-	    registry.remove_all_components_of(registry.debugComponents.entities.back());
+		registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
@@ -282,10 +283,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Remove entities that leave the screen on the left side
 	// Iterate backwards to be able to remove without unterfering with the next object to visit
 	// (the containers exchange the last element with the current)
-	for (int i = (int)motions_registry.components.size()-1; i>=0; --i) {
-	    Motion& motion = motions_registry.components[i];
+	for (int i = (int)motions_registry.components.size() - 1; i >= 0; --i) {
+		Motion& motion = motions_registry.components[i];
 		if (motion.position.x + abs(motion.scale.x) < 0.f) {
-			if(!registry.players.has(motions_registry.entities[i])) // don't remove the player
+			if (!registry.players.has(motions_registry.entities[i])) // don't remove the player
 				registry.remove_all_components_of(motions_registry.entities[i]);
 		}
 	}
@@ -459,17 +460,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (current_game_state == GameStates::ATTACK_MENU && !player.prepared) {
 				// need to move everything down one in attack menu
 				// TODO: un-hard-code these
-				createKeyIcon(renderer, { window_width_px - 70.f, 140.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_1);
-				createKeyIcon(renderer, { window_width_px - 70.f, 260.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_2);
-				createKeyIcon(renderer, { window_width_px - 70.f, 380.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_3);
-				createKeyIcon(renderer, { window_width_px - 70.f, 500.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_4);
-				createKeyIcon(renderer, { window_width_px - 70.f, 620.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_5);
+				createKeyIcon(renderer, { window_width_px - 70.f, 140.f * ui_scale }, TEXTURE_ASSET_ID::KEY_ICON_1);
+				createKeyIcon(renderer, { window_width_px - 70.f, 260.f * ui_scale }, TEXTURE_ASSET_ID::KEY_ICON_2);
+				createKeyIcon(renderer, { window_width_px - 70.f, 380.f * ui_scale }, TEXTURE_ASSET_ID::KEY_ICON_3);
+				createKeyIcon(renderer, { window_width_px - 70.f, 500.f * ui_scale }, TEXTURE_ASSET_ID::KEY_ICON_4);
+				createKeyIcon(renderer, { window_width_px - 70.f, 620.f * ui_scale }, TEXTURE_ASSET_ID::KEY_ICON_5);
 			}
 			else if (current_game_state == GameStates::BATTLE_MENU) {
-				createKeyIcon(renderer, { window_width_px - 60.f, 150.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_1);
-				createKeyIcon(renderer, { window_width_px - 60.f, 300.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_2);
-				createKeyIcon(renderer, { window_width_px - 60.f, 450.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_3);
-				createKeyIcon(renderer, { window_width_px - 60.f, 600.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_4);
+				createKeyIcon(renderer, { window_width_px - 60.f, 150.f * ui_scale }, TEXTURE_ASSET_ID::KEY_ICON_1);
+				createKeyIcon(renderer, { window_width_px - 60.f, 300.f * ui_scale }, TEXTURE_ASSET_ID::KEY_ICON_2);
+				createKeyIcon(renderer, { window_width_px - 60.f, 450.f * ui_scale }, TEXTURE_ASSET_ID::KEY_ICON_3);
+				createKeyIcon(renderer, { window_width_px - 60.f, 600.f * ui_scale }, TEXTURE_ASSET_ID::KEY_ICON_4);
 			}
 		}
 	}
@@ -485,12 +486,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (registry.actionButtons.entities.size() < 4) {
 			// bring back all of the buttons
-			createAttackButton(renderer, { window_width_px - 125.f, 200.f * ui_scale});
+			createAttackButton(renderer, { window_width_px - 125.f, 200.f * ui_scale });
 			createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale });
 			createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
 			createItemButton(renderer, { window_width_px - 125.f, 650.f * ui_scale });
 		}
-		
+
 		// hide all the visulaiztion tools
 		for (Entity mvo : registry.modeVisualizationObjects.entities) {
 			registry.remove_all_components_of(mvo);
@@ -507,7 +508,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Check for player death
 	for (Entity player : registry.players.entities) {
 		Player& p = registry.players.get(player);
-		
+
 		// get player stats
 		float& hp = registry.stats.get(player).hp;
 		float& mp = registry.stats.get(player).mp;
@@ -550,8 +551,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				player_motion.destination = player_motion.position;
 				set_gamestate(GameStates::BATTLE_MENU);
 			}
-			else { 
-				ep -= 0.06f * player_stats.epratemove * elapsed_ms_since_last_update; 
+			else {
+				ep -= 0.06f * player_stats.epratemove * elapsed_ms_since_last_update;
 				ep = max(0.f, ep);
 			}
 		}
@@ -577,7 +578,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		createStatsText(renderer, { statbarsX, statbarsY }, currHpString + " / " + maxHpString, 1.2f, vec3(1.0f));
 		createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 }, currMpString + " / " + maxMpString, 1.2f, vec3(1.0f));
 		createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 4 }, currEpString + " / " + maxEpString, 1.2f, vec3(1.0f));
-		
+
 		// update Stat Bars and visibility
 		for (Entity entity : registry.motions.entities) {
 			if (!registry.renderRequests.has(entity)) {
@@ -585,7 +586,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			Motion& motion_struct = registry.motions.get(entity);
 			RenderRequest& render_struct = registry.renderRequests.get(entity);
-			
+
 			switch (render_struct.used_texture) {
 			case TEXTURE_ASSET_ID::HPFILL:
 				motion_struct.scale = { min(STAT_BB_WIDTH, (hp / maxhp) * STAT_BB_WIDTH), STAT_BB_HEIGHT };
@@ -606,10 +607,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (!registry.hidables.has(entity))
 				continue;
 
-			float distance_to_player = 
-				sqrt(pow((motion_struct.position.x - player_motion.position.x), 2) 
-				+ pow((motion_struct.position.y - player_motion.position.y), 2));
-			
+			float distance_to_player =
+				sqrt(pow((motion_struct.position.x - player_motion.position.x), 2)
+					+ pow((motion_struct.position.y - player_motion.position.y), 2));
+
 			if (distance_to_player > registry.stats.get(player_main).range) {
 				if (!registry.hidden.has(entity)) {
 					registry.hidden.emplace(entity);
@@ -624,7 +625,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// Update the camera to follow the player
 		Camera& camera = registry.cameras.get(active_camera_entity);
-		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
+		camera.position = player_motion.position - vec2(window_width_px / 2, window_height_px / 2);
 	}
 
 	// Check for enemy death
@@ -638,7 +639,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			squish.orig_scale = registry.motions.get(enemy).scale;
 
 			playEnemyDeathSound(registry.enemies.get(enemy).type);
-      
+
 			// TEMP: drop healing item from enemy with 1/3 chance
 			int roll = irand(3);
 			if (roll == 0 && !tutorial) {
@@ -664,22 +665,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Processing the chicken state
 	assert(registry.screenStates.components.size() <= 1);
-    ScreenState &screen = registry.screenStates.components[0];
+	ScreenState &screen = registry.screenStates.components[0];
 
-    float min_death_counter_ms = 3000.f;
+	float min_death_counter_ms = 3000.f;
 	for (Entity entity : registry.deathTimers.entities) {
 		// progress timer
 		DeathTimer& counter = registry.deathTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
-		if(counter.counter_ms < min_death_counter_ms){
-		    min_death_counter_ms = counter.counter_ms;
+		if (counter.counter_ms < min_death_counter_ms) {
+			min_death_counter_ms = counter.counter_ms;
 		}
 
 		// restart the game once the death timer expired
 		if (counter.counter_ms < 0) {
 			registry.deathTimers.remove(entity);
 			screen.darken_screen_factor = 0;
-            restart_game();
+			restart_game();
 			return true;
 		}
 	}
@@ -715,7 +716,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			registry.fadeins.remove(entity);
 		}
 	}
-	screen.darken_screen_factor = max(max_fadein_counter_ms/750, screen.darken_screen_factor);
+	screen.darken_screen_factor = max(max_fadein_counter_ms / 750, screen.darken_screen_factor);
 
 	if (registry.loadingTimers.size() > 0) {
 		screen.darken_screen_factor = 1;
@@ -750,7 +751,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				}
 				length += 10;
 			}
-			motion.position = dirdist_extrapolate(motion.destination, dir, length/2);
+			motion.position = dirdist_extrapolate(motion.destination, dir, length / 2);
 			motion.scale.x = length;
 			motion.angle = dir;
 		}
@@ -778,10 +779,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			motion.scale = { 1,1 };
 		}
 		else if (counter.counter_ms > 1300 && counter.counter_ms < 1350) {
-			motion.scale = {1 + (counter.counter_ms - 1300)/200, 1 + (counter.counter_ms - 1300) / 200 };
+			motion.scale = { 1 + (counter.counter_ms - 1300) / 200, 1 + (counter.counter_ms - 1300) / 200 };
 		}
 		else if (counter.counter_ms > 1350) {
-			motion.scale = {1.25 - (counter.counter_ms-1350)/200, 1.25 - (counter.counter_ms - 1350) / 200 };
+			motion.scale = { 1.25 - (counter.counter_ms - 1350) / 200, 1.25 - (counter.counter_ms - 1350) / 200 };
 		}
 	}
 
@@ -821,7 +822,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		WobbleTimer& counter = registry.wobbleTimers.get(entity);
 		float x_scale = (pow(counter.counter_ms, 2) / 800000) * cos(counter.counter_ms / 50) + counter.orig_scale.x;
 		float y_scale = (pow(counter.counter_ms, 2) / 800000) * cos(counter.counter_ms / 50 + M_PI) + counter.orig_scale.x;
-		registry.motions.get(entity).scale = {x_scale, y_scale};
+		registry.motions.get(entity).scale = { x_scale, y_scale };
 		counter.counter_ms -= elapsed_ms_since_last_update;
 
 		// remove entity once the timer has expired
@@ -844,7 +845,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		float x_scale = registry.motions.get(entity).scale.x;
 		float y_scale = registry.motions.get(entity).scale.y / 1.04f;
 		registry.motions.get(entity).scale = { x_scale, y_scale };
-		registry.motions.get(entity).position.y += (y_scale * 1.04 - y_scale)/2;
+		registry.motions.get(entity).position.y += (y_scale * 1.04 - y_scale) / 2;
 
 		// remove entity once the timer has expired
 		if (counter.counter_ms < 0) {
@@ -903,7 +904,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				logText(sign.messages[i].first);
 				sign.next_message = i;
 			}
-			if (sign.counter_ms > sign.messages[sign.messages.size()-1].second) {
+			if (sign.counter_ms > sign.messages[sign.messages.size() - 1].second) {
 				sign.counter_ms = 0;
 				sign.next_message = 0;
 				sign.playing = false;
@@ -951,7 +952,7 @@ void WorldSystem::cut_scene_start() {
 	//create entity for background pic
 	// set game state to cutscene 
 	player_move_click = false;
-	
+
 	registry.list_all_components();
 	printf("CUT SCENE STARTING \n");
 
@@ -977,20 +978,20 @@ void WorldSystem::cut_scene_start() {
 	// on left click change scene to new one (x2)
 	// checks how many times left click was one with countCutScene & makes sure the game state is CutScene 
 	if (current_game_state == GameStates::CUTSCENE && countCutScene == 0) {
-			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);
-			printf("%d the cutscene 1 and cutscene count is \n", countCutScene);
-			printf("Cut Scene\n");
+		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);
+		printf("%d the cutscene 1 and cutscene count is \n", countCutScene);
+		printf("Cut Scene\n");
 	}
 	if (current_game_state == GameStates::CUTSCENE && countCutScene == 1) {
-			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE2);
-			printf("cutScene 2\n");
-			printf("%d the cutscene 2 and cutscene count is \n", countCutScene);
+		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE2);
+		printf("cutScene 2\n");
+		printf("%d the cutscene 2 and cutscene count is \n", countCutScene);
 	}
-	
+
 	if (current_game_state == GameStates::CUTSCENE && countCutScene == 2) {
-			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE3);
-			printf("cutScene 3 \n");
-			printf("%d the cutscene 3 and cutscene count is \n", countCutScene);
+		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE3);
+		printf("cutScene 3 \n");
+		printf("%d the cutscene 3 and cutscene count is \n", countCutScene);
 	}
 
 }
@@ -1001,14 +1002,15 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 	printf("Restarting\n");
 
+
 	// Reset the game speed
 	current_speed = 1.f;
-	
+
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	while (registry.motions.entities.size() > 0)
-	    registry.remove_all_components_of(registry.motions.entities.back());
-	
+		registry.remove_all_components_of(registry.motions.entities.back());
+
 	while (registry.texts.entities.size() > 0)
 		registry.remove_all_components_of(registry.texts.entities.back());
 
@@ -1019,10 +1021,11 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 
 	// Create the map/level/background
-	background = createBackground(renderer, vec2(window_width_px/2,window_height_px/2));
+	background = createBackground(renderer, vec2(window_width_px / 2, window_height_px / 2));
+
 
 	// Add a camera entity
-	active_camera_entity = createCamera({0, 0});
+	active_camera_entity = createCamera({ 0, 0 });
 
 	// restart the game on the menu screen
 	//current_game_state = true;
@@ -1032,6 +1035,7 @@ void WorldSystem::restart_game() {
 		playMusic(Music::MENU);
 	}
 
+
 	/*if (current_game_state != GameStates::MAIN_MENU) {
 		//current_game_state = GameStates::MAIN_MENU;
 		std::cout << "ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU" << std::endl;
@@ -1040,10 +1044,23 @@ void WorldSystem::restart_game() {
 	//current_game_state = GameStates::MAIN_MENU;
 	//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
 
-	createMenuStart(renderer, { window_width_px / 2, 400.f * ui_scale});
-	createMenuContinue(renderer, { window_width_px / 2, 600.f * ui_scale});
-	createMenuQuit(renderer, { window_width_px / 2, 800.f * ui_scale});
-	createMenuTitle(renderer, { window_width_px / 2, 150.f * ui_scale});
+	createMenuStart(renderer, { window_width_px / 2, 400.f * ui_scale });
+	createMenuContinue(renderer, { window_width_px / 2, 600.f * ui_scale });
+	createMenuQuit(renderer, { window_width_px / 2, 800.f * ui_scale });
+	createMenuTitle(renderer, { window_width_px / 2, 150.f * ui_scale });
+	if (saveSystem.saveDataExists()) {
+		printf("HELLO CAN THIS WORK FFFFFF\n");
+		printf("%d size of inventory\n", registry.inventories.size());
+		//printf("%d size of collection?", registry.artifacts.size());
+		update_background_collection();
+		createCollectionButton(renderer, { window_width_px - 160.f, 50.f });
+		//auto entity = Entity();
+		// remove all motion components 
+		//createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale));
+
+
+	}
+
 }
 
 void WorldSystem::handle_end_player_turn(Entity player) {
@@ -1085,7 +1102,7 @@ void WorldSystem::spawn_tutorial_entities() {
 
 	std::vector<std::pair<std::string, int>> messages_1 = {
 		{"Welcome to Adrift in Somnium!", 0},
-		{"Click on the move icon or press [2] to access the move menu", 2000}};
+		{"Click on the move icon or press [2] to access the move menu", 2000} };
 
 	tutorial_sign_1 = createSign(
 		renderer,
@@ -1099,7 +1116,7 @@ void WorldSystem::spawn_tutorial_entities() {
 		{"There is a slime enemy ahead!", 0},
 		{"You will need enough EP and be within range to attack the enemy", 3000},
 		{"You can click the attack icon or press [1] to access the attack menu", 6000},
-		{"If you don't have enough EP, end your turn", 9000}};
+		{"If you don't have enough EP, end your turn", 9000} };
 
 	tutorial_sign_2 = createSign(
 		renderer,
@@ -1108,7 +1125,7 @@ void WorldSystem::spawn_tutorial_entities() {
 
 	std::vector<std::pair<std::string, int>> messages_3 = {
 		{"Good Luck adventurer!", 0},
-		{"Go through the door to proceed", 3000}};
+		{"Go through the door to proceed", 3000} };
 
 	tutorial_sign_3 = createSign(
 		renderer,
@@ -1123,14 +1140,14 @@ void WorldSystem::spawn_tutorial_entities() {
 	float statbarsX = 150.f;
 	float statbarsY = window_height_px - START_BB_HEIGHT - 55.f * ui_scale;
 	createHPFill(renderer, { statbarsX * ui_scale, statbarsY });
-	createHPBar(renderer,  { statbarsX * ui_scale, statbarsY });
+	createHPBar(renderer, { statbarsX * ui_scale, statbarsY });
 	createMPFill(renderer, { statbarsX * ui_scale, statbarsY + STAT_BB_HEIGHT });
-	createMPBar(renderer,  { statbarsX * ui_scale, statbarsY + STAT_BB_HEIGHT });
+	createMPBar(renderer, { statbarsX * ui_scale, statbarsY + STAT_BB_HEIGHT });
 	createEPFill(renderer, { statbarsX * ui_scale, statbarsY + STAT_BB_HEIGHT * 2 });
-	createEPBar(renderer,  { statbarsX * ui_scale, statbarsY + STAT_BB_HEIGHT * 2 });
-	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
+	createEPBar(renderer, { statbarsX * ui_scale, statbarsY + STAT_BB_HEIGHT * 2 });
+	turnUI = createTurnUI(renderer, { window_width_px*(3.f / 4.f), window_height_px*(1.f / 16.f) });
 	objectiveCounter = createObjectiveCounter(renderer, { 256 * ui_scale, window_height_px * (1.f / 16.f) + 32 * ui_scale });
-	objectiveDescText = createText(renderer, { 272 * ui_scale, window_height_px * (1.f / 16.f) + 76 * ui_scale }, "", 2.f, {1.0, 1.0, 1.0});
+	objectiveDescText = createText(renderer, { 272 * ui_scale, window_height_px * (1.f / 16.f) + 76 * ui_scale }, "", 2.f, { 1.0, 1.0, 1.0 });
 	objectiveNumberText = createText(renderer, { 272 * ui_scale, window_height_px * (1.f / 16.f) + 204 * ui_scale }, "", 2.f, { 1.0, 1.0, 1.0 });
 	remove_fog_of_war();
 	create_fog_of_war();
@@ -1152,7 +1169,7 @@ void WorldSystem::spawn_game_entities() {
 	spawn_player_random_location(spawnData.playerSpawns);
 	spawn_enemies_random_location(spawnData.enemySpawns, spawnData.minEnemies, spawnData.maxEnemies);
 	spawn_items_random_location(spawnData.itemSpawns, spawnData.minItems, spawnData.maxItems);
-  
+
 	Entity player = registry.players.entities[0];
 	Motion& player_motion = registry.motions.get(player);
 
@@ -1189,13 +1206,13 @@ void WorldSystem::spawn_game_entities() {
 	float statbarsX = 150.f * ui_scale;
 	float statbarsY = window_height_px - START_BB_HEIGHT - 55.f * ui_scale;
 	createHPFill(renderer, { statbarsX, statbarsY });
-	createHPBar(renderer,  { statbarsX, statbarsY });
+	createHPBar(renderer, { statbarsX, statbarsY });
 	createMPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
-	createMPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT });
+	createMPBar(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
 	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
-	createEPBar(renderer,  { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
-	turnUI = createTurnUI(renderer, { window_width_px*(3.f/4.f), window_height_px*(1.f/16.f)});
-	objectiveCounter = createObjectiveCounter(renderer, { 256 * ui_scale, window_height_px * (1.f / 16.f) + 32});
+	createEPBar(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
+	turnUI = createTurnUI(renderer, { window_width_px*(3.f / 4.f), window_height_px*(1.f / 16.f) });
+	objectiveCounter = createObjectiveCounter(renderer, { 256 * ui_scale, window_height_px * (1.f / 16.f) + 32 });
 	objectiveDescText = createText(renderer, { 272 * ui_scale, window_height_px * (1.f / 16.f) + 76 * ui_scale }, "", 2.f, { 1.0, 1.0, 1.0 });
 	objectiveNumberText = createText(renderer, { 272 * ui_scale, window_height_px * (1.f / 16.f) + 204 * ui_scale }, "", 2.f, { 1.0, 1.0, 1.0 });
 
@@ -1216,8 +1233,8 @@ void WorldSystem::create_ep_range(float remaining_ep, float speed, vec2 pos) {
 }
 
 // render fog of war around the player
-void WorldSystem::create_fog_of_war() {	
-		// get player position
+void WorldSystem::create_fog_of_war() {
+	// get player position
 	Motion player_motion = registry.motions.get(player_main);
 	Stats player_stats = registry.stats.get(player_main);
 	float playerX = player_motion.position.x;
@@ -1239,7 +1256,7 @@ void WorldSystem::remove_fog_of_war() {
 void WorldSystem::spawn_player_random_location(std::vector<vec2>& playerSpawns) {
 	std::random_shuffle(playerSpawns.begin(), playerSpawns.end());
 	if (playerSpawns.size() > 0) {
-		player_main = createPlayer(renderer, { playerSpawns[0].x, playerSpawns[0].y});
+		player_main = createPlayer(renderer, { playerSpawns[0].x, playerSpawns[0].y });
 		return;
 	}
 	// default spawn location in case we don't have player spawns
@@ -1289,7 +1306,7 @@ void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int
 		int spawned = 0;
 		int i = 0;
 		while (spawned < numberToSpawn && i < itemSpawns.size()) {
-			
+
 			switch (roomSystem.current_floor) {
 			case Floors::BOSS1:
 				createCampfire(renderer, { itemSpawns[i].x, itemSpawns[i].y });
@@ -1343,7 +1360,7 @@ void WorldSystem::spawn_doors_random_location(int quantity, bool has_boss_doors)
 			else {
 				createDoor(renderer, { spawnData.playerSpawns[i].x, spawnData.playerSpawns[i].y }, false);
 			}
-			
+
 			spawned++;
 			i++;
 		}
@@ -1443,7 +1460,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (current_game_state == GameStates::BATTLE_MENU) {
 			for (Entity e : registry.guardButtons.entities) {
 				if (!registry.guardButtons.has(e)) {
-						continue;
+					continue;
 				}
 				// perform action based on button ENUM
 				BUTTON_ACTION_ID action = registry.guardButtons.get(e).action;
@@ -1479,13 +1496,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			else if (current_game_state == GameStates::PAUSE_MENU) {
 				backAction();
 			}
+			else if (current_game_state == GameStates::ATTACK_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ITEM_MENU || current_game_state == GameStates::COLLECTION_MENU) {
+				printf("In Attack Menu or Item or Movement and escape to go back to main menu\n");
+				backAction();
+
+			}
 			else {
 				set_gamestate(GameStates::PAUSE_MENU);
 				// render save and quit button
-				createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale});
+				createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale });
 
 				// render cancel button
-				createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale});
+				createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale });
 			}
 		}
 	}
@@ -1519,7 +1541,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 
 	// LOADING THE GAME
-	if (action == GLFW_RELEASE && key == GLFW_KEY_L && get_is_player_turn() ) {
+	if (action == GLFW_RELEASE && key == GLFW_KEY_L && get_is_player_turn()) {
 		// if save data exists reset the game
 		if (saveSystem.saveDataExists()) {
 			// remove entities to load in entities
@@ -1554,7 +1576,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		int w, h;
 		glfwGetWindowSize(window, &w, &h);
 
-        restart_game();
+		restart_game();
 	}
 
 	// Resetting game // LOGGING TEXT TEST
@@ -1599,7 +1621,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 	// get cursor position relative to world
 	Camera camera = registry.cameras.get(active_camera_entity);
-	vec2 world_pos = {xpos + camera.position.x, ypos + camera.position.y};
+	vec2 world_pos = { xpos + camera.position.x, ypos + camera.position.y };
 
 
 	if (button == GLFW_MOUSE_BUTTON_1 && action == GLFW_RELEASE) {
@@ -1641,67 +1663,67 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 				switch (action_taken) {
 
-					case BUTTON_ACTION_ID::MENU_START: 
+				case BUTTON_ACTION_ID::MENU_START:
+					start_game();
+					if (tutorial) { spawn_tutorial_entities(); }
+					else {
+						roomSystem.current_floor = Floors::FLOOR1;
+						spawn_game_entities();
+					}
+					break;
+				case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
+				case BUTTON_ACTION_ID::CONTINUE:
+					// if save data exists reset the game
+					if (saveSystem.saveDataExists()) {
 						start_game();
-						if (tutorial) { spawn_tutorial_entities(); }
-						else { 
-							roomSystem.current_floor = Floors::FLOOR1;
-							spawn_game_entities(); 
-						}
+						// remove entities to load in entities
+						removeForLoad();
+						//printf("Removed for load\n");
+						// get saved game data
+						json gameData = saveSystem.getSaveData();
+						//printf("getting gameData\n");
+						// load the entities in
+						loadFromData(gameData);
+						Inventory test = registry.inventories.get(player_main);
+						//printf("load game data?\n");
+						logText("Game state loaded!");
+						remove_fog_of_war();
+						create_fog_of_war();
+					}
+					break;
+				case BUTTON_ACTION_ID::SAVE_QUIT:
+					if (!tutorial) {
+						saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
+						logText("Game state saved!");
+					}
+					glfwSetWindowShouldClose(window, true); break;
+					break;
+				case BUTTON_ACTION_ID::ACTIONS_ATTACK:
+					if (current_game_state == GameStates::BATTLE_MENU) {
+						attackAction();
+					}
+					break;
+				case BUTTON_ACTION_ID::ACTIONS_MOVE:
+					if (registry.stats.get(player_main).ep <= 0) {
+						logText("Cannot move with 0 EP!");
+						Mix_PlayChannel(-1, error_sound, 0);
 						break;
-					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
-					case BUTTON_ACTION_ID::CONTINUE:
-						// if save data exists reset the game
-						if (saveSystem.saveDataExists()) {
-							start_game();
-							// remove entities to load in entities
-							removeForLoad();
-							//printf("Removed for load\n");
-							// get saved game data
-							json gameData = saveSystem.getSaveData();
-							//printf("getting gameData\n");
-							// load the entities in
-							loadFromData(gameData);
-							Inventory test = registry.inventories.get(player_main);
-							//printf("load game data?\n");
-							logText("Game state loaded!");
-							remove_fog_of_war();
-							create_fog_of_war();
-						}
-						break;
-					case BUTTON_ACTION_ID::SAVE_QUIT:
-						if (!tutorial) {
-							saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
-							logText("Game state saved!");
-						}
-						glfwSetWindowShouldClose(window, true); break;
-						break;
-					case BUTTON_ACTION_ID::ACTIONS_ATTACK:
-						if (current_game_state == GameStates::BATTLE_MENU) {
-							attackAction();
-						}
-						break;
-					case BUTTON_ACTION_ID::ACTIONS_MOVE:
-						if (registry.stats.get(player_main).ep <= 0) {
-							logText("Cannot move with 0 EP!");
-							Mix_PlayChannel(-1, error_sound, 0);
-							break;
-						}
-						if (current_game_state == GameStates::BATTLE_MENU) {
-							moveAction();
-						}
-						break;
-					case BUTTON_ACTION_ID::PAUSE:
-						// TODO: pause enimies if it is their turn
-						
-						// inMenu = true;
-						set_gamestate(GameStates::PAUSE_MENU);
-						// render save and quit button
-						createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale});
+					}
+					if (current_game_state == GameStates::BATTLE_MENU) {
+						moveAction();
+					}
+					break;
+				case BUTTON_ACTION_ID::PAUSE:
+					// TODO: pause enimies if it is their turn
+
+					// inMenu = true;
+					set_gamestate(GameStates::PAUSE_MENU);
+					// render save and quit button
+					createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale });
 
 					// render cancel button
-					createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale});
-						
+					createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale });
+
 					return;
 				case BUTTON_ACTION_ID::ACTIONS_CANCEL:
 					cancelAction();
@@ -1844,7 +1866,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				Stats& player_stats = registry.stats.get(player_main);
 
 				switch (current_game_state) {
-					
+
 				case GameStates::ATTACK_MENU:
 					use_attack(world_pos);
 					break;
@@ -1896,23 +1918,23 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								int loot = 0;
 
 								// need sizeof() for array element size (yes I know it's 4 but I would like to generalize just in case)
-								if (roll < chance_T4) { 
+								if (roll < chance_T4) {
 									loot = artifact_T4[irand(sizeof(artifact_T4) / sizeof(artifact_T4[0]))];
 									registry.players.get(player_main).gacha_pity = 0;
 								}
-								else if (roll < chance_T3) { 
+								else if (roll < chance_T3) {
 									loot = artifact_T3[irand(sizeof(artifact_T3) / sizeof(artifact_T3[0]))];
 									registry.players.get(player_main).gacha_pity++;
 								}
-								else if (roll < chance_T2) { 
+								else if (roll < chance_T2) {
 									loot = artifact_T2[irand(sizeof(artifact_T2) / sizeof(artifact_T2[0]))];
 									registry.players.get(player_main).gacha_pity++;
 								}
-								else                       { 
+								else {
 									loot = artifact_T1[irand(sizeof(artifact_T1) / sizeof(artifact_T1[0]))];
 									registry.players.get(player_main).gacha_pity++;
 								}
-								
+
 								createArtifact(renderer, motion.position + vec2(16, 16), (ARTIFACT)loot);
 
 								std::string name = artifact_names.at((ARTIFACT)loot);
@@ -1929,7 +1951,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								if (chest.opened) {
 									continue;
 								}
-								
+
 								Player player = registry.players.get(player_main);
 								EQUIPMENT type;
 
@@ -1947,7 +1969,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								}
 
 								Equipment equip = createEquipment(type, player.floor);
-								createEquipmentEntity(renderer, motion.position + vec2(16,16), equip);
+								createEquipmentEntity(renderer, motion.position + vec2(16, 16), equip);
 
 								logText("You open the chest and find some equipment!");
 
@@ -2059,9 +2081,9 @@ void WorldSystem::start_game() {
 	createMPBar(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT });
 	createEPFill(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	createEPBar(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
-	
+
 	turnUI = createTurnUI(renderer, { window_width_px * (3.f / 4.f), window_height_px * (1.f / 16.f) });
-	objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32});
+	objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32 });
 	objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
 	objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
 }
@@ -2125,7 +2147,7 @@ void WorldSystem::removeForLoad() {
 		registry.remove_all_components_of(enemy);
 	}
 
-	
+
 	// remove collidables
 	for (Entity collidable : registry.collidables.entities) {
 		registry.remove_all_components_of(collidable);
@@ -2140,7 +2162,7 @@ void WorldSystem::removeForLoad() {
 	for (Entity tileUV : registry.tileUVs.entities) {
 		registry.remove_all_components_of(tileUV);
 	}
-	
+
 	// remove attack indicators
 	for (Entity indicator : registry.attackIndicators.entities) {
 		registry.remove_all_components_of(indicator);
@@ -2259,6 +2281,77 @@ Entity WorldSystem::loadPlayer(json playerData) {
 	return e;
 }
 
+Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData) {
+
+	//Entity e = createPlayer(renderer, { 0, 0 });
+	//Entity player; 
+	Inventory inv;
+	json inventoryData = playerData["inventory"];
+	printf("YES ???? we are finally in collection loading \n");
+
+	// get artifacts
+	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
+	int x = 0;
+	int i = 0;
+	for (auto& artifact : inventoryData["artifact"]) {
+		inv.artifact[x] = artifact;
+		x++;
+	}
+	printf("%d number of artifacts in it", x);
+	// I don't need to return inventory, just need to check (1) if weapon/ artifact exist if yes 
+	// render the stupid sprite
+
+
+	// load weapon
+	json weaponJson = inventoryData["equipped"]["weapon"];
+	Equipment weapon;
+	weapon.atk = weaponJson["atk"];
+	weapon.def = weaponJson["def"];
+	weapon.ep = weaponJson["ep"];
+	weapon.hp = weaponJson["hp"];
+	weapon.mp = weaponJson["mp"];
+	weapon.range = weaponJson["range"];
+	weapon.speed = weaponJson["speed"];
+	weapon.type = weaponJson["type"];
+	weapon.sprite = weaponJson["sprite"];
+	i = 0;
+	for (auto& attack : weaponJson["attacks"]) {
+		weapon.attacks[i] = attack;
+		i++;
+	}
+
+	// get armour
+	json armourJson = inventoryData["equipped"]["armour"];
+	Equipment armour;
+	armour.atk = armourJson["atk"];
+	armour.def = armourJson["def"];
+	armour.ep = armourJson["ep"];
+	armour.hp = armourJson["hp"];
+	armour.mp = armourJson["mp"];
+	armour.range = armourJson["range"];
+	armour.speed = armourJson["speed"];
+	armour.type = armourJson["type"];
+	armour.sprite = armourJson["sprite"];
+	i = 0;
+	for (auto& attack : armourJson["attacks"]) {
+		armour.attacks[i] = attack;
+		i++;
+	}
+
+	//Inventory inv = loadInventory(player, playerData["inventory"]);
+
+	/*for (Entity player : registry.players.entities) {
+		printf("YES~");
+		Inventory inv = loadInventory(player, playerData["inventory"]);
+		return player;
+	}
+	*/
+	printf("done QQ \n");
+	return inv;
+
+
+}
+
 Entity WorldSystem::loadEnemy(json enemyData) {
 	Entity e;
 	if (enemyData["enemy"]["type"] == ENEMY_TYPE::SLIME) {
@@ -2313,7 +2406,7 @@ void WorldSystem::loadStats(Entity e, json stats) {
 
 	registry.stats.get(e).epratemove = stats["epratemove"];
 	registry.stats.get(e).eprateatk = stats["eprateatk"];
-	
+
 	registry.stats.get(e).atk = stats["atk"];
 	registry.stats.get(e).def = stats["def"];
 	registry.stats.get(e).speed = stats["speed"];
@@ -2357,7 +2450,7 @@ Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
 		inv.consumable[i] = consumable;
 		i++;
 	}
-	
+
 	// load weapon
 	json weaponJson = inventoryData["equipped"]["weapon"];
 	Equipment weapon;
@@ -2393,7 +2486,7 @@ Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
 		armour.attacks[i] = attack;
 		i++;
 	}
-	
+
 	equip_item(e, weapon);
 	equip_item(e, armour);
 	inv.equipped[0] = weapon;
@@ -2420,7 +2513,7 @@ void WorldSystem::loadTiles(json tileList) {
 
 		Motion& motion = registry.motions.emplace(e);
 		motion.position = { tile["motion"]["position_x"], tile["motion"]["position_y"] };
-		motion.scale = { tile["motion"]["scale"]["x"], tile["motion"]["scale"]["y"]};
+		motion.scale = { tile["motion"]["scale"]["x"], tile["motion"]["scale"]["y"] };
 
 		json uvData = tile["tileUV"];
 		TileUV& tileUV = registry.tileUVs.emplace(e);
@@ -2444,7 +2537,7 @@ void WorldSystem::loadCollidables(json collidablesList) {
 		Entity entity = Entity();
 		json mData = collidable["motion"];
 		Motion& motion = registry.motions.emplace(entity);
-		motion.scale = { mData["scale"]["x"], mData["scale"]["y"]};
+		motion.scale = { mData["scale"]["x"], mData["scale"]["y"] };
 		motion.position = { mData["position_x"], mData["position_y"] };
 		registry.solid.emplace(entity);
 		registry.collidables.emplace(entity);
@@ -2643,7 +2736,7 @@ void WorldSystem::loadEquipmentEntity(Entity e, json equipData, json spritesheet
 }
 
 void WorldSystem::loadArtifact(Entity e, json artifactData) {
-	registry.artifacts.insert(e, { artifactData["type"]});
+	registry.artifacts.insert(e, { artifactData["type"] });
 
 	TEXTURE_ASSET_ID sprite = artifact_textures.at(artifactData["type"]);
 
@@ -2706,8 +2799,8 @@ void WorldSystem::loadRoomSystem(json roomSystemData) {
 	roomSystem.current_floor = roomSystemData["current_floor"];
 	roomSystem.current_room_idx = roomSystemData["current_room_idx"];
 	roomSystem.rooms_cleared_current_floor = roomSystemData["rooms_cleared_current_floor"];
-	roomSystem.current_objective = { 
-		(ObjectiveType)roomSystemData["current_objective"]["type"], 
+	roomSystem.current_objective = {
+		(ObjectiveType)roomSystemData["current_objective"]["type"],
 		roomSystemData["current_objective"]["remaining_count"],
 		roomSystemData["current_objective"]["completed"]
 	};
@@ -2750,7 +2843,7 @@ void WorldSystem::logText(std::string msg) {
 	}
 
 	// vec2 defaultPos = vec2((2.0f * window_width_px) * (1.f/20.f), (2.0f * window_height_px) * (7.f/10.f));
-	vec2 defaultPos = vec2(50.f, (2.0f * window_height_px) * (7.f/10.f));
+	vec2 defaultPos = vec2(50.f, (2.0f * window_height_px) * (7.f / 10.f));
 	vec3 textColor = vec3(1.0f, 1.0f, 1.0f); // white
 
 	Entity e = createText(renderer, defaultPos, msg, 1.5f, textColor);
@@ -2850,7 +2943,7 @@ void WorldSystem::updateTutorial() {
 				{"Campfires will recover your HP and MP to full", 0},
 				{"There are several items that you can interact with", 3000},
 				{"Left click treasures and items to interact with them", 6000},
-				{"You can view artifacts by clicking the book in the top right", 9000}};
+				{"You can view artifacts by clicking the book in the top right", 9000} };
 
 			Entity campfire_sign = createSign(
 				renderer,
@@ -2905,12 +2998,12 @@ bool has_status(Entity e, StatusType status) {
 
 void WorldSystem::playEnemyDeathSound(ENEMY_TYPE enemy_type) {
 	switch (enemy_type) {
-		case ENEMY_TYPE::SLIME:
-			Mix_PlayChannel(-1, slime_death, 0);
-			break;
-		case ENEMY_TYPE::CAVELING:
-			Mix_PlayChannel(-1, caveling_death, 0);
-			break;
+	case ENEMY_TYPE::SLIME:
+		Mix_PlayChannel(-1, slime_death, 0);
+		break;
+	case ENEMY_TYPE::CAVELING:
+		Mix_PlayChannel(-1, caveling_death, 0);
+		break;
 	}
 }
 
@@ -2942,7 +3035,7 @@ void remove_status(Entity e, StatusType status, int number) {
 	calc_stats(e);
 	return;
 }
-  
+
 void WorldSystem::handleActionButtonPress() {
 	// hide all the hotkeys if not in attack mode
 	for (Entity ki : registry.keyIcons.entities) {
@@ -3024,6 +3117,15 @@ void WorldSystem::backAction() {
 		registry.remove_all_components_of(ki);
 	}
 
+	// remove all attack dialog 
+	for (Entity ad : registry.attackDialogs.entities) {
+		registry.remove_all_components_of(ad);
+	}
+
+	// remove the artifact dialogs
+	for (Entity dd : registry.descriptionDialogs.entities) {
+		registry.remove_all_components_of(dd);
+	}
 	// set gamestate back to normal
 	set_gamestate(GameStates::BATTLE_MENU);
 
@@ -3033,7 +3135,7 @@ void WorldSystem::itemAction() {
 	Inventory& inv = registry.inventories.get(player_main);
 	printf("sprite: %d", inv.equipped[0].sprite);
 	createItemMenu(renderer, { window_width_px - 125.f, 200.f * ui_scale }, inv);
-	
+
 	handleActionButtonPress();
 
 	// set game state to move menu
@@ -3108,7 +3210,7 @@ void WorldSystem::update_turn_ui() {
 
 	Motion& turn_ui_motion = registry.motions.get(turnUI);
 	vec2 position = turn_ui_motion.position;
-	vec2 startPos = vec2(turn_ui_motion.scale[0]/2.f, 0.f);
+	vec2 startPos = vec2(turn_ui_motion.scale[0] / 2.f, 0.f);
 	vec2 offset = vec2(0.f);
 
 	// get queue
@@ -3126,23 +3228,102 @@ void WorldSystem::update_turn_ui() {
 	return;
 }
 
+void WorldSystem::update_background_collection() {
+
+
+	if (current_game_state == GameStates::MAIN_MENU) {
+		printf("!@!@#!@$@$@\n");
+		float x_offset = 0.f;
+		float y_offset = 0.f;
+		vec2 pos = { 0,0 };
+		if (saveSystem.saveDataExists()) {
+			// remove entities to load in entities
+			//removeForLoad();
+			//printf("Removed for load\n");
+			// get saved game data
+			json data = saveSystem.getSaveData();
+			// load player
+			json entityList = data["entities"];
+			//json collidablesList = data["map"]["collidables"];
+			//json interactablesList = data["map"]["interactables"];
+			//json tilesList = data["map"]["tiles"];
+			//json roomSystemJson = data["room"];
+			//json attackIndicatorList = data["attack_indicators"];
+
+			// load enemies
+			std::queue<Entity> entities;
+			for (auto& entity : entityList) {
+				Entity e;
+				Inventory inv;
+				if (entity["type"] == "player") {
+					printf("111 type is player successful... loading player invetory \n");
+					loadPlayerCollectionTitleScreen(entity);
+					//player_main = e; 
+				}
+				else {
+					//printf(" 1111 type is enemy ... loading enemy\n");
+					// = loadEnemy(entity);
+					printf("111 loading enemy done\n ");
+				}
+				entities.push(e);
+			}
+			//printf("getting gameData\n");
+			// load the entities in
+			//loadFromData(gameData);
+			//printf("load game data?\n");
+		}
+		/*for (int artifact = 0; artifact < (int)ARTIFACT::ARTIFACT_COUNT; artifact++) {
+			printf("!QQQ\n");
+			float next_x = pos.x - ((COLLECTION_MENU_BB_WIDTH / 2) - 124.f) + x_offset;
+			float next_y = pos.y - ((COLLECTION_MENU_BB_HEIGHT / 2) - 100) + y_offset;
+			if (next_x >= pos.x + (COLLECTION_MENU_BB_WIDTH / 2) - 200) {
+				x_offset = 0.f;
+				y_offset += 150.f;
+			}
+			else {
+				x_offset += (ARTIFACT_IMAGE_BB_WIDTH + 20.f);
+			}
+			createArtifactIcon(renderer, vec2(next_x, next_y),
+				static_cast<ARTIFACT>(artifact));
+
+			// need to render the current count beside it
+			Inventory inv = registry.inventories.components[0];
+
+			int size = inv.artifact[(int)artifact];
+			std::string sizeStr = std::to_string(size);
+
+			std::vector<Entity> textVect;
+			textVect.push_back(createText(renderer, vec2((next_x + 30.f) * 2, (next_y + 40.f) * 2), sizeStr.substr(0, 1), 1.4f, vec3(0.0f)));
+			if (size > 9) {
+				// need to print two numbers
+				textVect.push_back(createText(renderer, vec2((next_x + 45.f) * 2, (next_y + 40.f) * 2), sizeStr.substr(1, 1), 1.4f, vec3(0.0f)));
+			}
+
+			for (Entity text : textVect) {
+				registry.menuItems.emplace(text);
+			}
+		}*/
+
+	}
+}
+
 void WorldSystem::updateGameBackground() {
 	Motion playerMotion = registry.motions.get(player_main);
 
 	Motion& backgroundMotion = registry.motions.get(background);
-	backgroundMotion.position.x = playerMotion.position.x + window_width_px/2.f;
+	backgroundMotion.position.x = playerMotion.position.x + window_width_px / 2.f;
 	backgroundMotion.position.y = playerMotion.position.y;
 
 	Motion& background_b_motion = registry.motions.get(background_back);
-	background_b_motion.position.x = playerMotion.position.x + window_width_px/2.f - fmod((playerMotion.position.x + window_width_px) * 0.9f, window_width_px);
+	background_b_motion.position.x = playerMotion.position.x + window_width_px / 2.f - fmod((playerMotion.position.x + window_width_px) * 0.9f, window_width_px);
 	background_b_motion.position.y = playerMotion.position.y;
 
 	Motion& background_m_motion = registry.motions.get(background_mid);
-	background_m_motion.position.x = playerMotion.position.x + window_width_px/2.f - fmod((playerMotion.position.x + window_width_px) * 1.2f, window_width_px);
+	background_m_motion.position.x = playerMotion.position.x + window_width_px / 2.f - fmod((playerMotion.position.x + window_width_px) * 1.2f, window_width_px);
 	background_m_motion.position.y = playerMotion.position.y;
 
 	Motion& background_f_motion = registry.motions.get(background_front);
-	background_f_motion.position.x = playerMotion.position.x + window_width_px/2.f - fmod((playerMotion.position.x + window_width_px) * 1.5f, window_width_px);
+	background_f_motion.position.x = playerMotion.position.x + window_width_px / 2.f - fmod((playerMotion.position.x + window_width_px) * 1.5f, window_width_px);
 	background_f_motion.position.y = playerMotion.position.y;
 }
 
@@ -3233,7 +3414,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				aoe.position = player_motion.position;
 				aoe.scale = { 300.f, 300.f };
 
-				for (Entity& en : registry.enemies.entities) {	
+				for (Entity& en : registry.enemies.entities) {
 
 					if (collides_circle(registry.motions.get(en), aoe)) {
 						// wobble the enemy lol
@@ -3274,7 +3455,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 
 					// show attack animation
 					Entity anim = createAttackAnimation(renderer, { m.position.x, m.position.y }, player.using_attack);
-					registry.colors.insert(anim, {0.f, 0.f, 1.f});
+					registry.colors.insert(anim, { 0.f, 0.f, 1.f });
 
 					// play attack sound
 					Mix_PlayChannel(-1, sword_parry, 0);
@@ -3324,7 +3505,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				aoe.angle = angle;
 				aoe.scale = { 200.f, 5.f };
 				Entity animation = createAttackAnimation(renderer, dirdist_extrapolate(player_motion.position, angle, 100.f), player.using_attack);
-				registry.motions.get(animation).angle = angle + M_PI/2 + M_PI;
+				registry.motions.get(animation).angle = angle + M_PI / 2 + M_PI;
 
 				// check enemies that are in area
 				for (Entity& en : registry.enemies.entities) {
@@ -3422,7 +3603,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				aoe.angle = angle;
 				aoe.scale = { player_stats.range * 2.f, player_stats.range * 2.f };
 
-				createBigSlash(renderer, player_motion.position, angle, player_stats.range*2);
+				createBigSlash(renderer, player_motion.position, angle, player_stats.range * 2);
 
 				// logic for Terminus Veritas damage
 				mp_cost = player_stats.mp;
@@ -3435,7 +3616,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				// check enemies that are in area
 				for (Entity& en : registry.enemies.entities) {
 
-					if (collides_rotrect_circle(aoe, registry.motions.get(en)) 
+					if (collides_rotrect_circle(aoe, registry.motions.get(en))
 						&& dist_to(player_motion.position, registry.motions.get(en).position) <= player_stats.range) {
 						// wobble the enemy lol
 						if (!registry.wobbleTimers.has(en) && !registry.knockbacks.has(en)) {

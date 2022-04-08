@@ -2305,7 +2305,7 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData) {
 			printf("ARTIFACT LOG END ============\n");
 			//window_width_px - 160.f, 50.f 
 			createArtifactIcon(renderer, vec2(window_width_px - 160.f, 50.f),
-				static_cast<ARTIFACT>(inv.artifact[i]));
+				static_cast<ARTIFACT>(i));
 
 		}
 		//printf("%d \n",i);

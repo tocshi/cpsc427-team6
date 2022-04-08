@@ -219,5 +219,13 @@ Entity createSaveQuit(RenderSystem* renderer, vec2 pos);
 Entity createEnemyHPBacking(vec2 position, Entity parent);
 // Enemy HP bar's fill (red line)
 Entity createEnemyHPFill(vec2 position, Entity parent);
+// Boss HP bar's backing (black line)
+Entity createBossHPBacking(vec2 position, Entity parent);
+// Boss HP bar's fill (red line)
+Entity createBossHPFill(vec2 position, Entity parent);
+// Boss icon background
+Entity createBossIconBacking(RenderSystem* renderer, vec2 pos, Entity parent);
+// Boss icon
+Entity createBossIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id, Entity parent);
 // shadow for enemies
 Entity createShadow(vec2 pos, Entity caster);

@@ -380,6 +380,14 @@ Entity createKingSlime(RenderSystem* renderer, vec2 pos)
 	// add status container to slime
 	registry.statuses.emplace(entity);
 
+	// add hp bar 
+	BossHPBar& hpbar = registry.bossHPBars.emplace(entity);
+	vec2 anchorPos = { window_width_px * 0.5f, window_height_px * (1.f / 16.f) };
+	hpbar.icon = createBossIcon(renderer, anchorPos, TEXTURE_ASSET_ID::KINGSLIME, entity);
+	hpbar.iconBacking = createBossIconBacking(renderer, anchorPos, entity);
+	hpbar.hpBacking = createBossHPBacking(anchorPos + vec2(0, 48), entity);
+	hpbar.hpFill = createBossHPFill(anchorPos + vec2(0, 48), entity);
+
 	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
 	shadow_container.shadow_entity = createShadow(pos, entity);
 	return entity;
@@ -2764,6 +2772,96 @@ Entity createShadow(vec2 pos, Entity caster) {
 			RENDER_LAYER_ID::SHADOW });
 	Shadow& shadow = registry.shadows.emplace(entity);
 	shadow.caster = caster;
+
+	return entity;
+}
+
+Entity createBossHPBacking(vec2 position, Entity parent)
+{
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 EFFECT_ASSET_ID::LINE,
+		 GEOMETRY_BUFFER_ID::DEBUG_LINE,
+		RENDER_LAYER_ID::UI });
+	registry.colors.insert(entity, { 0,0,0 });
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2(300, 16) * vec2(ui_scale, ui_scale);
+
+	HPDisplay& hp_display = registry.hpDisplays.emplace(entity);
+	hp_display.parent = parent;
+
+	return entity;
+}
+
+Entity createBossHPFill(vec2 position, Entity parent)
+{
+	Entity entity = Entity();
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT,
+		 EFFECT_ASSET_ID::LINE,
+		 GEOMETRY_BUFFER_ID::DEBUG_LINE,
+		RENDER_LAYER_ID::UI_ICONS });
+
+	// Create motion
+	Motion& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0, 0 };
+	motion.position = position;
+	motion.scale = vec2(0, 16) * vec2(ui_scale, ui_scale);
+
+	HPDisplay& hp_display = registry.hpDisplays.emplace(entity);
+	hp_display.parent = parent;
+
+	return entity;
+}
+
+Entity createBossIconBacking(RenderSystem* renderer, vec2 pos, Entity parent) {
+	auto entity = Entity();
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 256.f * ui_scale, 64.f * ui_scale };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::BOSS_ICON_BACKING,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::UI });
+
+	HPDisplay& hp_display = registry.hpDisplays.emplace(entity);
+	hp_display.parent = parent;
+
+	return entity;
+}
+
+
+Entity createBossIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id, Entity parent) {
+	auto entity = Entity();
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 48.f * ui_scale, 48.f * ui_scale };
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture_id,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::UI_ICONS });
+
+	HPDisplay& hp_display = registry.hpDisplays.emplace(entity);
+	hp_display.parent = parent;
 
 	return entity;
 }

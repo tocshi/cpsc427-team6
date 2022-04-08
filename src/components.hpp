@@ -144,7 +144,8 @@ enum class TEXTURE_ASSET_ID {
 	ATTACK_INDICATOR_CIRCLE = BIGSLASH + 1,
 	ATTACK_INDICATOR_RECTANGLE = ATTACK_INDICATOR_CIRCLE + 1,
 	SHADOW = ATTACK_INDICATOR_RECTANGLE + 1,
-	TEXTURE_COUNT = SHADOW + 1,
+	BOSS_ICON_BACKING = SHADOW + 1,
+	TEXTURE_COUNT = BOSS_ICON_BACKING + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -783,6 +784,7 @@ struct EnemyHPBar {
 
 struct BossHPBar {
 	Entity icon;
+	Entity iconBacking;
 	Entity hpBacking;
 	Entity hpFill;
 };

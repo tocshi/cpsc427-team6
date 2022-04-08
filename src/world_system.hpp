@@ -193,6 +193,9 @@ private:
 
 	// load player from data
 	Entity loadPlayer(json playerData);
+
+	// load player inventory screen stuff 
+	Inventory loadPlayerCollectionTitleScreen(json playerData); 
   
 	// load enemies from data
 	Entity loadEnemy(json enemyData);
@@ -295,6 +298,9 @@ private:
 	// udate turn UI
 	void update_turn_ui();
 
+	// update background screen with collection artifacts
+	void update_background_collection();
+
 	// use attack
 	void use_attack(vec2 target_pos);
 
@@ -307,6 +313,7 @@ private:
 	// update tutorial flags
 	void WorldSystem::updateTutorial();
 
+	
 	// OpenGL window handle
 	GLFWwindow* window;
 
@@ -318,6 +325,8 @@ private:
 	
 	int countCutScene = 0;
 };
+
+
 
 // Set attack state for enemies that attack after moving
 void set_enemy_state_attack(Entity enemy);

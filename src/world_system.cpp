@@ -2316,51 +2316,6 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData) {
 	// I don't need to return inventory, just need to check (1) if weapon/ artifact exist if yes 
 	// render the stupid sprite
 
-
-	// load weapon
-	json weaponJson = inventoryData["equipped"]["weapon"];
-	Equipment weapon;
-	weapon.atk = weaponJson["atk"];
-	weapon.def = weaponJson["def"];
-	weapon.ep = weaponJson["ep"];
-	weapon.hp = weaponJson["hp"];
-	weapon.mp = weaponJson["mp"];
-	weapon.range = weaponJson["range"];
-	weapon.speed = weaponJson["speed"];
-	weapon.type = weaponJson["type"];
-	weapon.sprite = weaponJson["sprite"];
-	i = 0;
-	for (auto& attack : weaponJson["attacks"]) {
-		weapon.attacks[i] = attack;
-		i++;
-	}
-
-	// get armour
-	json armourJson = inventoryData["equipped"]["armour"];
-	Equipment armour;
-	armour.atk = armourJson["atk"];
-	armour.def = armourJson["def"];
-	armour.ep = armourJson["ep"];
-	armour.hp = armourJson["hp"];
-	armour.mp = armourJson["mp"];
-	armour.range = armourJson["range"];
-	armour.speed = armourJson["speed"];
-	armour.type = armourJson["type"];
-	armour.sprite = armourJson["sprite"];
-	i = 0;
-	for (auto& attack : armourJson["attacks"]) {
-		armour.attacks[i] = attack;
-		i++;
-	}
-
-	//Inventory inv = loadInventory(player, playerData["inventory"]);
-
-	/*for (Entity player : registry.players.entities) {
-		printf("YES~");
-		Inventory inv = loadInventory(player, playerData["inventory"]);
-		return player;
-	}
-	*/
 	printf("done QQ \n");
 	return inv;
 

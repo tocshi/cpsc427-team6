@@ -1052,7 +1052,7 @@ void WorldSystem::restart_game() {
 		createMenuTitle(renderer, { window_width_px / 2, 150.f * ui_scale });
 		printf("%d size of inventory\n", registry.inventories.size());
 		// width: window_width_px / 5, height = (600.f*ui_scale/2)
-		update_background_collection();
+		update_background_collection(window_width_px / 5, (600.f*ui_scale / 2));
 	}
 	else {
 		createMenuStart(renderer, { window_width_px / 2, 400.f * ui_scale });
@@ -2281,38 +2281,97 @@ Entity WorldSystem::loadPlayer(json playerData) {
 	return e;
 }
 
+// loading artifact collection onto the title screen
 Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float floor_width, float floor_height) {
 
-	//Entity e = createPlayer(renderer, { 0, 0 });
-	//Entity player; 
-	Entity e = Entity();
-	registry.motions.emplace(e);
+	// get json obj for inventory saved in saveData
 	Inventory inv;
 	json inventoryData = playerData["inventory"];
 	printf("YES ???? we are finally in collection loading \n");
 
+	// Max height for spawning 
+	// width + moves it right 
+	// height + moves it down the screen 
+	float max_height_top = floor_height + 200.f;
+	float max_height_bot = window_height_px*ui_scale - ARTIFACT_IMAGE_BB_HEIGHT;
+	float h_diff = max_height_bot - max_height_top; 
+
+	float max_width_left_edge = floor_width + 250.f;
+	float max_width_right_edge = window_width_px * ui_scale - ARTIFACT_IMAGE_BB_WIDTH;
+	float w_diff =  max_width_right_edge- max_width_left_edge;
+	
+
+
+	printf("max h :%fl\n", h_diff);
+	printf("max_w :%fl\n", w_diff);
+
+
+
 	// get artifacts
 	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
 	int i = 0;
+
+
 	// looping the list of artifacts 
 	// int i gives the artifact type 
 	// artifact gives the number of artifact the player has 
 	for (auto& artifact : inventoryData["artifact"]) {
+		
+		int prev_pos_x = 0;
+		int prev_pos_y = 0;
+
+		int r = (irand(20) + 1 / 10) + 1;
+		//int r2 = irand(20) + 1; 
+		printf(":%d\n", r);
+		//printf(":%d\n", r2);
+
+
+		float randomize_w = w_diff / r - ARTIFACT_IMAGE_BB_WIDTH;
+		float randomize_h = h_diff / r - ARTIFACT_IMAGE_BB_HEIGHT;
+		
+
+
+		printf("rw :%fl\n", randomize_w);
+		printf("rh :%fl\n", randomize_h);
+		//int rand2 = irand(50);
+
+
+		float new_pos_x = (max_width_left_edge + randomize_w);
+		
+		float new_pos_y = (max_height_top+ randomize_h);
+
+		printf("npx :%fl\n", new_pos_x);
+		printf("npy :%fl\n", new_pos_y);
+
 		inv.artifact[i] = artifact;
 		if (artifact > 0) {
 			printf("The artifact state");
 			printf("ARTIFACT LOG START ============\n");
-			printf("artifact number is: %i\n", static_cast<int>(inv.artifact[i]));
+			printf("number of artifact of this type is: %i\n", static_cast<int>(inv.artifact[i]));
+			printf("number of type i is :%d\n", i);
 			printf("ARTIFACT LOG END ============\n");
-			//window_width_px - 160.f, 50.f 
-			createArtifactIcon(renderer, vec2(window_width_px - 160.f, 50.f),
-				static_cast<ARTIFACT>(i));
+
+			if (new_pos_x != prev_pos_x && new_pos_y != prev_pos_y) {
+				printf("yes it is");
+				// within constraints of the floor 
+				int temp_x = abs(new_pos_x - prev_pos_x); 
+				int tempy = abs(new_pos_y  - prev_pos_y); 
+				if (temp_x < 200 || tempy <200) {
+					new_pos_x += 200; 
+					new_pos_y += 200; 
+				}
+				createArtifactIcon(renderer, vec2(new_pos_x, new_pos_y),
+					static_cast<ARTIFACT>(i));
+
+			}
+			// set previous values to current ones 
+			prev_pos_x = new_pos_x;
+			prev_pos_y = new_pos_y;
+			
 
 		}
-		//printf("%d \n",i);
 		i++;
 	}
-	printf("%d number of artifacts in it", i);
 
 	// I don't need to return inventory, just need to check (1) if weapon/ artifact exist if yes 
 	// render the stupid sprite
@@ -3233,37 +3292,6 @@ void WorldSystem::update_background_collection(float floor_w, float floor_h) {
 				}
 			}
 		}
-		/*for (int artifact = 0; artifact < (int)ARTIFACT::ARTIFACT_COUNT; artifact++) {
-			printf("!QQQ\n");
-			float next_x = pos.x - ((COLLECTION_MENU_BB_WIDTH / 2) - 124.f) + x_offset;
-			float next_y = pos.y - ((COLLECTION_MENU_BB_HEIGHT / 2) - 100) + y_offset;
-			if (next_x >= pos.x + (COLLECTION_MENU_BB_WIDTH / 2) - 200) {
-				x_offset = 0.f;
-				y_offset += 150.f;
-			}
-			else {
-				x_offset += (ARTIFACT_IMAGE_BB_WIDTH + 20.f);
-			}
-			createArtifactIcon(renderer, vec2(next_x, next_y),
-				static_cast<ARTIFACT>(artifact));
-
-			// need to render the current count beside it
-			Inventory inv = registry.inventories.components[0];
-
-			int size = inv.artifact[(int)artifact];
-			std::string sizeStr = std::to_string(size);
-
-			std::vector<Entity> textVect;
-			textVect.push_back(createText(renderer, vec2((next_x + 30.f) * 2, (next_y + 40.f) * 2), sizeStr.substr(0, 1), 1.4f, vec3(0.0f)));
-			if (size > 9) {
-				// need to print two numbers
-				textVect.push_back(createText(renderer, vec2((next_x + 45.f) * 2, (next_y + 40.f) * 2), sizeStr.substr(1, 1), 1.4f, vec3(0.0f)));
-			}
-
-			for (Entity text : textVect) {
-				registry.menuItems.emplace(text);
-			}
-		}*/
 
 	}
 }

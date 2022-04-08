@@ -48,7 +48,8 @@ enum class TEXTURE_ASSET_ID {
 	DOOR = CHEST_ARTIFACT_OPEN + 1,
 	SIGN = DOOR + 1,
 	SIGN_GLOW_SPRITESHEET = SIGN + 1,
-	STAIR = SIGN_GLOW_SPRITESHEET + 1,
+	TEXTBOX = SIGN_GLOW_SPRITESHEET + 1,
+	STAIR = TEXTBOX + 1,
 	START = STAIR + 1,
 	QUIT = START + 1,
 	CONTINUE = QUIT + 1,
@@ -142,7 +143,8 @@ enum class TEXTURE_ASSET_ID {
 	BIGSLASH = OBJECTIVE_COUNTER + 1,
 	ATTACK_INDICATOR_CIRCLE = BIGSLASH + 1,
 	ATTACK_INDICATOR_RECTANGLE = ATTACK_INDICATOR_CIRCLE + 1,
-	TEXTURE_COUNT = ATTACK_INDICATOR_RECTANGLE + 1
+	SHADOW = ATTACK_INDICATOR_RECTANGLE + 1,
+	TEXTURE_COUNT = SHADOW + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -441,10 +443,11 @@ enum class INTERACT_TYPE {
 	BOSS_DOOR = DOOR + 1,
 	STAIRS = BOSS_DOOR + 1,
 	SIGN = STAIRS + 1,
-	PICKUP = SIGN + 1,
+	SIGN_2 = SIGN + 1,
+	PICKUP = SIGN_2 + 1,
 	SWITCH = PICKUP + 1,
 	CAMPFIRE = SWITCH + 1,
-	TYPE_COUNT = SWITCH + 1
+	TYPE_COUNT = CAMPFIRE + 1
 };
 
 struct Interactable {
@@ -637,6 +640,19 @@ struct Sign {
 	int next_message = 0;
 };
 
+struct Sign2 {
+	std::vector<std::vector<std::string>> messages;
+};
+
+struct Textbox {
+	int num_lines = 0;
+	int num_messages = 0;
+	int next_message = 0;
+	std::vector<std::vector<std::string>> messages;
+	std::vector<Entity> lines = std::vector<Entity>();
+	Entity icon;
+};
+
 enum class StatusType {
 	POISON = 0,
 	STUN = POISON + 1,
@@ -771,6 +787,14 @@ struct BossHPBar {
 	Entity hpFill;
 };
 
+struct ShadowContainer {
+	Entity shadow_entity;
+};
+
+struct Shadow {
+	Entity caster;
+};
+
 enum class EFFECT_ASSET_ID {
 	COLOURED = 0,
 	LINE = COLOURED + 1,
@@ -808,7 +832,8 @@ enum class RENDER_LAYER_ID {
 	FLOOR = FLOOR_INSTANCED + 1,
 	FLOOR_DECO_INSTANCED = FLOOR + 1,
 	FLOOR_DECO = FLOOR_DECO_INSTANCED + 1,
-	SPRITE = FLOOR_DECO + 1,
+	SHADOW = FLOOR_DECO + 1,
+	SPRITE = SHADOW + 1,
 	PLAYER = SPRITE + 1,
 	WALLS_INSTANCED = PLAYER + 1,
 	WALLS = WALLS_INSTANCED + 1,

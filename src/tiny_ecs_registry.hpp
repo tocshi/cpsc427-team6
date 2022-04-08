@@ -59,6 +59,8 @@ public:
 	ComponentContainer<Artifact> artifacts;
 	ComponentContainer<AnimationData> animations;
 	ComponentContainer<Sign> signs;
+	ComponentContainer<Sign2> signs2;
+	ComponentContainer<Textbox> textboxes;
 	ComponentContainer<StatusContainer> statuses;
 	ComponentContainer<KnockBack> knockbacks;
 	ComponentContainer<AttackCard> attackCards;
@@ -78,6 +80,8 @@ public:
 	ComponentContainer<HPDisplay> hpDisplays;
 	ComponentContainer<EnemyHPBar> enemyHPBars;
 	ComponentContainer<BossHPBar> bossHPBars;
+	ComponentContainer<ShadowContainer> shadowContainers;
+	ComponentContainer<Shadow> shadows;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -121,6 +125,8 @@ public:
 		registry_list.push_back(&wobbleTimers);
 		registry_list.push_back(&projectileTimers);
 		registry_list.push_back(&signs);
+		registry_list.push_back(&signs2);
+		registry_list.push_back(&textboxes);
 		registry_list.push_back(&hidden);
 		registry_list.push_back(&hidables);
 		registry_list.push_back(&pointers);
@@ -151,6 +157,8 @@ public:
 		registry_list.push_back(&hpDisplays);
 		registry_list.push_back(&enemyHPBars);
 		registry_list.push_back(&bossHPBars);
+		registry_list.push_back(&shadowContainers);
+		registry_list.push_back(&shadows);
 	}
 
 	void clear_all_components() {

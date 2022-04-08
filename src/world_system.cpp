@@ -1044,21 +1044,21 @@ void WorldSystem::restart_game() {
 	//current_game_state = GameStates::MAIN_MENU;
 	//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
 
-	createMenuStart(renderer, { window_width_px / 2, 400.f * ui_scale });
-	createMenuContinue(renderer, { window_width_px / 2, 600.f * ui_scale });
-	createMenuQuit(renderer, { window_width_px / 2, 800.f * ui_scale });
-	createMenuTitle(renderer, { window_width_px / 2, 150.f * ui_scale });
+	
 	if (saveSystem.saveDataExists()) {
-		printf("HELLO CAN THIS WORK FFFFFF\n");
+		createMenuStart(renderer, { window_width_px / 5, 400.f * ui_scale });
+		createMenuContinue(renderer, { window_width_px / 5, 600.f * ui_scale });
+		createMenuQuit(renderer, { window_width_px / 5, 800.f * ui_scale });
+		createMenuTitle(renderer, { window_width_px / 2, 150.f * ui_scale });
 		printf("%d size of inventory\n", registry.inventories.size());
 		//printf("%d size of collection?", registry.artifacts.size());
 		update_background_collection();
-		//createCollectionButton(renderer, { window_width_px - 160.f, 50.f });
-		//auto entity = Entity();
-		// remove all motion components 
-		//createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale));
-
-
+	}
+	else {
+		createMenuStart(renderer, { window_width_px / 2, 400.f * ui_scale });
+		createMenuContinue(renderer, { window_width_px / 2, 600.f * ui_scale });
+		createMenuQuit(renderer, { window_width_px / 2, 800.f * ui_scale });
+		createMenuTitle(renderer, { window_width_px / 2, 150.f * ui_scale });
 	}
 
 }
@@ -2295,11 +2295,12 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData) {
 	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
 	int i = 0;
 	// looping the list of artifacts 
+	// int i gives the artifact type 
+	// artifact gives the number of artifact the player has 
 	for (auto& artifact : inventoryData["artifact"]) {
 		inv.artifact[i] = artifact;
 		if (artifact > 0) {
-			printf("The games state");
-			printf("Yea there is an item in there finally fml \n");
+			printf("The artifact state");
 			printf("ARTIFACT LOG START ============\n");
 			printf("artifact number is: %i\n", static_cast<int>(inv.artifact[i]));
 			printf("ARTIFACT LOG END ============\n");

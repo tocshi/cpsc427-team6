@@ -1053,7 +1053,7 @@ void WorldSystem::restart_game() {
 		printf("%d size of inventory\n", registry.inventories.size());
 		//printf("%d size of collection?", registry.artifacts.size());
 		update_background_collection();
-		createCollectionButton(renderer, { window_width_px - 160.f, 50.f });
+		//createCollectionButton(renderer, { window_width_px - 160.f, 50.f });
 		//auto entity = Entity();
 		// remove all motion components 
 		//createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale));
@@ -2285,6 +2285,8 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData) {
 
 	//Entity e = createPlayer(renderer, { 0, 0 });
 	//Entity player; 
+	Entity e = Entity();
+	registry.motions.emplace(e);
 	Inventory inv;
 	json inventoryData = playerData["inventory"];
 	printf("YES ???? we are finally in collection loading \n");
@@ -2295,6 +2297,17 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData) {
 	// looping the list of artifacts 
 	for (auto& artifact : inventoryData["artifact"]) {
 		inv.artifact[i] = artifact;
+		if (artifact > 0) {
+			printf("The games state");
+			printf("Yea there is an item in there finally fml \n");
+			printf("ARTIFACT LOG START ============\n");
+			printf("artifact number is: %i\n", static_cast<int>(inv.artifact[i]));
+			printf("ARTIFACT LOG END ============\n");
+			//window_width_px - 160.f, 50.f 
+			createArtifactIcon(renderer, vec2(window_width_px - 160.f, 50.f),
+				static_cast<ARTIFACT>(inv.artifact[i]));
+
+		}
 		//printf("%d \n",i);
 		i++;
 	}

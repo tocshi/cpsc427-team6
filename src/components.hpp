@@ -48,7 +48,8 @@ enum class TEXTURE_ASSET_ID {
 	DOOR = CHEST_ARTIFACT_OPEN + 1,
 	SIGN = DOOR + 1,
 	SIGN_GLOW_SPRITESHEET = SIGN + 1,
-	STAIR = SIGN_GLOW_SPRITESHEET + 1,
+	TEXTBOX = SIGN_GLOW_SPRITESHEET + 1,
+	STAIR = TEXTBOX + 1,
 	START = STAIR + 1,
 	QUIT = START + 1,
 	CONTINUE = QUIT + 1,
@@ -442,10 +443,11 @@ enum class INTERACT_TYPE {
 	BOSS_DOOR = DOOR + 1,
 	STAIRS = BOSS_DOOR + 1,
 	SIGN = STAIRS + 1,
-	PICKUP = SIGN + 1,
+	SIGN_2 = SIGN + 1,
+	PICKUP = SIGN_2 + 1,
 	SWITCH = PICKUP + 1,
 	CAMPFIRE = SWITCH + 1,
-	TYPE_COUNT = SWITCH + 1
+	TYPE_COUNT = CAMPFIRE + 1
 };
 
 struct Interactable {
@@ -636,6 +638,19 @@ struct Sign {
 	std::vector<std::pair<std::string, int>> messages; // a list of messages, and the time since click at which each message is logged
 	bool playing = false; // counter_ms only updates when this is true
 	int next_message = 0;
+};
+
+struct Sign2 {
+	std::vector<std::vector<std::string>> messages;
+};
+
+struct Textbox {
+	int num_lines = 0;
+	int num_messages = 0;
+	int next_message = 0;
+	std::vector<std::vector<std::string>> messages;
+	std::vector<Entity> lines = std::vector<Entity>();
+	Entity icon;
 };
 
 enum class StatusType {

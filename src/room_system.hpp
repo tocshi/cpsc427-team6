@@ -22,7 +22,7 @@ private:
 	const std::map<Floors, std::vector<std::string>> floor_map_data = {
 		{
 			Floors::TUTORIAL,
-			{"tutorial.tmx"}
+			{"tutorial1.tmx"}
 		},
 		{
 			Floors::DEBUG,

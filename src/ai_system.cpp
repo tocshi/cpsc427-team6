@@ -80,15 +80,12 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 	openSet.push_back(startNode);
 
-	AstarNode* endNode = new AstarNode;
+	AstarNode* endNode = 0;
 	AstarNode* currNode = 0;
 
 	while (openSet.size() > 0) {
 		// get the next node to look at on the list
 		currNode = getLowestCostNodeInList(openSet);
-
-		// just in case player is out of range (move to the lowest cost node)
-		endNode = currNode;
 
 		removeFromList(currNode, &openSet);
 
@@ -395,6 +392,11 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 				}
 			}
 		}
+	}
+
+	if (endNode == 0) {
+		// if player hasn't been reached, pick the closest node visited
+		endNode = getLowestCostNodeInList(closedSet);
 	}
 
 	AstarNode* childNode = endNode;

@@ -1649,7 +1649,7 @@ Entity createCollectionMenu(RenderSystem* renderer, vec2 pos, Entity player) {
 		{ TEXTURE_ASSET_ID::COLLECTION_PANEL,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::UI });
+		 RENDER_LAYER_ID::UI_MID });
 
 	// render the x button
 	auto close_entity = Entity();
@@ -2621,7 +2621,7 @@ Entity createIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id)
 		{ texture_id,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
-			RENDER_LAYER_ID::UI_TOP });
+			RENDER_LAYER_ID::UI_ICONS });
 
 	return entity;
 }

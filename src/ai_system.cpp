@@ -56,6 +56,17 @@ AstarNode* getLowestCostNodeInList(std::vector<AstarNode*> list) {
 	return lowest;
 }
 
+// returns the node with the lowest h_cost in the given list
+AstarNode* getLowestHCostNodeInList(std::vector<AstarNode*> list) {
+	AstarNode* lowest = list[0];
+	for (int i = 1; i < list.size(); i++) {
+		if (list[i]->h_cost < lowest->h_cost) {
+			lowest = list[i];
+		}
+	}
+	return lowest;
+}
+
 // returns true if the distance to the node is greater than the range
 bool nodeOutRange(vec2 enemyPos, vec2 nodePos, float range) {
 	return sqrt(pow(enemyPos.x - nodePos.x, 2) + pow(enemyPos.y - nodePos.y, 2)) > range;
@@ -108,6 +119,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			// if the node is at the player break
 			if (node->h_cost <= 32.f) {
 				printf("here right");
+				endNode = new AstarNode;
 				endNode->position = node->position;
 				endNode->parent = node->parent;
 				endNode->g_cost = node->g_cost;
@@ -145,6 +157,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			// if the node is at the player break
 			if (node->h_cost <= 32.f) {
 				printf("here left");
+				endNode = new AstarNode;
 				endNode->position = node->position;
 				endNode->parent = node->parent;
 				endNode->g_cost = node->g_cost;
@@ -182,6 +195,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			// if the node is at the player break
 			if (node->h_cost <= 32.f) {
 				printf("here top");
+				endNode = new AstarNode;
 				endNode->position = node->position;
 				endNode->parent = node->parent;
 				endNode->g_cost = node->g_cost;
@@ -219,6 +233,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			// if the node is at the player break
 			if (node->h_cost <= 32.f) {
 				printf("here bottom");
+				endNode = new AstarNode;
 				endNode->position = node->position;
 				endNode->parent = node->parent;
 				endNode->g_cost = node->g_cost;
@@ -258,6 +273,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			// if the node is at the player break
 			if (node->h_cost <= 32.f) {
 				printf("here top right");
+				endNode = new AstarNode;
 				endNode->position = node->position;
 				endNode->parent = node->parent;
 				endNode->g_cost = node->g_cost;
@@ -295,6 +311,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			// if the node is at the player break
 			if (node->h_cost <= 32.f) {
 				printf("here top left");
+				endNode = new AstarNode;
 				endNode->position = node->position;
 				endNode->parent = node->parent;
 				endNode->g_cost = node->g_cost;
@@ -332,6 +349,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			// if the node is at the player break
 			if (node->h_cost <= 32.f) {
 				printf("here bottom right");
+				endNode = new AstarNode;
 				endNode->position = node->position;
 				endNode->parent = node->parent;
 				endNode->g_cost = node->g_cost;
@@ -369,6 +387,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			// if the node is at the player break
 			if (node->h_cost <= 32.f) {
 				printf("here bottom left");
+				endNode = new AstarNode;
 				endNode->position = node->position;
 				endNode->parent = node->parent;
 				endNode->g_cost = node->g_cost;
@@ -396,16 +415,20 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 	if (endNode == 0) {
 		// if player hasn't been reached, pick the closest node visited
-		endNode = getLowestCostNodeInList(closedSet);
+		endNode = getLowestHCostNodeInList(closedSet);
 	}
 
 	AstarNode* childNode = endNode;
 	// need to reverse the endNode
-	AstarNode* reverseNode = endNode->parent;
-	while (childNode != 0) {
-		reverseNode->children.push_back(childNode);
-		childNode = childNode->parent;
+	AstarNode* reverseNode = endNode;
+	if (endNode->parent != 0) {
+		reverseNode = endNode->parent;
+		while (childNode != 0) {
+			reverseNode->children.push_back(childNode);
+			childNode = childNode->parent;
+		}
 	}
+
 
 	std::vector<AstarNode*> pathVector;
 	pathVector.push_back(reverseNode);
@@ -570,9 +593,15 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 				for (int i = 0; i < starVector.size(); i++) {
 					printf("node %d's x: %f", i, starVector[i]->position.x);
 					bool motion = true;
-					motion_struct.destination = starVector[i]->position;
 					motion_struct.velocity = slime_velocity * normalize(starVector[i]->position - motion_struct.position);
-					motion_struct.in_motion = true;
+					motion_struct.destination = starVector[i]->position;
+					while (motion) {
+						motion_struct.position += motion_struct.velocity;
+						if (motion_struct.position == motion_struct.destination) {
+							motion = false;
+							break;
+						}
+					}
 				}
 
 				//// IDEA 1: divide movment into chunks (prob of like 4), then do the in motion there for each dir chunck

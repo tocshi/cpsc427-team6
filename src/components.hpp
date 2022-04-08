@@ -137,7 +137,8 @@ enum class TEXTURE_ASSET_ID {
 	THUNDER_TWIG = THICK_TOME + 1,
 	WARM_CLOAK = THUNDER_TWIG + 1,
 	WINDBAG = WARM_CLOAK + 1,
-	MOUSE_SPRITESHEET = WINDBAG + 1,
+	MALEDICTION = WINDBAG + 1,
+	MOUSE_SPRITESHEET = MALEDICTION + 1,
 	SLASH_SPRITESHEET = MOUSE_SPRITESHEET + 1,
 	OBJECTIVE_COUNTER = SLASH_SPRITESHEET + 1,
 	BIGSLASH = OBJECTIVE_COUNTER + 1,
@@ -252,13 +253,13 @@ const int artifact_T3[] {
 	(int)ARTIFACT::KB_MALLET,
 	(int)ARTIFACT::ARCANE_SPECS,
 	(int)ARTIFACT::ARCANE_FUNNEL,
-	(int)ARTIFACT::BURRBAG // blocked by stat calc system
+	(int)ARTIFACT::BURRBAG,
 };
 const int artifact_T4[] {
 	(int)ARTIFACT::LUCKY_CHIP,
 	(int)ARTIFACT::THICK_TOME,
-	(int)ARTIFACT::FUNGIFIER, // not blocked but effect takes some time to implement
-	//(int)ARTIFACT::LIVELY_BULB, // not blocked but effect takes some time to implement
+	(int)ARTIFACT::FUNGIFIER,
+	(int)ARTIFACT::LIVELY_BULB,
 	(int)ARTIFACT::MALEDICTION,
 	//(int)ARTIFACT::CHIMERARM, // blocked by blunt/ranged weapons
 };
@@ -1013,7 +1014,7 @@ const std::map <ARTIFACT, TEXTURE_ASSET_ID>artifact_textures = {
 	{ARTIFACT::BURRBAG, TEXTURE_ASSET_ID::BURRBAG},
 	{ARTIFACT::SMOKE_POWDER, TEXTURE_ASSET_ID::SMOKE_POWDER},
 	{ARTIFACT::LIVELY_BULB, TEXTURE_ASSET_ID::LIVELY_BULB},
-	{ARTIFACT::MALEDICTION, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
+	{ARTIFACT::MALEDICTION, TEXTURE_ASSET_ID::MALEDICTION},
 	//{ARTIFACT::CHIMERARM, TEXTURE_ASSET_ID::CHIMERARM}
 };
 
@@ -1040,7 +1041,7 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::FUNGIFIER, "Upon defeating an enemy, an explosive mushroom is dropped at their location. When an enemy steps on the mushroom, or after 3 turns, the mushroom explodes, dealing 130% (+130% per stack) ATK in damage in a small AoE."},
 	{ARTIFACT::BURRBAG, "At the start of each turn, leave a patch of burrs on the ground that last for 5 turns or until activated 1 (+1 per stack) times. Enemies that step over the burrs will take 40% ATK in damage."},
 	{ARTIFACT::SMOKE_POWDER, "When opening a chest, release a cloud of smoke that halves the aggro range of enemies within 200 (+75 per stack) units for 1 turn."},
-	{ARTIFACT::LIVELY_BULB, "At the end of each turn, fire 1 (+1 per stack) seed projectile that deals 90% ATK damage towards the lowest HP enemy within your sight range."},
+	{ARTIFACT::LIVELY_BULB, "At the start of each turn, fire a seed projectile that deals 90% (+90% per stack) ATK damage towards the lowest HP enemy within your sight range."},
 	{ARTIFACT::MALEDICTION, "When you are attacked, all visible enemies will be affected with a curse that reduces their ATK by 40% for 3 turns. Has a 10 (-1 per stack) turn cooldown."},
 	//{ARTIFACT::CHIMERARM, "Your current weapon, and newly generated weapons will have +4 ATK (+4 ATK per stack), and its 2nd Attack Skill will become a random attack skill from any weapon type."}
 };

@@ -229,22 +229,36 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 						if (registry.projectileTimers.has(entity)) {
 							Entity& player = registry.players.entities[0];
 							Motion& player_motion = motion_registry.get(player);
-							Entity& enemy = registry.projectileTimers.get(entity).owner;
+							Entity& owner = registry.projectileTimers.get(entity).owner;
 							ProjectileTimer& timer = registry.projectileTimers.get(entity);
 
-							if (timer.counter_ms > 0 && collides_circle(motion_registry.get(entity), motion_registry.get(player))) {
-								// hit player
-								createExplosion(renderer, player_motion.position);
-								Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
-								world->logText(deal_damage(enemy, player, timer.multiplier));
+							if (registry.enemies.has(owner)) {
+								if (timer.counter_ms > 0 && collides_circle(motion_registry.get(entity), motion_registry.get(player))) {
+									// hit player
+									createExplosion(renderer, player_motion.position);
+									Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
+									world->logText(deal_damage(owner, player, timer.multiplier));
 
-								if (registry.enemies.get(enemy).type == ENEMY_TYPE::KING_SLIME) {
-									StatusEffect slimed = StatusEffect(4, 3, StatusType::SLIMED, true, true);
-									if (has_status(player, StatusType::SLIMED)) { remove_status(player, StatusType::SLIMED); }
-									apply_status(player, slimed);
+									if (registry.enemies.get(owner).type == ENEMY_TYPE::KING_SLIME) {
+										StatusEffect slimed = StatusEffect(4, 3, StatusType::SLIMED, true, true);
+										if (has_status(player, StatusType::SLIMED)) { remove_status(player, StatusType::SLIMED); }
+										apply_status(player, slimed);
+									}
+								}
+								motion_registry.get(owner).in_motion = false;
+							}
+							else {
+								for (Entity e : registry.enemies.entities) {
+									Motion& enemy_motion = registry.motions.get(e);
+									if (timer.counter_ms > 0 && collides_circle(motion_registry.get(entity), enemy_motion)) {
+										// hit enemy
+										createExplosion(renderer, enemy_motion.position);
+										Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
+										world->logText(deal_damage(owner, e, timer.multiplier));
+									}
 								}
 							}
-							motion_registry.get(enemy).in_motion = false;
+
 							timer.counter_ms = 0;
 							break;
 						}

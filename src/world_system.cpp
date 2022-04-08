@@ -1328,8 +1328,8 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	//std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 
 	spawnData = createTiles(renderer, next_map);
 
@@ -1415,8 +1415,7 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 	if (enemySpawns.size() > 0) {
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
-			//int roll = irand(4);
-			int roll = 3;
+			int roll = irand(4);
 			switch (roomSystem.current_floor) {
 			case Floors::FLOOR1:
 				// Spawn either a slime or PlantShooter or caveling
@@ -1579,7 +1578,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
-		int give = (int)ARTIFACT::BURRBAG;
+		int give = (int)ARTIFACT::LIVELY_BULB;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
@@ -2412,6 +2411,31 @@ void WorldSystem::start_player_turn() {
 	if (inv.artifact[(int)ARTIFACT::BURRBAG] > 0) {
 		int triggers = inv.artifact[(int)ARTIFACT::BURRBAG];
 		createTrap(world.renderer, player_main, registry.motions.get(player_main).position, {64, 64}, 40, 4, triggers, TEXTURE_ASSET_ID::BURRS);
+	}
+
+	// Lively Bulb effect
+	if (inv.artifact[(int)ARTIFACT::LIVELY_BULB] > 0) {
+		Motion& player_motion = registry.motions.get(player_main);
+		int stacks = inv.artifact[(int)ARTIFACT::LIVELY_BULB];
+		float frac = 999;
+		float dir = 0;
+		bool valid = false;
+
+		// choose target
+		for (Entity& e : registry.enemies.entities) {
+			if (registry.hidden.has(e)) { continue; }
+			Motion& enemy_motion = registry.motions.get(e);
+			Stats& enemy_stats = registry.stats.get(e);
+			if (enemy_stats.hp / enemy_stats.maxhp < frac) {
+				valid = true;
+				dir = atan2(enemy_motion.position.y - player_motion.position.y, enemy_motion.position.x - player_motion.position.x);
+			}
+		}
+
+		if (valid) {
+			// fire
+			createProjectile(renderer, player_main, dirdist_extrapolate(player_motion.position, dir, 64), { 16, 16 }, dir, 90 * stacks, TEXTURE_ASSET_ID::PLANT_PROJECTILE);
+		}
 	}
 }
 

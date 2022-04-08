@@ -1051,7 +1051,7 @@ void WorldSystem::restart_game() {
 		createMenuQuit(renderer, { window_width_px / 5, 800.f * ui_scale });
 		createMenuTitle(renderer, { window_width_px / 2, 150.f * ui_scale });
 		printf("%d size of inventory\n", registry.inventories.size());
-		//printf("%d size of collection?", registry.artifacts.size());
+		// width: window_width_px / 5, height = (600.f*ui_scale/2)
 		update_background_collection();
 	}
 	else {
@@ -2281,7 +2281,7 @@ Entity WorldSystem::loadPlayer(json playerData) {
 	return e;
 }
 
-Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData) {
+Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float floor_width, float floor_height) {
 
 	//Entity e = createPlayer(renderer, { 0, 0 });
 	//Entity player; 
@@ -3199,7 +3199,7 @@ void WorldSystem::update_turn_ui() {
 	return;
 }
 
-void WorldSystem::update_background_collection() {
+void WorldSystem::update_background_collection(float floor_w, float floor_h) {
 
 
 	if (current_game_state == GameStates::MAIN_MENU) {
@@ -3228,7 +3228,7 @@ void WorldSystem::update_background_collection() {
 				Inventory inv;
 				if (entity["type"] == "player") {
 					printf("111 type is player successful... loading player invetory \n");
-					loadPlayerCollectionTitleScreen(entity);
+					loadPlayerCollectionTitleScreen(entity,floor_w, floor_h);
 					//player_main = e; 
 				}
 			}

@@ -195,7 +195,7 @@ private:
 	Entity loadPlayer(json playerData);
 
 	// load player inventory screen stuff 
-	Inventory loadPlayerCollectionTitleScreen(json playerData);
+	Inventory loadPlayerCollectionTitleScreen(json playerData, float floor_width, float floor_height);
 
 	// load enemies from data
 	Entity loadEnemy(json enemyData);
@@ -298,8 +298,8 @@ private:
 	// udate turn UI
 	void update_turn_ui();
 
-	// update background screen with collection artifacts
-	void update_background_collection();
+	// update background screen with collection artifacts takes in width/height floor dimensions
+	void update_background_collection(float w, float h);
 
 	// use attack
 	void use_attack(vec2 target_pos);

@@ -168,6 +168,9 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	// add status container to slime
 	registry.statuses.emplace(entity);
 
+	// slime uses a star so needs special movement
+	registry.aStarMotions.emplace(entity);
+
 	// add hp bar 
 	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
 	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);

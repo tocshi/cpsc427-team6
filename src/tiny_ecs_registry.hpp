@@ -78,6 +78,7 @@ public:
 	ComponentContainer<HPDisplay> hpDisplays;
 	ComponentContainer<EnemyHPBar> enemyHPBars;
 	ComponentContainer<BossHPBar> bossHPBars;
+	ComponentContainer<AstarMotion> aStarMotions;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -125,6 +126,7 @@ public:
 		registry_list.push_back(&hidables);
 		registry_list.push_back(&pointers);
 		registry_list.push_back(&descriptionDialogs);
+		registry_list.push_back(&aStarMotions);
 		// door in registry list 
 		registry_list.push_back(&door);
 		// add artifact to list

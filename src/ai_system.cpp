@@ -590,21 +590,17 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 				// for now just print the node pos'
 				// TODO: actually make slime follow the path
 
+				AstarMotion& aStarMotion = registry.aStarMotions.get(slime);
+
 				for (int i = 0; i < starVector.size(); i++) {
-					printf("node %d's x: %f", i, starVector[i]->position.x);
-					bool motion = true;
 					motion_struct.velocity = slime_velocity * normalize(starVector[i]->position - motion_struct.position);
-					motion_struct.destination = starVector[i]->position;
-					while (motion) {
-						motion_struct.position += motion_struct.velocity;
-						if (motion_struct.position == motion_struct.destination) {
-							motion = false;
-							break;
-						}
+					aStarMotion.path.push(starVector[i]->position);
+					if (i == 0) {
+						aStarMotion.currentDest = starVector[i]->position;
 					}
 				}
+				motion_struct.in_motion = true;
 
-				//// IDEA 1: divide movment into chunks (prob of like 4), then do the in motion there for each dir chunck
 				//vec2 direction = simple_path_find(motion_struct.position, player_motion.position, slime);
 				//motion_struct.velocity = slime_velocity * direction;
 				//motion_struct.in_motion = true;

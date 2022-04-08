@@ -179,11 +179,32 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 
 		// behaviour if currently moving
 		if (vel.x * step_seconds != 0 || vel.y * step_seconds != 0) {
-			if (dist_to(pos_final, dest) <= vel_mag) {
-				motion.velocity = { 0, 0 };
-				motion.destination = motion.position;
-				motion.in_motion = false;
-				break;
+			// handle a star movement
+			if (registry.aStarMotions.has(entity)) {
+				AstarMotion& aStarMotion = registry.aStarMotions.get(entity);
+				if (dist_to(pos_final, aStarMotion.currentDest) <= vel_mag) {
+					// if it is the final dest
+					if (aStarMotion.path.size() == 0) {
+						motion.velocity = { 0, 0 };
+						motion.destination = motion.position;
+						motion.in_motion = false;
+						break;
+					}
+					else {
+						vec2 back = aStarMotion.path.back();
+						aStarMotion.path.pop();
+						aStarMotion.currentDest = back;
+						motion.destination = back;
+					}
+				}
+			}
+			else {
+				if (dist_to(pos_final, dest) <= vel_mag) {
+					motion.velocity = { 0, 0 };
+					motion.destination = motion.position;
+					motion.in_motion = false;
+					break;
+				}
 			}
 			// perform angle sweep 
 			float original_angle = atan2(vel.y, vel.x) * 180 / M_PI;

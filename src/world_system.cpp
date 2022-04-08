@@ -263,7 +263,6 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	// Set all states to default  
 
    // restart_game();
-
 }
 
 // Update our game world
@@ -1002,14 +1001,13 @@ void WorldSystem::restart_game() {
 	registry.list_all_components();
 	printf("Restarting\n");
 
-
 	// Reset the game speed
 	current_speed = 1.f;
 	
 	// Remove all entities that we created
 	// All that have a motion, we could also iterate over all bug, eagles, ... but that would be more cumbersome
 	while (registry.motions.entities.size() > 0)
-	   registry.remove_all_components_of(registry.motions.entities.back());
+	    registry.remove_all_components_of(registry.motions.entities.back());
 	
 	while (registry.texts.entities.size() > 0)
 		registry.remove_all_components_of(registry.texts.entities.back());
@@ -1023,7 +1021,6 @@ void WorldSystem::restart_game() {
 	// Create the map/level/background
 	background = createBackground(renderer, vec2(window_width_px/2,window_height_px/2));
 
-
 	// Add a camera entity
 	active_camera_entity = createCamera({0, 0});
 
@@ -1034,7 +1031,6 @@ void WorldSystem::restart_game() {
 	if (current_game_state == GameStates::MAIN_MENU) {
 		playMusic(Music::MENU);
 	}
-
 
 	/*if (current_game_state != GameStates::MAIN_MENU) {
 		//current_game_state = GameStates::MAIN_MENU;
@@ -1048,19 +1044,6 @@ void WorldSystem::restart_game() {
 	createMenuContinue(renderer, { window_width_px / 2, 600.f * ui_scale});
 	createMenuQuit(renderer, { window_width_px / 2, 800.f * ui_scale});
 	createMenuTitle(renderer, { window_width_px / 2, 150.f * ui_scale});
-	if (saveSystem.saveDataExists()) {
-		printf("HELLO CAN THIS WORK FFFFFF\n");
-		printf("%d size of inventory\n", registry.inventories.size());
-		//printf("%d size of collection?", registry.artifacts.size());
-		update_background_collection();
-		createCollectionButton(renderer, { window_width_px - 160.f, 50.f });
-		//auto entity = Entity();
-		// remove all motion components 
-		//createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale));
-		
-	
-	}
-	
 }
 
 void WorldSystem::handle_end_player_turn(Entity player) {
@@ -2281,77 +2264,6 @@ Entity WorldSystem::loadPlayer(json playerData) {
 	return e;
 }
 
-Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData) {
-
-	//Entity e = createPlayer(renderer, { 0, 0 });
-	//Entity player; 
-	Inventory inv;
-	json inventoryData = playerData["inventory"];
-	printf("YES ???? we are finally in collection loading \n");
-
-	// get artifacts
-	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
-	int x = 0;
-	int i = 0;
-	for (auto& artifact : inventoryData["artifact"]) {
-		inv.artifact[x] = artifact;
-		x++;
-	}
-	printf("%d number of artifacts in it", x);
-	// I don't need to return inventory, just need to check (1) if weapon/ artifact exist if yes 
-	// render the stupid sprite
-
-
-	// load weapon
-	json weaponJson = inventoryData["equipped"]["weapon"];
-	Equipment weapon;
-	weapon.atk = weaponJson["atk"];
-	weapon.def = weaponJson["def"];
-	weapon.ep = weaponJson["ep"];
-	weapon.hp = weaponJson["hp"];
-	weapon.mp = weaponJson["mp"];
-	weapon.range = weaponJson["range"];
-	weapon.speed = weaponJson["speed"];
-	weapon.type = weaponJson["type"];
-	weapon.sprite = weaponJson["sprite"];
-	i = 0;
-	for (auto& attack : weaponJson["attacks"]) {
-		weapon.attacks[i] = attack;
-		i++;
-	}
-
-	// get armour
-	json armourJson = inventoryData["equipped"]["armour"];
-	Equipment armour;
-	armour.atk = armourJson["atk"];
-	armour.def = armourJson["def"];
-	armour.ep = armourJson["ep"];
-	armour.hp = armourJson["hp"];
-	armour.mp = armourJson["mp"];
-	armour.range = armourJson["range"];
-	armour.speed = armourJson["speed"];
-	armour.type = armourJson["type"];
-	armour.sprite = armourJson["sprite"];
-	i = 0;
-	for (auto& attack : armourJson["attacks"]) {
-		armour.attacks[i] = attack;
-		i++;
-	}
-
-	//Inventory inv = loadInventory(player, playerData["inventory"]);
-	
-	/*for (Entity player : registry.players.entities) {
-		printf("YES~");
-		Inventory inv = loadInventory(player, playerData["inventory"]);
-		return player;
-	}
-	*/
-	printf("done QQ \n");
-	return inv; 
-	
-
-}
-
 Entity WorldSystem::loadEnemy(json enemyData) {
 	Entity e;
 	if (enemyData["enemy"]["type"] == ENEMY_TYPE::SLIME) {
@@ -3226,85 +3138,6 @@ void WorldSystem::update_turn_ui() {
 		}
 	}
 	return;
-}
-
-void WorldSystem::update_background_collection() {
-
-
-	if (current_game_state == GameStates::MAIN_MENU) {
-		printf("!@!@#!@$@$@\n");
-		float x_offset = 0.f;
-		float y_offset = 0.f;
-		vec2 pos = { 0,0 };
-		if (saveSystem.saveDataExists()) {
-			// remove entities to load in entities
-			//removeForLoad();
-			//printf("Removed for load\n");
-			// get saved game data
-			json data = saveSystem.getSaveData();
-			// load player
-			json entityList = data["entities"];
-			//json collidablesList = data["map"]["collidables"];
-			//json interactablesList = data["map"]["interactables"];
-			//json tilesList = data["map"]["tiles"];
-			//json roomSystemJson = data["room"];
-			//json attackIndicatorList = data["attack_indicators"];
-
-			// load enemies
-			std::queue<Entity> entities;
-			for (auto& entity : entityList) {
-				Entity e;
-				Inventory inv;
-				if (entity["type"] == "player") {
-					printf("111 type is player successful... loading player invetory \n");
-					loadPlayerCollectionTitleScreen(entity);
-					//player_main = e; 
-				}
-				else {
-					//printf(" 1111 type is enemy ... loading enemy\n");
-					// = loadEnemy(entity);
-					printf("111 loading enemy done\n ");
-				}
-				entities.push(e);
-			}
-			//printf("getting gameData\n");
-			// load the entities in
-			//loadFromData(gameData);
-			//printf("load game data?\n");
-		}
-		/*for (int artifact = 0; artifact < (int)ARTIFACT::ARTIFACT_COUNT; artifact++) {
-			printf("!QQQ\n");
-			float next_x = pos.x - ((COLLECTION_MENU_BB_WIDTH / 2) - 124.f) + x_offset;
-			float next_y = pos.y - ((COLLECTION_MENU_BB_HEIGHT / 2) - 100) + y_offset;
-			if (next_x >= pos.x + (COLLECTION_MENU_BB_WIDTH / 2) - 200) {
-				x_offset = 0.f;
-				y_offset += 150.f;
-			}
-			else {
-				x_offset += (ARTIFACT_IMAGE_BB_WIDTH + 20.f);
-			}
-			createArtifactIcon(renderer, vec2(next_x, next_y),
-				static_cast<ARTIFACT>(artifact));
-
-			// need to render the current count beside it
-			Inventory inv = registry.inventories.components[0];
-
-			int size = inv.artifact[(int)artifact];
-			std::string sizeStr = std::to_string(size);
-
-			std::vector<Entity> textVect;
-			textVect.push_back(createText(renderer, vec2((next_x + 30.f) * 2, (next_y + 40.f) * 2), sizeStr.substr(0, 1), 1.4f, vec3(0.0f)));
-			if (size > 9) {
-				// need to print two numbers		
-				textVect.push_back(createText(renderer, vec2((next_x + 45.f) * 2, (next_y + 40.f) * 2), sizeStr.substr(1, 1), 1.4f, vec3(0.0f)));
-			}
-
-			for (Entity text : textVect) {
-				registry.menuItems.emplace(text);
-			}
-		}*/
-
-	}
 }
 
 void WorldSystem::updateGameBackground() {

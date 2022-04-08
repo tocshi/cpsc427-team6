@@ -144,7 +144,13 @@ enum class TEXTURE_ASSET_ID {
 	ATTACK_INDICATOR_CIRCLE = BIGSLASH + 1,
 	ATTACK_INDICATOR_RECTANGLE = ATTACK_INDICATOR_CIRCLE + 1,
 	SHADOW = ATTACK_INDICATOR_RECTANGLE + 1,
-	TEXTURE_COUNT = SHADOW + 1,
+	LIGHTNING = SHADOW + 1,
+	MANACIRCLE = LIGHTNING + 1,
+	CURSE = MANACIRCLE + 1,
+	SMOKE = CURSE + 1,
+	MUSHROOM = SMOKE + 1,
+	BURRS = MUSHROOM + 1,
+	TEXTURE_COUNT = BURRS + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -227,34 +233,34 @@ enum class ARTIFACT {
 const int artifact_T1[] {
 	(int)ARTIFACT::BLADE_POLISH,
 	(int)ARTIFACT::HQ_FLETCHING,
-	//(int)ARTIFACT::MESSENGER_CAP, // blocked by stat calc system
-	//(int)ARTIFACT::WARM_CLOAK, // blocked by stat calc system
+	(int)ARTIFACT::MESSENGER_CAP,
+	(int)ARTIFACT::WARM_CLOAK,
 	(int)ARTIFACT::GOLIATH_BELT,
-	(int)ARTIFACT::BLOOD_RUBY
+	(int)ARTIFACT::BLOOD_RUBY,
 };
 const int artifact_T2[] {
 	(int)ARTIFACT::POISON_FANG,
-	//(int)ARTIFACT::GUIDE_HEALBUFF, // blocked by healing interactions and stat calc system
+	(int)ARTIFACT::GUIDE_HEALBUFF,
 	(int)ARTIFACT::WINDBAG,
 	(int)ARTIFACT::SCOUT_STRIDE,
 	(int)ARTIFACT::ART_CONSERVE,
-	//(int)ARTIFACT::SMOKE_POWDER // blocked by item pickup
+	(int)ARTIFACT::SMOKE_POWDER,
 };
 const int artifact_T3[] {
 	(int)ARTIFACT::GLAD_HOPLON,
-	//(int)ARTIFACT::THUNDER_TWIG, // not blocked but effect takes some time to implement
+	(int)ARTIFACT::THUNDER_TWIG,
 	(int)ARTIFACT::KB_MALLET,
-	(int)ARTIFACT::ARCANE_SPECS
-	//(int)ARTIFACT::ARCANE_FUNNEL, // blocked by mp usage system
-	//(int)ARTIFACT::BURRBAG // blocked by stat calc system
+	(int)ARTIFACT::ARCANE_SPECS,
+	(int)ARTIFACT::ARCANE_FUNNEL,
+	(int)ARTIFACT::BURRBAG // blocked by stat calc system
 };
 const int artifact_T4[] {
 	(int)ARTIFACT::LUCKY_CHIP,
 	(int)ARTIFACT::THICK_TOME,
-	//(int)ARTIFACT::FUNGIFIER, // not blocked but effect takes some time to implement
+	(int)ARTIFACT::FUNGIFIER, // not blocked but effect takes some time to implement
 	//(int)ARTIFACT::LIVELY_BULB, // not blocked but effect takes some time to implement
-	//(int)ARTIFACT::MALEDICTION, // blocked by stat calc system
-	//(int)ARTIFACT::CHIMERARM // blocked by stat calc system and weapon generation
+	(int)ARTIFACT::MALEDICTION,
+	//(int)ARTIFACT::CHIMERARM, // blocked by blunt/ranged weapons
 };
 
 struct Spritesheet {
@@ -397,6 +403,14 @@ struct WobbleTimer
 struct ProjectileTimer
 {
 	float counter_ms = 3000;
+	float multiplier = 100;
+	Entity owner;
+};
+
+struct Trap
+{
+	int turns = 1;
+	int triggers = 1;
 	float multiplier = 100;
 	Entity owner;
 };
@@ -1012,7 +1026,7 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::MESSENGER_CAP, "10% (+5% per stack) of your base ATK stat is added onto your Speed stat."},
 	{ARTIFACT::WARM_CLOAK, "10% (+5% per stack) of your base ATK stat is added onto your DEF stat."},
 	{ARTIFACT::THUNDER_TWIG, "Attacks have a 15% (+15% per stack) chance to summon a lightning bolt that deals 60% ATK damage in a small AoE."},
-	{ARTIFACT::LUCKY_CHIP, "7% (+7% per stack) chance for your attack to deal 777% damage. 7 % (+7% per stack) chance to reduce incoming damage by 777. Lowest damage taken per attack is 1."},
+	{ARTIFACT::LUCKY_CHIP, "7% (+7% per stack) chance for your attack to deal 777% damage. 7% (+7% per stack) chance to reduce incoming damage by 777. Lowest damage taken per attack is 1."},
 	{ARTIFACT::GUIDE_HEALBUFF, "Health-restoring items and interactables grant a 20% (+20% per stack) ATK buff for 5 turns."},
 	{ARTIFACT::THICK_TOME, "Upon taking lethal damage, survive with 1 HP and gain 3 turns of invincibility. This artifact is consumed when this effect activates."},
 	{ARTIFACT::GOLIATH_BELT, "When HP is above 80%, increases ATK by 20% (+20% per stack)."},
@@ -1024,10 +1038,10 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::ART_CONSERVE, "Consume 8% (*8% per stack) less EP when attacking."},
 	{ARTIFACT::ARCANE_FUNNEL, "Upon defeating an enemy, gain a buff that doubles your MP regeneration for 1 (+1 per stack) turns."},
 	{ARTIFACT::FUNGIFIER, "Upon defeating an enemy, an explosive mushroom is dropped at their location. When an enemy steps on the mushroom, or after 3 turns, the mushroom explodes, dealing 130% (+130% per stack) ATK in damage in a small AoE."},
-	{ARTIFACT::BURRBAG, "At the start of each turn, leave a patch of burrs on the ground that last for 5 turns or until activated 1 (+1 per stack) times. Enemies that step over the burrs will take 40% ATK in damage and can move only 50% of their regular distance on their next turn."},
-	{ARTIFACT::SMOKE_POWDER, "Upon picking up an item, release a cloud of smoke that halves the aggro range of enemies within 200 (+75 per stack) units for 1 turn. Has a 5 turn cooldown."},
-	{ARTIFACT::LIVELY_BULB, "Whenever you perform a Normal Attack, fire 1 (+1 per stack) seed projectile that deals 90% ATK damage towards the lowest HP enemy within your sight range."},
-	{ARTIFACT::MALEDICTION, "When you are attacked, all enemies in sight range will be affected with a curse that reduces their ATK by 40% for 3 turns. Has a 10 (-1 per stack) turn cooldown."},
+	{ARTIFACT::BURRBAG, "At the start of each turn, leave a patch of burrs on the ground that last for 5 turns or until activated 1 (+1 per stack) times. Enemies that step over the burrs will take 40% ATK in damage."},
+	{ARTIFACT::SMOKE_POWDER, "When opening a chest, release a cloud of smoke that halves the aggro range of enemies within 200 (+75 per stack) units for 1 turn."},
+	{ARTIFACT::LIVELY_BULB, "At the end of each turn, fire 1 (+1 per stack) seed projectile that deals 90% ATK damage towards the lowest HP enemy within your sight range."},
+	{ARTIFACT::MALEDICTION, "When you are attacked, all visible enemies will be affected with a curse that reduces their ATK by 40% for 3 turns. Has a 10 (-1 per stack) turn cooldown."},
 	//{ARTIFACT::CHIMERARM, "Your current weapon, and newly generated weapons will have +4 ATK (+4 ATK per stack), and its 2nd Attack Skill will become a random attack skill from any weapon type."}
 };
 
@@ -1067,7 +1081,7 @@ const std::map <ATTACK, std::string>attack_names = {
 };
 
 const std::map <ATTACK, std::string>attack_descriptions = {
-	{ATTACK::NONE, "Deals 100% of ATK in damage to a single target."},
+	{ATTACK::NONE, "Deals 100% of ATK in damage to a single target. Restores 10 MP"},
 	{ATTACK::ROUNDSLASH, "Deals 80% of ATK in damage in a circle around you."},
 	{ATTACK::SAPPING_STRIKE, "Deals 80% of ATK in damage to a single target, and restores 30 MP."},
 	{ATTACK::PIERCING_THRUST, "Deals 120% of ATK in damage in a line, and ignores 40% DEF of any enemies you hit."},
@@ -1092,7 +1106,7 @@ const std::map <ATTACK, std::string>attack_descriptions = {
 const std::map <ATTACK, std::string>attack_costs_string = {
 	{ATTACK::NONE, "0 MP, 50 EP"},
 	{ATTACK::ROUNDSLASH, "30 MP, 50 EP"},
-	{ATTACK::SAPPING_STRIKE, "0 MP, 90 EP"},
+	{ATTACK::SAPPING_STRIKE, "0 MP, 80 EP"},
 	{ATTACK::PIERCING_THRUST, "40 MP, 40 EP"},
 	{ATTACK::PARRYING_STANCE, "50 MP, 30+ EP"},
 	{ATTACK::DISENGAGE, "30 MP, 0 EP"},
@@ -1136,7 +1150,7 @@ const std::map <ATTACK, float>attack_mpcosts = {
 const std::map <ATTACK, float>attack_epcosts = {
 	{ATTACK::NONE, 50},
 	{ATTACK::ROUNDSLASH, 50},
-	{ATTACK::SAPPING_STRIKE, 90},
+	{ATTACK::SAPPING_STRIKE, 80},
 	{ATTACK::PIERCING_THRUST, 40},
 	{ATTACK::PARRYING_STANCE, 30},
 	{ATTACK::DISENGAGE, 0},

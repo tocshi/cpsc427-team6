@@ -148,7 +148,13 @@ class RenderSystem {
 			textures_path("attacks/bigslash.png"),
 			textures_path("attacks/indicator_circle.png"),
 			textures_path("attacks/indicator_rectangle.png"),
-			textures_path("shadow.png")
+			textures_path("shadow.png"),
+			textures_path("attacks/lightning.png"),
+			textures_path("attacks/mana_circle.png"),
+			textures_path("attacks/curse.png"),
+			textures_path("attacks/smoke.png"),
+			textures_path("attacks/mushroom.png"),
+			textures_path("attacks/burrs.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

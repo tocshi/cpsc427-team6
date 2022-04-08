@@ -692,6 +692,33 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
 	}
 
+	// Check traps for collisions/activations
+	for (Entity t : registry.traps.entities) {
+		Trap& trap = registry.traps.get(t);
+		Motion& trap_motion = registry.motions.get(t);
+		
+		if (registry.players.has(trap.owner)) {
+			for (Entity e : registry.enemies.entities) {
+				Motion& enemy_motion = registry.motions.get(e);
+				Stats& enemy_stats = registry.stats.get(e);
+				if (enemy_stats.hp <= 0 || trap.triggers <= 0) { continue; }
+				else if (collides_circle(trap_motion, enemy_motion)) {
+					trigger_trap(t, e);
+				}
+			}
+		}
+		else {
+			for (Entity p : registry.players.entities) {
+				Motion& player_motion = registry.motions.get(p);
+				Stats& player_stats = registry.stats.get(p);
+				if (player_stats.hp <= 0 || trap.triggers <= 0) { continue; }
+				else if (collides_circle(trap_motion, player_motion)) {
+					trigger_trap(t, p);
+				}
+			}
+		}
+	}
+
 	// Check for enemy death
 	for (Entity& enemy : registry.enemies.entities) {
 		if (registry.stats.get(enemy).hp <= 0 && !registry.squishTimers.has(enemy)) {
@@ -712,7 +739,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			// remove from turn queue
 			turnOrderSystem.removeFromQueue(enemy);
-			registry.solid.remove(enemy);
+			// remove from solids
+			if (registry.solid.has(enemy)) {
+				registry.solid.remove(enemy);
+			}
 			if (!tutorial)
 				roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
 			if (registry.bosses.has(enemy)) {
@@ -728,6 +758,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				ShadowContainer& shadow_container = registry.shadowContainers.get(enemy);
 				registry.remove_all_components_of(shadow_container.shadow_entity);
 				registry.shadowContainers.remove(enemy);
+			}
+			// remove from enemy list so aoes don't crash the game trying to deal damage to a dead enemy
+			if (registry.enemies.has(enemy)) {
+				registry.enemies.remove(enemy);
 			}
 		}
 	}
@@ -994,6 +1028,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (chest.isArtifact) {
 					if (chest.opened) {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_OPEN;
+
+						// Smoke Powder effect
+						if (registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER] > 0) {
+							float range = 125 + 75 * registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER];
+							for (Entity e : registry.enemies.entities) {
+								if (dist_to(registry.motions.get(e).position, registry.motions.get(player_main).position) > range) { continue; }
+								StatusEffect debuff = StatusEffect(-0.5, 2, StatusType::RANGE_BUFF, true, true);
+								apply_status(e, debuff);
+							}
+
+							Entity smoke = createBigSlash(world.renderer, registry.motions.get(player_main).position, 0, range);
+							registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
+							registry.expandTimers.get(smoke).counter_ms = 1000;
+						}
 					}
 					else {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_CLOSED;
@@ -1002,6 +1050,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				else {
 					if (chest.opened) {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_OPEN;
+
+						// Smoke Powder effect
+						if (registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER] > 0) {
+							float range = 125 + 75 * registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER];
+							for (Entity e : registry.enemies.entities) {
+								if (dist_to(registry.motions.get(e).position, registry.motions.get(player_main).position) > range) { continue; }
+								StatusEffect debuff = StatusEffect(-0.5, 2, StatusType::RANGE_BUFF, true, true);
+								apply_status(e, debuff);
+							}
+
+							Entity smoke = createBigSlash(world.renderer, registry.motions.get(player_main).position, 0, range);
+							registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
+							registry.expandTimers.get(smoke).counter_ms = 1000;
+						}
 					}
 					else {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_CLOSED;
@@ -1266,8 +1328,8 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	//std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 
 	spawnData = createTiles(renderer, next_map);
 
@@ -1353,7 +1415,8 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 	if (enemySpawns.size() > 0) {
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
-			int roll = irand(4);
+			//int roll = irand(4);
+			int roll = 3;
 			switch (roomSystem.current_floor) {
 			case Floors::FLOOR1:
 				// Spawn either a slime or PlantShooter or caveling
@@ -1502,7 +1565,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_9) {
-		int give = (int)ARTIFACT::GUIDE_HEALBUFF;
+		int give = (int)ARTIFACT::FUNGIFIER;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
@@ -1516,7 +1579,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
-		int give = (int)ARTIFACT::WARM_CLOAK;
+		int give = (int)ARTIFACT::BURRBAG;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
@@ -2323,6 +2386,7 @@ void WorldSystem::start_player_turn() {
 	float& maxep = registry.stats.get(player_main).maxep;
 	float& ep = registry.stats.get(player_main).ep;
 	Player& p = registry.players.get(player_main);
+	Inventory& inv = registry.inventories.get(player_main);
 	p.attacked = false;
 	p.moved = false;
 	p.prepared = false;
@@ -2339,6 +2403,15 @@ void WorldSystem::start_player_turn() {
 		auto& enemy_struct = registry.enemies.get(enemy);
 
 		enemy_struct.hit_by_player = false;
+	}
+
+	// handle traps
+	handle_traps();
+
+	// Burrbag effect
+	if (inv.artifact[(int)ARTIFACT::BURRBAG] > 0) {
+		int triggers = inv.artifact[(int)ARTIFACT::BURRBAG];
+		createTrap(world.renderer, player_main, registry.motions.get(player_main).position, {64, 64}, 40, 4, triggers, TEXTURE_ASSET_ID::BURRS);
 	}
 }
 
@@ -3668,6 +3741,13 @@ void WorldSystem::use_attack(vec2 target_pos) {
 					}
 
 					player_stats.mp = min(player_stats.maxmp, player_stats.mp + (player_stats.maxmp * 0.1f * player_stats.mpregen));
+					// Arcane Funnel effect
+					if (has_status(player_main, StatusType::ARCANE_FUNNEL)) {
+						player_stats.mp = min(player_stats.maxmp, player_stats.mp + (player_stats.maxmp * 0.1f * player_stats.mpregen));
+						Entity mana = createBigSlash(world.renderer, { m.position.x, m.position.y }, 0, 256);
+						registry.renderRequests.get(mana).used_texture = TEXTURE_ASSET_ID::MANACIRCLE;
+					}
+
 					attack_success = true;
 				}
 				else if (player_stats.ep < ep_cost) {

@@ -173,6 +173,8 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 
+	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
+	shadow_container.shadow_entity = createShadow(pos, entity);
 	return entity;
 }
 
@@ -228,6 +230,9 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
 	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+
+	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
+	shadow_container.shadow_entity = createShadow(pos, entity);
 
 	return entity;
 }
@@ -319,6 +324,9 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 
+	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
+	shadow_container.shadow_entity = createShadow(pos, entity);
+
 	return entity;
 }
 
@@ -371,6 +379,9 @@ Entity createKingSlime(RenderSystem* renderer, vec2 pos)
 
 	// add status container to slime
 	registry.statuses.emplace(entity);
+
+	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
+	shadow_container.shadow_entity = createShadow(pos, entity);
 	return entity;
 }
 
@@ -673,6 +684,83 @@ Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::pair<std::s
 	return entity;
 }
 
+Entity createSign2(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std::string>>& messages)
+{
+	auto entity = Entity();
+	AnimationData& anim = registry.animations.emplace(entity);
+	anim.spritesheet_texture = TEXTURE_ASSET_ID::SIGN_GLOW_SPRITESHEET;
+	anim.frametime_ms = 200;
+	anim.frame_indices = { 0, 1, 2, 3, 4, 5, 6, 7 };
+	anim.spritesheet_columns = 8;
+	anim.spritesheet_rows = 1;
+	anim.spritesheet_width = 256;
+	anim.spritesheet_height = 32;
+	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ SIGN_BB_WIDTH, SIGN_BB_HEIGHT });
+
+	// Create and (empty) SIGN component to be able to refer to all signs
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SIGN_GLOW_SPRITESHEET,
+		EFFECT_ASSET_ID::TEXTURED,
+		GEOMETRY_BUFFER_ID::ANIMATION,
+		RENDER_LAYER_ID::SPRITE
+		});
+
+	Sign2& sign = registry.signs2.emplace(entity);
+	sign.messages = messages;
+
+	auto& interactable = registry.interactables.emplace(entity);
+	interactable.type = INTERACT_TYPE::SIGN_2;
+	interactable.interacted = false;
+
+	return entity;
+}
+
+Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std::string>>& messages)
+{
+	auto entity = Entity();
+
+	Textbox& textbox = registry.textboxes.emplace(entity);
+	textbox.num_lines = 0;
+	textbox.num_messages = messages.size();
+	textbox.messages = messages;
+	if (textbox.num_messages > 0) {
+		for (std::string line : messages[0]) {
+			textbox.num_lines++;
+			Entity text = createText(renderer, pos*2.f + vec2(-TEXTBOX_BB_WIDTH + 100.f, -TEXTBOX_BB_HEIGHT + 75.f * textbox.num_lines), line, 2.0f, vec3(1.f));
+			textbox.lines.push_back(text);
+		}
+	}
+	textbox.next_message = 1;
+	textbox.icon = createMouseAnimationUI(renderer, { pos[0] + TEXTBOX_BB_WIDTH/2.f - 64.f*ui_scale, pos[1] + TEXTBOX_BB_HEIGHT/2.f - 64.f*ui_scale });
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ TEXTBOX_BB_WIDTH, TEXTBOX_BB_HEIGHT });
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTBOX,
+		EFFECT_ASSET_ID::TEXTURED,
+		GEOMETRY_BUFFER_ID::SPRITE,
+		RENDER_LAYER_ID::UI
+		});
+	
+	return entity;
+}
+
 // Stair
 Entity createStair(RenderSystem* renderer, vec2 pos)
 {
@@ -701,7 +789,7 @@ Entity createStair(RenderSystem* renderer, vec2 pos)
 }
 
 // Wall
-Entity createWall(RenderSystem* renderer, vec2 pos)
+Entity createWall(RenderSystem* renderer, vec2 pos, vec2 scale)
 {
 	auto entity = Entity();
 
@@ -711,17 +799,17 @@ Entity createWall(RenderSystem* renderer, vec2 pos)
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
 
-	motion.scale = vec2({ WALL_BB_WIDTH, WALL_BB_HEIGHT });
+	motion.scale = scale;
 
-	// Create and (empty) DOOR component to be able to refer to all doors
-	registry.test.emplace(entity);
+	// Create and (empty) WALL component to be able to refer to all doors
 	registry.solid.emplace(entity);
 	registry.collidables.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::WALL,
 		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::PLAYER });
 
 	return entity;
 }
@@ -1543,7 +1631,7 @@ Entity createAttackDialogButton(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_
 }
 
 // Collection menu
-Entity createCollectionMenu(RenderSystem* renderer, vec2 pos) {
+Entity createCollectionMenu(RenderSystem* renderer, vec2 pos, Entity player) {
 	auto entity = Entity();
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
@@ -1605,7 +1693,7 @@ Entity createCollectionMenu(RenderSystem* renderer, vec2 pos) {
 			static_cast<ARTIFACT>(artifact));
 
 		// need to render the current count beside it
-		Inventory inv = registry.inventories.components[0];
+		Inventory inv = registry.inventories.get(player);
 
 		int size = inv.artifact[(int)artifact];
 		std::string sizeStr = std::to_string(size);
@@ -2346,6 +2434,32 @@ Entity createMouseAnimation(RenderSystem* renderer, vec2 pos) {
 	anim.frame_indices = { 3, 0 };
 	anim.spritesheet_columns = 1;
 	anim.spritesheet_rows = 4;
+	anim.spritesheet_width = 16;
+	anim.spritesheet_height = 64;
+	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = { 64, 64 };
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::MOUSE_SPRITESHEET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::ANIMATION,
+			RENDER_LAYER_ID::EFFECT });
+
+	return entity;
+}
+
+Entity createMouseAnimationUI(RenderSystem* renderer, vec2 pos) {
+	Entity entity = Entity();
+	AnimationData& anim = registry.animations.emplace(entity);
+	anim.spritesheet_texture = TEXTURE_ASSET_ID::MOUSE_SPRITESHEET;
+	anim.frametime_ms = 1000;
+	anim.frame_indices = { 3, 0 };
+	anim.spritesheet_columns = 1;
+	anim.spritesheet_rows = 4;
 	anim.spritesheet_width = 50;
 	anim.spritesheet_height = 200;
 	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
@@ -2359,7 +2473,7 @@ Entity createMouseAnimation(RenderSystem* renderer, vec2 pos) {
 		{ TEXTURE_ASSET_ID::MOUSE_SPRITESHEET,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::ANIMATION,
-			RENDER_LAYER_ID::EFFECT });
+			RENDER_LAYER_ID::UI_TOP });
 
 	return entity;
 }
@@ -2631,6 +2745,25 @@ Entity createEnemyHPFill(vec2 position, Entity parent)
 
 	HPDisplay& hp_display = registry.hpDisplays.emplace(entity);
 	hp_display.parent = parent;
+
+	return entity;
+}
+
+Entity createShadow(vec2 pos, Entity caster) {
+	Entity entity = Entity();
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = {0,0};
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SHADOW,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::SHADOW });
+	Shadow& shadow = registry.shadows.emplace(entity);
+	shadow.caster = caster;
 
 	return entity;
 }

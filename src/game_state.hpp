@@ -26,6 +26,7 @@ enum class GameStates {
 	ATTACK_MENU,
 	ITEM_MENU,
 	COLLECTION_MENU,
+	DIALOGUE,
 
 	ENEMY_TURN,
 	

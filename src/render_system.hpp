@@ -53,6 +53,7 @@ class RenderSystem {
 			textures_path("door.png"),
 			textures_path("sign.png"),
 			textures_path("sign_glowing.png"),
+			textures_path("textbox.png"),
 			textures_path("stair.png"),
 			textures_path("start.png"),
 			textures_path("quit.png"),
@@ -147,6 +148,7 @@ class RenderSystem {
 			textures_path("attacks/bigslash.png"),
 			textures_path("attacks/indicator_circle.png"),
 			textures_path("attacks/indicator_rectangle.png"),
+			textures_path("shadow.png")
 	};
 
 	std::array<GLuint, effect_count> effects;

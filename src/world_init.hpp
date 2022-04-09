@@ -22,6 +22,8 @@ const float DOOR_BB_WIDTH = 0.6f * 150.f * ui_scale;
 const float DOOR_BB_HEIGHT = 0.6f * 150.f * ui_scale;
 const float SIGN_BB_WIDTH = 64.f * ui_scale;
 const float SIGN_BB_HEIGHT = 64.f * ui_scale;
+const float TEXTBOX_BB_WIDTH = 1200.f * ui_scale;
+const float TEXTBOX_BB_HEIGHT = 300.f * ui_scale;
 const float STAIR_BB_WIDTH = 0.6f * 150.f * ui_scale;
 const float STAIR_BB_HEIGHT = 0.6f * 150.f * ui_scale;
 const float WALL_BB_WIDTH = 100.f * ui_scale;
@@ -60,7 +62,7 @@ const float SWITCH_BB_WIDTH = 64.f * ui_scale;
 const float SWITCH_BB_HEIGHT = 64.f * ui_scale;
 const float ENEMY_HP_BAR_OFFSET = -48.f;
 
-// want to make fog small so it can be rendered a lot TODO: this is a bad implementation and will need to be changed later to use shadows or drawing circles or something better
+// want to make fog small so it can be rendered a lot
 const float FOG_BB_WIDTH = 0.6f * 100.f * ui_scale;
 const float FOG_BB_HEIGHT = 0.6f * 100.f * ui_scale;
 
@@ -95,10 +97,14 @@ Entity createChest(RenderSystem* renderer, vec2 pos, bool isArtifact);
 Entity createDoor(RenderSystem* renderer, vec2 pos, bool boss_door=false);
 // Sign
 Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::pair<std::string, int>>& messages);
+// Sign using textboxes
+Entity createSign2(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std::string>>& messages);
+// Textbox
+Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std::string>>& messages);
 // Stair
 Entity createStair(RenderSystem* renderer, vec2 pos);
 // Wall
-Entity createWall(RenderSystem* renderer, vec2 pos);
+Entity createWall(RenderSystem* renderer, vec2 pos, vec2 scale);
 // Menu start
 Entity createMenuStart(RenderSystem* renderer, vec2 pos);
 // Menu quit
@@ -166,7 +172,7 @@ Entity createCampfire(RenderSystem* renderer, vec2 pos);
 // Animated explosion
 Entity createExplosion(RenderSystem* renderer, vec2 pos);
 // Collection menu
-Entity createCollectionMenu(RenderSystem* renderer, vec2 pos);
+Entity createCollectionMenu(RenderSystem* renderer, vec2 pos, Entity player);
 // Artifact card
 Entity createArtifactIcon(RenderSystem* renderer, vec2 pos, ARTIFACT artifact);
 // Description Dialog (artifact version) - todo: add more definitions with other items (attacks etc.)
@@ -189,6 +195,8 @@ Entity createAttackDialogButton(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_
 Entity createConsumable(RenderSystem* renderer, vec2 pos, CONSUMABLE type);
 // left mouse click animation
 Entity createMouseAnimation(RenderSystem* renderer, vec2 pos);
+// left mouse click animation
+Entity createMouseAnimationUI(RenderSystem* renderer, vec2 pos);
 // item card
 Entity createItemCard(RenderSystem* renderer, vec2 pos, EQUIPMENT type, Equipment item);
 // item menu
@@ -211,3 +219,5 @@ Entity createSaveQuit(RenderSystem* renderer, vec2 pos);
 Entity createEnemyHPBacking(vec2 position, Entity parent);
 // Enemy HP bar's fill (red line)
 Entity createEnemyHPFill(vec2 position, Entity parent);
+// shadow for enemies
+Entity createShadow(vec2 pos, Entity caster);

@@ -84,6 +84,8 @@ Entity createProjectile(RenderSystem* renderer, Entity owner, vec2 pos, vec2 sca
 Entity createCaveling(RenderSystem* renderer, vec2 pos);
 // King Slime
 Entity createKingSlime(RenderSystem* renderer, vec2 pos);
+// Living Pebble
+Entity createLivingPebble(RenderSystem* renderer, vec2 pos);
 // Equipment
 Equipment createEquipment(EQUIPMENT type, int tier);
 Entity createEquipmentEntity(RenderSystem* renderer, vec2 pos, Equipment equipment);

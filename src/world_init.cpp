@@ -385,6 +385,60 @@ Entity createKingSlime(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+// Living Pebble
+Entity createLivingPebble(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 200;
+
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+
+	auto& enemy = registry.enemies.emplace(entity);
+	enemy.initialPosition = pos;
+	enemy.state = ENEMY_STATE::IDLE;
+	enemy.type = ENEMY_TYPE::LIVING_PEBBLE;
+	registry.inventories.emplace(entity);
+
+	// Create living pebble stats
+	auto& stats = registry.stats.emplace(entity);
+	stats.name = "Living Pebble";
+	stats.prefix = "the";
+	stats.maxhp = 1;
+	stats.hp = stats.maxhp;
+	stats.atk = 10;
+	stats.def = 999;
+	stats.speed = 11;
+	stats.range = 300;
+
+	registry.basestats.insert(entity, stats);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::LIVING_PEBBLE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
+
+	// add enemy to queuables
+	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
+
+	// add status container to living pebble
+	registry.statuses.emplace(entity);
+
+	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
+	shadow_container.shadow_entity = createShadow(pos, entity);
+	return entity;
+}
+
 // Generate Random Equipment
 Equipment createEquipment(EQUIPMENT type, int tier) {
 

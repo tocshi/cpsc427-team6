@@ -1256,7 +1256,7 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR2, true); // TODO: change back to FLOOR1
 	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 
 	spawnData = createTiles(renderer, next_map);
@@ -1359,6 +1359,9 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 				break;
 			case Floors::BOSS1:
 				createKingSlime(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				break;
+			case Floors::FLOOR2:
+				createLivingPebble(renderer, { enemySpawns[i].x, enemySpawns[i].y});
 				break;
 			}
 		}
@@ -1797,7 +1800,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						}
 						else {
 							start_game();
-							roomSystem.current_floor = Floors::FLOOR1;
+							roomSystem.current_floor = Floors::FLOOR2; // TODO: change back to FLOOR1
 							spawn_game_entities();
 						}
 						break;
@@ -3287,7 +3290,8 @@ void WorldSystem::updateTutorial() {
 void set_enemy_state_attack(Entity enemy) {
 	if (registry.enemies.get(enemy).type == ENEMY_TYPE::SLIME ||
 		registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER ||
-		registry.enemies.get(enemy).type == ENEMY_TYPE::CAVELING) {
+		registry.enemies.get(enemy).type == ENEMY_TYPE::CAVELING ||
+		registry.enemies.get(enemy).type == ENEMY_TYPE::LIVING_PEBBLE) {
 		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
 	}
 }

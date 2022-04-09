@@ -35,6 +35,10 @@ private:
 		{
 			Floors::BOSS1,
 			{"boss1.tmx"}
+		},
+		{
+			Floors::FLOOR2,
+			{"boss1.tmx"}	// TODO: replace with floor 2 maps
 		}
 	};
 };

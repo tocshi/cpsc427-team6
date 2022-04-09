@@ -61,6 +61,9 @@ void AISystem::step(Entity e)
 				case ENEMY_TYPE::KING_SLIME:
 					king_slime_logic(e, player);
 					break;
+				case ENEMY_TYPE::LIVING_PEBBLE:
+					living_pebble_logic(e, player);
+					break;
 			}
 		}
 	}
@@ -518,6 +521,99 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 	}
 
 	boss.num_turns++;
+}
+
+void AISystem::living_pebble_logic(Entity enemy, Entity& player) {
+	Motion& player_motion = registry.motions.get(player);
+	Stats& stats = registry.stats.get(enemy);
+	float chaseRange = stats.range;
+	float meleeRange = 100.f;
+
+	Motion& motion_struct = registry.motions.get(enemy);
+
+	// Perform melee attack if close enough
+	if (registry.enemies.get(enemy).state == ENEMY_STATE::ATTACK) {
+		if (player_in_range(motion_struct.position, meleeRange)) {
+			createExplosion(world.renderer, player_motion.position);
+			Mix_PlayChannel(-1, world.fire_explosion_sound, 0);
+			world.logText(deal_damage(enemy, player, 100));
+		}
+		registry.enemies.get(enemy).state = ENEMY_STATE::AGGRO;
+		return;
+	}
+
+	// Determine enemy state
+	// check if player is in range first
+	if (player_in_range(motion_struct.position, chaseRange)) {
+		registry.enemies.get(enemy).state = ENEMY_STATE::AGGRO;
+	}
+	else {
+		registry.enemies.get(enemy).state = ENEMY_STATE::IDLE;
+	}
+
+	ENEMY_STATE state = registry.enemies.get(enemy).state;
+	// perform action based on state
+	int dx = ichoose(irandRange(-75, -25), irandRange(25, 75));
+	int dy = ichoose(irandRange(-75, -25), irandRange(25, 75));
+
+	switch (state) {
+	case ENEMY_STATE::IDLE:
+		motion_struct.destination = { motion_struct.position.x + dx, motion_struct.position.y + dy };
+
+		// Teleport if out of player sight range
+		if (!player_in_range(motion_struct.position, registry.stats.get(player).range) && !player_in_range(motion_struct.destination, registry.stats.get(player).range)) {
+			// temp check
+			motion_struct.destination = motion_struct.position;
+			motion_struct.position = { motion_struct.position.x + dx, motion_struct.position.y + dy };
+			for (Entity solid : registry.solid.entities) {
+				if (collides_AABB(motion_struct, registry.motions.get(solid))) {
+					motion_struct.position = motion_struct.destination;
+					break;
+				}
+			}
+			motion_struct.in_motion = false;
+		}
+		else {
+			motion_struct.velocity = 180.f * normalize(motion_struct.destination - motion_struct.position);
+			motion_struct.in_motion = true;
+		}
+		break;
+	case ENEMY_STATE::AGGRO:
+		// move towards player
+		for (Entity player : registry.players.entities) {
+			// get player position
+			Motion player_motion = registry.motions.get(player);
+
+			// move towards player
+			float enemy_velocity = 180.f;
+			float angle = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
+
+			// Special behaviour if special enemy
+			if (stats.range > 1000.f) {
+				motion_struct.destination = { dirdist_extrapolate(motion_struct.position,
+					angle + degtorad(irandRange(-10, 10)), min(300.f, dist_to(motion_struct.position,
+					player_motion.position)) + irandRange(-20, -10))
+				};
+			}
+			else {
+				motion_struct.destination = { dirdist_extrapolate(motion_struct.position,
+					angle + degtorad(irandRange(-10, 10)), min(140.f, dist_to(motion_struct.position,
+					player_motion.position)) + irandRange(-20, -10))
+				};
+			}
+			// Teleport if out of player sight range
+			if (!player_in_range(motion_struct.position, registry.stats.get(player).range) && !player_in_range(motion_struct.destination, registry.stats.get(player).range)) {
+				motion_struct.position = motion_struct.destination;
+				motion_struct.in_motion = false;
+			}
+			else {
+				vec2 direction = simple_path_find(motion_struct.position, player_motion.position, enemy);
+				motion_struct.velocity = enemy_velocity * direction;
+				motion_struct.in_motion = true;
+			}
+		}
+		break;
+	}
 }
 
 // returns true if the player entity is in range of the given position and radius

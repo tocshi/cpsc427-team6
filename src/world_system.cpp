@@ -2288,8 +2288,11 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 	Inventory inv;
 	json inventoryData = playerData["inventory"];
 	printf("YES ???? we are finally in collection loading \n");
-	vec2 arr[24]; 
+	vec2 arr[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
 
+	int rows = 4; 
+	int column = abs(static_cast<int>(ARTIFACT::ARTIFACT_COUNT) / 4); 
+	//printf("column :%d \n", column);
 	// Max height for spawning 
 	// width + moves it right 
 	// height + moves it down the screen 
@@ -2299,17 +2302,59 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 	
 	float max_height_bot = window_height_px*ui_scale - ARTIFACT_IMAGE_BB_HEIGHT;
 	float h_diff = max_height_bot - max_height_top; 
+	float y_offset = h_diff / rows;;
 
 	float max_width_left_edge = floor_width + 250.f;
 	//printf("max_w left :%fl\n", max_width_left_edge);
 	//printf("max height  :%fl\n", ARTIFACT_IMAGE_BB_WIDTH);
 	float max_width_right_edge = window_width_px * ui_scale - ARTIFACT_IMAGE_BB_WIDTH;
 	float w_diff =  max_width_right_edge- max_width_left_edge;
+	float x_offset = w_diff / column; 
+	// standard artifact postion make is 4 rows 
+	// standard artifact 
+
+	// loops and adds the vector points in accordance with the fixated 4 rows 
+	//[ 0, 0 ,0 , 0
+	//[ 0 ,0, 0 , 0
+	//[ 0,0,0,0
+	//[0,0,0,0
+	for (int pos = 0; pos < static_cast<int>(ARTIFACT::ARTIFACT_COUNT); pos++) {
+		if (pos <= column) {
+			arr[pos] = { max_width_left_edge +((column-pos)*x_offset), max_height_top };
+			if (pos == static_cast<int>(ARTIFACT::ARTIFACT_COUNT)) {
+				break; 
+			}
+		}
+
+		if (pos <= (column * 2)) {
+			arr[pos] = { max_width_left_edge*+((column - pos) * x_offset), max_height_top + (y_offset) };
+			if (pos == static_cast<int>(ARTIFACT::ARTIFACT_COUNT)) {
+				break;
+			}
+		}
+
+
+		if (pos <= (column * 3)) {
+			arr[pos] = { max_width_left_edge*+((column - pos) * x_offset), max_height_top + (2*y_offset) };
+			if (pos == static_cast<int>(ARTIFACT::ARTIFACT_COUNT)) {
+				break;
+			}
+		}
+		
+		if (pos <= (column * 4)) {
+			arr[pos] = { max_width_left_edge*+((column - pos) * x_offset), max_height_top + (3 * y_offset) };
+			if (pos == static_cast<int>(ARTIFACT::ARTIFACT_COUNT)) {
+				break;
+			}
+		}
+		
+	}
+
+	printf("arr pos[0].x :%fl", arr[0].x);
+	printf("arr pos[0].x :%fl", arr[0].y);
+	printf("arr pos[23].x :%fl", arr[23].x);
+	printf("arr pos[23].x :%fl", arr[23].y);
 	
-	//max height  :500.000000l
-	//max_w left : 570.000000l
-	//max h : 336.000000l
-	// max_w : 966.000000l
 	printf("max_w left :%fl\n", max_width_left_edge);
 	printf("max_w right :%fl\n", max_width_right_edge);
 
@@ -2331,8 +2376,9 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 	for (auto& artifact : inventoryData["artifact"]) {
 
 
-		int r = irand(50)+1;
+		int r = irand(100)+1;
 		printf("r value :%d\n", r);
+
 
 	
 

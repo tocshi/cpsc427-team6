@@ -107,9 +107,9 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		// 10 g_cost for the 4 sides
 		
 		// right side
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(64.f, 0.f), range) && !entityAtLocation(currNode->position + vec2(64.f, 0.f))) {
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(16.f, 0.f), range) && !entityAtLocation(currNode->position + vec2(16.f, 0.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position + vec2(64.f, 0.f);
+			node->position = currNode->position + vec2(16.f, 0.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 10.f;
 			// h_cost is the distance to the player
@@ -117,7 +117,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			node->f_cost = node->g_cost + node->h_cost;
 
 			// if the node is at the player break
-			if (node->h_cost <= 32.f) {
+			if (node->h_cost <= 16.f) {
 				printf("here right");
 				endNode = new AstarNode;
 				endNode->position = node->position;
@@ -135,7 +135,11 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 						// remove the old position from the openSet
 						removeFromList(list_node, &openSet);
 						// add the new node to the list instead
+						delete list_node;
 						openSet.push_back(node);
+					}
+					else {
+						delete node;
 					}
 				}
 				else {
@@ -145,9 +149,9 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// left side
-		if (!nodeOutRange(enemyPos, currNode->position - vec2(64.f, 0.f), range) && !entityAtLocation(currNode->position - vec2(64.f, 0.f))) {
+		if (!nodeOutRange(enemyPos, currNode->position - vec2(16.f, 0.f), range) && !entityAtLocation(currNode->position - vec2(16.f, 0.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position - vec2(64.f, 0.f);
+			node->position = currNode->position - vec2(16.f, 0.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 10.f;
 			// h_cost is the distance to the player
@@ -155,7 +159,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			node->f_cost = node->g_cost + node->h_cost;
 
 			// if the node is at the player break
-			if (node->h_cost <= 32.f) {
+			if (node->h_cost <= 16.f) {
 				printf("here left");
 				endNode = new AstarNode;
 				endNode->position = node->position;
@@ -173,7 +177,11 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 						// remove the old position from the openSet
 						removeFromList(list_node, &openSet);
 						// add the new node to the list instead
+						delete list_node;
 						openSet.push_back(node);
+					}
+					else {
+						delete node;
 					}
 				}
 				else {
@@ -183,9 +191,9 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// top
-		if (!nodeOutRange(enemyPos, currNode->position - vec2(0.f, 64.f), range) && !entityAtLocation(currNode->position - vec2(0.f, 64.f))) {
+		if (!nodeOutRange(enemyPos, currNode->position - vec2(0.f, 16.f), range) && !entityAtLocation(currNode->position - vec2(0.f, 16.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position - vec2(0.f, 64.f);
+			node->position = currNode->position - vec2(0.f, 16.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 10.f;
 			// h_cost is the distance to the player
@@ -193,7 +201,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			node->f_cost = node->g_cost + node->h_cost;
 
 			// if the node is at the player break
-			if (node->h_cost <= 32.f) {
+			if (node->h_cost <= 16.f) {
 				printf("here top");
 				endNode = new AstarNode;
 				endNode->position = node->position;
@@ -211,7 +219,11 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 						// remove the old position from the openSet
 						removeFromList(list_node, &openSet);
 						// add the new node to the list instead
+						delete list_node;
 						openSet.push_back(node);
+					}
+					else {
+						delete node;
 					}
 				}
 				else {
@@ -221,9 +233,9 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// bottom
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(0.f, 64.f), range) && !entityAtLocation(currNode->position + vec2(0.f, 64.f))) {
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(0.f, 16.f), range) && !entityAtLocation(currNode->position + vec2(0.f, 16.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position + vec2(0.f, 64.f);
+			node->position = currNode->position + vec2(0.f, 16.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 10.f;
 			// h_cost is the distance to the player
@@ -231,7 +243,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			node->f_cost = node->g_cost + node->h_cost;
 
 			// if the node is at the player break
-			if (node->h_cost <= 32.f) {
+			if (node->h_cost <= 16.f) {
 				printf("here bottom");
 				endNode = new AstarNode;
 				endNode->position = node->position;
@@ -249,7 +261,11 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 						// remove the old position from the openSet
 						removeFromList(list_node, &openSet);
 						// add the new node to the list instead
+						delete list_node;
 						openSet.push_back(node);
+					}
+					else {
+						delete node;
 					}
 				}
 				else {
@@ -261,9 +277,9 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		// 14 g_cost for the diagonals
 
 		// top right
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(64.f, -64.f), range) && !entityAtLocation(currNode->position + vec2(64.f, -64.f))) {
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(16.f, -16.f), range) && !entityAtLocation(currNode->position + vec2(16.f, -16.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position + vec2(64.f, -64.f);
+			node->position = currNode->position + vec2(16.f, -16.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 14.f;
 			// h_cost is the distance to the player
@@ -271,7 +287,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			node->f_cost = node->g_cost + node->h_cost;
 
 			// if the node is at the player break
-			if (node->h_cost <= 32.f) {
+			if (node->h_cost <= 16.f) {
 				printf("here top right");
 				endNode = new AstarNode;
 				endNode->position = node->position;
@@ -290,6 +306,10 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 						removeFromList(list_node, &openSet);
 						// add the new node to the list instead
 						openSet.push_back(node);
+						delete list_node;
+					}
+					else {
+						delete node;
 					}
 				}
 				else {
@@ -299,9 +319,9 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// top left
-		if (!nodeOutRange(enemyPos, currNode->position - vec2(64.f, 64.f), range) && !entityAtLocation(currNode->position - vec2(64.f, 64.f))) {
+		if (!nodeOutRange(enemyPos, currNode->position - vec2(16.f, 16.f), range) && !entityAtLocation(currNode->position - vec2(16.f, 16.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position - vec2(64.f, 64.f);
+			node->position = currNode->position - vec2(16.f, 16.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 14.f;
 			// h_cost is the distance to the player
@@ -309,7 +329,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			node->f_cost = node->g_cost + node->h_cost;
 
 			// if the node is at the player break
-			if (node->h_cost <= 32.f) {
+			if (node->h_cost <= 16.f) {
 				printf("here top left");
 				endNode = new AstarNode;
 				endNode->position = node->position;
@@ -326,8 +346,12 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 					if (node->g_cost < list_node->g_cost) {
 						// remove the old position from the openSet
 						removeFromList(list_node, &openSet);
+						delete list_node;
 						// add the new node to the list instead
 						openSet.push_back(node);
+					}
+					else {
+						delete node;
 					}
 				}
 				else {
@@ -337,9 +361,9 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// bottom right
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(64.f, 64.f), range) && !entityAtLocation(currNode->position + vec2(64.f, 64.f))) {
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(16.f, 16.f), range) && !entityAtLocation(currNode->position + vec2(16.f, 16.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position + vec2(64.f, 64.f);
+			node->position = currNode->position + vec2(16.f, 16.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 14.f;
 			// h_cost is the distance to the player
@@ -347,7 +371,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			node->f_cost = node->g_cost + node->h_cost;
 
 			// if the node is at the player break
-			if (node->h_cost <= 32.f) {
+			if (node->h_cost <= 16.f) {
 				printf("here bottom right");
 				endNode = new AstarNode;
 				endNode->position = node->position;
@@ -365,7 +389,11 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 						// remove the old position from the openSet
 						removeFromList(list_node, &openSet);
 						// add the new node to the list instead
+						delete list_node;
 						openSet.push_back(node);
+					}
+					else {
+						delete node;
 					}
 				}
 				else {
@@ -375,9 +403,9 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// bottom left
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(-64.f, 64.f), range) && !entityAtLocation(currNode->position + vec2(64.f, 64.f))) {
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(-16.f, 16.f), range) && !entityAtLocation(currNode->position + vec2(16.f, 16.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position + vec2(-64.f, 64.f);
+			node->position = currNode->position + vec2(-16.f, 16.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 14.f;
 			// h_cost is the distance to the player
@@ -385,7 +413,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			node->f_cost = node->g_cost + node->h_cost;
 
 			// if the node is at the player break
-			if (node->h_cost <= 32.f) {
+			if (node->h_cost <= 16.f) {
 				printf("here bottom left");
 				endNode = new AstarNode;
 				endNode->position = node->position;
@@ -403,7 +431,11 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 						// remove the old position from the openSet
 						removeFromList(list_node, &openSet);
 						// add the new node to the list instead
+						delete list_node;
 						openSet.push_back(node);
+					}
+					else {
+						delete node;
 					}
 				}
 				else {
@@ -598,6 +630,7 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 					if (i == 0) {
 						aStarMotion.currentDest = starVector[i]->position;
 					}
+					delete starVector[i];
 				}
 				motion_struct.in_motion = true;
 

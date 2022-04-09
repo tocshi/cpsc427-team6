@@ -82,6 +82,8 @@ public:
 	ComponentContainer<BossHPBar> bossHPBars;
 	ComponentContainer<ShadowContainer> shadowContainers;
 	ComponentContainer<Shadow> shadows;
+	ComponentContainer<ParticleEmitter> particleEmitters;
+	ComponentContainer<Particle> particles;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -159,6 +161,8 @@ public:
 		registry_list.push_back(&bossHPBars);
 		registry_list.push_back(&shadowContainers);
 		registry_list.push_back(&shadows);
+		registry_list.push_back(&particleEmitters);
+		registry_list.push_back(&particles);
 	}
 
 	void clear_all_components() {

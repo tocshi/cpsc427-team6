@@ -933,6 +933,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
+	// particle effects
+	for (Entity entity : registry.particleEmitters.entities) {
+		ParticleEmitter& emitter = registry.particleEmitters.get(entity);
+		emitter.counter_ms -= elapsed_ms_since_last_update;
+
+		if (emitter.counter_ms <= 0) {
+			emitter.counter_ms = emitter.min_interval_ms + uniform_dist(rng) * (emitter.max_interval_ms - emitter.min_interval_ms);
+			printf("bubble\n");
+		}
+	}
+
 	// update animations 
 	for (Entity e : registry.animations.entities) {
 		AnimationData& anim = registry.animations.get(e);
@@ -3976,4 +3987,34 @@ void WorldSystem::playMusic(Music music) {
 	default:
 		printf("unsupported Music enum value %d\n", music);
 	}
+}
+
+ParticleEmitter setupParticleEmitter(PARTICLE_TYPE type) {
+	ParticleEmitter emitter = ParticleEmitter();
+	emitter.type = type;
+
+	switch (type) {
+	case PARTICLE_TYPE::POISON:
+		RenderRequest render_data = RenderRequest{
+			TEXTURE_ASSET_ID::POISON_BUBBLE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+
+		emitter.render_data = render_data;
+		emitter.min_interval_ms = 300;
+		emitter.max_interval_ms = 700;
+		emitter.particle_decay_ms = 2000;
+		emitter.base_scale = vec2(32, 32);
+		emitter.min_scale_factor = 1.2;
+		emitter.max_scale_factor = 0.5;
+		emitter.min_velocity_x = -40;
+		emitter.max_velocity_x = 40;
+		emitter.min_velocity_y = 40;
+		emitter.max_velocity_y= 100;
+		emitter.min_angle = 0;
+		emitter.max_angle = 0;
+		break;
+	}
+	return emitter;
 }

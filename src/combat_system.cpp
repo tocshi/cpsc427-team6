@@ -285,6 +285,18 @@ void apply_status(Entity& target, StatusEffect& status) {
 	StatusContainer& statusContainer = registry.statuses.get(target);
 	statusContainer.statuses.push_back(status);
 
+	switch (status.effect) {
+		case StatusType::POISON:
+		case StatusType::FANG_POISON:
+			if (!registry.particleEmitters.has(target)) {
+				ParticleEmitter emitter = setupParticleEmitter(PARTICLE_TYPE::POISON);
+				registry.particleEmitters.insert(target, emitter);
+			}
+			break;
+		default:
+			break;
+	}
+
 	// recalculate stats for entity
 	reset_stats(target);
 	calc_stats(target);

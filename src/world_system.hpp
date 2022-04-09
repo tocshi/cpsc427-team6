@@ -365,4 +365,6 @@ void remove_status(Entity e, StatusType status, int number = 1);
 // return clicked enemy
 Entity& get_targeted_enemy(vec2 target_pos);
 
+ParticleEmitter setupParticleEmitter(PARTICLE_TYPE type);
+
 extern WorldSystem world;

@@ -144,7 +144,8 @@ enum class TEXTURE_ASSET_ID {
 	ATTACK_INDICATOR_CIRCLE = BIGSLASH + 1,
 	ATTACK_INDICATOR_RECTANGLE = ATTACK_INDICATOR_CIRCLE + 1,
 	SHADOW = ATTACK_INDICATOR_RECTANGLE + 1,
-	TEXTURE_COUNT = SHADOW + 1,
+	POISON_BUBBLE = SHADOW + 1,
+	TEXTURE_COUNT = POISON_BUBBLE + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -916,6 +917,32 @@ struct ItemCard {
 struct ExpandTimer {
 	float counter_ms = 300;
 	float target_scale = 1.0;
+};
+
+enum class PARTICLE_TYPE {
+	POISON = 0,
+};
+
+struct ParticleEmitter {
+	PARTICLE_TYPE type;
+	RenderRequest render_data;
+	float min_interval_ms = 500;
+	float max_interval_ms = 500;
+	float counter_ms = 0;
+	float particle_decay_ms = 1000;
+	vec2 base_scale;
+	float min_scale_factor;
+	float max_scale_factor;
+	float min_velocity_x;
+	float max_velocity_x;
+	float min_velocity_y;
+	float max_velocity_y;
+	float min_angle;
+	float max_angle;
+};
+
+struct Particle {
+	float counter_ms;
 };
 
 // Artifact name map

@@ -2353,7 +2353,7 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 					pos_x = irandRange(max_width_left_edge, max_width_right_edge);
 					pos_y = irandRange(max_height_top, max_height_bot);
 					for (auto& pos_taken : taken_array) {
-						if (calculate_abs_value(pos_x, pos_taken.x) < 20.0 && calculate_abs_value(pos_y, pos_taken.y) < 20.0) {
+						if (calculate_abs_value(pos_x, pos_taken.x) < 30.0 && calculate_abs_value(pos_y, pos_taken.y) < 30.0) {
 							printf("START CHECK for overlap=================\n");
 							pos_x = pos_x + 200.0;
 							//pos_y = pos_y + 80.0;

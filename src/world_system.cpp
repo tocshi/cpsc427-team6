@@ -2337,7 +2337,6 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 
 		inv.artifact[i] = artifact;
 		if (artifact > 0) {
-			printf("The artifact state");
 			printf("ARTIFACT LOG START ============\n");
 			printf("number of artifact of this type is: %i\n", static_cast<int>(inv.artifact[i]));
 			printf("type of artifact i is :%d\n", i);
@@ -2354,9 +2353,24 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 					pos_x = irandRange(max_width_left_edge, max_width_right_edge);
 					pos_y = irandRange(max_height_top, max_height_bot);
 					for (auto& pos_taken : taken_array) {
-						if (calculate_abs_value(pos_x, pos_taken.x) < 30.0 && calculate_abs_value(pos_y, pos_taken.y) < 30.0) {
-							pos_x = pos_x + 64.0;
-							printf("it is overlapping \n");
+						if (calculate_abs_value(pos_x, pos_taken.x) < 20.0 && calculate_abs_value(pos_y, pos_taken.y) < 20.0) {
+							printf("START CHECK for overlap=================\n");
+							pos_x = pos_x + 200.0;
+							//pos_y = pos_y + 80.0;
+							// check if out of bounds
+							if (pos_x - max_width_right_edge > 0) {
+								printf("the pos_x exceeds bondary or :%d\n ", pos_x);
+								pos_x += -calculate_abs_value(pos_x, max_width_right_edge)-64.0;
+								printf("the new pos_x is :%d\n", pos_x);
+							}
+							if (pos_y - max_height_bot > 0) {
+								printf("the pos_y exceeds bondary:%d\n ", pos_y);
+								pos_y += -calculate_abs_value(pos_y, max_height_bot)-64.0;
+								printf("the new pos_y is :%d\n", pos_y);
+							}
+							
+							printf("it is overlapping ........\n");
+							printf("END CHECK for overlap=================\n");
 						}
 						/*if (calculate_abs_value(pos_y, pos_taken.y) < 30.0) {
 							//pos_y = pos_y + 64.0; 
@@ -2366,8 +2380,8 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 					
 				}
 				else {
-					pos_x = irandRange(max_width_left_edge, max_width_right_edge);
-					pos_y = irandRange(max_height_top, max_height_bot);
+					pos_x = irandRange(max_width_left_edge, max_width_right_edge-64.0);
+					pos_y = irandRange(max_height_top, max_height_bot-64.0);
 				}
 				
 				printf("pos_x :%d\n", pos_x);
@@ -2375,7 +2389,7 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 				createArtifactIcon(renderer, vec2(pos_x, pos_y),
 					static_cast<ARTIFACT>(i));
 				taken_array.push_back(vec2(pos_x, pos_y));
-				printf("size of taken atm:%d", taken_array.size());
+				printf("size of taken atm:%d\n", taken_array.size());
 				num_cur_artifacts--;
 			}
 			

@@ -324,6 +324,9 @@ private:
 	SpawnData spawnData;
 
 	int countCutScene = 0;
+
+	// calcualte abs value
+	int calculate_abs_value(float v1, float v2);
 };
 
 

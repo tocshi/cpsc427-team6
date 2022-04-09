@@ -2288,20 +2288,33 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 	Inventory inv;
 	json inventoryData = playerData["inventory"];
 	printf("YES ???? we are finally in collection loading \n");
+	vec2 arr[24]; 
 
 	// Max height for spawning 
 	// width + moves it right 
 	// height + moves it down the screen 
 	float max_height_top = floor_height + 200.f;
+	//printf("max height  :%fl\n", max_height_top);
+	//printf("max height  :%fl\n", ARTIFACT_IMAGE_BB_HEIGHT); // 64 
+	
 	float max_height_bot = window_height_px*ui_scale - ARTIFACT_IMAGE_BB_HEIGHT;
 	float h_diff = max_height_bot - max_height_top; 
 
 	float max_width_left_edge = floor_width + 250.f;
+	//printf("max_w left :%fl\n", max_width_left_edge);
+	//printf("max height  :%fl\n", ARTIFACT_IMAGE_BB_WIDTH);
 	float max_width_right_edge = window_width_px * ui_scale - ARTIFACT_IMAGE_BB_WIDTH;
 	float w_diff =  max_width_right_edge- max_width_left_edge;
 	
+	//max height  :500.000000l
+	//max_w left : 570.000000l
+	//max h : 336.000000l
+	// max_w : 966.000000l
+	printf("max_w left :%fl\n", max_width_left_edge);
+	printf("max_w right :%fl\n", max_width_right_edge);
 
-
+	printf("max height top :%fl\n", max_height_top);
+	printf("max height bot :%fl\n", max_height_bot);
 	printf("max h :%fl\n", h_diff);
 	printf("max_w :%fl\n", w_diff);
 
@@ -2316,29 +2329,62 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 	// int i gives the artifact type 
 	// artifact gives the number of artifact the player has 
 	for (auto& artifact : inventoryData["artifact"]) {
-		
-		int prev_pos_x = 0;
-		int prev_pos_y = 0;
-
-		int r = (irand(20) + 1 / 10) + 1;
-		//int r2 = irand(20) + 1; 
-		printf(":%d\n", r);
-		//printf(":%d\n", r2);
 
 
-		float randomize_w = w_diff / r - ARTIFACT_IMAGE_BB_WIDTH;
-		float randomize_h = h_diff / r - ARTIFACT_IMAGE_BB_HEIGHT;
-		
+		int r = irand(50)+1;
+		printf("r value :%d\n", r);
 
+	
 
-		printf("rw :%fl\n", randomize_w);
-		printf("rh :%fl\n", randomize_h);
-		//int rand2 = irand(50);
+		float new_pos_x = max_width_left_edge + w_diff/r;
+		float new_pos_y = max_height_top + h_diff/r;
+		printf("new pos x  :%fl\n", new_pos_x);
+		printf("new pos y  :%fl\n", new_pos_y);
 
+		// check to see if distance between pre/new pos is greater than 200 
+		// if new_pos_y value is greater than boundaries 
+		// check to see if diff b/w values of stored in done arr is > than 200 if not seperate 
 
-		float new_pos_x = (max_width_left_edge + randomize_w);
-		
-		float new_pos_y = (max_height_top+ randomize_h);
+		for (vec2 val : arr) {
+			float diff_x;
+			float diff_y; 
+			printf("value of i: %d\n", i);
+			if ( val.y !=0) {
+				if (diff_x < 200) {
+					diff_x = calculate_abs_value(new_pos_x, val.x);
+					printf("dy <200:%fl\n", diff_y);
+					new_pos_y = new_pos_y - 200;
+				}			
+			}
+			if ( val.x!=0) {
+				diff_y = calculate_abs_value(new_pos_y, val.y);
+				if (diff_y < 200) {
+					printf("dx <200:%fl\n", diff_x);
+					new_pos_x = new_pos_x - 200;
+				}
+				
+			}
+			if (new_pos_x > max_width_right_edge) {
+				printf("prev pos_x :%fl", new_pos_x);
+				new_pos_x += -calculate_abs_value(new_pos_x, max_width_right_edge);
+				printf("new_pos_x > max_width_right_edge : %fl\n", new_pos_x);
+			}
+			if (new_pos_x < max_width_left_edge) {
+				
+				new_pos_x += +calculate_abs_value(new_pos_x, max_width_left_edge) + 64.0;
+				printf("new_pos_x < max_width_left_edge:%fl\n", new_pos_x);
+			}
+			/*if (new_pos_y > max_height_bot) {
+				
+				new_pos_y = -calculate_abs_value(new_pos_y, max_height_bot) - 64.0;
+				printf("new_pos_y > max_height_bot  :%fl\n", new_pos_y);
+			}
+			if (new_pos_y < max_height_top) {
+				
+				new_pos_y = +calculate_abs_value(new_pos_y, max_height_top) + 64.0;
+				printf("new_pos_y < max_height_top :%fl \n", new_pos_y);
+			}*/
+		}
 
 		printf("npx :%fl\n", new_pos_x);
 		printf("npy :%fl\n", new_pos_y);
@@ -2350,25 +2396,11 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 			printf("number of artifact of this type is: %i\n", static_cast<int>(inv.artifact[i]));
 			printf("number of type i is :%d\n", i);
 			printf("ARTIFACT LOG END ============\n");
+			createArtifactIcon(renderer, vec2(new_pos_x, new_pos_y),
+				static_cast<ARTIFACT>(i));
 
-			if (new_pos_x != prev_pos_x && new_pos_y != prev_pos_y) {
-				printf("yes it is");
-				// within constraints of the floor 
-				int temp_x = abs(new_pos_x - prev_pos_x); 
-				int tempy = abs(new_pos_y  - prev_pos_y); 
-				if (temp_x < 200 || tempy <200) {
-					new_pos_x += 200; 
-					new_pos_y += 200; 
-				}
-				createArtifactIcon(renderer, vec2(new_pos_x, new_pos_y),
-					static_cast<ARTIFACT>(i));
-
-			}
-			// set previous values to current ones 
-			prev_pos_x = new_pos_x;
-			prev_pos_y = new_pos_y;
-			
-
+			vec2 temp = { new_pos_x, new_pos_y };
+			arr[i] = temp;
 		}
 		i++;
 	}
@@ -2380,6 +2412,11 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 	return inv;
 
 
+}
+
+int WorldSystem::calculate_abs_value(float v1, float v2) {
+	
+	return abs(v2 - v1);
 }
 
 Entity WorldSystem::loadEnemy(json enemyData) {

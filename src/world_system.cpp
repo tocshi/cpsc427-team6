@@ -938,9 +938,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		ParticleEmitter& emitter = registry.particleEmitters.get(entity);
 		emitter.counter_ms -= elapsed_ms_since_last_update;
 
-		if (emitter.counter_ms <= 0) {
+		if (emitter.counter_ms < 0) {
 			emitter.counter_ms = emitter.min_interval_ms + uniform_dist(rng) * (emitter.max_interval_ms - emitter.min_interval_ms);
-			printf("bubble\n");
+			Motion& motion = registry.motions.get(entity);
+			createParticle(motion.position, emitter);
+		}
+	}
+	
+	for (int i = registry.particles.size() - 1; i >= 0; i--) {
+		Entity entity = registry.particles.entities[i];
+		Particle& particle = registry.particles.components[i];
+		particle.counter_ms -= elapsed_ms_since_last_update;
+
+		if (particle.counter_ms < 0) {
+			registry.remove_all_components_of(entity);
 		}
 	}
 
@@ -4010,8 +4021,8 @@ ParticleEmitter setupParticleEmitter(PARTICLE_TYPE type) {
 		emitter.max_scale_factor = 0.5;
 		emitter.min_velocity_x = -40;
 		emitter.max_velocity_x = 40;
-		emitter.min_velocity_y = 40;
-		emitter.max_velocity_y= 100;
+		emitter.min_velocity_y = -40;
+		emitter.max_velocity_y= -100;
 		emitter.min_angle = 0;
 		emitter.max_angle = 0;
 		break;

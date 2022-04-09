@@ -221,3 +221,5 @@ Entity createEnemyHPBacking(vec2 position, Entity parent);
 Entity createEnemyHPFill(vec2 position, Entity parent);
 // shadow for enemies
 Entity createShadow(vec2 pos, Entity caster);
+// spawn particle
+Entity createParticle(vec2 pos, ParticleEmitter& emitter);

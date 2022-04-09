@@ -1,6 +1,7 @@
 #include "world_init.hpp"
 #include "combat_system.hpp"
 #include "tiny_ecs_registry.hpp"
+#include "world_system.hpp"
 
 Entity createLine(vec2 position, vec2 scale)
 {
@@ -2765,5 +2766,22 @@ Entity createShadow(vec2 pos, Entity caster) {
 	Shadow& shadow = registry.shadows.emplace(entity);
 	shadow.caster = caster;
 
+	return entity;
+}
+
+Entity createParticle(vec2 pos, ParticleEmitter& emitter) {
+	Entity entity = Entity();
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.scale = emitter.base_scale * (emitter.min_scale_factor + world.uniform_dist(world.rng) * (emitter.max_scale_factor - emitter.min_scale_factor));
+	motion.velocity.x = emitter.min_velocity_x + world.uniform_dist(world.rng) * (emitter.max_velocity_x - emitter.min_velocity_x);
+	motion.velocity.y = emitter.min_velocity_y + world.uniform_dist(world.rng) * (emitter.max_velocity_y - emitter.min_velocity_y);
+	motion.angle = emitter.min_angle + world.uniform_dist(world.rng) * (emitter.max_angle - emitter.min_angle);
+	motion.position = pos;
+
+	Particle& particle = registry.particles.emplace(entity);
+	particle.counter_ms = emitter.particle_decay_ms;
+
+	registry.renderRequests.insert(entity, emitter.render_data);
 	return entity;
 }

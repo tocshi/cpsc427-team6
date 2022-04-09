@@ -934,14 +934,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// particle effects
-	for (Entity entity : registry.particleEmitters.entities) {
-		ParticleEmitter& emitter = registry.particleEmitters.get(entity);
-		emitter.counter_ms -= elapsed_ms_since_last_update;
+	for (Entity entity : registry.particleContainers.entities) {
+		ParticleContainer& container = registry.particleContainers.get(entity);
+		for (ParticleEmitter& emitter : container.emitters) {
+			emitter.counter_ms -= elapsed_ms_since_last_update;
 
-		if (emitter.counter_ms < 0) {
-			emitter.counter_ms = emitter.min_interval_ms + uniform_dist(rng) * (emitter.max_interval_ms - emitter.min_interval_ms);
-			Motion& motion = registry.motions.get(entity);
-			createParticle(motion.position, emitter);
+			if (emitter.counter_ms < 0) {
+				emitter.counter_ms = emitter.min_interval_ms + uniform_dist(rng) * (emitter.max_interval_ms - emitter.min_interval_ms);
+				Motion& motion = registry.motions.get(entity);
+				createParticle(motion.position, emitter);
+			}
 		}
 	}
 	
@@ -3360,7 +3362,8 @@ void remove_status(Entity e, StatusType status, int number) {
 	if (!registry.statuses.has(e)) { return; }
 
 	int index = 0;
-	StatusContainer statuses = registry.statuses.get(e);
+	StatusContainer& statuses = registry.statuses.get(e);
+	statuses.sort_statuses_reverse();
 	for (StatusEffect s : statuses.statuses) {
 		if (s.effect == status && number > 0) {
 			statuses.statuses.erase(statuses.statuses.begin() + index);
@@ -3370,7 +3373,30 @@ void remove_status(Entity e, StatusType status, int number) {
 	}
 	reset_stats(e);
 	calc_stats(e);
+	remove_status_particle(e, status);
 	return;
+}
+
+void remove_status_particle(Entity e, StatusType status) {
+	if (!registry.particleContainers.has(e)) { return; }
+	ParticleContainer& particleContainer = registry.particleContainers.get(e);
+	PARTICLE_TYPE particle_type;
+	switch (status)
+	{
+	case StatusType::POISON:
+	case StatusType::FANG_POISON:
+		particle_type = PARTICLE_TYPE::POISON;
+		break;
+	default:
+		return;
+	}
+
+	for (int i = 0; i < particleContainer.emitters.size(); i++) {
+		if (particleContainer.emitters[i].type == particle_type) {
+			particleContainer.emitters.erase(particleContainer.emitters.begin() + i);
+			return;
+		}
+	}
 }
   
 void WorldSystem::handleActionButtonPress() {
@@ -4014,7 +4040,7 @@ ParticleEmitter setupParticleEmitter(PARTICLE_TYPE type) {
 
 		emitter.render_data = render_data;
 		emitter.min_interval_ms = 300;
-		emitter.max_interval_ms = 700;
+		emitter.max_interval_ms = 600;
 		emitter.particle_decay_ms = 2000;
 		emitter.base_scale = vec2(32, 32);
 		emitter.min_scale_factor = 1.2;

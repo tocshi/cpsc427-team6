@@ -82,7 +82,7 @@ public:
 	ComponentContainer<BossHPBar> bossHPBars;
 	ComponentContainer<ShadowContainer> shadowContainers;
 	ComponentContainer<Shadow> shadows;
-	ComponentContainer<ParticleEmitter> particleEmitters;
+	ComponentContainer<ParticleContainer> particleContainers;
 	ComponentContainer<Particle> particles;
 
 	// constructor that adds all containers for looping over them
@@ -161,7 +161,7 @@ public:
 		registry_list.push_back(&bossHPBars);
 		registry_list.push_back(&shadowContainers);
 		registry_list.push_back(&shadows);
-		registry_list.push_back(&particleEmitters);
+		registry_list.push_back(&particleContainers);
 		registry_list.push_back(&particles);
 	}
 

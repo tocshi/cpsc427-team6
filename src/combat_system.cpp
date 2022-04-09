@@ -284,13 +284,20 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 void apply_status(Entity& target, StatusEffect& status) {
 	StatusContainer& statusContainer = registry.statuses.get(target);
 	statusContainer.statuses.push_back(status);
+	statusContainer.sort_statuses_reverse();
 
+	ParticleEmitter emitter;
 	switch (status.effect) {
 		case StatusType::POISON:
 		case StatusType::FANG_POISON:
-			if (!registry.particleEmitters.has(target)) {
-				ParticleEmitter emitter = setupParticleEmitter(PARTICLE_TYPE::POISON);
-				registry.particleEmitters.insert(target, emitter);
+			emitter = setupParticleEmitter(PARTICLE_TYPE::POISON);
+			if (!registry.particleContainers.has(target)) {
+				ParticleContainer& particleContainer = registry.particleContainers.emplace(target);
+				particleContainer.emitters.push_back(emitter);
+			}
+			else {
+				ParticleContainer& particleContainer = registry.particleContainers.get(target);
+				particleContainer.emitters.push_back(emitter);
 			}
 			break;
 		default:
@@ -316,6 +323,7 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 			StatusEffect& status = statusContainer.statuses[i];
 			// in case something was accidentally added with 0 turn duration
 			if (status.turns_remaining <= 0) {
+				remove_status_particle(entity, status.effect);
 				statusContainer.statuses.erase(statusContainer.statuses.begin()+i);
 				continue;
 			}
@@ -372,6 +380,7 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 					status.turns_remaining--;
 				}
 				if (status.turns_remaining <= 0) {
+					remove_status_particle(entity, status.effect);
 					statusContainer.statuses.erase(statusContainer.statuses.begin() + i);
 					reset_stats(entity);
 					calc_stats(entity);

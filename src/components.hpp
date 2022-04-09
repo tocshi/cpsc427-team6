@@ -945,6 +945,10 @@ struct Particle {
 	float counter_ms;
 };
 
+struct ParticleContainer {
+	std::vector<ParticleEmitter> emitters;
+};
+
 // Artifact name map
 const std::map <ARTIFACT, std::string>artifact_names = {
 	{ARTIFACT::POISON_FANG, "Discarded Fang"},

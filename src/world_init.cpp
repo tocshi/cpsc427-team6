@@ -107,6 +107,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	// add status container to player
 	registry.statuses.emplace(entity);
+	registry.particleContainers.emplace(entity);
 
 	return entity;
 }

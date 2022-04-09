@@ -2259,7 +2259,7 @@ void WorldSystem::start_tutorial() {
 
 	set_gamestate(GameStates::BATTLE_MENU);
 	if (current_game_state != GameStates::CUTSCENE || current_game_state != GameStates::MAIN_MENU) {
-		Mix_PlayMusic(background_music, -1);
+		playMusic(Music::BACKGROUND);
 	}
 	// spawn the actions bar
 	// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
@@ -2653,6 +2653,24 @@ void WorldSystem::loadStatuses(Entity e, json statuses) {
 		bool percentage = status["percentage"];
 		bool apply_at_turn_start = status["apply_at_turn_start"];
 		statusContainer.statuses.push_back(StatusEffect(value, turns_remaining, effect, percentage, apply_at_turn_start));
+		
+		ParticleEmitter emitter;
+		switch (effect) {
+		case StatusType::POISON:
+		case StatusType::FANG_POISON:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::POISON);
+			if (!registry.particleContainers.has(e)) {
+				ParticleContainer& particleContainer = registry.particleContainers.emplace(e);
+				particleContainer.emitters.push_back(emitter);
+			}
+			else {
+				ParticleContainer& particleContainer = registry.particleContainers.get(e);
+				particleContainer.emitters.push_back(emitter);
+			}
+			break;
+		default:
+			break;
+		}
 	}
 }
 

@@ -383,6 +383,7 @@ struct AstarMotion
 {
 	std::queue<vec2> path;
 	vec2 currentDest;
+	float scalar_vel;
 };
 
 // Squishing effect timer

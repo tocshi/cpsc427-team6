@@ -8,14 +8,13 @@
 #include "physics_system.hpp"
 
 // returns true if there is a (non-player) entity at the current location
-bool entityAtLocation(vec2 pos) {
+bool entityAtLocation(Motion& enemyMotion) {
 	// walls
 	for (Entity w : registry.collidables.entities) {
-		vec2 wallPos = registry.motions.get(w).position;
+		Motion& wallMotion = registry.motions.get(w);
 
 		// if colliding with wall, return true;
-		if (wallPos.x + WALL_BB_WIDTH >= pos.x && wallPos.x - WALL_BB_WIDTH <= pos.x
-			&& wallPos.y + WALL_BB_HEIGHT >= pos.y && wallPos.y - WALL_BB_HEIGHT <= pos.y) {
+		if (collides_AABB(enemyMotion, wallMotion)) {
 			return true;
 		}
 	}
@@ -79,7 +78,8 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 	std::vector<AstarNode*> openSet;
 	std::vector<AstarNode*> closedSet;
 
-	vec2 enemyPos = registry.motions.get(enemy).position;
+	Motion enemyMotion = registry.motions.get(enemy);
+	vec2 enemyPos = enemyMotion.position;
 
 	// get player position
 	vec2 playerPos = vec2(0.f, 0.f);
@@ -117,9 +117,13 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			endNode = currNode;
 			break;
 		}
+
+		Motion nodeMotion = Motion();
+		nodeMotion.position = currNode->position + vec2(step_range, 0.f);
+		nodeMotion.position = enemyMotion.scale;
 		
 		// right side
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(step_range, 0.f), range) && !entityAtLocation(currNode->position + vec2(step_range, 0.f))) {
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(step_range, 0.f), range) && !entityAtLocation(nodeMotion)) {
 			AstarNode* node = new AstarNode;
 			node->position = currNode->position + vec2(step_range, 0.f);
 			node->parent = currNode;
@@ -161,7 +165,8 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// left side
-		if (!nodeOutRange(enemyPos, currNode->position - vec2(step_range, 0.f), range) && !entityAtLocation(currNode->position - vec2(step_range, 0.f))) {
+		nodeMotion.position = currNode->position - vec2(step_range, 0.f);
+		if (!nodeOutRange(enemyPos, currNode->position - vec2(step_range, 0.f), range) && !entityAtLocation(nodeMotion)) {
 			AstarNode* node = new AstarNode;
 			node->position = currNode->position - vec2(step_range, 0.f);
 			node->parent = currNode;
@@ -203,7 +208,8 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// top
-		if (!nodeOutRange(enemyPos, currNode->position - vec2(0.f, step_range), range) && !entityAtLocation(currNode->position - vec2(0.f, step_range))) {
+		nodeMotion.position = currNode->position - vec2(0.f, step_range);
+		if (!nodeOutRange(enemyPos, currNode->position - vec2(0.f, step_range), range) && !entityAtLocation(nodeMotion)) {
 			AstarNode* node = new AstarNode;
 			node->position = currNode->position - vec2(0.f, step_range);
 			node->parent = currNode;
@@ -245,7 +251,8 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// bottom
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(0.f, step_range), range) && !entityAtLocation(currNode->position + vec2(0.f, step_range))) {
+		nodeMotion.position = currNode->position + vec2(0.f, step_range);
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(0.f, step_range), range) && !entityAtLocation(nodeMotion)) {
 			AstarNode* node = new AstarNode;
 			node->position = currNode->position + vec2(0.f, step_range);
 			node->parent = currNode;
@@ -289,7 +296,8 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		// 14 g_cost for the diagonals
 
 		// top right
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(step_range, -step_range), range) && !entityAtLocation(currNode->position + vec2(step_range, -step_range))) {
+		nodeMotion.position = currNode->position + vec2(step_range, -step_range);
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(step_range, -step_range), range) && !entityAtLocation(nodeMotion)) {
 			AstarNode* node = new AstarNode;
 			node->position = currNode->position + vec2(step_range, -step_range);
 			node->parent = currNode;
@@ -331,7 +339,8 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// top left
-		if (!nodeOutRange(enemyPos, currNode->position - vec2(step_range, step_range), range) && !entityAtLocation(currNode->position - vec2(step_range, step_range))) {
+		nodeMotion.position = currNode->position - vec2(step_range, step_range);
+		if (!nodeOutRange(enemyPos, currNode->position - vec2(step_range, step_range), range) && !entityAtLocation(nodeMotion)) {
 			AstarNode* node = new AstarNode;
 			node->position = currNode->position - vec2(step_range, step_range);
 			node->parent = currNode;
@@ -373,7 +382,8 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// bottom right
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(step_range, step_range), range) && !entityAtLocation(currNode->position + vec2(step_range, step_range))) {
+		nodeMotion.position = currNode->position + vec2(step_range, step_range);
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(step_range, step_range), range) && !entityAtLocation(nodeMotion)) {
 			AstarNode* node = new AstarNode;
 			node->position = currNode->position + vec2(step_range, step_range);
 			node->parent = currNode;
@@ -415,7 +425,8 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// bottom left
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(-step_range, step_range), range) && !entityAtLocation(currNode->position + vec2(-step_range, step_range))) {
+		nodeMotion.position = currNode->position + vec2(-step_range, step_range);
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(-step_range, step_range), range) && !entityAtLocation(nodeMotion)) {
 			AstarNode* node = new AstarNode;
 			node->position = currNode->position + vec2(-step_range, step_range);
 			node->parent = currNode;
@@ -467,9 +478,15 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 	AstarNode* reverseNode = endNode;
 	if (endNode->parent != 0) {
 		reverseNode = endNode->parent;
-		while (childNode != 0) {
+		while (reverseNode != 0 || childNode != 0) {
 			reverseNode->children.push_back(childNode);
-			childNode = childNode->parent;
+			if (reverseNode->parent == 0) {
+				break;
+			}
+			else {
+				reverseNode = reverseNode->parent;
+				childNode = childNode->parent;
+			}
 		}
 	}
 
@@ -635,16 +652,18 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 				// TODO: actually make slime follow the path
 
 				AstarMotion& aStarMotion = registry.aStarMotions.get(slime);
+				aStarMotion.scalar_vel = slime_velocity;
 
 				for (int i = 0; i < starVector.size(); i++) {
-					motion_struct.velocity = slime_velocity * normalize(starVector[i]->position - motion_struct.position);
 					aStarMotion.path.push(starVector[i]->position);
 					Entity test = createBigSlash(world.renderer, starVector[i]->position, 0, 0);
 					registry.renderRequests.get(test).used_texture = TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER;
 					registry.motions.get(test).scale = vec2(50.f, 50.f);
 					registry.expandTimers.get(test).counter_ms = 20000;
-					if (i == 0) {
+					if (i == 1) {
+						motion_struct.destination = starVector[i]->position;
 						aStarMotion.currentDest = starVector[i]->position;
+						motion_struct.velocity = slime_velocity * normalize(starVector[i]->position - motion_struct.position);
 					}
 					delete starVector[i];
 				}

@@ -2284,6 +2284,38 @@ Entity WorldSystem::loadPlayer(json playerData) {
 // loading artifact collection onto the title screen
 Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float floor_width, float floor_height) {
 
+	
+	Inventory inv;
+	json inventoryData = playerData["inventory"];
+	printf("YES ???? we are finally in collection loading \n");
+	std::vector<vec2> arifact_type_num; 
+
+	
+	//printf("column :%d \n", column);
+	// Max height for spawning 
+	// width + moves it right 
+	// height + moves it down the screen 
+	float max_height_top = floor_height + 200.f; // less
+	float max_height_bot = window_height_px*ui_scale - ARTIFACT_IMAGE_BB_HEIGHT; // greater
+
+	float h_diff = max_height_bot - max_height_top; // less
+
+	float max_width_left_edge = floor_width + 250.f;
+
+
+	float max_width_right_edge = window_width_px * ui_scale - ARTIFACT_IMAGE_BB_WIDTH; // greater
+	float w_diff =  max_width_right_edge- max_width_left_edge;
+
+	 
+
+
+	
+	printf("max_w left :%fl\n", max_width_left_edge);
+	printf("max_w right :%fl\n", max_width_right_edge);
+
+	printf("max height top :%fl\n", max_height_top);
+	printf("max height bot :%fl\n", max_height_bot);
+
 	// copy of the inventory - make sure it's copy by duplicate and not reference 
 	// count up the total nuumer of artifacts in there 
 	// while >0 
@@ -2291,112 +2323,61 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 	// 2 of artifact want two sitting on the floor 
 	// decrement total artifacts by 1 
 	// get json obj for inventory saved in saveData
-	Inventory inv;
-	json inventoryData = playerData["inventory"];
-	printf("YES ???? we are finally in collection loading \n");
-	int arr[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
-
-	int rows = 4; 
-	int column = abs(static_cast<int>(ARTIFACT::ARTIFACT_COUNT) / 4); 
-	//printf("column :%d \n", column);
-	// Max height for spawning 
-	// width + moves it right 
-	// height + moves it down the screen 
-	float max_height_top = floor_height + 200.f;
-	//printf("max height  :%fl\n", max_height_top);
-	//printf("max height  :%fl\n", ARTIFACT_IMAGE_BB_HEIGHT); // 64 
-	
-	float max_height_bot = window_height_px*ui_scale - ARTIFACT_IMAGE_BB_HEIGHT;
-	float h_diff = max_height_bot - max_height_top; 
-	float y_offset = h_diff / rows;;
-
-	float max_width_left_edge = floor_width + 250.f;
-	//printf("max_w left :%fl\n", max_width_left_edge);
-	//printf("max height  :%fl\n", ARTIFACT_IMAGE_BB_WIDTH);
-	float max_width_right_edge = window_width_px * ui_scale - ARTIFACT_IMAGE_BB_WIDTH;
-	float w_diff =  max_width_right_edge- max_width_left_edge;
-	float x_offset = w_diff / column; 
-	// standard artifact postion make is 4 rows 
-	// standard artifact 
-
-	// loops and adds the vector points in accordance with the fixated 4 rows 
-	//[ 0, 0 ,0 , 0
-	//[ 0 ,0, 0 , 0
-	//[ 0,0,0,0
-	//[0,0,0,0
-	for (int pos = 0; pos < static_cast<int>(ARTIFACT::ARTIFACT_COUNT); pos++) {
-		if (pos <= column) {
-			arr[pos] = { max_width_left_edge +((column-pos)*x_offset), max_height_top };
-			if (pos == static_cast<int>(ARTIFACT::ARTIFACT_COUNT)) {
-				break; 
-			}
-		}
-
-		if (pos <= (column * 2)) {
-			arr[pos] = { max_width_left_edge*+((column - pos) * x_offset), max_height_top + (y_offset) };
-			if (pos == static_cast<int>(ARTIFACT::ARTIFACT_COUNT)) {
-				break;
-			}
-		}
-
-
-		if (pos <= (column * 3)) {
-			arr[pos] = { max_width_left_edge*+((column - pos) * x_offset), max_height_top + (2*y_offset) };
-			if (pos == static_cast<int>(ARTIFACT::ARTIFACT_COUNT)) {
-				break;
-			}
-		}
-		
-		if (pos <= (column * 4)) {
-			arr[pos] = { max_width_left_edge*+((column - pos) * x_offset), max_height_top + (3 * y_offset) };
-			if (pos == static_cast<int>(ARTIFACT::ARTIFACT_COUNT)) {
-				break;
-			}
-		}
-		
-	}
-
-	printf("arr pos[0].x :%fl", arr[0].x);
-	printf("arr pos[0].x :%fl", arr[0].y);
-	printf("arr pos[23].x :%fl", arr[23].x);
-	printf("arr pos[23].x :%fl", arr[23].y);
-	
-	printf("max_w left :%fl\n", max_width_left_edge);
-	printf("max_w right :%fl\n", max_width_right_edge);
-
-	printf("max height top :%fl\n", max_height_top);
-	printf("max height bot :%fl\n", max_height_bot);
-	printf("max h :%fl\n", h_diff);
-	printf("max_w :%fl\n", w_diff);
-
-
 
 	// get artifacts
 	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
 	int i = 0;
+	int count_total_artifacts = 0;
+	std::vector<vec2> taken_array; 
 
-	std::vector<int> taken_values; 
 	// looping the list of artifacts 
 	// int i gives the artifact type 
 	// artifact gives the number of artifact the player has 
-	// find until r does n
 	for (auto& artifact : inventoryData["artifact"]) {
-
-		int r = irand(static_cast<int>(ARTIFACT::ARTIFACT_COUNT));
-		printf("r value :%d\n", r);
-
-		//printf("the r value for this is :%d", r);
-		taken_values.push_back(r); 
 
 		inv.artifact[i] = artifact;
 		if (artifact > 0) {
 			printf("The artifact state");
 			printf("ARTIFACT LOG START ============\n");
 			printf("number of artifact of this type is: %i\n", static_cast<int>(inv.artifact[i]));
-			printf("number of type i is :%d\n", i);
+			printf("type of artifact i is :%d\n", i);
 			printf("ARTIFACT LOG END ============\n");
-			createArtifactIcon(renderer, vec2(arr[r].x, arr[r].y),
-				static_cast<ARTIFACT>(i));
+
+			int num_cur_artifacts = static_cast<int>(inv.artifact[i]);
+
+			count_total_artifacts += num_cur_artifacts;
+			printf("count of artifacts :%d\n", count_total_artifacts);
+			
+			while (num_cur_artifacts> 0) {
+				int pos_x, pos_y;
+				if (taken_array.size() != 0) {
+					pos_x = irandRange(max_width_left_edge, max_width_right_edge);
+					pos_y = irandRange(max_height_top, max_height_bot);
+					for (auto& pos_taken : taken_array) {
+						if (calculate_abs_value(pos_x, pos_taken.x) < 30.0 && calculate_abs_value(pos_y, pos_taken.y) < 30.0) {
+							pos_x = pos_x + 64.0;
+							printf("it is overlapping \n");
+						}
+						/*if (calculate_abs_value(pos_y, pos_taken.y) < 30.0) {
+							//pos_y = pos_y + 64.0; 
+							printf("it is overlapp\n");
+						}*/
+					}
+					
+				}
+				else {
+					pos_x = irandRange(max_width_left_edge, max_width_right_edge);
+					pos_y = irandRange(max_height_top, max_height_bot);
+				}
+				
+				printf("pos_x :%d\n", pos_x);
+				printf("pos_x :%d\n", pos_y);
+				createArtifactIcon(renderer, vec2(pos_x, pos_y),
+					static_cast<ARTIFACT>(i));
+				taken_array.push_back(vec2(pos_x, pos_y));
+				printf("size of taken atm:%d", taken_array.size());
+				num_cur_artifacts--;
+			}
 			
 			
 		}
@@ -2407,6 +2388,7 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 	// render the stupid sprite
 
 	printf("done QQ \n");
+	printf("number of total artifacts :%d\n", count_total_artifacts);
 	return inv;
 
 

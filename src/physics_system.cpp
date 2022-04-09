@@ -183,7 +183,7 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 			if (registry.aStarMotions.has(entity)) {
 				AstarMotion& aStarMotion = registry.aStarMotions.get(entity);
 				printf("dist to: %f, vel_mag: %f\n", dist_to(pos_final, dest), vel_mag);
-				if (dist_to(pos_final, dest) <= vel_mag) {
+				if (dist_to(pos_final, aStarMotion.currentDest) <= vel_mag * 2.4) {
 					// if it is the final dest
 					if (aStarMotion.path.size() > 0) {
 						vec2 back = aStarMotion.path.back();
@@ -200,7 +200,7 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 					}
 				}
 				// handle movement
-				motion.position = pos_final;
+				//motion.position = pos_final;
 			}
 			else {
 				if (dist_to(pos_final, dest) <= vel_mag) {
@@ -209,91 +209,91 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 					motion.in_motion = false;
 					break;
 				}
-				// perform angle sweep 
-				float original_angle = atan2(vel.y, vel.x) * 180 / M_PI;
-				bool move_success = false;
-				for (int angle = 0; angle <= 80; angle += 10) {
-					for (int sign = -1; sign <= 1; sign += 2) {
-						float modified_angle = original_angle + angle * sign;
-						vec2 modified_velocity = { vel_mag * cos(modified_angle * M_PI / 180), vel_mag * sin(modified_angle * M_PI / 180) };
-						vec2 target_position = pos + modified_velocity;
-						motion.position = target_position;
-						bool target_valid = true;
-						for (uint j = 0; j < motion_registry.size(); j++) {
-							if (j != i && registry.solid.has(motion_registry.entities[j])) {
-								// differentiate between walls and non-walls
-								if (registry.enemies.has(motion_registry.entities[j]) || registry.players.has(motion_registry.entities[j])) {
-									if (collides_circle(motion, motion_registry.components[j])) {
-										target_valid = false;
-										break;
-									}
-								}
-								else if (collides_AABB(motion, motion_registry.components[j])) {
+			}
+			// perform angle sweep 
+			float original_angle = atan2(vel.y, vel.x) * 180 / M_PI;
+			bool move_success = false;
+			for (int angle = 0; angle <= 80; angle += 10) {
+				for (int sign = -1; sign <= 1; sign += 2) {
+					float modified_angle = original_angle + angle * sign;
+					vec2 modified_velocity = { vel_mag * cos(modified_angle * M_PI / 180), vel_mag * sin(modified_angle * M_PI / 180) };
+					vec2 target_position = pos + modified_velocity;
+					motion.position = target_position;
+					bool target_valid = true;
+					for (uint j = 0; j < motion_registry.size(); j++) {
+						if (j != i && registry.solid.has(motion_registry.entities[j])) {
+							// differentiate between walls and non-walls
+							if (registry.enemies.has(motion_registry.entities[j]) || registry.players.has(motion_registry.entities[j])) {
+								if (collides_circle(motion, motion_registry.components[j])) {
 									target_valid = false;
 									break;
 								}
 							}
-						}
-						if (target_valid) {
-							move_success = true;
-
-							float speed = motion.movement_speed;
-							float angle_to_dest = atan2(dest.y - motion.position.y, dest.x - motion.position.x) * 180 / M_PI;
-							float angle_diff = abs(modified_angle - angle_to_dest);
-							if (angle_diff > 80.f && angle_diff < 100.f) {
-								motion.position = pos;
-								motion.destination = motion.position;
-								motion.velocity = { 0,0 };
-								motion.in_motion = false;
-							}
-							break;
-						}
-						// projectile hit wall
-						if (!target_valid) {
-							if (registry.projectileTimers.has(entity)) {
-								Entity& player = registry.players.entities[0];
-								Motion& player_motion = motion_registry.get(player);
-								Entity& enemy = registry.projectileTimers.get(entity).owner;
-								ProjectileTimer& timer = registry.projectileTimers.get(entity);
-
-								if (timer.counter_ms > 0 && collides_circle(motion_registry.get(entity), motion_registry.get(player))) {
-									// hit player
-									createExplosion(renderer, player_motion.position);
-									Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
-									world->logText(deal_damage(enemy, player, timer.multiplier));
-
-									if (registry.enemies.get(enemy).type == ENEMY_TYPE::KING_SLIME) {
-										StatusEffect slimed = StatusEffect(4, 3, StatusType::SLIMED, true, true);
-										if (has_status(player, StatusType::SLIMED)) { remove_status(player, StatusType::SLIMED); }
-										apply_status(player, slimed);
-									}
-								}
-								motion_registry.get(enemy).in_motion = false;
-								timer.counter_ms = 0;
+							else if (collides_AABB(motion, motion_registry.components[j])) {
+								target_valid = false;
 								break;
 							}
 						}
 					}
-					if (move_success) {
+					if (target_valid) {
+						move_success = true;
+
 						float speed = motion.movement_speed;
-						float angle = atan2(dest.y - pos.y, dest.x - pos.x);
-						float x_component = cos(angle) * speed;
-						float y_component = sin(angle) * speed;
-						motion.velocity = { x_component, y_component };
+						float angle_to_dest = atan2(dest.y - motion.position.y, dest.x - motion.position.x) * 180 / M_PI;
+						float angle_diff = abs(modified_angle - angle_to_dest);
+						if (angle_diff > 80.f && angle_diff < 100.f) {
+							motion.position = pos;
+							motion.destination = motion.position;
+							motion.velocity = { 0,0 };
+							motion.in_motion = false;
+						}
 						break;
 					}
-				}
-				if (!move_success) {
-					motion.position = pos;
-					motion.destination = motion.position;
-					motion.velocity = { 0,0 };
-					motion.in_motion = false;
-					if (registry.projectileTimers.has(entity)) {
-						ProjectileTimer& timer = registry.projectileTimers.get(entity);
-						Entity& e = registry.projectileTimers.get(entity).owner;
-						motion_registry.get(e).in_motion = false;
-						timer.counter_ms = 0;
+					// projectile hit wall
+					if (!target_valid) {
+						if (registry.projectileTimers.has(entity)) {
+							Entity& player = registry.players.entities[0];
+							Motion& player_motion = motion_registry.get(player);
+							Entity& enemy = registry.projectileTimers.get(entity).owner;
+							ProjectileTimer& timer = registry.projectileTimers.get(entity);
+
+							if (timer.counter_ms > 0 && collides_circle(motion_registry.get(entity), motion_registry.get(player))) {
+								// hit player
+								createExplosion(renderer, player_motion.position);
+								Mix_PlayChannel(-1, world->fire_explosion_sound, 0);
+								world->logText(deal_damage(enemy, player, timer.multiplier));
+
+								if (registry.enemies.get(enemy).type == ENEMY_TYPE::KING_SLIME) {
+									StatusEffect slimed = StatusEffect(4, 3, StatusType::SLIMED, true, true);
+									if (has_status(player, StatusType::SLIMED)) { remove_status(player, StatusType::SLIMED); }
+									apply_status(player, slimed);
+								}
+							}
+							motion_registry.get(enemy).in_motion = false;
+							timer.counter_ms = 0;
+							break;
+						}
 					}
+				}
+				if (move_success) {
+					float speed = motion.movement_speed;
+					float angle = atan2(dest.y - pos.y, dest.x - pos.x);
+					float x_component = cos(angle) * speed;
+					float y_component = sin(angle) * speed;
+					motion.velocity = { x_component, y_component };
+					break;
+				}
+			}
+			if (!move_success) {
+				motion.position = pos;
+				motion.destination = motion.position;
+				motion.velocity = { 0,0 };
+				motion.in_motion = false;
+				if (registry.projectileTimers.has(entity)) {
+					ProjectileTimer& timer = registry.projectileTimers.get(entity);
+					Entity& e = registry.projectileTimers.get(entity).owner;
+					motion_registry.get(e).in_motion = false;
+					timer.counter_ms = 0;
 				}
 			}
 		}

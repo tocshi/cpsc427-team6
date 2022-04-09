@@ -184,17 +184,17 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 				AstarMotion& aStarMotion = registry.aStarMotions.get(entity);
 				if (dist_to(pos_final, aStarMotion.currentDest) <= vel_mag) {
 					// if it is the final dest
-					if (aStarMotion.path.size() == 0) {
-						motion.velocity = { 0, 0 };
-						motion.destination = motion.position;
-						motion.in_motion = false;
-						break;
-					}
-					else {
+					if (aStarMotion.path.size() > 0) {
 						vec2 back = aStarMotion.path.back();
 						aStarMotion.path.pop();
 						aStarMotion.currentDest = back;
 						motion.destination = back;
+					}
+					else {
+						motion.velocity = { 0, 0 };
+						motion.destination = motion.position;
+						motion.in_motion = false;
+						break;
 					}
 				}
 			}

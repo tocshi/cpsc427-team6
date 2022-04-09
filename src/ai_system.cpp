@@ -69,7 +69,8 @@ AstarNode* getLowestHCostNodeInList(std::vector<AstarNode*> list) {
 
 // returns true if the distance to the node is greater than the range
 bool nodeOutRange(vec2 enemyPos, vec2 nodePos, float range) {
-	return sqrt(pow(enemyPos.x - nodePos.x, 2) + pow(enemyPos.y - nodePos.y, 2)) > range;
+	// return sqrt(pow(enemyPos.x - nodePos.x, 2) + pow(enemyPos.y - nodePos.y, 2)) > range;
+	return  false;
 }
 
 // Astar returns a root AstarNode, then the ai step exectutes a move to each of those steps in sequence
@@ -94,6 +95,10 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 	AstarNode* endNode = 0;
 	AstarNode* currNode = 0;
 
+	float step_range = 64.f;
+
+
+
 	while (openSet.size() > 0) {
 		// get the next node to look at on the list
 		currNode = getLowestCostNodeInList(openSet);
@@ -106,10 +111,17 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 		// 10 g_cost for the 4 sides
 		
+		// if the node is at the player break
+		if (currNode->h_cost <= step_range) {
+			printf("here top level");
+			endNode = currNode;
+			break;
+		}
+		
 		// right side
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(16.f, 0.f), range) && !entityAtLocation(currNode->position + vec2(16.f, 0.f))) {
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(step_range, 0.f), range) && !entityAtLocation(currNode->position + vec2(step_range, 0.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position + vec2(16.f, 0.f);
+			node->position = currNode->position + vec2(step_range, 0.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 10.f;
 			// h_cost is the distance to the player
@@ -117,7 +129,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			node->f_cost = node->g_cost + node->h_cost;
 
 			// if the node is at the player break
-			if (node->h_cost <= 16.f) {
+			if (node->h_cost <= step_range) {
 				printf("here right");
 				endNode = new AstarNode;
 				endNode->position = node->position;
@@ -149,9 +161,9 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// left side
-		if (!nodeOutRange(enemyPos, currNode->position - vec2(16.f, 0.f), range) && !entityAtLocation(currNode->position - vec2(16.f, 0.f))) {
+		if (!nodeOutRange(enemyPos, currNode->position - vec2(step_range, 0.f), range) && !entityAtLocation(currNode->position - vec2(step_range, 0.f))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position - vec2(16.f, 0.f);
+			node->position = currNode->position - vec2(step_range, 0.f);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 10.f;
 			// h_cost is the distance to the player
@@ -159,7 +171,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			node->f_cost = node->g_cost + node->h_cost;
 
 			// if the node is at the player break
-			if (node->h_cost <= 16.f) {
+			if (node->h_cost <= step_range) {
 				printf("here left");
 				endNode = new AstarNode;
 				endNode->position = node->position;
@@ -191,9 +203,9 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// top
-		if (!nodeOutRange(enemyPos, currNode->position - vec2(0.f, 16.f), range) && !entityAtLocation(currNode->position - vec2(0.f, 16.f))) {
+		if (!nodeOutRange(enemyPos, currNode->position - vec2(0.f, step_range), range) && !entityAtLocation(currNode->position - vec2(0.f, step_range))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position - vec2(0.f, 16.f);
+			node->position = currNode->position - vec2(0.f, step_range);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 10.f;
 			// h_cost is the distance to the player
@@ -201,7 +213,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			node->f_cost = node->g_cost + node->h_cost;
 
 			// if the node is at the player break
-			if (node->h_cost <= 16.f) {
+			if (node->h_cost <= step_range) {
 				printf("here top");
 				endNode = new AstarNode;
 				endNode->position = node->position;
@@ -233,9 +245,9 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// bottom
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(0.f, 16.f), range) && !entityAtLocation(currNode->position + vec2(0.f, 16.f))) {
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(0.f, step_range), range) && !entityAtLocation(currNode->position + vec2(0.f, step_range))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position + vec2(0.f, 16.f);
+			node->position = currNode->position + vec2(0.f, step_range);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 10.f;
 			// h_cost is the distance to the player
@@ -243,7 +255,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			node->f_cost = node->g_cost + node->h_cost;
 
 			// if the node is at the player break
-			if (node->h_cost <= 16.f) {
+			if (node->h_cost <= step_range) {
 				printf("here bottom");
 				endNode = new AstarNode;
 				endNode->position = node->position;
@@ -277,9 +289,9 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		// 14 g_cost for the diagonals
 
 		// top right
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(16.f, -16.f), range) && !entityAtLocation(currNode->position + vec2(16.f, -16.f))) {
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(step_range, -step_range), range) && !entityAtLocation(currNode->position + vec2(step_range, -step_range))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position + vec2(16.f, -16.f);
+			node->position = currNode->position + vec2(step_range, -step_range);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 14.f;
 			// h_cost is the distance to the player
@@ -287,7 +299,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			node->f_cost = node->g_cost + node->h_cost;
 
 			// if the node is at the player break
-			if (node->h_cost <= 16.f) {
+			if (node->h_cost <= step_range) {
 				printf("here top right");
 				endNode = new AstarNode;
 				endNode->position = node->position;
@@ -319,9 +331,9 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// top left
-		if (!nodeOutRange(enemyPos, currNode->position - vec2(16.f, 16.f), range) && !entityAtLocation(currNode->position - vec2(16.f, 16.f))) {
+		if (!nodeOutRange(enemyPos, currNode->position - vec2(step_range, step_range), range) && !entityAtLocation(currNode->position - vec2(step_range, step_range))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position - vec2(16.f, 16.f);
+			node->position = currNode->position - vec2(step_range, step_range);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 14.f;
 			// h_cost is the distance to the player
@@ -329,7 +341,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			node->f_cost = node->g_cost + node->h_cost;
 
 			// if the node is at the player break
-			if (node->h_cost <= 16.f) {
+			if (node->h_cost <= step_range) {
 				printf("here top left");
 				endNode = new AstarNode;
 				endNode->position = node->position;
@@ -361,9 +373,9 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// bottom right
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(16.f, 16.f), range) && !entityAtLocation(currNode->position + vec2(16.f, 16.f))) {
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(step_range, step_range), range) && !entityAtLocation(currNode->position + vec2(step_range, step_range))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position + vec2(16.f, 16.f);
+			node->position = currNode->position + vec2(step_range, step_range);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 14.f;
 			// h_cost is the distance to the player
@@ -371,7 +383,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			node->f_cost = node->g_cost + node->h_cost;
 
 			// if the node is at the player break
-			if (node->h_cost <= 16.f) {
+			if (node->h_cost <= step_range) {
 				printf("here bottom right");
 				endNode = new AstarNode;
 				endNode->position = node->position;
@@ -403,9 +415,9 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 
 		// bottom left
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(-16.f, 16.f), range) && !entityAtLocation(currNode->position + vec2(16.f, 16.f))) {
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(-step_range, step_range), range) && !entityAtLocation(currNode->position + vec2(-step_range, step_range))) {
 			AstarNode* node = new AstarNode;
-			node->position = currNode->position + vec2(-16.f, 16.f);
+			node->position = currNode->position + vec2(-step_range, step_range);
 			node->parent = currNode;
 			node->g_cost = currNode->g_cost + 14.f;
 			// h_cost is the distance to the player
@@ -413,7 +425,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 			node->f_cost = node->g_cost + node->h_cost;
 
 			// if the node is at the player break
-			if (node->h_cost <= 16.f) {
+			if (node->h_cost <= step_range) {
 				printf("here bottom left");
 				endNode = new AstarNode;
 				endNode->position = node->position;
@@ -627,6 +639,10 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 				for (int i = 0; i < starVector.size(); i++) {
 					motion_struct.velocity = slime_velocity * normalize(starVector[i]->position - motion_struct.position);
 					aStarMotion.path.push(starVector[i]->position);
+					Entity test = createBigSlash(world.renderer, starVector[i]->position, 0, 0);
+					registry.renderRequests.get(test).used_texture = TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER;
+					registry.motions.get(test).scale = vec2(50.f, 50.f);
+					registry.expandTimers.get(test).counter_ms = 20000;
 					if (i == 0) {
 						aStarMotion.currentDest = starVector[i]->position;
 					}

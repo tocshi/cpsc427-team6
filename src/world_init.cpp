@@ -270,6 +270,35 @@ Entity createProjectile(RenderSystem* renderer, Entity owner, vec2 pos, vec2 sca
 	return entity;
 }
 
+Entity createTrap(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, float multiplier, int turns, int triggers, TEXTURE_ASSET_ID texture)
+{
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = scale;
+
+	// Initilalize stats
+	auto& stat = registry.stats.emplace(entity);
+	stat = registry.stats.get(owner);
+
+	auto& trap = registry.traps.emplace(entity);
+	trap.turns = turns;
+	trap.triggers = triggers;
+	trap.multiplier = multiplier;
+	trap.owner = owner;
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::FLOOR_DECO });
+
+	return entity;
+}
+
 // Enemy slime (split into different enemies for future)
 Entity createCaveling(RenderSystem* renderer, vec2 pos)
 {
@@ -453,13 +482,14 @@ Equipment createEquipment(EQUIPMENT type, int tier) {
 		}
 
 		// Check for Chimera's Arm and resolve effect
+		/*
 		if (registry.inventories.get(registry.players.entities[0]).artifact[(int)ARTIFACT::CHIMERARM] > 0) {
 			equipment.atk += 4 * registry.inventories.get(registry.players.entities[0]).artifact[(int)ARTIFACT::CHIMERARM];
 			combined_attacks.insert(combined_attacks.end(), sharp_attacks.begin(), sharp_attacks.end());
 			combined_attacks.insert(combined_attacks.end(), blunt_attacks.begin(), blunt_attacks.end());
 			combined_attacks.insert(combined_attacks.end(), ranged_attacks.begin(), ranged_attacks.end());
 			equipment.attacks[1] = combined_attacks[irand(combined_attacks.size())];
-		}
+		}*/
 	}
 	else if (type == EQUIPMENT::ARMOUR) {
 		equipment.def = 0 + 2 * tier;

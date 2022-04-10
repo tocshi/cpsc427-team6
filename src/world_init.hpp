@@ -78,8 +78,10 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos);
 Entity createEnemy(RenderSystem* renderer, vec2 pos);
 // Plant Shooter
 Entity createPlantShooter(RenderSystem* renderer, vec2 pos);
-// Plant Projectile
+// Projectiles
 Entity createProjectile(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, float dir, float multiplier, TEXTURE_ASSET_ID texture);
+// Traps
+Entity createTrap(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, float multiplier, int turns, int triggers, TEXTURE_ASSET_ID texture);
 // Caveling
 Entity createCaveling(RenderSystem* renderer, vec2 pos);
 // King Slime

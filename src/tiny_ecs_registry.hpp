@@ -77,6 +77,7 @@ public:
 	ComponentContainer<StatsText> statsText;
 	ComponentContainer<ExpandTimer> expandTimers;
 	ComponentContainer<Test> attackIndicators;
+	ComponentContainer<Trap> traps;
 	ComponentContainer<HPDisplay> hpDisplays;
 	ComponentContainer<EnemyHPBar> enemyHPBars;
 	ComponentContainer<BossHPBar> bossHPBars;
@@ -154,6 +155,7 @@ public:
 		registry_list.push_back(&statsText);
 		registry_list.push_back(&expandTimers);
 		registry_list.push_back(&attackIndicators);
+		registry_list.push_back(&traps);
 		registry_list.push_back(&hpDisplays);
 		registry_list.push_back(&enemyHPBars);
 		registry_list.push_back(&bossHPBars);

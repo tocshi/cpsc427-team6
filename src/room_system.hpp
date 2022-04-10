@@ -30,7 +30,7 @@ private:
 		},
 		{
 			Floors::FLOOR1, 
-			{"map4.tmx", "map5.tmx", "map6.tmx"}
+			{"map1.tmx", "map2.tmx", "map3.tmx"}
 		},
 		{
 			Floors::FLOOR2,

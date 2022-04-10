@@ -2004,10 +2004,14 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					// get which icon was clicked
 					if (registry.itemCards.has(e)) {
 						Equipment equipment = registry.itemCards.get(e).item;
-						// TODO:
+						createEquipmentDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f * ui_scale), equipment);
 					}
 					break;
 				case BUTTON_ACTION_ID::CLOSE_EQUIPMENT_DIALOG:
+					// remove all equipment dialog components
+					for (Entity ed : registry.equipmentDialogs.entities) {
+						registry.remove_all_components_of(ed);
+					}
 					break;
 				case BUTTON_ACTION_ID::USE_ATTACK:
 					registry.players.get(player_main).using_attack = registry.players.get(player_main).selected_attack;

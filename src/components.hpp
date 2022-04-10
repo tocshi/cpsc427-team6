@@ -600,6 +600,14 @@ struct AttackDialog {
 	std::string cost = "";
 };
 
+struct EquipmentDialog {
+	std::string atk = "";
+	std::string def = "";
+	std::string speed = "";
+	std::string hp = "";
+	std::string mp = "";
+};
+
 struct EpRange {
 	float radius = 450.f;
 	float resolution = 2000.f;

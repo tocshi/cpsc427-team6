@@ -184,7 +184,7 @@ Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack);
 // Attack type dialog
 Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack, bool prepared);
 // equipment type dialog
-Entity createEquipmentDialog(RenderSystem* renderer, vec2 pos, EQUIPMENT equipment);
+Entity createEquipmentDialog(RenderSystem* renderer, vec2 pos, Equipment item);
 // cutscene
 Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID textureID);
 // Turn UI

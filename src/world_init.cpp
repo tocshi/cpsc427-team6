@@ -1661,7 +1661,7 @@ Entity createAttackDialogButton(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_
 }
 
 // equipment dialog
-Entity createEquipmentDialog(RenderSystem* renderer, vec2 pos, EQUIPMENT equipment) {
+Entity createEquipmentDialog(RenderSystem* renderer, vec2 pos, Equipment item) {
 	auto entity = Entity();
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
@@ -1679,104 +1679,36 @@ Entity createEquipmentDialog(RenderSystem* renderer, vec2 pos, EQUIPMENT equipme
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::DIALOG });
 
-	AttackDialog& ad = registry.attackDialogs.emplace(entity);
+	EquipmentDialog& ed = registry.equipmentDialogs.emplace(entity);
 
-	// set ad title
-	Entity tt;
-	bool hasTT = false;
-	auto iter = attack_names.find(attack);
-	if (iter != attack_names.end()) {
-		ad.title = iter->second;
-		tt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2), ad.title, 2.0f, vec3(0.0f));
-		hasTT = true;
-	}
-	else {
-		printf("ERROR: name does not exist for attack");
-	}
+	// render the item sprite
+	Entity equip = createItemEquipmentTexture(renderer, vec2(pos.x, pos.y - 50.f), item);
+	registry.equipmentDialogs.emplace(equip);
 
-	// set ad effect
-	std::vector<Entity> ctVect;
-	bool hasCT = false;
-	ctVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 80.f), "COST: ", 1.6f, vec3(0.0f)));
-	iter = attack_costs_string.find(attack);
-	if (iter != attack_costs_string.end()) {
-		ad.cost = iter->second;
-		if (ad.cost.size() > 40) {
-			bool renderNewLine = true;
-			float effectOffset = 0.f;
-			int iter = 1;
-			std::string effectLine = ad.cost.substr(0, 40);
-			while (renderNewLine) {
-				ctVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 130.f + effectOffset), effectLine, 1.2f, vec3(0.0f)));
-				effectLine = ad.cost.substr(40 * iter);
-				effectOffset += 30.f;
-				if (effectLine.size() >= 40) {
-					effectLine = ad.cost.substr(40 * iter, 40);
-					iter++;
-				}
-				else {
-					ctVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 130.f + effectOffset), effectLine, 1.2f, vec3(0.0f)));
-					renderNewLine = false;
-				}
-			}
-		}
-		else {
-			ctVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 130.f), ad.cost, 1.2f, vec3(0.0f)));
-		}
-		hasCT = true;
-	}
-	else {
-		printf("ERROR: cost does not exist for attack");
-	}
+	// set atk
+	std::string atkString = "ATK: " + std::to_string((int)item.atk);
+	Entity atkEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 80.f), atkString, 1.6f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(atkEnt);
 
-	// set dd description
-	std::vector<Entity> dtVect;
-	bool hasDT = false;
-	iter = attack_descriptions.find(attack);
-	dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 200.f), "DESCRIPTION: ", 1.6f, vec3(0.0f)));
-	if (iter != attack_descriptions.end()) {
-		ad.description = iter->second;
-		if (ad.description.size() > 40) {
-			bool renderNewLine = true;
-			float descOffset = 0.f;
-			int iter = 1;
-			std::string descLine = ad.description.substr(0, 40);
-			while (renderNewLine) {
-				dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 250.f + descOffset), descLine, 1.2f, vec3(0.0f)));
-				descLine = ad.description.substr(40 * iter);
-				descOffset += 30.f;
-				if (descLine.size() >= 40) {
-					descLine = ad.description.substr(40 * iter, 40);
-					iter++;
-				}
-				else {
-					dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 250.f + descOffset), descLine, 1.2f, vec3(0.0f)));
-					renderNewLine = false;
-				}
-			}
-		}
-		else {
-			dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f), ad.description, 1.2f, vec3(0.0f)));
-		}
+	// set def
+	std::string defString = "DEF: " + std::to_string((int)item.def);
+	Entity defEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 120.f), defString, 1.6f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(defEnt);
 
-		hasDT = true;
-	}
-	else {
-		printf("ERROR: description does not exist for attack");
-	}
+	// set speed
+	std::string speedString = "SPEED: " + std::to_string((int)item.speed);
+	Entity speedEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 160.f), speedString, 1.6f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(speedEnt);
 
-	// need to add new entities to attackDialogs at the end to avoid memory issues
-	if (hasTT) { registry.attackDialogs.emplace(tt); }
-	if (hasCT) {
-		for (Entity ct : ctVect) {
-			registry.attackDialogs.emplace(ct);
-		}
-	}
-	if (hasDT) {
-		for (Entity dt : dtVect) {
-			registry.attackDialogs.emplace(dt);
-		}
-	}
+	// set hp
+	std::string hpString = "HP: " + std::to_string((int)item.hp);
+	Entity hpEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 200.f), hpString, 1.6f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(hpEnt);
+
+	// set mp
+	std::string mpString = "MP: " + std::to_string((int)item.mp);
+	Entity mpEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 240.f), mpString, 1.6f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(mpEnt);
 
 	// render the x button
 	auto close_entity = Entity();
@@ -1797,7 +1729,7 @@ Entity createEquipmentDialog(RenderSystem* renderer, vec2 pos, EQUIPMENT equipme
 	b.action_taken = BUTTON_ACTION_ID::CLOSE_EQUIPMENT_DIALOG;
 
 	// need to add 'x' to attackDialogs so it is closed when the entire modal is closed
-	registry.attackDialogs.emplace(close_entity);
+	registry.equipmentDialogs.emplace(close_entity);
 
 	registry.renderRequests.insert(
 		close_entity,

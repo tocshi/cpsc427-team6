@@ -1682,32 +1682,32 @@ Entity createEquipmentDialog(RenderSystem* renderer, vec2 pos, Equipment item) {
 	EquipmentDialog& ed = registry.equipmentDialogs.emplace(entity);
 
 	// render the item sprite
-	Entity equip = createItemEquipmentTexture(renderer, vec2(pos.x, pos.y - 100.f), vec2(150.f, 150.f), item);
+	Entity equip = createItemEquipmentTexture(renderer, vec2(pos.x, pos.y - 80.f), vec2(150.f, 150.f), item);
 	registry.equipmentDialogs.emplace(equip);
 
 	// set atk
 	std::string atkString = "ATK: " + std::to_string((int)item.atk);
-	Entity atkEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + DESCRIPTION_DIALOG_BB_WIDTH / 2.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 300.f), atkString, 1.6f, vec3(0.0f));
+	Entity atkEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + DESCRIPTION_DIALOG_BB_WIDTH / 1.5f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 300.f), atkString, 1.6f, vec3(0.0f));
 	registry.equipmentDialogs.emplace(atkEnt);
 
 	// set def
 	std::string defString = "DEF: " + std::to_string((int)item.def);
-	Entity defEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + DESCRIPTION_DIALOG_BB_WIDTH / 2.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 350.f), defString, 1.6f, vec3(0.0f));
+	Entity defEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + DESCRIPTION_DIALOG_BB_WIDTH / 1.5f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 350.f), defString, 1.6f, vec3(0.0f));
 	registry.equipmentDialogs.emplace(defEnt);
 
 	// set speed
 	std::string speedString = "SPEED: " + std::to_string((int)item.speed);
-	Entity speedEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + DESCRIPTION_DIALOG_BB_WIDTH / 2.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f), speedString, 1.6f, vec3(0.0f));
+	Entity speedEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + DESCRIPTION_DIALOG_BB_WIDTH / 1.5f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f), speedString, 1.6f, vec3(0.0f));
 	registry.equipmentDialogs.emplace(speedEnt);
 
 	// set hp
 	std::string hpString = "HP: " + std::to_string((int)item.hp);
-	Entity hpEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + DESCRIPTION_DIALOG_BB_WIDTH / 2.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 450.f), hpString, 1.6f, vec3(0.0f));
+	Entity hpEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + DESCRIPTION_DIALOG_BB_WIDTH / 1.5f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 450.f), hpString, 1.6f, vec3(0.0f));
 	registry.equipmentDialogs.emplace(hpEnt);
 
 	// set mp
 	std::string mpString = "MP: " + std::to_string((int)item.mp);
-	Entity mpEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + DESCRIPTION_DIALOG_BB_WIDTH / 2.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 500.f), mpString, 1.6f, vec3(0.0f));
+	Entity mpEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + DESCRIPTION_DIALOG_BB_WIDTH / 1.5f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 500.f), mpString, 1.6f, vec3(0.0f));
 	registry.equipmentDialogs.emplace(mpEnt);
 
 	// render the x button

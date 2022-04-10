@@ -494,7 +494,7 @@ Entity createLivingRock(RenderSystem* renderer, vec2 pos)
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Living Rock";
 	stats.prefix = "the";
-	stats.maxhp = 2;//10;
+	stats.maxhp = 10;
 	stats.hp = stats.maxhp;
 	stats.atk = 0;
 	stats.def = 999;

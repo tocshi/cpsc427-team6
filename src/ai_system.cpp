@@ -627,7 +627,7 @@ void AISystem::living_rock_logic(Entity enemy, Entity& player) {
 	float aggroRange = stats.range;
 
 	// Determine enemy state
-	if ((player_in_range(motion_struct.position, aggroRange) && state == ENEMY_STATE::IDLE)) {
+	if (player_in_range(motion_struct.position, aggroRange) && stats.hp > 1) {
 		state = ENEMY_STATE::SUMMON;
 	} else {
 		state = ENEMY_STATE::IDLE;
@@ -639,27 +639,27 @@ void AISystem::living_rock_logic(Entity enemy, Entity& player) {
 			// do nothing
 			break;
 		case ENEMY_STATE::SUMMON:
-			// bool summoned = false;
-			// while (!summoned) {
-			// 	bool valid_summon = true;
-			// 	int distance = irandRange(ENEMY_BB_WIDTH * 4, ENEMY_BB_WIDTH * 4);
-			// 	float direction = (rand() % 360) * (M_PI / 180);
-			// 	vec2 spawnpoint = dirdist_extrapolate(motion_struct.position, direction, distance);Motion test = {};
-			// 	test.position = spawnpoint;
-			// 	test.scale = { ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT };
-			// 	for (Entity e : registry.solid.entities) {
-			// 		if (collides_AABB(test, registry.motions.get(e))) {
-			// 			valid_summon = false;
-			// 		}
-			// 	}
-			// 	if (valid_summon) {
-			// 		Entity summon = createLivingPebble(world.renderer, spawnpoint);
-			// 		reset_stats(summon);
-			// 		calc_stats(summon);
-			// 		world.turnOrderSystem.turnQueue.addNewEntity(summon);
-			// 		summoned = true;
-			// 	}
-			// }
+			bool summoned = false;
+			while (!summoned) {
+				bool valid_summon = true;
+				int distance = irandRange(ENEMY_BB_WIDTH * 2, ENEMY_BB_WIDTH * 2);
+				float direction = (rand() % 360) * (M_PI / 180);
+				vec2 spawnpoint = dirdist_extrapolate(motion_struct.position, direction, distance);Motion test = {};
+				test.position = spawnpoint;
+				test.scale = { ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT };
+				for (Entity e : registry.solid.entities) {
+					if (collides_AABB(test, registry.motions.get(e))) {
+						valid_summon = false;
+					}
+				}
+				if (valid_summon) {
+					Entity summon = createLivingPebble(world.renderer, spawnpoint);
+					reset_stats(summon);
+					calc_stats(summon);
+					world.turnOrderSystem.turnQueue.addNewEntity(summon);
+					summoned = true;
+				}
+			}
 			take_damage(enemy, 1);
 			break;
 	}

@@ -632,7 +632,7 @@ void RenderSystem::draw()
 		else {
 			if (registry.hpDisplays.has(entity)) {
 				Entity parent = registry.hpDisplays.get(entity).parent;
-				if (registry.hidden.has(parent))
+				if (registry.hidden.has(parent) && !registry.bossHPBars.has(parent))
 					continue;
 			}
 			if (registry.shadows.has(entity)) {

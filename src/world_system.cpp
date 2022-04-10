@@ -2550,7 +2550,7 @@ void WorldSystem::loadFromData(json data) {
 	if (data["music"] != nullptr) {
 		playMusic(data["music"]);
 	}
-	tutorial = data["tutorial"] == nullptr ? false : data["tutorial"];
+	tutorial = false;
 
 	// load player
 	json entityList = data["entities"];
@@ -3418,6 +3418,7 @@ void WorldSystem::updateTutorial() {
 		stat.hp = stat.maxhp;
 		stat.mp = stat.maxmp;
 		stat.ep = stat.maxep;
+		tutorial = false;
 	}
 
 }

@@ -140,6 +140,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 				endNode->parent = node->parent;
 				endNode->g_cost = node->g_cost;
 				endNode->f_cost = node->f_cost;
+				delete node;
 				break;
 			}
 
@@ -183,6 +184,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 				endNode->parent = node->parent;
 				endNode->g_cost = node->g_cost;
 				endNode->f_cost = node->f_cost;
+				delete node;
 				break;
 			}
 
@@ -226,6 +228,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 				endNode->parent = node->parent;
 				endNode->g_cost = node->g_cost;
 				endNode->f_cost = node->f_cost;
+				delete node;
 				break;
 			}
 
@@ -269,6 +272,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 				endNode->parent = node->parent;
 				endNode->g_cost = node->g_cost;
 				endNode->f_cost = node->f_cost;
+				delete node;
 				break;
 			}
 
@@ -314,6 +318,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 				endNode->parent = node->parent;
 				endNode->g_cost = node->g_cost;
 				endNode->f_cost = node->f_cost;
+				delete node;
 				break;
 			}
 
@@ -357,6 +362,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 				endNode->parent = node->parent;
 				endNode->g_cost = node->g_cost;
 				endNode->f_cost = node->f_cost;
+				delete node;
 				break;
 			}
 
@@ -400,6 +406,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 				endNode->parent = node->parent;
 				endNode->g_cost = node->g_cost;
 				endNode->f_cost = node->f_cost;
+				delete node;
 				break;
 			}
 
@@ -443,6 +450,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 				endNode->parent = node->parent;
 				endNode->g_cost = node->g_cost;
 				endNode->f_cost = node->f_cost;
+				delete node;
 				break;
 			}
 

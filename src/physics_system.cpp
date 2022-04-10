@@ -183,7 +183,7 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 			if (registry.aStarMotions.has(entity)) {
 				AstarMotion& aStarMotion = registry.aStarMotions.get(entity);
 				printf("dist to: %f, vel_mag: %f\n", dist_to(pos_final, dest), vel_mag);
-				if (dist_to(pos_final, aStarMotion.currentDest) <= vel_mag * 2.4) {
+				if (dist_to(pos_final, aStarMotion.currentDest) <= 16.f) {
 					// if it is the final dest
 					if (aStarMotion.path.size() > 0) {
 						vec2 back = aStarMotion.path.back();
@@ -200,7 +200,8 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 					}
 				}
 				// handle movement
-				//motion.position = pos_final;
+				// pos_final = { pos.x + (vel.x * step_seconds), pos.y + (vel.y * step_seconds) };
+				// motion.position = pos_final;
 			}
 			else {
 				if (dist_to(pos_final, dest) <= vel_mag) {

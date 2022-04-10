@@ -1326,7 +1326,7 @@ void WorldSystem::create_ep_range(float remaining_ep, float speed, vec2 pos) {
 	float ep_radius = remaining_ep * (1 / player_stats.epratemove) * speed * 0.015 + ((110.f * remaining_ep * (1 / player_stats.epratemove)) / 100);
 
 	Entity ep = createEpRange({ pos.x , pos.y }, ep_resolution, ep_radius, { window_width_px, window_height_px });
-	registry.colors.insert(ep, { 0.2, 0.2, 8.7 });
+	registry.colors.insert(ep, { 0.2, 0.2, 1.f, 1.f });
 }
 
 // render fog of war around the player
@@ -1338,7 +1338,7 @@ void WorldSystem::create_fog_of_war() {
 	float playerY = player_motion.position.y;
 
 	Entity fog = createFog({ playerX, playerY }, fog_resolution, player_stats.range, { window_width_px, window_height_px });
-	registry.colors.insert(fog, { 0.2, 0.2, 0.2 });
+	registry.colors.insert(fog, { 0.2, 0.2, 0.2, 1.f });
 }
 
 // remove all fog entities
@@ -2843,7 +2843,7 @@ void WorldSystem::loadBossDoor(Entity e) {
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(e, &mesh);
 	registry.solid.emplace(e);
-	registry.colors.insert(e, vec3(1, 0.4, 0.4));
+	registry.colors.insert(e, vec4(1, 0.4, 0.4, 1.f));
 
 	registry.renderRequests.insert(
 		e,
@@ -3790,7 +3790,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 
 					// show attack animation
 					Entity anim = createAttackAnimation(renderer, { m.position.x, m.position.y }, player.using_attack);
-					registry.colors.insert(anim, {0.f, 0.f, 1.f});
+					registry.colors.insert(anim, {0.f, 0.f, 1.f, 1.f});
 
 					// play attack sound
 					Mix_PlayChannel(-1, sword_parry, 0);

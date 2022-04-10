@@ -182,8 +182,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	// Getting uniform locations for glUniform* calls
 	GLint color_uloc = glGetUniformLocation(program, "fcolor");
-	const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
-	glUniform3fv(color_uloc, 1, (float *)&color);
+	const vec4 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec4(1);
+	glUniform4fv(color_uloc, 1, (float *)&color);
 	gl_has_errors();
 
 	// Get number of indices from index buffer, which has elements uint16_t
@@ -268,8 +268,8 @@ void RenderSystem::drawText(Entity entity, const mat3 &projection, Camera& camer
 
 	// Getting uniform locations for glUniform* calls
 	GLint color_uloc = glGetUniformLocation(program, "fcolor");
-	const vec3 color = text.textColor;
-	glUniform3fv(color_uloc, 1, (float *)&color);
+	const vec4 color = vec4(text.textColor, 1.f);
+	glUniform4fv(color_uloc, 1, (float *)&color);
 	gl_has_errors();
 
 	GLint currProgram;
@@ -468,8 +468,8 @@ void RenderSystem::drawInstancedTiles(std::vector<Entity> entities, const mat3& 
 
 	// Getting uniform locations for glUniform* calls
 	GLint color_uloc = glGetUniformLocation(program, "fcolor");
-	const vec3 color = registry.colors.has(entities[0]) ? registry.colors.get(entities[0]) : vec3(1);
-	glUniform3fv(color_uloc, 1, (float*)&color);
+	const vec4 color = registry.colors.has(entities[0]) ? registry.colors.get(entities[0]) : vec4(1);
+	glUniform4fv(color_uloc, 1, (float*)&color);
 	gl_has_errors();
 
 	// Get number of indices from index buffer, which has elements uint16_t

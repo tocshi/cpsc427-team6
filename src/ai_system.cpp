@@ -341,7 +341,7 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 			registry.renderRequests.get(indicator).used_layer = RENDER_LAYER_ID::PLAYER;
 			registry.motions.get(indicator).destination = motion_struct.position;
 			registry.motions.get(indicator).movement_speed = 1;
-			registry.colors.insert(indicator, {1.f, 0.5f, 0.5f});
+			registry.colors.insert(indicator, {1.f, 0.5f, 0.5f, 1.f});
 			state = ENEMY_STATE::CHARGING_RANGED;
 		}
 		else if (rotation_turns == 8) {
@@ -384,7 +384,7 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 			registry.renderRequests.get(indicator).used_layer = RENDER_LAYER_ID::PLAYER;
 			registry.motions.get(indicator).destination = motion_struct.position;
 			registry.motions.get(indicator).movement_speed = 1;
-			registry.colors.insert(indicator, { 1.f, 0.5f, 0.5f });
+			registry.colors.insert(indicator, { 1.f, 0.5f, 0.5f, 1.f });
 			state = ENEMY_STATE::CHARGING_RANGED;
 		}
 		break;

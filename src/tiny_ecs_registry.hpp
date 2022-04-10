@@ -20,7 +20,7 @@ public:
 	ComponentContainer<RenderRequest> renderRequests;
 	ComponentContainer<ScreenState> screenStates;
 	ComponentContainer<DebugComponent> debugComponents;
-	ComponentContainer<vec3> colors;
+	ComponentContainer<vec4> colors;
 	ComponentContainer<Damageable> damageables;
 	ComponentContainer<Consumable> consumables;
 	ComponentContainer<Equipment> equipment;

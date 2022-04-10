@@ -2504,15 +2504,15 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 	// Max height for spawning 
 	// width + moves it right 
 	// height + moves it down the screen 
-	float max_height_top = floor_height + 200.f; // less
-	float max_height_bot = window_height_px*ui_scale - ARTIFACT_IMAGE_BB_HEIGHT; // greater
+	float max_height_top = 650.f; // less
+	float max_height_bot = window_height_px*ui_scale - (ARTIFACT_IMAGE_BB_HEIGHT / 2); // greater
 
 	float h_diff = max_height_bot - max_height_top; // less
 
 	float max_width_left_edge = floor_width + 250.f;
 
 
-	float max_width_right_edge = window_width_px * ui_scale - ARTIFACT_IMAGE_BB_WIDTH; // greater
+	float max_width_right_edge = window_width_px * ui_scale - (ARTIFACT_IMAGE_BB_WIDTH / 2); // greater
 	float w_diff =  max_width_right_edge- max_width_left_edge;
 
 	 
@@ -2562,9 +2562,9 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 					pos_x = irandRange(max_width_left_edge, max_width_right_edge);
 					pos_y = irandRange(max_height_top, max_height_bot);
 					for (auto& pos_taken : taken_array) {
-						if (calculate_abs_value(pos_x, pos_taken.x) < 30.0 && calculate_abs_value(pos_y, pos_taken.y) < 30.0) {
+						if (calculate_abs_value(pos_x, pos_taken.x) < 32.0 && calculate_abs_value(pos_y, pos_taken.y) < 32.0) {
 							printf("START CHECK for overlap=================\n");
-							pos_x = pos_x + 200.0;
+							pos_x = pos_x + 32.0;
 							//pos_y = pos_y + 80.0;
 							// check if out of bounds
 							if (pos_x - max_width_right_edge > 0) {
@@ -2595,8 +2595,9 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 				
 				printf("pos_x :%d\n", pos_x);
 				printf("pos_x :%d\n", pos_y);
-				createArtifactIcon(renderer, vec2(pos_x, pos_y),
+				Entity artifact = createArtifactIcon(renderer, vec2(pos_x, pos_y),
 					static_cast<ARTIFACT>(i));
+				registry.motions.get(artifact).angle = irandRange(-450, 450) * (M_PI/1800);
 				taken_array.push_back(vec2(pos_x, pos_y));
 				printf("size of taken atm:%d\n", taken_array.size());
 				num_cur_artifacts--;

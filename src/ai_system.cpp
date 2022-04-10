@@ -572,7 +572,7 @@ void AISystem::step(Entity e)
 void AISystem::slime_logic(Entity slime, Entity& player) {
 	Motion& player_motion = registry.motions.get(player);
 	Stats& stats = registry.stats.get(slime);
-	//float chaseRange = stats.range;
+	// float chaseRange = stats.range;
 	float chaseRange = 1000.f;
 	float meleeRange = 100.f;
 

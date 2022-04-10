@@ -142,6 +142,7 @@ class RenderSystem {
 			textures_path("artifacts/thunder_twig.png"),
 			textures_path("artifacts/warm_cloak.png"),
 			textures_path("artifacts/windbag.png"),
+			textures_path("artifacts/malediction.png"),
 			textures_path("mouse_icons.png"),
 			textures_path("attacks/slash.png"),
 			textures_path("objective_counter.png"),
@@ -149,6 +150,12 @@ class RenderSystem {
 			textures_path("attacks/indicator_circle.png"),
 			textures_path("attacks/indicator_rectangle.png"),
 			textures_path("shadow.png"),
+			textures_path("attacks/lightning.png"),
+			textures_path("attacks/mana_circle.png"),
+			textures_path("attacks/curse.png"),
+			textures_path("attacks/smoke.png"),
+			textures_path("attacks/mushroom.png"),
+			textures_path("attacks/burrs.png"),
 			textures_path("boss_icon_backing.png"),
 	};
 

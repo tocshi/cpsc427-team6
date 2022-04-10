@@ -270,6 +270,35 @@ Entity createProjectile(RenderSystem* renderer, Entity owner, vec2 pos, vec2 sca
 	return entity;
 }
 
+Entity createTrap(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, float multiplier, int turns, int triggers, TEXTURE_ASSET_ID texture)
+{
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.scale = scale;
+
+	// Initilalize stats
+	auto& stat = registry.stats.emplace(entity);
+	stat = registry.stats.get(owner);
+
+	auto& trap = registry.traps.emplace(entity);
+	trap.turns = turns;
+	trap.triggers = triggers;
+	trap.multiplier = multiplier;
+	trap.owner = owner;
+
+	registry.renderRequests.insert(
+		entity,
+		{ texture,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::FLOOR_DECO });
+
+	return entity;
+}
+
 // Enemy slime (split into different enemies for future)
 Entity createCaveling(RenderSystem* renderer, vec2 pos)
 {
@@ -461,13 +490,14 @@ Equipment createEquipment(EQUIPMENT type, int tier) {
 		}
 
 		// Check for Chimera's Arm and resolve effect
+		/*
 		if (registry.inventories.get(registry.players.entities[0]).artifact[(int)ARTIFACT::CHIMERARM] > 0) {
 			equipment.atk += 4 * registry.inventories.get(registry.players.entities[0]).artifact[(int)ARTIFACT::CHIMERARM];
 			combined_attacks.insert(combined_attacks.end(), sharp_attacks.begin(), sharp_attacks.end());
 			combined_attacks.insert(combined_attacks.end(), blunt_attacks.begin(), blunt_attacks.end());
 			combined_attacks.insert(combined_attacks.end(), ranged_attacks.begin(), ranged_attacks.end());
 			equipment.attacks[1] = combined_attacks[irand(combined_attacks.size())];
-		}
+		}*/
 	}
 	else if (type == EQUIPMENT::ARMOUR) {
 		equipment.def = 0 + 2 * tier;
@@ -1352,9 +1382,9 @@ Entity createItemCard(RenderSystem* renderer, vec2 pos, EQUIPMENT type, Equipmen
 	ItemCard& ic = registry.itemCards.emplace(entity);
 	ic.item = item;
 
-	// TODO: add dialog for more item info
-	//Button& b = registry.buttons.emplace(entity);
-	//b.action_taken = BUTTON_ACTION_ID::OPEN_ATTACK_DIALOG;
+	// make the card a button (to show item stats)
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::OPEN_EQUIPMENT_DIALOG;
 
 	// get attack type from item
 	switch (type) {
@@ -1378,14 +1408,14 @@ Entity createItemCard(RenderSystem* renderer, vec2 pos, EQUIPMENT type, Equipmen
 			break;
 	}
 	
-	Entity equip = createItemEquipmentTexture(renderer, pos, item);
+	Entity equip = createItemEquipmentTexture(renderer, pos, { PICKUP_BB_WIDTH, PICKUP_BB_HEIGHT }, item);
 	registry.itemCards.emplace(equip);
 
 	return entity;
 }
 
 // Generate equipment texture for item menu
-Entity createItemEquipmentTexture(RenderSystem* renderer, vec2 pos, Equipment equipment)
+Entity createItemEquipmentTexture(RenderSystem* renderer, vec2 pos, vec2 scale, Equipment equipment)
 {
 	auto entity = Entity();
 
@@ -1398,7 +1428,7 @@ Entity createItemEquipmentTexture(RenderSystem* renderer, vec2 pos, Equipment eq
 	motion.in_motion = false;
 	motion.movement_speed = 0;
 
-	motion.scale = vec2({ PICKUP_BB_WIDTH, PICKUP_BB_HEIGHT });
+	motion.scale = scale;
 
 	registry.renderRequests.insert(
 		entity,
@@ -1631,6 +1661,87 @@ Entity createAttackDialogButton(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_
 	registry.renderRequests.insert(
 		entity,
 		{ button_texture,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI_TOP });
+
+	return entity;
+}
+
+// equipment dialog
+Entity createEquipmentDialog(RenderSystem* renderer, vec2 pos, Equipment item) {
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ DESCRIPTION_DIALOG_BB_WIDTH, DESCRIPTION_DIALOG_BB_HEIGHT });
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::DESCRIPTION_DIALOG,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::DIALOG });
+
+	EquipmentDialog& ed = registry.equipmentDialogs.emplace(entity);
+
+	// render the item sprite
+	Entity equip = createItemEquipmentTexture(renderer, vec2(pos.x, pos.y - 80.f), vec2(150.f, 150.f), item);
+	registry.equipmentDialogs.emplace(equip);
+
+	// set atk
+	std::string atkString = "ATK: " + std::to_string((int)item.atk);
+	Entity atkEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + DESCRIPTION_DIALOG_BB_WIDTH / 1.5f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 300.f), atkString, 1.6f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(atkEnt);
+
+	// set def
+	std::string defString = "DEF: " + std::to_string((int)item.def);
+	Entity defEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + DESCRIPTION_DIALOG_BB_WIDTH / 1.5f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 350.f), defString, 1.6f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(defEnt);
+
+	// set speed
+	std::string speedString = "SPEED: " + std::to_string((int)item.speed);
+	Entity speedEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + DESCRIPTION_DIALOG_BB_WIDTH / 1.5f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f), speedString, 1.6f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(speedEnt);
+
+	// set hp
+	std::string hpString = "HP: " + std::to_string((int)item.hp);
+	Entity hpEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + DESCRIPTION_DIALOG_BB_WIDTH / 1.5f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 450.f), hpString, 1.6f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(hpEnt);
+
+	// set mp
+	std::string mpString = "MP: " + std::to_string((int)item.mp);
+	Entity mpEnt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + DESCRIPTION_DIALOG_BB_WIDTH / 1.5f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 500.f), mpString, 1.6f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(mpEnt);
+
+	// render the x button
+	auto close_entity = Entity();
+
+	Mesh& close_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(close_entity, &close_mesh);
+
+	auto& close_motion = registry.motions.emplace(close_entity);
+	close_motion.angle = 0.f;
+	close_motion.velocity = { 0.f, 0.f };
+	close_motion.position = { pos.x + (DESCRIPTION_DIALOG_BB_WIDTH / 2) - 60,
+		pos.y - (DESCRIPTION_DIALOG_BB_HEIGHT / 2) + 50 };
+
+	close_motion.scale = vec2({ PAUSE_BUTTON_BB_WIDTH / 1.5, PAUSE_BUTTON_BB_HEIGHT / 1.5 });
+
+
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::CLOSE_EQUIPMENT_DIALOG;
+
+	// need to add 'x' to attackDialogs so it is closed when the entire modal is closed
+	registry.equipmentDialogs.emplace(close_entity);
+
+	registry.renderRequests.insert(
+		close_entity,
+		{ TEXTURE_ASSET_ID::MENU_CLOSE,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI_TOP });

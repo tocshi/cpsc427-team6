@@ -703,7 +703,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// remove from turn queue
 			turnOrderSystem.removeFromQueue(enemy);
 			registry.solid.remove(enemy);
-			if (!tutorial)
+			if (!tutorial || registry.enemies.get(enemy).type == ENEMY_TYPE::LIVING_PEBBLE)
 				roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
 			if (registry.bosses.has(enemy)) {
 				roomSystem.updateObjective(ObjectiveType::DEFEAT_BOSS, 1);
@@ -1361,7 +1361,8 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 				createKingSlime(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 				break;
 			case Floors::FLOOR2:
-				createLivingPebble(renderer, { enemySpawns[i].x, enemySpawns[i].y});
+				// createLivingPebble(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				createLivingRock(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 				break;
 			}
 		}

@@ -64,6 +64,9 @@ void AISystem::step(Entity e)
 				case ENEMY_TYPE::LIVING_PEBBLE:
 					living_pebble_logic(e, player);
 					break;
+				case ENEMY_TYPE::LIVING_ROCK:
+					living_rock_logic(e, player);
+					break;
 			}
 		}
 	}
@@ -613,6 +616,52 @@ void AISystem::living_pebble_logic(Entity enemy, Entity& player) {
 			}
 		}
 		break;
+	}
+}
+
+void AISystem::living_rock_logic(Entity enemy, Entity& player) {
+	Motion& player_motion = registry.motions.get(player);
+	Stats& stats = registry.stats.get(enemy);
+	Motion& motion_struct = registry.motions.get(enemy);
+	ENEMY_STATE& state = registry.enemies.get(enemy).state;
+	float aggroRange = stats.range;
+
+	// Determine enemy state
+	if ((player_in_range(motion_struct.position, aggroRange) && state == ENEMY_STATE::IDLE)) {
+		state = ENEMY_STATE::SUMMON;
+	} else {
+		state = ENEMY_STATE::IDLE;
+	}
+
+	// perform action
+	switch (state) {
+		case ENEMY_STATE::IDLE:
+			// do nothing
+			break;
+		case ENEMY_STATE::SUMMON:
+			// bool summoned = false;
+			// while (!summoned) {
+			// 	bool valid_summon = true;
+			// 	int distance = irandRange(ENEMY_BB_WIDTH * 4, ENEMY_BB_WIDTH * 4);
+			// 	float direction = (rand() % 360) * (M_PI / 180);
+			// 	vec2 spawnpoint = dirdist_extrapolate(motion_struct.position, direction, distance);Motion test = {};
+			// 	test.position = spawnpoint;
+			// 	test.scale = { ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT };
+			// 	for (Entity e : registry.solid.entities) {
+			// 		if (collides_AABB(test, registry.motions.get(e))) {
+			// 			valid_summon = false;
+			// 		}
+			// 	}
+			// 	if (valid_summon) {
+			// 		Entity summon = createLivingPebble(world.renderer, spawnpoint);
+			// 		reset_stats(summon);
+			// 		calc_stats(summon);
+			// 		world.turnOrderSystem.turnQueue.addNewEntity(summon);
+			// 		summoned = true;
+			// 	}
+			// }
+			take_damage(enemy, 1);
+			break;
 	}
 }
 

@@ -19,6 +19,7 @@ public:
 	void caveling_logic(Entity enemy, Entity& player);
 	void king_slime_logic(Entity enemy, Entity& player);
 	void living_pebble_logic(Entity enemy, Entity& player);
+	void living_rock_logic(Entity enemy, Entity& player);
 	bool player_in_range(vec2 position, float radius);
 };
 

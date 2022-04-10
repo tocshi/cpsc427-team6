@@ -238,7 +238,7 @@ void RenderSystem::initializeGlGeometryBuffers()
 	constexpr float ar_z = 0.5f;
 	constexpr int AR_NUM_TRIANGLES = 93;
 
-	constexpr vec3 ar_color = { 0.1, 0.1, 1.0 };
+	constexpr vec3 ar_color = { 0.0, 0.9, 1.0 };
 
 	// Corner points
 	ar_vertices = {

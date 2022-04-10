@@ -466,7 +466,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (player.using_attack == ATTACK::NONE || player.using_attack == ATTACK::ROUNDSLASH || player.using_attack == ATTACK::SAPPING_STRIKE
 				|| player.using_attack == ATTACK::PIERCING_THRUST || player.using_attack == ATTACK::TERMINUS_VERITAS) {
 				float attack_range = 50.f + player_motion.scale.x / 2;
-				remove_fog_of_war();
+				switch (player.using_attack) {
+				case ATTACK::ROUNDSLASH:
+					attack_range = 150.f;
+					break;
+				case ATTACK::PIERCING_THRUST:
+					attack_range = 200.f;
+					break;
+				case ATTACK::TERMINUS_VERITAS:
+					attack_range = stats.range;
+					break;
+				}
 				create_attack_range(attack_range, player_motion.position);
 			}
 			else {

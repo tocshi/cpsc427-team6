@@ -1433,8 +1433,13 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 				createKingSlime(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 				break;
 			case Floors::FLOOR2:
-				// createLivingPebble(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-				createLivingRock(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				createApparition(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				// if (roll < 2) {
+				// 	createLivingRock(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				// }
+				// else {
+				// 	createApparition(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				// }
 				break;
 			}
 		}
@@ -3413,7 +3418,8 @@ void set_enemy_state_attack(Entity enemy) {
 	if (registry.enemies.get(enemy).type == ENEMY_TYPE::SLIME ||
 		registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER ||
 		registry.enemies.get(enemy).type == ENEMY_TYPE::CAVELING ||
-		registry.enemies.get(enemy).type == ENEMY_TYPE::LIVING_PEBBLE) {
+		registry.enemies.get(enemy).type == ENEMY_TYPE::LIVING_PEBBLE ||
+		registry.enemies.get(enemy).type == ENEMY_TYPE::APPARITION) {
 		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
 	}
 }

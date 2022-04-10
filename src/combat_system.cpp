@@ -53,9 +53,36 @@ std::string deal_damage(Entity& attacker, Entity& defender, float multiplier, bo
 	if (registry.players.has(attacker) && registry.enemies.has(defender)) {
 		auto& enemy_struct = registry.enemies.get(defender);
 		enemy_struct.hit_by_player = true;
+		// apparition teleport
+		if (registry.enemies.get(defender).type == ENEMY_TYPE::APPARITION) {
+			teleport(defender, attacker);
+		}
 	}
 
 	return log;
+}
+
+void teleport(Entity& enemy, Entity& player)
+{
+	Motion& player_motion = registry.motions.get(player);
+	Motion& enemy_motion = registry.motions.get(enemy);
+	bool valid = true;
+	vec2 new_pos = enemy_motion.position;
+	do {
+		float angle = irandRange(-M_PI, M_PI);
+		new_pos = dirdist_extrapolate(player_motion.position, angle, irandRange(600, 800));
+		Motion test = {};
+		test.position = new_pos;
+		test.scale = { ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT };
+		for (Entity e : registry.solid.entities) {
+			if ((registry.players.has(e) || registry.players.has(e)) &&
+				collides_circle(test, registry.motions.get(e))) {
+				valid = false;
+				break;
+			}
+		}
+	} while (!valid);
+	enemy_motion.position = new_pos;
 }
 
 // Entity directly takes damage

@@ -45,6 +45,7 @@ class RenderSystem {
 			textures_path("attacks/slimeprojectile.png"),
 			textures_path("enemy.png"),	// TODO: replace placeholder with living pebble
 			textures_path("artifact.png"), // TODO: replace placeholder with living rock
+			textures_path("boss.png"), // TODO: replace placeholder with Apparition
 			textures_path("artifact.png"),
 			textures_path("consumable.png"),
 			textures_path("item/equipment.png"),

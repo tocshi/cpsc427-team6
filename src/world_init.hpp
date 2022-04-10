@@ -90,6 +90,8 @@ Entity createKingSlime(RenderSystem* renderer, vec2 pos);
 Entity createLivingPebble(RenderSystem* renderer, vec2 pos);
 // Living Rock
 Entity createLivingRock(RenderSystem* renderer, vec2 pos);
+// Apparition
+Entity createApparition(RenderSystem* renderer, vec2 pos);
 // Equipment
 Equipment createEquipment(EQUIPMENT type, int tier);
 Entity createEquipmentEntity(RenderSystem* renderer, vec2 pos, Equipment equipment);

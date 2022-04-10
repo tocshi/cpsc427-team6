@@ -67,6 +67,9 @@ void AISystem::step(Entity e)
 				case ENEMY_TYPE::LIVING_ROCK:
 					living_rock_logic(e, player);
 					break;
+				case ENEMY_TYPE::APPARITION:
+					apparition_logic(e, player);
+					break;
 			}
 		}
 	}
@@ -662,6 +665,99 @@ void AISystem::living_rock_logic(Entity enemy, Entity& player) {
 			}
 			take_damage(enemy, 1);
 			break;
+	}
+}
+
+void AISystem::apparition_logic(Entity enemy, Entity& player) {
+	Motion& player_motion = registry.motions.get(player);
+	Stats& stats = registry.stats.get(enemy);
+	float chaseRange = stats.range;
+	float meleeRange = 100.f;
+
+	Motion& motion_struct = registry.motions.get(enemy);
+
+	// Perform melee attack if close enough
+	if (registry.enemies.get(enemy).state == ENEMY_STATE::ATTACK) {
+		if (player_in_range(motion_struct.position, meleeRange)) {
+			int roll = irand(2);
+			if (roll < 1) {
+				createExplosion(world.renderer, player_motion.position);
+				Mix_PlayChannel(-1, world.fire_explosion_sound, 0);
+				world.logText(deal_damage(enemy, player, stats.atk));
+			}
+			else {
+				createExplosion(world.renderer, player_motion.position);
+				Mix_PlayChannel(-1, world.fire_explosion_sound, 0);
+				world.logText(deal_damage(enemy, player, stats.atk/2.f));
+				StatusEffect blind = StatusEffect(-0.5f, 2, StatusType::RANGE_BUFF, true, true);
+				apply_status(player, blind);
+			}
+		}
+		registry.enemies.get(enemy).state = ENEMY_STATE::AGGRO;
+		return;
+	}
+
+	// Determine enemy state
+	// check if player is in range first
+	if (player_in_range(motion_struct.position, chaseRange)) {
+		registry.enemies.get(enemy).state = ENEMY_STATE::AGGRO;
+	}
+	else {
+		registry.enemies.get(enemy).state = ENEMY_STATE::IDLE;
+	}
+
+	ENEMY_STATE state = registry.enemies.get(enemy).state;
+	// perform action based on state
+	int dx = ichoose(irandRange(-75, -25), irandRange(25, 75));
+	int dy = ichoose(irandRange(-75, -25), irandRange(25, 75));
+	float angle = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
+
+
+	switch (state) {
+	case ENEMY_STATE::IDLE:
+		motion_struct.destination = { motion_struct.position.x + dx, motion_struct.position.y + dy };
+
+		// Teleport if out of player sight range
+		if (!player_in_range(motion_struct.position, registry.stats.get(player).range) && !player_in_range(motion_struct.destination, registry.stats.get(player).range)) {
+			// temp check
+			motion_struct.destination = motion_struct.position;
+			motion_struct.position = { motion_struct.position.x + dx, motion_struct.position.y + dy };
+			for (Entity solid : registry.solid.entities) {
+				if (collides_AABB(motion_struct, registry.motions.get(solid))) {
+					motion_struct.position = motion_struct.destination;
+					break;
+				}
+			}
+			motion_struct.in_motion = false;
+		}
+		else {
+			motion_struct.velocity = 180.f * normalize(motion_struct.destination - motion_struct.position);
+			motion_struct.in_motion = true;
+		}
+		break;
+	case ENEMY_STATE::AGGRO:
+		// move towards player
+		vec2 offset = player_motion.position - motion_struct.position;
+		motion_struct.destination = { motion_struct.position + offset*(2.f/3.f) };
+
+		// Teleport if out of player sight range
+		if (!player_in_range(motion_struct.position, registry.stats.get(player).range) && !player_in_range(motion_struct.destination, registry.stats.get(player).range)) {
+			// temp check
+			vec2 temp = motion_struct.position;
+			motion_struct.position = motion_struct.destination;
+			for (Entity solid : registry.solid.entities) {
+				if (collides_AABB(motion_struct, registry.motions.get(solid))) {
+					motion_struct.position = temp;
+					break;
+				}
+			}
+			motion_struct.in_motion = false;
+		}
+		else {
+			motion_struct.velocity = 180.f * normalize(motion_struct.destination - motion_struct.position);
+			motion_struct.in_motion = true;
+		}
+		break;
 	}
 }
 

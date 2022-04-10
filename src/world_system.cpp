@@ -469,6 +469,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				remove_fog_of_war();
 				create_attack_range(attack_range, player_motion.position);
 			}
+			else {
+				remove_attack_range();
+			}
 		}
 		else {
 			remove_attack_range();

@@ -2434,7 +2434,7 @@ void WorldSystem::start_player_turn() {
 
 		if (valid) {
 			// fire
-			createProjectile(renderer, player_main, dirdist_extrapolate(player_motion.position, dir, 64), { 16, 16 }, dir, 90 * stacks, TEXTURE_ASSET_ID::PLANT_PROJECTILE);
+			createProjectile(renderer, player_main, dirdist_extrapolate(player_motion.position, dir, 64), { 16, 16 }, dir, 80 * stacks, TEXTURE_ASSET_ID::PLANT_PROJECTILE);
 		}
 	}
 }

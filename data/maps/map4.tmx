@@ -1118,8 +1118,8 @@
  </objectgroup>
  <objectgroup id="68" name="enemy">
   <properties>
-   <property name="max" type="int" value="16"/>
-   <property name="min" type="int" value="10"/>
+   <property name="max" type="int" value="19"/>
+   <property name="min" type="int" value="14"/>
   </properties>
   <object id="149" name="E" x="210" y="136">
    <point/>

@@ -925,8 +925,8 @@
  </group>
  <objectgroup id="69" name="item">
   <properties>
-   <property name="max" type="int" value="8"/>
-   <property name="min" type="int" value="6"/>
+   <property name="max" type="int" value="7"/>
+   <property name="min" type="int" value="5"/>
   </properties>
   <object id="352" name="I" x="96" y="96">
    <point/>
@@ -967,8 +967,8 @@
  </objectgroup>
  <objectgroup id="68" name="enemy">
   <properties>
-   <property name="max" type="int" value="16"/>
-   <property name="min" type="int" value="10"/>
+   <property name="max" type="int" value="18"/>
+   <property name="min" type="int" value="13"/>
   </properties>
   <object id="300" name="E" x="208" y="272">
    <point/>

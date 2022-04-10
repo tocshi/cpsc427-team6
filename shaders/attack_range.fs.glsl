@@ -33,7 +33,7 @@ void main()
 		gradient = (pow(distance, 2) - absSum) * 50.f;
 
 		// draw the color based on how far the current point is from the radius
-		color = vec4(fcolor * vcolor, 0.1 - gradient);
+		color = vec4(fcolor * vcolor, 0.2 - gradient);
 	} else {
 		// alpha is 0 (because out of range)
 		color = vec4(fcolor * vcolor, 0.0);

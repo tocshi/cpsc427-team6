@@ -2299,7 +2299,7 @@ Entity createAttackRange(vec2 pos, float resolution, float radius, vec2 screen_r
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
 			EFFECT_ASSET_ID::ATTACK_RANGE,
 			GEOMETRY_BUFFER_ID::ATTACK_RANGE,
-			RENDER_LAYER_ID::EFFECT });
+			RENDER_LAYER_ID::FLOOR_DECO });
 
 	return entity;
 }

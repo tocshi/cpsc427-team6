@@ -471,7 +471,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					attack_range = 150.f;
 					break;
 				case ATTACK::PIERCING_THRUST:
-					attack_range = 200.f;
+					attack_range = 250.f;
 					break;
 				case ATTACK::TERMINUS_VERITAS:
 					attack_range = stats.range;

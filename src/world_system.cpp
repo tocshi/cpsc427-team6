@@ -532,7 +532,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (registry.actionButtons.entities.size() < 4) {
 			// bring back all of the buttons
-			// TODO: tutorial (sequentially add buttons depending on flags)
+			// sequentially add buttons depending on flags
 			if (tutorial) {
 				if (tutorial_flags & SIGN_1 && registry.actionButtons.entities.size() < 1) { createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale }); }
 				if (tutorial_flags & EP_DEPLETED && registry.actionButtons.entities.size() < 2) { createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD); }
@@ -1328,7 +1328,7 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR2, true); // TODO: change back to FLOOR1
+	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
 	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 
 	spawnData = createTiles(renderer, next_map);
@@ -1885,7 +1885,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						}
 						else {
 							start_game();
-							roomSystem.current_floor = Floors::FLOOR2; // TODO: change back to FLOOR1
+							roomSystem.current_floor = Floors::FLOOR1;
 							spawn_game_entities();
 						}
 						break;

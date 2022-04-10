@@ -175,6 +175,39 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform2f(screen_resolution_uloc, ep.screen_resolution.x, ep.screen_resolution.y);
 		gl_has_errors();
 	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::ATTACK_RANGE) {
+	GLint in_position_loc = glGetAttribLocation(program, "in_position");
+	GLint in_color_loc = glGetAttribLocation(program, "in_color");
+	GLint distance_uloc = glGetUniformLocation(program, "distance");
+	GLint resolution_uloc = glGetUniformLocation(program, "resolution");
+	GLint screen_resolution_uloc = glGetUniformLocation(program, "screen_resolution");
+	gl_has_errors();
+
+	glEnableVertexAttribArray(in_position_loc);
+	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+		sizeof(ColoredVertex), (void*)0);
+	gl_has_errors();
+
+	glEnableVertexAttribArray(in_color_loc);
+	glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
+		sizeof(ColoredVertex), (void*)sizeof(vec3));
+	gl_has_errors();
+
+	// set distance
+	AttackRange ar = registry.attackRange.get(entity);
+	float dist = (ar.radius / ar.resolution);
+
+	glUniform1f(distance_uloc, dist);
+	gl_has_errors();
+
+	// set fog resolution
+	glUniform1f(resolution_uloc, ar.resolution);
+	gl_has_errors();
+
+	// set sreen resolution
+	glUniform2f(screen_resolution_uloc, ar.screen_resolution.x, ar.screen_resolution.y);
+	gl_has_errors();
+	}
 	else
 	{
 		assert(false && "Type of render request not supported");

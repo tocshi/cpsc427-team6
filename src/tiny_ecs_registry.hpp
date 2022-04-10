@@ -43,6 +43,7 @@ public:
 	ComponentContainer<MenuItem> menuItems;
 	ComponentContainer<ModeVisualization> modeVisualizationObjects;
 	ComponentContainer<EpRange> epRange;
+	ComponentContainer<AttackRange> attackRange;
 	ComponentContainer<Fog> fog;
 	ComponentContainer<Camera> cameras;
 	ComponentContainer<Text> texts;
@@ -119,6 +120,7 @@ public:
 		registry_list.push_back(&modeVisualizationObjects);
 		registry_list.push_back(&menuItems);
 		registry_list.push_back(&epRange);
+		registry_list.push_back(&attackRange);
 		registry_list.push_back(&fog);
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&texts);

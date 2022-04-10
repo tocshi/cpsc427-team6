@@ -476,6 +476,33 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			create_fog_of_war();
 		}
 
+		// render the attack range
+		if (current_game_state == GameStates::ATTACK_MENU) {
+			// render the attack range based on the currently prepared attack
+			if (player.using_attack == ATTACK::NONE || player.using_attack == ATTACK::ROUNDSLASH || player.using_attack == ATTACK::SAPPING_STRIKE
+				|| player.using_attack == ATTACK::PIERCING_THRUST || player.using_attack == ATTACK::TERMINUS_VERITAS) {
+				float attack_range = 50.f + player_motion.scale.x / 2;
+				switch (player.using_attack) {
+				case ATTACK::ROUNDSLASH:
+					attack_range = 150.f;
+					break;
+				case ATTACK::PIERCING_THRUST:
+					attack_range = 250.f;
+					break;
+				case ATTACK::TERMINUS_VERITAS:
+					attack_range = stats.range;
+					break;
+				}
+				create_attack_range(attack_range, player_motion.position);
+			}
+			else {
+				remove_attack_range();
+			}
+		}
+		else {
+			remove_attack_range();
+		}
+
 		// perform in-motion behaviour
 		if (get_is_player_turn() && player_move_click) {
 			if (player_motion.in_motion) {
@@ -1400,6 +1427,25 @@ void WorldSystem::create_ep_range(float remaining_ep, float speed, vec2 pos) {
 	registry.colors.insert(ep, { 0.2, 0.2, 8.7 });
 }
 
+// render attack range around the given position
+void WorldSystem::create_attack_range(float range, vec2 pos) {
+	// remove previously rendered attack_range
+	remove_attack_range();
+
+	Stats player_stats = registry.stats.get(player_main);
+	float attack_radius = range;
+
+	Entity ar = createAttackRange({ pos.x , pos.y }, ep_resolution, attack_radius, { window_width_px, window_height_px });
+	registry.colors.insert(ar, { 0.0, 1.0, 1.0 });
+}
+
+// remove all attack ranges
+void WorldSystem::remove_attack_range() {
+	for (Entity e : registry.attackRange.entities) {
+		registry.remove_all_components_of(e);
+	}
+}
+
 // render fog of war around the player
 void WorldSystem::create_fog_of_war() {	
 		// get player position
@@ -1417,7 +1463,6 @@ void WorldSystem::remove_fog_of_war() {
 	for (Entity e : registry.fog.entities) {
 		registry.remove_all_components_of(e);
 	}
-
 }
 
 // spawn player entity in random location

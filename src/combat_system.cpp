@@ -401,6 +401,8 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 					else {
 						stats.range += status.value;
 					}
+					world.remove_fog_of_war();
+					world.create_fog_of_war();
 					break;
 				case (StatusType::SLIMED):
 					if (status.percentage && registry.stats.has(entity)) {

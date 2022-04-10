@@ -1328,7 +1328,7 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR2, true); // todo: change back to floor1
 	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 
 	spawnData = createTiles(renderer, next_map);
@@ -1432,8 +1432,8 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 			case Floors::BOSS1:
 				createKingSlime(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 				break;
-			case Floors::FLOOR2:
-				createApparition(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			case Floors::FLOOR2: // todo: rng spawn
+				createApparition(renderer, { enemySpawns[i].x, enemySpawns[i].y }); 
 				// if (roll < 2) {
 				// 	createLivingRock(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 				// }
@@ -1885,7 +1885,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						}
 						else {
 							start_game();
-							roomSystem.current_floor = Floors::FLOOR1;
+							roomSystem.current_floor = Floors::FLOOR2; // todo: change back to floor1
 							spawn_game_entities();
 						}
 						break;
@@ -3480,7 +3480,6 @@ void remove_status(Entity e, StatusType status, int number) {
 	}
 	reset_stats(e);
 	calc_stats(e);
-	return;
 }
   
 void WorldSystem::handleActionButtonPress() {

@@ -14,7 +14,7 @@ public:
 	void updateClearCount();
 	void setNextFloor(Floors floor);
 
-	Floors current_floor = Floors::FLOOR1;
+	Floors current_floor = Floors::FLOOR2; // todo: change back to floor1
 	int current_room_idx = 0;
 	int rooms_cleared_current_floor = 0;
 	Objective current_objective;

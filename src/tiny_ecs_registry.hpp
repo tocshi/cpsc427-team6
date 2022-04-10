@@ -66,6 +66,7 @@ public:
 	ComponentContainer<AttackCard> attackCards;
 	ComponentContainer<ItemCard> itemCards;
 	ComponentContainer<AttackDialog> attackDialogs;
+	ComponentContainer<EquipmentDialog> equipmentDialogs;
 	ComponentContainer<Icon> icons;
 	ComponentContainer<Spritesheet> spritesheets;
 	ComponentContainer<RoomTransitionTimer> roomTransitions;
@@ -143,6 +144,7 @@ public:
 		registry_list.push_back(&knockbacks);
 		registry_list.push_back(&attackCards);
 		registry_list.push_back(&attackDialogs);
+		registry_list.push_back(&equipmentDialogs);
 		registry_list.push_back(&itemCards);
 		registry_list.push_back(&icons);
 		registry_list.push_back(&spritesheets);

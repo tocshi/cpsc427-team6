@@ -569,7 +569,9 @@ enum class BUTTON_ACTION_ID {
 	CLOSE_DIALOG = SAVE_QUIT + 1,
 	OPEN_ATTACK_DIALOG = CLOSE_DIALOG + 1,
 	CLOSE_ATTACK_DIALOG = OPEN_ATTACK_DIALOG + 1,
-	SCROLL_DOWN = CLOSE_ATTACK_DIALOG + 1,
+	OPEN_EQUIPMENT_DIALOG = CLOSE_ATTACK_DIALOG + 1,
+	CLOSE_EQUIPMENT_DIALOG = OPEN_EQUIPMENT_DIALOG + 1,
+	SCROLL_DOWN = CLOSE_EQUIPMENT_DIALOG + 1,
 	SCROLL_UP = SCROLL_DOWN + 1,
 	USE_ATTACK = SCROLL_DOWN + 1,
 	PREPARE_ATTACK = USE_ATTACK + 1,
@@ -596,6 +598,14 @@ struct AttackDialog {
 	std::string title = "";
 	std::string description = "";
 	std::string cost = "";
+};
+
+struct EquipmentDialog {
+	std::string atk = "";
+	std::string def = "";
+	std::string speed = "";
+	std::string hp = "";
+	std::string mp = "";
 };
 
 struct EpRange {

@@ -1995,6 +1995,24 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						registry.remove_all_components_of(ad);
 					}
 					return;
+				case BUTTON_ACTION_ID::OPEN_EQUIPMENT_DIALOG:
+					// remove all other eqiupment dialog components
+					for (Entity ed : registry.equipmentDialogs.entities) {
+						registry.remove_all_components_of(ed);
+					}
+
+					// get which icon was clicked
+					if (registry.itemCards.has(e)) {
+						Equipment equipment = registry.itemCards.get(e).item;
+						createEquipmentDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f * ui_scale), equipment);
+					}
+					break;
+				case BUTTON_ACTION_ID::CLOSE_EQUIPMENT_DIALOG:
+					// remove all equipment dialog components
+					for (Entity ed : registry.equipmentDialogs.entities) {
+						registry.remove_all_components_of(ed);
+					}
+					break;
 				case BUTTON_ACTION_ID::USE_ATTACK:
 					registry.players.get(player_main).using_attack = registry.players.get(player_main).selected_attack;
 					for (Entity ad : registry.attackDialogs.entities) {
@@ -2532,7 +2550,7 @@ void WorldSystem::loadFromData(json data) {
 	if (data["music"] != nullptr) {
 		playMusic(data["music"]);
 	}
-	tutorial = data["tutorial"] == nullptr ? false : data["tutorial"];
+	tutorial = false;
 
 	// load player
 	json entityList = data["entities"];
@@ -3400,6 +3418,7 @@ void WorldSystem::updateTutorial() {
 		stat.hp = stat.maxhp;
 		stat.mp = stat.maxmp;
 		stat.ep = stat.maxep;
+		tutorial = false;
 	}
 
 }
@@ -3562,6 +3581,12 @@ void WorldSystem::backAction() {
 	for (Entity dd : registry.descriptionDialogs.entities) {
 		registry.remove_all_components_of(dd);
 	}
+
+	// remove all equipment dialogs
+	for (Entity ed : registry.equipmentDialogs.entities) {
+		registry.remove_all_components_of(ed);
+	}
+
 	// set gamestate back to normal
 	set_gamestate(GameStates::BATTLE_MENU);
 

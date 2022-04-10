@@ -183,6 +183,8 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack);
 // Attack type dialog
 Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack, bool prepared);
+// equipment type dialog
+Entity createEquipmentDialog(RenderSystem* renderer, vec2 pos, Equipment item);
 // cutscene
 Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID textureID);
 // Turn UI
@@ -206,7 +208,7 @@ Entity createItemMenu(RenderSystem* renderer, vec2 top_card_pos, Inventory inv);
 // stats text
 Entity createStatsText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);
 // Generate equipment texture for item menu
-Entity createItemEquipmentTexture(RenderSystem* renderer, vec2 pos, Equipment equipment);
+Entity createItemEquipmentTexture(RenderSystem* renderer, vec2 pos, vec2 scale, Equipment equipment);
 // objective counter UI
 Entity createObjectiveCounter(RenderSystem* renderer, vec2 pos);
 // attack animation

@@ -1374,9 +1374,9 @@ Entity createItemCard(RenderSystem* renderer, vec2 pos, EQUIPMENT type, Equipmen
 	ItemCard& ic = registry.itemCards.emplace(entity);
 	ic.item = item;
 
-	// TODO: add dialog for more item info
-	//Button& b = registry.buttons.emplace(entity);
-	//b.action_taken = BUTTON_ACTION_ID::OPEN_ATTACK_DIALOG;
+	// make the card a button (to show item stats)
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::OPEN_EQUIPMENT_DIALOG;
 
 	// get attack type from item
 	switch (type) {
@@ -1653,6 +1653,155 @@ Entity createAttackDialogButton(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_
 	registry.renderRequests.insert(
 		entity,
 		{ button_texture,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI_TOP });
+
+	return entity;
+}
+
+// equipment dialog
+Entity createEquipmentDialog(RenderSystem* renderer, vec2 pos, EQUIPMENT equipment) {
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ DESCRIPTION_DIALOG_BB_WIDTH, DESCRIPTION_DIALOG_BB_HEIGHT });
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::DESCRIPTION_DIALOG,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::DIALOG });
+
+	AttackDialog& ad = registry.attackDialogs.emplace(entity);
+
+	// set ad title
+	Entity tt;
+	bool hasTT = false;
+	auto iter = attack_names.find(attack);
+	if (iter != attack_names.end()) {
+		ad.title = iter->second;
+		tt = createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2), ad.title, 2.0f, vec3(0.0f));
+		hasTT = true;
+	}
+	else {
+		printf("ERROR: name does not exist for attack");
+	}
+
+	// set ad effect
+	std::vector<Entity> ctVect;
+	bool hasCT = false;
+	ctVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 80.f), "COST: ", 1.6f, vec3(0.0f)));
+	iter = attack_costs_string.find(attack);
+	if (iter != attack_costs_string.end()) {
+		ad.cost = iter->second;
+		if (ad.cost.size() > 40) {
+			bool renderNewLine = true;
+			float effectOffset = 0.f;
+			int iter = 1;
+			std::string effectLine = ad.cost.substr(0, 40);
+			while (renderNewLine) {
+				ctVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 130.f + effectOffset), effectLine, 1.2f, vec3(0.0f)));
+				effectLine = ad.cost.substr(40 * iter);
+				effectOffset += 30.f;
+				if (effectLine.size() >= 40) {
+					effectLine = ad.cost.substr(40 * iter, 40);
+					iter++;
+				}
+				else {
+					ctVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 130.f + effectOffset), effectLine, 1.2f, vec3(0.0f)));
+					renderNewLine = false;
+				}
+			}
+		}
+		else {
+			ctVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 130.f), ad.cost, 1.2f, vec3(0.0f)));
+		}
+		hasCT = true;
+	}
+	else {
+		printf("ERROR: cost does not exist for attack");
+	}
+
+	// set dd description
+	std::vector<Entity> dtVect;
+	bool hasDT = false;
+	iter = attack_descriptions.find(attack);
+	dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 200.f), "DESCRIPTION: ", 1.6f, vec3(0.0f)));
+	if (iter != attack_descriptions.end()) {
+		ad.description = iter->second;
+		if (ad.description.size() > 40) {
+			bool renderNewLine = true;
+			float descOffset = 0.f;
+			int iter = 1;
+			std::string descLine = ad.description.substr(0, 40);
+			while (renderNewLine) {
+				dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 250.f + descOffset), descLine, 1.2f, vec3(0.0f)));
+				descLine = ad.description.substr(40 * iter);
+				descOffset += 30.f;
+				if (descLine.size() >= 40) {
+					descLine = ad.description.substr(40 * iter, 40);
+					iter++;
+				}
+				else {
+					dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 250.f + descOffset), descLine, 1.2f, vec3(0.0f)));
+					renderNewLine = false;
+				}
+			}
+		}
+		else {
+			dtVect.push_back(createDialogText(renderer, vec2(pos.x + DESCRIPTION_DIALOG_BB_WIDTH + 20.f, pos.y + DESCRIPTION_DIALOG_BB_HEIGHT / 2 + 400.f), ad.description, 1.2f, vec3(0.0f)));
+		}
+
+		hasDT = true;
+	}
+	else {
+		printf("ERROR: description does not exist for attack");
+	}
+
+	// need to add new entities to attackDialogs at the end to avoid memory issues
+	if (hasTT) { registry.attackDialogs.emplace(tt); }
+	if (hasCT) {
+		for (Entity ct : ctVect) {
+			registry.attackDialogs.emplace(ct);
+		}
+	}
+	if (hasDT) {
+		for (Entity dt : dtVect) {
+			registry.attackDialogs.emplace(dt);
+		}
+	}
+
+	// render the x button
+	auto close_entity = Entity();
+
+	Mesh& close_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(close_entity, &close_mesh);
+
+	auto& close_motion = registry.motions.emplace(close_entity);
+	close_motion.angle = 0.f;
+	close_motion.velocity = { 0.f, 0.f };
+	close_motion.position = { pos.x + (DESCRIPTION_DIALOG_BB_WIDTH / 2) - 60,
+		pos.y - (DESCRIPTION_DIALOG_BB_HEIGHT / 2) + 50 };
+
+	close_motion.scale = vec2({ PAUSE_BUTTON_BB_WIDTH / 1.5, PAUSE_BUTTON_BB_HEIGHT / 1.5 });
+
+
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::CLOSE_EQUIPMENT_DIALOG;
+
+	// need to add 'x' to attackDialogs so it is closed when the entire modal is closed
+	registry.attackDialogs.emplace(close_entity);
+
+	registry.renderRequests.insert(
+		close_entity,
+		{ TEXTURE_ASSET_ID::MENU_CLOSE,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI_TOP });

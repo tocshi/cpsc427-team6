@@ -1995,6 +1995,20 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						registry.remove_all_components_of(ad);
 					}
 					return;
+				case BUTTON_ACTION_ID::OPEN_EQUIPMENT_DIALOG:
+					// remove all other eqiupment dialog components
+					for (Entity ed : registry.equipmentDialogs.entities) {
+						registry.remove_all_components_of(ed);
+					}
+
+					// get which icon was clicked
+					if (registry.itemCards.has(e)) {
+						Equipment equipment = registry.itemCards.get(e).item;
+						// TODO:
+					}
+					break;
+				case BUTTON_ACTION_ID::CLOSE_EQUIPMENT_DIALOG:
+					break;
 				case BUTTON_ACTION_ID::USE_ATTACK:
 					registry.players.get(player_main).using_attack = registry.players.get(player_main).selected_attack;
 					for (Entity ad : registry.attackDialogs.entities) {

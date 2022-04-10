@@ -3580,6 +3580,12 @@ void WorldSystem::backAction() {
 	for (Entity dd : registry.descriptionDialogs.entities) {
 		registry.remove_all_components_of(dd);
 	}
+
+	// remove all equipment dialogs
+	for (Entity ed : registry.equipmentDialogs.entities) {
+		registry.remove_all_components_of(ed);
+	}
+
 	// set gamestate back to normal
 	set_gamestate(GameStates::BATTLE_MENU);
 

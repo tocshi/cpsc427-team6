@@ -321,6 +321,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (registry.consumables.has(entity)) {
 				Consumable consumable = registry.consumables.get(entity);
 				Stats stats = registry.stats.get(player_main);
+				Stats basestats = registry.basestats.get(player_main);
+				StatusEffect regen = StatusEffect(stats.maxhp * 0.06, 5, StatusType::HP_REGEN, false, true);
 				switch (consumable.type) {
 				case CONSUMABLE::REDPOT:
 					break;
@@ -329,7 +331,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				case CONSUMABLE::YELPOT:
 					break;
 				case CONSUMABLE::INSTANT:
-					heal(player_main, stats.maxhp * 0.3);
+					if (has_status(player_main, StatusType::HP_REGEN)) { remove_status(player_main, StatusType::HP_REGEN); }
+					apply_status(player_main, regen);
+
+					// Guide to Healthy Eating
+					if (inv.artifact[(int)ARTIFACT::GUIDE_HEALBUFF] > 0) {
+						StatusEffect buff = StatusEffect(0.2 * inv.artifact[(int)ARTIFACT::GUIDE_HEALBUFF], 5, StatusType::ATK_BUFF, true, true);
+						if (has_status(player_main, StatusType::ATK_BUFF)) { remove_status(player_main, StatusType::ATK_BUFF); }
+						apply_status(player_main, buff);
+					}
 					break;
 				default:
 					break;
@@ -682,6 +692,33 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
 	}
 
+	// Check traps for collisions/activations
+	for (Entity t : registry.traps.entities) {
+		Trap& trap = registry.traps.get(t);
+		Motion& trap_motion = registry.motions.get(t);
+		
+		if (registry.players.has(trap.owner)) {
+			for (Entity e : registry.enemies.entities) {
+				Motion& enemy_motion = registry.motions.get(e);
+				Stats& enemy_stats = registry.stats.get(e);
+				if (enemy_stats.hp <= 0 || trap.triggers <= 0) { continue; }
+				else if (collides_circle(trap_motion, enemy_motion)) {
+					trigger_trap(t, e);
+				}
+			}
+		}
+		else {
+			for (Entity p : registry.players.entities) {
+				Motion& player_motion = registry.motions.get(p);
+				Stats& player_stats = registry.stats.get(p);
+				if (player_stats.hp <= 0 || trap.triggers <= 0) { continue; }
+				else if (collides_circle(trap_motion, player_motion)) {
+					trigger_trap(t, p);
+				}
+			}
+		}
+	}
+
 	// Check for enemy death
 	for (Entity& enemy : registry.enemies.entities) {
 		if (registry.stats.get(enemy).hp <= 0 && !registry.squishTimers.has(enemy)) {
@@ -702,7 +739,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			// remove from turn queue
 			turnOrderSystem.removeFromQueue(enemy);
-			registry.solid.remove(enemy);
+			// remove from solids
+			if (registry.solid.has(enemy)) {
+				registry.solid.remove(enemy);
+			}
 			if (!tutorial)
 				roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
 			if (registry.bosses.has(enemy)) {
@@ -718,6 +758,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				ShadowContainer& shadow_container = registry.shadowContainers.get(enemy);
 				registry.remove_all_components_of(shadow_container.shadow_entity);
 				registry.shadowContainers.remove(enemy);
+			}
+			// remove from enemy list so aoes don't crash the game trying to deal damage to a dead enemy
+			if (registry.enemies.has(enemy)) {
+				registry.enemies.remove(enemy);
 			}
 		}
 	}
@@ -984,6 +1028,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (chest.isArtifact) {
 					if (chest.opened) {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_OPEN;
+
+						// Smoke Powder effect
+						if (registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER] > 0) {
+							float range = 125 + 75 * registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER];
+							for (Entity e : registry.enemies.entities) {
+								if (dist_to(registry.motions.get(e).position, registry.motions.get(player_main).position) > range) { continue; }
+								StatusEffect debuff = StatusEffect(-0.5, 2, StatusType::RANGE_BUFF, true, true);
+								apply_status(e, debuff);
+							}
+
+							Entity smoke = createBigSlash(world.renderer, registry.motions.get(player_main).position, 0, range);
+							registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
+							registry.expandTimers.get(smoke).counter_ms = 1000;
+						}
 					}
 					else {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_CLOSED;
@@ -992,6 +1050,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				else {
 					if (chest.opened) {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_OPEN;
+
+						// Smoke Powder effect
+						if (registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER] > 0) {
+							float range = 125 + 75 * registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER];
+							for (Entity e : registry.enemies.entities) {
+								if (dist_to(registry.motions.get(e).position, registry.motions.get(player_main).position) > range) { continue; }
+								StatusEffect debuff = StatusEffect(-0.5, 2, StatusType::RANGE_BUFF, true, true);
+								apply_status(e, debuff);
+							}
+
+							Entity smoke = createBigSlash(world.renderer, registry.motions.get(player_main).position, 0, range);
+							registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
+							registry.expandTimers.get(smoke).counter_ms = 1000;
+						}
 					}
 					else {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_CLOSED;
@@ -1490,6 +1562,34 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		registry.players.get(player_main).attacked = false;
 	}
 
+	// DEBUG: Testing artifact/stacking
+	if (action == GLFW_RELEASE && key == GLFW_KEY_9) {
+		int give = (int)ARTIFACT::FUNGIFIER;
+		for (Entity& p : registry.players.entities) {
+			Inventory& inv = registry.inventories.get(p);
+			inv.artifact[give]++;
+
+			std::string name = artifact_names.at((ARTIFACT)give);
+			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
+			reset_stats(p);
+			calc_stats(p);
+		}
+	}
+
+	// DEBUG: Testing artifact/stacking
+	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
+		int give = (int)ARTIFACT::LIVELY_BULB;
+		for (Entity& p : registry.players.entities) {
+			Inventory& inv = registry.inventories.get(p);
+			inv.artifact[give]++;
+
+			std::string name = artifact_names.at((ARTIFACT)give);
+			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
+			reset_stats(p);
+			calc_stats(p);
+		}
+	}
+
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
 		auto& stats = registry.stats.get(player_main);
 		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\nrange: %f\nepmove: %f\nepatk: %f\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp, stats.range, stats.epratemove, stats.eprateatk);
@@ -1661,27 +1761,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	// DEBUG: Testing artifact/stacking
-	if (action == GLFW_RELEASE && key == GLFW_KEY_8) {
-		int give = (int)ARTIFACT::KB_MALLET;
-		for (Entity& p : registry.players.entities) {
-			Inventory& inv = registry.inventories.get(p);
-			inv.artifact[give]++;
-
-			std::string name = artifact_names.at((ARTIFACT)give);
-			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
-		}
-	}
-	if (action == GLFW_RELEASE && key == GLFW_KEY_9) {
-		int give = (int)ARTIFACT::WINDBAG;
-		for (Entity& p : registry.players.entities) {
-			Inventory& inv = registry.inventories.get(p);
-			inv.artifact[give]++;
-
-			std::string name = artifact_names.at((ARTIFACT)give);
-			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
-		}
-	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_Q) {
 		for (Entity& p : registry.players.entities) {
 			StatusEffect test = StatusEffect(20, 5, StatusType::ATK_BUFF, false, true);
@@ -2178,6 +2257,13 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								if (!interactable.interacted) {
 									Stats& stats = registry.stats.get(player_main);
 									heal(player_main, stats.maxhp);
+									stats.mp = stats.maxmp;
+									// Guide to Healthy Eating
+									if (registry.inventories.get(player_main).artifact[(int)ARTIFACT::GUIDE_HEALBUFF] > 0) {
+										StatusEffect buff = StatusEffect(0.2 * registry.inventories.get(player_main).artifact[(int)ARTIFACT::GUIDE_HEALBUFF], 5, StatusType::ATK_BUFF, true, true);
+										if (has_status(player_main, StatusType::ATK_BUFF)) { remove_status(player_main, StatusType::ATK_BUFF); }
+										apply_status(player_main, buff);
+									}
 									interactable.interacted = true;
 									break;
 								}
@@ -2331,6 +2417,7 @@ void WorldSystem::start_player_turn() {
 	float& maxep = registry.stats.get(player_main).maxep;
 	float& ep = registry.stats.get(player_main).ep;
 	Player& p = registry.players.get(player_main);
+	Inventory& inv = registry.inventories.get(player_main);
 	p.attacked = false;
 	p.moved = false;
 	p.prepared = false;
@@ -2347,6 +2434,40 @@ void WorldSystem::start_player_turn() {
 		auto& enemy_struct = registry.enemies.get(enemy);
 
 		enemy_struct.hit_by_player = false;
+	}
+
+	// handle traps
+	handle_traps();
+
+	// Burrbag effect
+	if (inv.artifact[(int)ARTIFACT::BURRBAG] > 0) {
+		int triggers = inv.artifact[(int)ARTIFACT::BURRBAG];
+		createTrap(world.renderer, player_main, registry.motions.get(player_main).position, {64, 64}, 40, 4, triggers, TEXTURE_ASSET_ID::BURRS);
+	}
+
+	// Lively Bulb effect
+	if (inv.artifact[(int)ARTIFACT::LIVELY_BULB] > 0) {
+		Motion& player_motion = registry.motions.get(player_main);
+		int stacks = inv.artifact[(int)ARTIFACT::LIVELY_BULB];
+		float frac = 999;
+		float dir = 0;
+		bool valid = false;
+
+		// choose target
+		for (Entity& e : registry.enemies.entities) {
+			if (registry.hidden.has(e)) { continue; }
+			Motion& enemy_motion = registry.motions.get(e);
+			Stats& enemy_stats = registry.stats.get(e);
+			if (enemy_stats.hp / enemy_stats.maxhp < frac) {
+				valid = true;
+				dir = atan2(enemy_motion.position.y - player_motion.position.y, enemy_motion.position.x - player_motion.position.x);
+			}
+		}
+
+		if (valid) {
+			// fire
+			createProjectile(renderer, player_main, dirdist_extrapolate(player_motion.position, dir, 64), { 16, 16 }, dir, 80 * stacks, TEXTURE_ASSET_ID::PLANT_PROJECTILE);
+		}
 	}
 }
 
@@ -3676,6 +3797,13 @@ void WorldSystem::use_attack(vec2 target_pos) {
 					}
 
 					player_stats.mp = min(player_stats.maxmp, player_stats.mp + (player_stats.maxmp * 0.1f * player_stats.mpregen));
+					// Arcane Funnel effect
+					if (has_status(player_main, StatusType::ARCANE_FUNNEL)) {
+						player_stats.mp = min(player_stats.maxmp, player_stats.mp + (player_stats.maxmp * 0.1f * player_stats.mpregen));
+						Entity mana = createBigSlash(world.renderer, { m.position.x, m.position.y }, 0, 256);
+						registry.renderRequests.get(mana).used_texture = TEXTURE_ASSET_ID::MANACIRCLE;
+					}
+
 					attack_success = true;
 				}
 				else if (player_stats.ep < ep_cost) {

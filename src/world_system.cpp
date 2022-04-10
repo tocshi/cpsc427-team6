@@ -419,6 +419,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		hpfill_motion.position = hpbacking_motion.position - vec2((hpbacking_motion.scale.x - hpfill_motion.scale.x) / 2, 0);
 	}
 
+	// update the boss hp bar
+	for (int i = 0; i < registry.bossHPBars.size(); i++) {
+		Entity boss = registry.bossHPBars.entities[i];
+		BossHPBar& hpbar = registry.bossHPBars.components[i];
+		if (!registry.motions.has(hpbar.hpBacking) || !registry.motions.has(hpbar.hpFill)) {
+			continue;
+		}
+		Stats& stats = registry.stats.get(boss);
+
+		Motion& hpbacking_motion = registry.motions.get(hpbar.hpBacking);
+		Motion& hpfill_motion = registry.motions.get(hpbar.hpFill);
+
+		hpfill_motion.scale.x = hpbacking_motion.scale.x * max(0.f, (stats.hp / stats.maxhp));
+		hpfill_motion.position = hpbacking_motion.position - vec2((hpbacking_motion.scale.x - hpfill_motion.scale.x) / 2, 0);
+	}
+
 	// update per-enemy shadows
 	for (int i = 0; i < registry.shadowContainers.size(); i++) {
 		Entity enemy = registry.shadowContainers.entities[i];
@@ -955,6 +971,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// delete HP bar
 			if (registry.enemyHPBars.has(entity)) {
 				EnemyHPBar& hpbar = registry.enemyHPBars.get(entity);
+				registry.remove_all_components_of(hpbar.hpBacking);
+				registry.remove_all_components_of(hpbar.hpFill);
+			}
+			if (registry.bossHPBars.has(entity)) {
+				BossHPBar& hpbar = registry.bossHPBars.get(entity);
+				registry.remove_all_components_of(hpbar.icon);
+				registry.remove_all_components_of(hpbar.iconBacking);
 				registry.remove_all_components_of(hpbar.hpBacking);
 				registry.remove_all_components_of(hpbar.hpFill);
 			}

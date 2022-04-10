@@ -151,7 +151,8 @@ enum class TEXTURE_ASSET_ID {
 	SMOKE = CURSE + 1,
 	MUSHROOM = SMOKE + 1,
 	BURRS = MUSHROOM + 1,
-	TEXTURE_COUNT = BURRS + 1,
+	BOSS_ICON_BACKING = BURRS + 1,
+	TEXTURE_COUNT = BOSS_ICON_BACKING + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -809,6 +810,7 @@ struct EnemyHPBar {
 
 struct BossHPBar {
 	Entity icon;
+	Entity iconBacking;
 	Entity hpBacking;
 	Entity hpFill;
 };
@@ -870,7 +872,9 @@ enum class RENDER_LAYER_ID {
 	HP_FILL = HP_BACKING + 1,
 	DAMAGE_TEXT = HP_FILL + 1,
 	UI = HP_FILL + 1,
-	ARTIFACT_ICONS = UI + 1,
+	UI_ICONS = UI + 1,
+	UI_MID = UI_ICONS + 1,
+	ARTIFACT_ICONS = UI_MID + 1,
 	TEXT = ARTIFACT_ICONS + 1,
 	DIALOG = TEXT + 1,
 	DIALOG_TEXT = DIALOG + 1,

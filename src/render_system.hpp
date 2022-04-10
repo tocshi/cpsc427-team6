@@ -168,6 +168,7 @@ class RenderSystem {
 		shader_path("text"),
 		shader_path("fog"),
 		shader_path("ep_range"),
+		shader_path("attack_range"),
 		shader_path("tile"),
 	};
 

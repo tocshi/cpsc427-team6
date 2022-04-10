@@ -231,6 +231,31 @@ void RenderSystem::initializeGlGeometryBuffers()
 	meshes[ep_geom_index].vertex_indices = ep_indices;
 	bindVBOandIBO(GEOMETRY_BUFFER_ID::EP, meshes[ep_geom_index].vertices, meshes[ep_geom_index].vertex_indices);
 
+	////////////////////////
+	// Initialize attack range
+	std::vector<ColoredVertex> ar_vertices;
+	std::vector<uint16_t> ar_indices;
+	constexpr float ar_z = 0.5f;
+	constexpr int AR_NUM_TRIANGLES = 93;
+
+	constexpr vec3 ar_color = { 0.1, 0.1, 1.0 };
+
+	// Corner points
+	ar_vertices = {
+		{{-0.5,-0.5, ar_z}, ar_color},
+		{{-0.5, 0.5, ar_z}, ar_color},
+		{{ 0.5, 0.5, ar_z}, ar_color},
+		{{ 0.5,-0.5, ar_z}, ar_color},
+	};
+
+	// Two triangles
+	ar_indices = { 0, 1, 3, 1, 2, 3 };
+
+	int ar_geom_index = (int)GEOMETRY_BUFFER_ID::ATTACK_RANGE;
+	meshes[ar_geom_index].vertices = ar_vertices;
+	meshes[ar_geom_index].vertex_indices = ar_indices;
+	bindVBOandIBO(GEOMETRY_BUFFER_ID::ATTACK_RANGE, meshes[ar_geom_index].vertices, meshes[ar_geom_index].vertex_indices);
+
 	//////////////////////////////////
 	// Initialize debug line
 	std::vector<ColoredVertex> line_vertices;

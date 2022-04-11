@@ -384,6 +384,19 @@ void apply_status(Entity& target, StatusEffect& status) {
 		case StatusType::SLIMED:
 			emitter = setupParticleEmitter(PARTICLE_TYPE::SLIMED);
 			add_emitter = true;
+			break;
+		case StatusType::STUN:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::STUN);
+			add_emitter = true;
+			break;
+		case StatusType::INVINCIBLE:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::INVINCIBLE);
+			add_emitter = true;
+			break;
+		case StatusType::HP_REGEN:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::HP_REGEN);
+			add_emitter = true;
+			break;
 		default:
 			break;
 	}

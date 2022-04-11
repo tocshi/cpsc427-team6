@@ -165,6 +165,9 @@ class RenderSystem {
 			textures_path("particles/poison_bubble.png"),
 			textures_path("particles/buff_arrow.png"),
 			textures_path("particles/slime_droplet.png"),
+			textures_path("particles/stun.png"),
+			textures_path("particles/invincible.png"),
+			textures_path("particles/hp_regen.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

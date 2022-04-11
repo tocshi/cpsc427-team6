@@ -1082,13 +1082,46 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		case (PARTICLE_TYPE::RANGE_DOWN):
 			if (registry.colors.has(entity)) {
 				vec4& color = registry.colors.get(entity);
-				color.a -= (0.75 * elapsed_ms_since_last_update / 1500);
+				color.a -= (0.75 * elapsed_ms_since_last_update / 1500.f);
 			}
 			break;
 		case (PARTICLE_TYPE::SLIMED):
 			if (registry.motions.has(entity)) {
 				Motion& motion = registry.motions.get(entity);
 				motion.velocity.y += 0.4 * elapsed_ms_since_last_update; // gravity-like effect
+			}
+			break;
+		case (PARTICLE_TYPE::STUN):
+			if (registry.colors.has(entity)) {
+				vec4& color = registry.colors.get(entity);
+				color.a -= (0.8 * elapsed_ms_since_last_update / 1000.f);
+			}
+			break;
+		case (PARTICLE_TYPE::INVINCIBLE):
+			if (registry.colors.has(entity)) {
+				vec4& color = registry.colors.get(entity);
+				color.a -= elapsed_ms_since_last_update / 1000.f;
+			}
+			if (registry.motions.has(entity)) {
+				Motion& motion = registry.motions.get(entity);
+				motion.scale.x += 16 * elapsed_ms_since_last_update / 2000.f;
+				motion.scale.y += 16 * elapsed_ms_since_last_update / 2000.f;
+			}
+			break;
+		case (PARTICLE_TYPE::HP_REGEN):
+			if (registry.colors.has(entity)) {
+				vec4& color = registry.colors.get(entity);
+				color.a -= elapsed_ms_since_last_update / 1000.f;
+			}
+			if (particle.counter_ms > 333) {
+				Motion& motion = registry.motions.get(entity);
+				motion.scale.x += 8 * elapsed_ms_since_last_update / 667.f;
+				motion.scale.y += 8 * elapsed_ms_since_last_update / 667.f;
+			}
+			else {
+				Motion& motion = registry.motions.get(entity);
+				motion.scale.x -= 16 * elapsed_ms_since_last_update / 333.f;
+				motion.scale.y -= 16 * elapsed_ms_since_last_update / 333.f;
 			}
 			break;
 		default:
@@ -1741,7 +1774,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
-		int give = (int)ARTIFACT::FUNGIFIER;
+		int give = (int)ARTIFACT::POISON_FANG;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
@@ -1755,7 +1788,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
 		auto& stats = registry.stats.get(player_main);
-		StatusEffect test = StatusEffect(10, 3, StatusType::RANGE_BUFF, false, true);
+		StatusEffect test = StatusEffect(10, 2, StatusType::INVINCIBLE, false, true);
 		apply_status(player_main, test);
 		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\nrange: %f\nepmove: %f\nepatk: %f\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp, stats.range, stats.epratemove, stats.eprateatk);
 	}
@@ -3111,6 +3144,18 @@ void WorldSystem::loadStatuses(Entity e, json statuses) {
 		case StatusType::SLIMED:
 			emitter = setupParticleEmitter(PARTICLE_TYPE::SLIMED);
 			add_emitter = true;
+		case StatusType::STUN:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::STUN);
+			add_emitter = true;
+			break;
+		case StatusType::INVINCIBLE:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::INVINCIBLE);
+			add_emitter = true;
+			break;
+		case StatusType::HP_REGEN:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::HP_REGEN);
+			add_emitter = true;
+			break;
 		default:
 			break;
 		}
@@ -3889,6 +3934,15 @@ void remove_status_particle(Entity e, StatusEffect status) {
 	case StatusType::SLIMED:
 		particle_type = PARTICLE_TYPE::SLIMED;
 		break;
+	case StatusType::STUN:
+		particle_type = PARTICLE_TYPE::STUN;
+		break;
+	case StatusType::INVINCIBLE:
+		particle_type = PARTICLE_TYPE::INVINCIBLE;
+		break;
+	case StatusType::HP_REGEN:
+		particle_type = PARTICLE_TYPE::HP_REGEN;
+		break;
 	default:
 		return;
 	}
@@ -4595,8 +4649,8 @@ ParticleEmitter setupParticleEmitter(PARTICLE_TYPE type) {
 		emitter.max_interval_ms = 600;
 		emitter.particle_decay_ms = 2000;
 		emitter.base_scale = vec2(32, 32);
-		emitter.min_scale_factor = 1.2;
-		emitter.max_scale_factor = 0.5;
+		emitter.min_scale_factor = 0.5;
+		emitter.max_scale_factor = 1.2;
 		emitter.min_offset_x = -8;
 		emitter.max_offset_x = 8;
 		emitter.min_offset_y = -16;
@@ -4724,6 +4778,76 @@ ParticleEmitter setupParticleEmitter(PARTICLE_TYPE type) {
 		emitter.max_velocity_x = 0;
 		emitter.min_velocity_y = 20;
 		emitter.max_velocity_y = 40;
+		break;
+	case PARTICLE_TYPE::STUN:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::STUN_PARTICLE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 200;
+		emitter.max_interval_ms = 400;
+		emitter.particle_decay_ms = 1000;
+		emitter.base_scale = vec2(32, 32);
+		emitter.min_scale_factor = 0.5;
+		emitter.max_scale_factor = 1;
+		emitter.min_offset_x = 0;
+		emitter.max_offset_x = 0;
+		emitter.min_offset_y = -24;
+		emitter.max_offset_y = -24;
+		emitter.min_velocity_x = -60;
+		emitter.max_velocity_x = 60;
+		emitter.min_velocity_y = -60;
+		emitter.max_velocity_y = 60;
+		emitter.min_angle = 0;
+		emitter.max_angle = 2*M_PI;
+		emitter.color_shift = { 1.f, 1.f, 1.f, 0.8f };
+		break;
+	case PARTICLE_TYPE::INVINCIBLE:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::INVINCIBLE_PARTICLE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 450;
+		emitter.max_interval_ms = 800;
+		emitter.particle_decay_ms = 2000;
+		emitter.base_scale = vec2(32, 32);
+		emitter.min_scale_factor = 1;
+		emitter.max_scale_factor = 1;
+		emitter.min_offset_x = -32;
+		emitter.max_offset_x = 32;
+		emitter.min_offset_y = -32;
+		emitter.max_offset_y = 32;
+		emitter.min_velocity_x = 0;
+		emitter.max_velocity_x = 0;
+		emitter.min_velocity_y = 0;
+		emitter.max_velocity_y = 0;
+		emitter.min_angle = 0;
+		emitter.max_angle = 0;
+		break;
+	case PARTICLE_TYPE::HP_REGEN:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::HP_REGEN_PARTICLE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 300;
+		emitter.max_interval_ms = 500;
+		emitter.particle_decay_ms = 1000;
+		emitter.base_scale = vec2(16, 16);
+		emitter.min_scale_factor = 1;
+		emitter.max_scale_factor = 1;
+		emitter.min_offset_x = -32;
+		emitter.max_offset_x = 32;
+		emitter.min_offset_y = -32;
+		emitter.max_offset_y = 32;
+		emitter.min_velocity_x = 0;
+		emitter.max_velocity_x = 0;
+		emitter.min_velocity_y = 0;
+		emitter.max_velocity_y = 0;
+		emitter.min_angle = 0;
+		emitter.max_angle = 0;
 		break;
 	default:
 		break;

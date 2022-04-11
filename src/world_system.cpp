@@ -739,7 +739,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Check traps for collisions/activations
 	for (Entity t : registry.traps.entities) {
+		if (!t) { continue; }
 		Trap& trap = registry.traps.get(t);
+		if (trap.triggers <= 0) { continue; }
 		Motion& trap_motion = registry.motions.get(t);
 		
 		if (registry.players.has(trap.owner)) {
@@ -782,8 +784,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				createConsumable(renderer, registry.motions.get(enemy).position + vec2(16, 16), CONSUMABLE::INSTANT);
 			}
 
-			// remove from turn queue
-			turnOrderSystem.removeFromQueue(enemy);
+			registry.queueables.get(enemy).doing_turn = false;
+			if (registry.motions.get(enemy).in_motion) {
+				registry.motions.get(enemy).in_motion = false;
+				doTurnOrderLogic();
+			}
+			
 			// remove from solids
 			if (registry.solid.has(enemy)) {
 				registry.solid.remove(enemy);
@@ -806,8 +812,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			// remove from enemy list so aoes don't crash the game trying to deal damage to a dead enemy
 			if (registry.enemies.has(enemy)) {
+				// remove from turn queue
+				turnOrderSystem.removeFromQueue(enemy);
 				registry.enemies.remove(enemy);
 			}
+
+			
 		}
 	}
 
@@ -1389,8 +1399,8 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	//std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 
 	spawnData = createTiles(renderer, next_map);
 
@@ -1495,6 +1505,7 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
 			int roll = irand(4);
+			roll = 2;
 			switch (roomSystem.current_floor) {
 			case Floors::FLOOR1:
 				// Spawn either a slime or PlantShooter or caveling
@@ -1665,7 +1676,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
-		int give = (int)ARTIFACT::LIVELY_BULB;
+		int give = (int)ARTIFACT::BURRBAG;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
@@ -3654,6 +3665,7 @@ void WorldSystem::updateTutorial() {
 
 // Set attack state for enemies who attack after moving
 void set_enemy_state_attack(Entity enemy) {
+	if (!registry.enemies.has(enemy)) { return; }
 	if (registry.enemies.get(enemy).type == ENEMY_TYPE::SLIME ||
 		registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER ||
 		registry.enemies.get(enemy).type == ENEMY_TYPE::CAVELING ||
@@ -3950,6 +3962,7 @@ void WorldSystem::update_turn_ui() {
 
 	for (int count = 0; !queue.empty() && count < 5; queue.pop()) {
 		Entity e = queue.front();
+		if (!registry.motions.has(e)) { continue; }
 		if (!registry.hidden.has(e)) {
 			offset[0] = 48.f*count + 32.f;
 			TEXTURE_ASSET_ID texture_id = registry.renderRequests.get(e).used_texture;

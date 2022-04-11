@@ -471,23 +471,27 @@ void handle_traps() {
 // t is trap
 // trapped is the unfortunate victim
 void trigger_trap(Entity t, Entity trapped) {
+	if (!registry.motions.has(t)) { return; }
 	Trap& trap = registry.traps.get(t);
 	Motion& trap_motion = registry.motions.get(t);
 
 	// pre-switch instantiations (this is why I hate C++)
 	StatusEffect burrs = StatusEffect(0, 1, StatusType::BURR_DEBUFF, false, true);
+	if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
+		Entity explosion = createExplosion(world.renderer, trap_motion.position);
+		registry.motions.get(explosion).scale *= 2.f;
+		registry.colors.insert(explosion, { 0.8f, 1.f, 1.f });
+	}
 
 	// do trap effect based on texture
 	switch (registry.renderRequests.get(t).used_texture) {
 	case TEXTURE_ASSET_ID::MUSHROOM:
 		for (Entity e : registry.enemies.entities) {
+			if (!e) { continue; }
 			Motion enemy_motion = registry.motions.get(e);
 			if (dist_to_edge(enemy_motion, registry.motions.get(t)) <= 50.f) {
 				deal_damage(trap.owner, e, trap.multiplier);
 			}
-			Entity explosion = createExplosion(world.renderer, trap_motion.position);
-			registry.motions.get(explosion).scale *= 2.f;
-			registry.colors.insert(explosion, {0.8f, 1.f, 1.f});
 		}
 		break;
 	case TEXTURE_ASSET_ID::BURRS:

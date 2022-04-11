@@ -75,7 +75,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	Equipment weapon = {};
 	weapon.type = EQUIPMENT::BLUNT;
 	weapon.sprite = 0;
-	weapon.atk = 10;
+	weapon.atk = 1000;
 
 	// DEBUG
 	/*

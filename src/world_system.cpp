@@ -1667,6 +1667,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		Mix_PlayChannel(-1, ui_click, 0);
 	}
 
+	// DEBUG: TRAP
+	if (action == GLFW_RELEASE && key == GLFW_KEY_Q) {
+		createTrap(world.renderer, player_main, registry.motions.get(player_main).position, {64, 64}, 400, 4, 5, TEXTURE_ASSET_ID::BURRS);
+	}
+
 	// DEBUG: HEAL PLAYER
 	if (action == GLFW_RELEASE && key == GLFW_KEY_EQUAL) {
 		Stats& stat = registry.stats.get(player_main);
@@ -2032,6 +2037,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						start_game();
 						roomSystem.current_floor = Floors::FLOOR1;
 						spawn_game_entities();
+						roomSystem.setRandomObjective();
 					}
 					break;
 				case BUTTON_ACTION_ID::CREDITS:

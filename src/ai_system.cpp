@@ -655,7 +655,9 @@ void AISystem::living_rock_logic(Entity enemy, Entity& player) {
 				summoned = true;
 			}
 		}
-		take_damage(enemy, 1);
+		if (summoned) {
+			take_damage(enemy, 1);
+		}
 		break;
 	}
 }

@@ -362,7 +362,7 @@ bool has_status(Entity e, StatusType status);
 // Remove a number of a status effect type from entity
 void remove_status(Entity e, StatusType status, int number = 1);
 
-void remove_status_particle(Entity e, StatusType status);
+void remove_status_particle(Entity e, StatusEffect status);
 
 // return clicked enemy
 Entity& get_targeted_enemy(vec2 target_pos);

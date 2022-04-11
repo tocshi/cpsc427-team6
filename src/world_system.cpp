@@ -3599,23 +3599,42 @@ void remove_status(Entity e, StatusType status, int number) {
 			statuses.statuses.erase(statuses.statuses.begin() + index);
 			number--;
 			index++;
+			remove_status_particle(e, s);
 		}
 	}
 	reset_stats(e);
 	calc_stats(e);
-	remove_status_particle(e, status);
 	return;
 }
 
-void remove_status_particle(Entity e, StatusType status) {
+void remove_status_particle(Entity e, StatusEffect status) {
 	if (!registry.particleContainers.has(e)) { return; }
 	ParticleContainer& particleContainer = registry.particleContainers.get(e);
 	PARTICLE_TYPE particle_type;
-	switch (status)
+	switch (status.effect)
 	{
 	case StatusType::POISON:
 	case StatusType::FANG_POISON:
 		particle_type = PARTICLE_TYPE::POISON;
+		break;
+	case StatusType::ATK_BUFF:
+		if (status.value < 0) {
+			particle_type = PARTICLE_TYPE::ATK_DOWN;
+		}
+		else if (status.value > 0) {
+			particle_type = PARTICLE_TYPE::ATK_UP;
+		}
+		break;
+	case StatusType::RANGE_BUFF:
+		if (status.value < 0) {
+			particle_type = PARTICLE_TYPE::RANGE_DOWN;
+		}
+		else if (status.value > 0) {
+			particle_type = PARTICLE_TYPE::RANGE_UP;
+		}
+		break;
+	case StatusType::SLIMED:
+		particle_type = PARTICLE_TYPE::SLIMED;
 		break;
 	default:
 		return;

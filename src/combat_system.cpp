@@ -388,7 +388,7 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 			StatusEffect& status = statusContainer.statuses[i];
 			// in case something was accidentally added with 0 turn duration
 			if (status.turns_remaining <= 0) {
-				remove_status_particle(entity, status.effect);
+				remove_status_particle(entity, status);
 				statusContainer.statuses.erase(statusContainer.statuses.begin()+i);
 				continue;
 			}
@@ -459,7 +459,7 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 			// properly remove statuses that have expired, except for things with >=999 turns (we treat those as infinite)
 			if (!stats_only) {
 				if (status.turns_remaining <= 0) {
-					remove_status_particle(entity, status.effect);
+					remove_status_particle(entity, status);
 					statusContainer.statuses.erase(statusContainer.statuses.begin() + i);
 					reset_stats(entity);
 					calc_stats(entity);

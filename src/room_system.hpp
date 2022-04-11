@@ -38,7 +38,7 @@ private:
 		},
 		{
 			Floors::FLOOR2,
-			{"boss1.tmx"}	// TODO: replace with floor 2 maps
+			{"map1.tmx", "map2.tmx", "map3.tmx"}	// TODO: replace with floor 2 maps
 		}
 	};
 };

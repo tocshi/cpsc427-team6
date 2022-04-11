@@ -788,7 +788,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (registry.solid.has(enemy)) {
 				registry.solid.remove(enemy);
 			}
-			if (!tutorial || registry.enemies.get(enemy).type == ENEMY_TYPE::LIVING_PEBBLE)
+			if (!tutorial && registry.enemies.get(enemy).type != ENEMY_TYPE::LIVING_PEBBLE)
 				roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
 			if (registry.bosses.has(enemy)) {
 				roomSystem.updateObjective(ObjectiveType::DEFEAT_BOSS, 1);
@@ -1380,7 +1380,7 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR2, true); // todo: change back to floor1
+	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
 	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 
 	spawnData = createTiles(renderer, next_map);
@@ -1502,14 +1502,13 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 			case Floors::BOSS1:
 				createKingSlime(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 				break;
-			case Floors::FLOOR2: // todo: rng spawn
-				createApparition(renderer, { enemySpawns[i].x, enemySpawns[i].y }); 
-				// if (roll < 2) {
-				// 	createLivingRock(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-				// }
-				// else {
-				// 	createApparition(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-				// }
+			case Floors::FLOOR2:
+				if (roll < 2) {
+					createLivingRock(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				}
+				else {
+					createApparition(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				}
 				break;
 			}
 		}
@@ -1955,7 +1954,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						}
 						else {
 							start_game();
-							roomSystem.current_floor = Floors::FLOOR2; // todo: change back to floor1
+							roomSystem.current_floor = Floors::FLOOR1;
 							spawn_game_entities();
 						}
 						break;

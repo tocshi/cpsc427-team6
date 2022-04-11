@@ -487,7 +487,7 @@ void trigger_trap(Entity t, Entity trapped) {
 	if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
 		Entity explosion = createExplosion(world.renderer, trap_motion.position);
 		registry.motions.get(explosion).scale *= 2.f;
-		registry.colors.insert(explosion, { 0.8f, 1.f, 1.f });
+		registry.colors.insert(explosion, { 0.8f, 2.f, 2.f });
 	}
 
 	// do trap effect based on texture

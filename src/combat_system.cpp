@@ -8,6 +8,7 @@
 // Parameters subject to change
 std::string deal_damage(Entity& attacker, Entity& defender, float multiplier, bool doProcs)
 {
+	if (!registry.stats.has(attacker) || !registry.stats.has(attacker)) { return "Error getting stats!"; }
 	// Damage Calculation
 	Stats attacker_stats = registry.stats.get(attacker);
 	Stats defender_stats = registry.stats.get(defender);
@@ -341,7 +342,8 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 	// Fungifier
 	if (attacker_inv.artifact[(int)ARTIFACT::FUNGIFIER] > 0 && final_damage >= defender_stats.hp) {
 		float multiplier = 130 * attacker_inv.artifact[(int)ARTIFACT::FUNGIFIER];
-		createTrap(world.renderer, attacker, defender_motion.position, {64, 64}, multiplier, 2, 1, TEXTURE_ASSET_ID::MUSHROOM);
+		Entity mushroom = createTrap(world.renderer, attacker, {0, 0}, { 64, 64 }, multiplier, 2, 1, TEXTURE_ASSET_ID::MUSHROOM);
+		registry.motions.get(mushroom).destination = defender_motion.position;
 	}
 	return final_damage;
 }
@@ -457,6 +459,11 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 void handle_traps() {
 	for (Entity t : registry.traps.entities) {
 		Trap& trap = registry.traps.get(t);
+
+		if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
+			registry.motions.get(t).position = registry.motions.get(t).destination;
+		}
+
 		if (trap.turns <= 0 || trap.triggers <= 0) {
 			if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
 				trigger_trap(t, t);

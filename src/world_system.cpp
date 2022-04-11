@@ -739,13 +739,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Check traps for collisions/activations
 	for (Entity t : registry.traps.entities) {
-		if (!t) { continue; }
+		if (!registry.traps.has(t)) { continue; }
 		Trap& trap = registry.traps.get(t);
 		if (trap.triggers <= 0) { continue; }
 		Motion& trap_motion = registry.motions.get(t);
 		
 		if (registry.players.has(trap.owner)) {
 			for (Entity e : registry.enemies.entities) {
+				// hacky way of having enemies not die when spawning on top of a trap
+				if (registry.iFrameTimers.has(e)) { continue; }
 				Motion& enemy_motion = registry.motions.get(e);
 				Stats& enemy_stats = registry.stats.get(e);
 				if (enemy_stats.hp <= 0 || trap.triggers <= 0) { continue; }
@@ -780,14 +782,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			playEnemyDeathSound(registry.enemies.get(enemy).type);
       
-			// TEMP: drop healing item from enemy with 1/3 chance
 			int roll = irand(3);
-			if (roll == 0 && !tutorial) {
-				createConsumable(renderer, registry.motions.get(enemy).position + vec2(16, 16), CONSUMABLE::INSTANT);
-			}
 
 			registry.queueables.get(enemy).doing_turn = false;
-			if (registry.motions.get(enemy).in_motion) {
+			if (current_game_state == GameStates::ENEMY_TURN) {
 				registry.motions.get(enemy).in_motion = false;
 				registry.motions.get(enemy).velocity = { 0, 0 };
 				doTurnOrderLogic();
@@ -798,6 +796,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.solid.remove(enemy);
 			}
 			if (!tutorial && registry.enemies.get(enemy).type != ENEMY_TYPE::LIVING_PEBBLE)
+				// TEMP: drop healing item from enemy with 1/3 chance
+				if (roll == 0 && !tutorial) {
+					createConsumable(renderer, registry.motions.get(enemy).position + vec2(16, 16), CONSUMABLE::INSTANT);
+				}
 				roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
 			if (registry.bosses.has(enemy)) {
 				roomSystem.updateObjective(ObjectiveType::DEFEAT_BOSS, 1);
@@ -1039,6 +1041,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// remove entity once the timer has expired
 		if (counter.counter_ms < 0) {
 			registry.remove_all_components_of(entity);
+		}
+	}
+
+	// iframe timers for enemies to not get spawnkilled by traps and break turn ui
+	for (Entity entity : registry.iFrameTimers.entities) {
+		// progress timer
+		ExpandTimer& counter = registry.iFrameTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+
+		// remove entity once the timer has expired
+		if (counter.counter_ms < 0) {
+			registry.iFrameTimers.remove(entity);
 		}
 	}
 
@@ -1402,8 +1416,8 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	//std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 
 	spawnData = createTiles(renderer, next_map);
 
@@ -1665,7 +1679,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_9) {
-		int give = (int)ARTIFACT::KB_MALLET;
+		int give = (int)ARTIFACT::BURRBAG;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
@@ -1743,7 +1757,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_3) {
 		// end turn/ guard
-		if (current_game_state == GameStates::BATTLE_MENU) {
+		if (current_game_state == GameStates::BATTLE_MENU && registry.squishTimers.size() <= 0) {
 			if (tutorial) {
 				if (tutorial_flags & EP_DEPLETED) {
 					for (Entity e : registry.guardButtons.entities) {
@@ -1835,6 +1849,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (current_game_state == GameStates::ATTACK_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ITEM_MENU) {
 			backAction();
 		}
+
+		// no ending turn if enemies are currently in the process of dying
+		if (registry.squishTimers.size() <= 0) { return; }
 
 		if (tutorial) {
 			if (tutorial_flags & EP_DEPLETED) {
@@ -2188,7 +2205,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		///////////////////////////
 		// logic for guard button presses
 		///////////////////////////
-		if (current_game_state == GameStates::BATTLE_MENU) {
+		if (current_game_state == GameStates::BATTLE_MENU && registry.squishTimers.size() <= 0) {
 			for (Entity e : registry.guardButtons.entities) {
 				if (!registry.motions.has(e)) {
 					continue;
@@ -3391,7 +3408,6 @@ void WorldSystem::doTurnOrderLogic() {
 			logText("It is now your turn!");
 			set_gamestate(GameStates::BATTLE_MENU);
 		}
-
 		// handle start-of-turn behaviour
 		handle_status_ticks(currentTurnEntity, true, false);
 		reset_stats(currentTurnEntity);
@@ -3401,8 +3417,6 @@ void WorldSystem::doTurnOrderLogic() {
 	// if current turn entity is enemy and is still doing_turn call ai.step();
 	if (!registry.players.has(currentTurnEntity) && registry.queueables.get(currentTurnEntity).doing_turn) {
 		aiSystem.step(currentTurnEntity);
-
-		printf("if current turn entity is enemy and is still doing_turn call ai.step()\n");
 
 		// now that ai did its step, set doing turn to false
 		registry.queueables.get(currentTurnEntity).doing_turn = false;

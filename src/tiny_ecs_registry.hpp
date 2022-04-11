@@ -78,6 +78,7 @@ public:
 	ComponentContainer<DamageTextTimer> damageText;
 	ComponentContainer<StatsText> statsText;
 	ComponentContainer<ExpandTimer> expandTimers;
+	ComponentContainer<ExpandTimer> iFrameTimers;
 	ComponentContainer<Test> attackIndicators;
 	ComponentContainer<Trap> traps;
 	ComponentContainer<HPDisplay> hpDisplays;
@@ -158,6 +159,7 @@ public:
 		registry_list.push_back(&damageText);
 		registry_list.push_back(&statsText);
 		registry_list.push_back(&expandTimers);
+		registry_list.push_back(&iFrameTimers);
 		registry_list.push_back(&attackIndicators);
 		registry_list.push_back(&traps);
 		registry_list.push_back(&hpDisplays);

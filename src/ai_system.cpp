@@ -464,6 +464,8 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 				reset_stats(summon);
 				calc_stats(summon);
 				world.turnOrderSystem.turnQueue.addNewEntity(summon);
+				ExpandTimer iframe = registry.iFrameTimers.emplace(summon);
+				iframe.counter_ms = 50;
 				num_summons--;
 			}
 		}
@@ -557,8 +559,6 @@ void AISystem::living_pebble_logic(Entity enemy, Entity& player) {
 		registry.enemies.get(enemy).state = ENEMY_STATE::IDLE;
 	}
 
-	printf("pebble hi\n");
-
 	ENEMY_STATE state = registry.enemies.get(enemy).state;
 	// perform action based on state
 
@@ -598,7 +598,6 @@ void AISystem::living_pebble_logic(Entity enemy, Entity& player) {
 				vec2 direction = simple_path_find(motion_struct.position, player_motion.position, enemy);
 				motion_struct.velocity = enemy_velocity * direction;
 				motion_struct.in_motion = true;
-				printf("pebble go\n");
 			}
 		}
 		break;
@@ -651,16 +650,14 @@ void AISystem::living_rock_logic(Entity enemy, Entity& player) {
 			if (valid_summon) {
 				Entity summon = createLivingPebble(world.renderer, spawnpoint);
 				world.turnOrderSystem.turnQueue.addNewEntity(summon);
+				ExpandTimer iframe = registry.iFrameTimers.emplace(summon);
+				iframe.counter_ms = 50;
 				summoned = true;
-				printf("summoned\n");
 			}
 		}
 		take_damage(enemy, 1);
-		if (stats.hp <= 0) { motion_struct.in_motion = true; }
-		printf("tookened\n");
 		break;
 	}
-	printf("endened\n");
 }
 
 void AISystem::apparition_logic(Entity enemy, Entity& player) {

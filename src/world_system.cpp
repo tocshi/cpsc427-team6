@@ -1015,7 +1015,7 @@ void WorldSystem::cut_scene_start() {
 	registry.list_all_components();
 	printf("CUT SCENE STARTING \n");
 
-	cutSceneSystem.cut_scene_dialogue();
+	
 	
 
 	while (registry.motions.entities.size() > 0)

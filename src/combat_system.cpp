@@ -325,21 +325,35 @@ void apply_status(Entity& target, StatusEffect& status) {
 	statusContainer.sort_statuses_reverse();
 
 	ParticleEmitter emitter;
+	bool add_emitter = false;
 	switch (status.effect) {
 		case StatusType::POISON:
 		case StatusType::FANG_POISON:
 			emitter = setupParticleEmitter(PARTICLE_TYPE::POISON);
-			if (!registry.particleContainers.has(target)) {
-				ParticleContainer& particleContainer = registry.particleContainers.emplace(target);
-				particleContainer.emitters.push_back(emitter);
+			add_emitter = true;
+			break;
+		case StatusType::ATK_BUFF:
+			if (status.value < 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::ATK_DOWN);
+				add_emitter = true;
 			}
-			else {
-				ParticleContainer& particleContainer = registry.particleContainers.get(target);
-				particleContainer.emitters.push_back(emitter);
+			else if (status.value > 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::ATK_UP);
+				add_emitter = true;
 			}
 			break;
 		default:
 			break;
+	}
+	if (add_emitter) {
+		if (!registry.particleContainers.has(target)) {
+			ParticleContainer& particleContainer = registry.particleContainers.emplace(target);
+			particleContainer.emitters.push_back(emitter);
+		}
+		else {
+			ParticleContainer& particleContainer = registry.particleContainers.get(target);
+			particleContainer.emitters.push_back(emitter);
+		}
 	}
 
 	// recalculate stats for entity

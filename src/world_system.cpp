@@ -1019,6 +1019,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		Particle& particle = registry.particles.components[i];
 		particle.counter_ms -= elapsed_ms_since_last_update;
 
+		switch (particle.type) {
+		case (PARTICLE_TYPE::ATK_UP):
+		case (PARTICLE_TYPE::ATK_DOWN):
+		case (PARTICLE_TYPE::RANGE_UP):
+		case (PARTICLE_TYPE::RANGE_DOWN):
+			if (registry.colors.has(entity)) {
+				vec4& color = registry.colors.get(entity);
+				color.a -= (0.75 * elapsed_ms_since_last_update / 1500);
+			}
+			break;
+		default:
+			break;
+		}
+
 		if (particle.counter_ms < 0) {
 			registry.remove_all_components_of(entity);
 		}
@@ -1639,6 +1653,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
 		auto& stats = registry.stats.get(player_main);
+		StatusEffect test = StatusEffect(-10, 3, StatusType::ATK_BUFF, false, true);
+		apply_status(player_main, test);
 		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\nrange: %f\nepmove: %f\nepatk: %f\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp, stats.range, stats.epratemove, stats.eprateatk);
 	}
 
@@ -2817,10 +2833,27 @@ void WorldSystem::loadStatuses(Entity e, json statuses) {
 		statusContainer.statuses.push_back(StatusEffect(value, turns_remaining, effect, percentage, apply_at_turn_start));
 		
 		ParticleEmitter emitter;
+		bool add_emitter = false;
 		switch (effect) {
 		case StatusType::POISON:
 		case StatusType::FANG_POISON:
 			emitter = setupParticleEmitter(PARTICLE_TYPE::POISON);
+			add_emitter = true;
+			break;
+		case StatusType::ATK_BUFF:
+			if (value < 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::ATK_DOWN);
+				add_emitter = true;
+			}
+			else if (value > 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::ATK_UP);
+				add_emitter = true;
+			}
+			break;
+		default:
+			break;
+		}
+		if (add_emitter) {
 			if (!registry.particleContainers.has(e)) {
 				ParticleContainer& particleContainer = registry.particleContainers.emplace(e);
 				particleContainer.emitters.push_back(emitter);
@@ -2829,9 +2862,6 @@ void WorldSystem::loadStatuses(Entity e, json statuses) {
 				ParticleContainer& particleContainer = registry.particleContainers.get(e);
 				particleContainer.emitters.push_back(emitter);
 			}
-			break;
-		default:
-			break;
 		}
 	}
 }
@@ -4226,25 +4256,77 @@ ParticleEmitter setupParticleEmitter(PARTICLE_TYPE type) {
 
 	switch (type) {
 	case PARTICLE_TYPE::POISON:
-		RenderRequest render_data = RenderRequest{
+		emitter.render_data = RenderRequest{
 			TEXTURE_ASSET_ID::POISON_BUBBLE,
 			EFFECT_ASSET_ID::TEXTURED,
 			GEOMETRY_BUFFER_ID::SPRITE,
 			RENDER_LAYER_ID::EFFECT };
-
-		emitter.render_data = render_data;
 		emitter.min_interval_ms = 300;
 		emitter.max_interval_ms = 600;
 		emitter.particle_decay_ms = 2000;
 		emitter.base_scale = vec2(32, 32);
 		emitter.min_scale_factor = 1.2;
 		emitter.max_scale_factor = 0.5;
+		emitter.min_offset_x = -8;
+		emitter.max_offset_x = 8;
+		emitter.min_offset_y = -16;
+		emitter.max_offset_y = 0;
 		emitter.min_velocity_x = -40;
 		emitter.max_velocity_x = 40;
 		emitter.min_velocity_y = -40;
 		emitter.max_velocity_y= -100;
 		emitter.min_angle = 0;
 		emitter.max_angle = 0;
+		break;
+	case PARTICLE_TYPE::ATK_UP:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::BUFF_ARROW,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 300;
+		emitter.max_interval_ms = 700;
+		emitter.particle_decay_ms = 1500;
+		emitter.base_scale = vec2(32, 32);
+		emitter.min_scale_factor = 0.75;
+		emitter.max_scale_factor = 1;
+		emitter.min_offset_x = -48;
+		emitter.max_offset_x = 48;
+		emitter.min_offset_y = -16;
+		emitter.max_offset_y = 0;
+		emitter.min_velocity_x = 0;
+		emitter.max_velocity_x = 0;
+		emitter.min_velocity_y = -60;
+		emitter.max_velocity_y = -40;
+		emitter.min_angle = 0;
+		emitter.max_angle = 0;
+		emitter.color_shift = { 1.f, 0.f, 0.f, 0.75f };
+		break;
+	case PARTICLE_TYPE::ATK_DOWN:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::BUFF_ARROW,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 300;
+		emitter.max_interval_ms = 700;
+		emitter.particle_decay_ms = 1500;
+		emitter.base_scale = vec2(32, 32);
+		emitter.min_scale_factor = 0.75;
+		emitter.max_scale_factor = 1;
+		emitter.min_offset_x = -48;
+		emitter.max_offset_x = 48;
+		emitter.min_offset_y = -64;
+		emitter.max_offset_y = -32;
+		emitter.min_velocity_x = 0;
+		emitter.max_velocity_x = 0;
+		emitter.min_velocity_y = 30;
+		emitter.max_velocity_y = 50;
+		emitter.min_angle = M_PI;
+		emitter.max_angle = M_PI;
+		emitter.color_shift = { 1.f, 0.f, 0.f, 0.75f };
+		break;
+	default:
 		break;
 	}
 	return emitter;

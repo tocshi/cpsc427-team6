@@ -2897,10 +2897,14 @@ Entity createParticle(vec2 pos, ParticleEmitter& emitter) {
 	motion.velocity.x = emitter.min_velocity_x + world.uniform_dist(world.rng) * (emitter.max_velocity_x - emitter.min_velocity_x);
 	motion.velocity.y = emitter.min_velocity_y + world.uniform_dist(world.rng) * (emitter.max_velocity_y - emitter.min_velocity_y);
 	motion.angle = emitter.min_angle + world.uniform_dist(world.rng) * (emitter.max_angle - emitter.min_angle);
-	motion.position = pos;
+	motion.position.x = pos.x + emitter.min_offset_x + world.uniform_dist(world.rng) * (emitter.max_offset_x - emitter.min_offset_x);
+	motion.position.y = pos.y + emitter.min_offset_y + world.uniform_dist(world.rng) * (emitter.max_offset_y - emitter.min_offset_y);
 
 	Particle& particle = registry.particles.emplace(entity);
+	particle.type = emitter.type;
 	particle.counter_ms = emitter.particle_decay_ms;
+
+	registry.colors.insert(entity, emitter.color_shift);
 
 	registry.renderRequests.insert(entity, emitter.render_data);
 	return entity;

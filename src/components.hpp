@@ -952,6 +952,14 @@ struct ExpandTimer {
 
 enum class PARTICLE_TYPE {
 	POISON = 0,
+	ATK_UP = POISON + 1,
+	ATK_DOWN = ATK_UP + 1,
+	RANGE_UP = ATK_DOWN + 1,
+	RANGE_DOWN = RANGE_UP + 1,
+	INVINCIBLE = RANGE_DOWN + 1,
+	SLIMED = INVINCIBLE + 1,
+	HP_REGEN = SLIMED + 1,
+	STUN = HP_REGEN + 1,
 };
 
 struct ParticleEmitter {
@@ -961,18 +969,29 @@ struct ParticleEmitter {
 	float max_interval_ms = 500;
 	float counter_ms = 0;
 	float particle_decay_ms = 1000;
+
 	vec2 base_scale;
 	float min_scale_factor;
 	float max_scale_factor;
+
+	float min_offset_x;
+	float max_offset_x;
+	float min_offset_y;
+	float max_offset_y;
+
 	float min_velocity_x;
 	float max_velocity_x;
 	float min_velocity_y;
 	float max_velocity_y;
+
 	float min_angle;
 	float max_angle;
+
+	vec4 color_shift = { 1.f, 1.f, 1.f, 1.f };
 };
 
 struct Particle {
+	PARTICLE_TYPE type;
 	float counter_ms;
 };
 

@@ -2067,7 +2067,7 @@ Entity createMenuTitle(RenderSystem* renderer, vec2 pos)
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
 
-	motion.scale = vec2({ TITLE_BB_WIDTH, TITLE_BB_HEIGHT });
+	motion.scale = vec2({ window_width_px, window_height_px });
 
 	// Create and (empty) TITLE component to be able to refer to all title objects
 	registry.menuItems.emplace(entity);

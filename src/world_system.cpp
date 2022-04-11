@@ -1223,22 +1223,17 @@ void WorldSystem::restart_game() {
 	//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
 
 	
+
+	createMenuStart(renderer, { window_width_px / 6, 500.f * ui_scale });
+	createMenuContinue(renderer, { window_width_px / 6, 650.f * ui_scale });
+	createMenuQuit(renderer, { window_width_px / 6, 800.f * ui_scale });
+	createMenuTitle(renderer, { window_width_px / 2, window_height_px / 2 });
+
 	if (saveSystem.saveDataExists()) {
-		createMenuStart(renderer, { window_width_px / 5, 400.f * ui_scale });
-		createMenuContinue(renderer, { window_width_px / 5, 600.f * ui_scale });
-		createMenuQuit(renderer, { window_width_px / 5, 800.f * ui_scale });
-		createMenuTitle(renderer, { window_width_px / 2, 150.f * ui_scale });
 		printf("%d size of inventory\n", registry.inventories.size());
 		// width: window_width_px / 5, height = (600.f*ui_scale/2)
 		update_background_collection(window_width_px / 5, (600.f*ui_scale / 2));
 	}
-	else {
-		createMenuStart(renderer, { window_width_px / 2, 400.f * ui_scale });
-		createMenuContinue(renderer, { window_width_px / 2, 600.f * ui_scale });
-		createMenuQuit(renderer, { window_width_px / 2, 800.f * ui_scale });
-		createMenuTitle(renderer, { window_width_px / 2, 150.f * ui_scale });
-	}
-
 }
 
 void WorldSystem::handle_end_player_turn(Entity player) {
@@ -2711,19 +2706,13 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 	// Max height for spawning 
 	// width + moves it right 
 	// height + moves it down the screen 
-	float max_height_top = 650.f; // less
-	float max_height_bot = window_height_px*ui_scale - (ARTIFACT_IMAGE_BB_HEIGHT / 2); // greater
-
+	float max_height_top = 600.f; // less
+	float max_height_bot = window_height_px*ui_scale - 72.f; // greater
 	float h_diff = max_height_bot - max_height_top; // less
 
-	float max_width_left_edge = floor_width + 250.f;
-
-
-	float max_width_right_edge = window_width_px * ui_scale - (ARTIFACT_IMAGE_BB_WIDTH / 2); // greater
+	float max_width_left_edge = window_width_px / 3 + 40.f;
+	float max_width_right_edge = window_width_px * (2/3); // greater
 	float w_diff =  max_width_right_edge- max_width_left_edge;
-
-	 
-
 
 	
 	printf("max_w left :%fl\n", max_width_left_edge);
@@ -2744,7 +2733,6 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
 	int i = 0;
 	int count_total_artifacts = 0;
-	std::vector<vec2> taken_array; 
 
 	// looping the list of artifacts 
 	// int i gives the artifact type 
@@ -2753,10 +2741,6 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 
 		inv.artifact[i] = artifact;
 		if (artifact > 0) {
-			printf("ARTIFACT LOG START ============\n");
-			printf("number of artifact of this type is: %i\n", static_cast<int>(inv.artifact[i]));
-			printf("type of artifact i is :%d\n", i);
-			printf("ARTIFACT LOG END ============\n");
 
 			int num_cur_artifacts = static_cast<int>(inv.artifact[i]);
 
@@ -2764,53 +2748,33 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 			printf("count of artifacts :%d\n", count_total_artifacts);
 			
 			while (num_cur_artifacts> 0) {
-				int pos_x, pos_y;
-				if (taken_array.size() != 0) {
-					pos_x = irandRange(max_width_left_edge, max_width_right_edge);
-					pos_y = irandRange(max_height_top, max_height_bot);
-					for (auto& pos_taken : taken_array) {
-						if (calculate_abs_value(pos_x, pos_taken.x) < 32.0 && calculate_abs_value(pos_y, pos_taken.y) < 32.0) {
-							printf("START CHECK for overlap=================\n");
-							pos_x = pos_x + 32.0;
-							//pos_y = pos_y + 80.0;
-							// check if out of bounds
-							if (pos_x - max_width_right_edge > 0) {
-								printf("the pos_x exceeds bondary or :%d\n ", pos_x);
-								pos_x += -calculate_abs_value(pos_x, max_width_right_edge)-64.0;
-								printf("the new pos_x is :%d\n", pos_x);
-							}
-							if (pos_y - max_height_bot > 0) {
-								printf("the pos_y exceeds bondary:%d\n ", pos_y);
-								pos_y += -calculate_abs_value(pos_y, max_height_bot)-64.0;
-								printf("the new pos_y is :%d\n", pos_y);
-							}
-							
-							printf("it is overlapping ........\n");
-							printf("END CHECK for overlap=================\n");
-						}
-						/*if (calculate_abs_value(pos_y, pos_taken.y) < 30.0) {
-							//pos_y = pos_y + 64.0; 
-							printf("it is overlapp\n");
-						}*/
-					}
-					
-				}
-				else {
-					pos_x = irandRange(max_width_left_edge, max_width_right_edge-64.0);
-					pos_y = irandRange(max_height_top, max_height_bot-64.0);
-				}
-				
-				printf("pos_x :%d\n", pos_x);
-				printf("pos_x :%d\n", pos_y);
-				Entity artifact = createArtifactIcon(renderer, vec2(pos_x, pos_y),
+				int pos_x = 0;
+				int pos_y = 0;
+				int attempts = 20;
+				bool valid = true;
+
+				Entity icon = createArtifactIcon(renderer, vec2(pos_x, pos_y),
 					static_cast<ARTIFACT>(i));
-				registry.motions.get(artifact).angle = irandRange(-450, 450) * (M_PI/1800);
-				taken_array.push_back(vec2(pos_x, pos_y));
-				printf("size of taken atm:%d\n", taken_array.size());
+				Motion& icon_motion = registry.motions.get(icon);
+				icon_motion.angle = irandRange(-450, 450) * (M_PI / 1800);
+
+				while (attempts > 0) {
+					icon_motion.position.x = irandRange(max_width_left_edge, max_width_right_edge);
+					icon_motion.position.y = irandRange(max_height_top, max_height_bot);
+
+					for (Entity e : registry.artifactIcons.entities) {
+						if (collides_circle(registry.motions.get(e), registry.motions.get(icon))) {
+							valid = false;
+							break;
+						}
+					}
+					if (valid) {
+						break;
+					}
+					attempts--;
+				}
 				num_cur_artifacts--;
 			}
-			
-			
 		}
 		i++;
 	}

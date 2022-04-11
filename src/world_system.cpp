@@ -1210,7 +1210,7 @@ void WorldSystem::restart_game() {
 	//current_game_state = true;
 	set_gamestate(GameStates::MAIN_MENU);
 
-	if (current_game_state == GameStates::MAIN_MENU) {
+	if (current_game_state == GameStates::MAIN_MENU && current_music != Music::MENU) {
 		playMusic(Music::MENU);
 	}
 
@@ -1227,6 +1227,7 @@ void WorldSystem::restart_game() {
 	createMenuStart(renderer, { window_width_px / 6, 500.f * ui_scale });
 	createMenuContinue(renderer, { window_width_px / 6, 650.f * ui_scale });
 	createMenuQuit(renderer, { window_width_px / 6, 800.f * ui_scale });
+	createMenuCredits(renderer, { window_width_px - 150.f, 850.f * ui_scale });
 	createMenuTitle(renderer, { window_width_px / 2, window_height_px / 2 });
 
 	if (saveSystem.saveDataExists()) {
@@ -1915,6 +1916,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			return;
 		}
 
+		if (current_game_state == GameStates::CREDITS) {
+			set_gamestate(GameStates::MAIN_MENU);
+			restart_game();
+			return;
+		}
+
 		if (current_game_state == GameStates::DIALOGUE) {
 			advanceTextbox();
 			return;
@@ -1945,70 +1952,73 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 				switch (action_taken) {
 
-					case BUTTON_ACTION_ID::MENU_START: 
-						if (tutorial) { 
-							start_tutorial();
-							spawn_tutorial_entities();
-						}
-						else {
-							start_game();
-							roomSystem.current_floor = Floors::FLOOR1;
-							spawn_game_entities();
-						}
+				case BUTTON_ACTION_ID::MENU_START:
+					if (tutorial) {
+						start_tutorial();
+						spawn_tutorial_entities();
+					}
+					else {
+						start_game();
+						roomSystem.current_floor = Floors::FLOOR1;
+						spawn_game_entities();
+					}
+					break;
+				case BUTTON_ACTION_ID::CREDITS:
+					enter_credits();
+					return;
+				case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
+				case BUTTON_ACTION_ID::CONTINUE:
+					// if save data exists reset the game
+					if (saveSystem.saveDataExists()) {
+						start_game();
+						// remove entities to load in entities
+						removeForLoad();
+						//printf("Removed for load\n");
+						// get saved game data
+						json gameData = saveSystem.getSaveData();
+						//printf("getting gameData\n");
+						// load the entities in
+						loadFromData(gameData);
+						Inventory test = registry.inventories.get(player_main);
+						//printf("load game data?\n");
+						logText("Game state loaded!");
+						remove_fog_of_war();
+						create_fog_of_war();
+					}
+					break;
+				case BUTTON_ACTION_ID::SAVE_QUIT:
+					if (!tutorial) {
+						saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
+						logText("Game state saved!");
+					}
+					glfwSetWindowShouldClose(window, true); break;
+					break;
+				case BUTTON_ACTION_ID::ACTIONS_ATTACK:
+					if (current_game_state == GameStates::BATTLE_MENU) {
+						attackAction();
+					}
+					break;
+				case BUTTON_ACTION_ID::ACTIONS_MOVE:
+					if (registry.stats.get(player_main).ep <= 0) {
+						logText("Cannot move with 0 EP!");
+						Mix_PlayChannel(-1, error_sound, 0);
 						break;
-					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
-					case BUTTON_ACTION_ID::CONTINUE:
-						// if save data exists reset the game
-						if (saveSystem.saveDataExists()) {
-							start_game();
-							// remove entities to load in entities
-							removeForLoad();
-							//printf("Removed for load\n");
-							// get saved game data
-							json gameData = saveSystem.getSaveData();
-							//printf("getting gameData\n");
-							// load the entities in
-							loadFromData(gameData);
-							Inventory test = registry.inventories.get(player_main);
-							//printf("load game data?\n");
-							logText("Game state loaded!");
-							remove_fog_of_war();
-							create_fog_of_war();
-						}
-						break;
-					case BUTTON_ACTION_ID::SAVE_QUIT:
-						if (!tutorial) {
-							saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
-							logText("Game state saved!");
-						}
-						glfwSetWindowShouldClose(window, true); break;
-						break;
-					case BUTTON_ACTION_ID::ACTIONS_ATTACK:
-						if (current_game_state == GameStates::BATTLE_MENU) {
-							attackAction();
-						}
-						break;
-					case BUTTON_ACTION_ID::ACTIONS_MOVE:
-						if (registry.stats.get(player_main).ep <= 0) {
-							logText("Cannot move with 0 EP!");
-							Mix_PlayChannel(-1, error_sound, 0);
-							break;
-						}
-						if (current_game_state == GameStates::BATTLE_MENU) {
-							moveAction();
-						}
-						break;
-					case BUTTON_ACTION_ID::PAUSE:
-						// TODO: pause enimies if it is their turn
-						
-						// inMenu = true;
-						set_gamestate(GameStates::PAUSE_MENU);
-						// render save and quit button
-						createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale});
+					}
+					if (current_game_state == GameStates::BATTLE_MENU) {
+						moveAction();
+					}
+					break;
+				case BUTTON_ACTION_ID::PAUSE:
+					// TODO: pause enimies if it is their turn
+
+					// inMenu = true;
+					set_gamestate(GameStates::PAUSE_MENU);
+					// render save and quit button
+					createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale });
 
 					// render cancel button
-					createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale});
-						
+					createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale });
+
 					return;
 				case BUTTON_ACTION_ID::ACTIONS_CANCEL:
 					cancelAction();
@@ -3614,6 +3624,14 @@ void set_enemy_state_attack(Entity enemy) {
 void set_gamestate(GameStates state) {
 	previous_game_state = current_game_state;
 	current_game_state = state;
+}
+
+// Enter Credits (This only exists because switch statements don't like variable initialization)
+void WorldSystem::enter_credits() {
+	set_gamestate(GameStates::CREDITS);
+	Entity bg = createBackground(renderer, { window_width_px / 2, window_height_px / 2 });
+	registry.renderRequests.get(bg).used_texture = TEXTURE_ASSET_ID::CG_CREDITS;
+	registry.renderRequests.get(bg).used_layer = RENDER_LAYER_ID::UI_TOP;
 }
 
 // Check if entity has a status effect;

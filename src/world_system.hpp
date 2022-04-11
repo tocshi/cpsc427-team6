@@ -350,6 +350,9 @@ private:
 	// update tutorial flags
 	void WorldSystem::updateTutorial();
 
+	// Enter Credits
+	void WorldSystem::enter_credits();
+
 
 	// OpenGL window handle
 	GLFWwindow* window;

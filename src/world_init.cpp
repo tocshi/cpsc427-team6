@@ -1052,7 +1052,7 @@ Entity createMenuQuit(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-// Menu Start Button
+// Menu Credits Button
 Entity createMenuCredits(RenderSystem* renderer, vec2 pos)
 {
 	auto entity = Entity();
@@ -1073,7 +1073,7 @@ Entity createMenuCredits(RenderSystem* renderer, vec2 pos)
 		});
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::START,
+		{ TEXTURE_ASSET_ID::CREDITS,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE });
 

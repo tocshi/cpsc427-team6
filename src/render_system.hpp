@@ -157,6 +157,8 @@ class RenderSystem {
 			textures_path("attacks/mushroom.png"),
 			textures_path("attacks/burrs.png"),
 			textures_path("boss_icon_backing.png"),
+			textures_path("cg/credits.png"),
+			textures_path("credits.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

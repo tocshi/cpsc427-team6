@@ -342,6 +342,16 @@ void apply_status(Entity& target, StatusEffect& status) {
 				add_emitter = true;
 			}
 			break;
+		case StatusType::RANGE_BUFF:
+			if (status.value < 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::RANGE_DOWN);
+				add_emitter = true;
+			}
+			else if (status.value > 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::RANGE_UP);
+				add_emitter = true;
+			}
+			break;
 		default:
 			break;
 	}

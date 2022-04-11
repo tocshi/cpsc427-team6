@@ -1740,7 +1740,16 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 		// Advance cutscene
 		if (!player_move_click && current_game_state == GameStates::CUTSCENE) {
+			printf("set to cut scene dialogue\n");
+			printf(":%d\n", countCutScene);
 			countCutScene++;
+			/*if (current_game_state != GameStates::CUTSCENE_DIALOGUE) {
+				
+				printf("true not in cut_scene dialoge\n");
+				
+			}*/
+		
+			
 
 			cut_scene_start();
 			if (current_game_state == GameStates::CUTSCENE && countCutScene == 3) {
@@ -3453,8 +3462,10 @@ void WorldSystem::cancelAction() {
 
 void WorldSystem::advanceTextbox() {
 	if (registry.textboxes.size() == 0) {
+		if(current_game_state != GameStates::CUTSCENE){
 			set_gamestate(GameStates::BATTLE_MENU);
 		}
+	}
 		Textbox& textbox = registry.textboxes.get(activeTextbox);
 		// clear lines
 		for (Entity text : textbox.lines) {

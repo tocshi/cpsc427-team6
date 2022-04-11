@@ -615,8 +615,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		float& maxep = registry.stats.get(player).maxep;
 
 		// Check if player has died
-		if (hp <= 0 && !registry.deathTimers.has(player)) {
-			registry.deathTimers.emplace(player);
+		if (hp <= 0 && !registry.deathTimers.has(player) && current_game_state != GameStates::GAME_OVER_MENU) {
+			// render the game over dialog
+			createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player);
+			set_gamestate(GameStates::GAME_OVER_MENU);
 			logText("You have died!");
 			player_move_click = false;
 			break;
@@ -3672,7 +3674,14 @@ void WorldSystem::itemAction() {
 }
 
 void WorldSystem::cancelAction() {
-	backAction();
+	if (current_game_state == GameStates::GAME_OVER_MENU) {
+		for (Entity player : registry.players.entities) {
+			registry.deathTimers.emplace(player);
+		}
+	}
+	else {
+		backAction();
+	}
 }
 
 void WorldSystem::advanceTextbox() {

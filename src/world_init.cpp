@@ -1749,6 +1749,64 @@ Entity createEquipmentDialog(RenderSystem* renderer, vec2 pos, Equipment item) {
 	return entity;
 }
 
+// game over dialog
+Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player) {
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ COLLECTION_MENU_BB_WIDTH, COLLECTION_MENU_BB_HEIGHT });
+
+	registry.menuItems.emplace(entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::COLLECTION_PANEL,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI_MID });
+
+	// render the x button
+	auto close_entity = Entity();
+
+	Mesh& close_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(close_entity, &close_mesh);
+
+	registry.menuItems.emplace(close_entity);
+
+	Button& b = registry.buttons.emplace(close_entity);
+	b.action_taken = BUTTON_ACTION_ID::ACTIONS_CANCEL;
+
+	auto& close_motion = registry.motions.emplace(close_entity);
+	close_motion.angle = 0.f;
+	close_motion.velocity = { 0.f, 0.f };
+	close_motion.position = { pos.x + (COLLECTION_MENU_BB_WIDTH / 2) - 60, pos.y - (COLLECTION_MENU_BB_HEIGHT / 2) + 50 };
+
+	close_motion.scale = vec2({ PAUSE_BUTTON_BB_WIDTH / 1.5, PAUSE_BUTTON_BB_HEIGHT / 1.5 });
+
+	registry.renderRequests.insert(
+		close_entity,
+		{ TEXTURE_ASSET_ID::MENU_CLOSE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI_TOP });
+
+	// render game over title
+	Entity title = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 2.f + 20.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 3.f), "Game Over", 8.5f, vec3(1.0f, 0.f, 0.0f));
+	registry.menuItems.emplace(title);
+
+	// render game over data
+
+	// create continue button (tiggers the black fade out and deletes the old save file)
+
+
+	return entity;
+}
+
 // Collection menu
 Entity createCollectionMenu(RenderSystem* renderer, vec2 pos, Entity player) {
 	auto entity = Entity();

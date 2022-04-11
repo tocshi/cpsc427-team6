@@ -356,6 +356,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 		update_turn_ui();
 		doTurnOrderLogic();
+		remove_fog_of_war();
+		create_fog_of_war();
 	}
 
 	double mouseXpos, mouseYpos;

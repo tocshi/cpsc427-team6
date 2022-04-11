@@ -1797,6 +1797,38 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
+	// global end turn
+	if (action == GLFW_RELEASE && key == GLFW_KEY_ENTER) {
+		if (current_game_state == GameStates::ATTACK_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ITEM_MENU) {
+			backAction();
+		}
+
+		if (tutorial) {
+			if (tutorial_flags & EP_DEPLETED) {
+				Player p = registry.players.get(player_main);
+				Stats s = registry.stats.get(player_main);
+
+				if (!p.attacked && !p.moved && s.ep > 50) {
+					logText("You brace yourself...");
+					registry.stats.get(player_main).guard = true;	
+				}
+				handle_end_player_turn(player_main);
+			}
+		}
+		else {
+			for (Entity e : registry.guardButtons.entities) {
+				Player p = registry.players.get(player_main);
+				Stats s = registry.stats.get(player_main);
+
+				if (!p.attacked && !p.moved && s.ep > 50) {
+					logText("You brace yourself...");
+					registry.stats.get(player_main).guard = true;
+				}
+				handle_end_player_turn(player_main);
+			}
+		}
+	}
+
 	if (action == GLFW_RELEASE && key == GLFW_KEY_Q) {
 		for (Entity& p : registry.players.entities) {
 			StatusEffect test = StatusEffect(20, 5, StatusType::ATK_BUFF, false, true);

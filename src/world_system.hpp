@@ -200,6 +200,12 @@ private:
 	// create ep range
 	void create_ep_range(float remaining_ep, float speed, vec2 pos);
 
+	// create attack range
+	void create_attack_range(float range, vec2 pos);
+
+	// remove attack range
+	void remove_attack_range();
+
 	// spawn player in random location
 	void spawn_player_random_location(std::vector<vec2>& playerSpawns);
 

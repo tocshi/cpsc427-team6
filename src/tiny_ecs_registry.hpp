@@ -43,6 +43,7 @@ public:
 	ComponentContainer<MenuItem> menuItems;
 	ComponentContainer<ModeVisualization> modeVisualizationObjects;
 	ComponentContainer<EpRange> epRange;
+	ComponentContainer<AttackRange> attackRange;
 	ComponentContainer<Fog> fog;
 	ComponentContainer<Camera> cameras;
 	ComponentContainer<Text> texts;
@@ -66,6 +67,7 @@ public:
 	ComponentContainer<AttackCard> attackCards;
 	ComponentContainer<ItemCard> itemCards;
 	ComponentContainer<AttackDialog> attackDialogs;
+	ComponentContainer<EquipmentDialog> equipmentDialogs;
 	ComponentContainer<Icon> icons;
 	ComponentContainer<Spritesheet> spritesheets;
 	ComponentContainer<RoomTransitionTimer> roomTransitions;
@@ -77,6 +79,7 @@ public:
 	ComponentContainer<StatsText> statsText;
 	ComponentContainer<ExpandTimer> expandTimers;
 	ComponentContainer<Test> attackIndicators;
+	ComponentContainer<Trap> traps;
 	ComponentContainer<HPDisplay> hpDisplays;
 	ComponentContainer<EnemyHPBar> enemyHPBars;
 	ComponentContainer<BossHPBar> bossHPBars;
@@ -117,6 +120,7 @@ public:
 		registry_list.push_back(&modeVisualizationObjects);
 		registry_list.push_back(&menuItems);
 		registry_list.push_back(&epRange);
+		registry_list.push_back(&attackRange);
 		registry_list.push_back(&fog);
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&texts);
@@ -142,6 +146,7 @@ public:
 		registry_list.push_back(&knockbacks);
 		registry_list.push_back(&attackCards);
 		registry_list.push_back(&attackDialogs);
+		registry_list.push_back(&equipmentDialogs);
 		registry_list.push_back(&itemCards);
 		registry_list.push_back(&icons);
 		registry_list.push_back(&spritesheets);
@@ -154,6 +159,7 @@ public:
 		registry_list.push_back(&statsText);
 		registry_list.push_back(&expandTimers);
 		registry_list.push_back(&attackIndicators);
+		registry_list.push_back(&traps);
 		registry_list.push_back(&hpDisplays);
 		registry_list.push_back(&enemyHPBars);
 		registry_list.push_back(&bossHPBars);

@@ -709,7 +709,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				roomSystem.updateObjective(ObjectiveType::DEFEAT_BOSS, 1);
 				// TODO: replace with stairs when implemented
 				createDoor(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f }, false);
-				roomSystem.current_floor = Floors::FLOOR1;
+				roomSystem.setNextFloor(Floors((int)roomSystem.current_floor + 1));
 				createCampfire(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y + 64.f });
 				registry.enemies.get(enemy).state = ENEMY_STATE::DEATH;
 				aiSystem.step(enemy);
@@ -1797,7 +1797,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						}
 						else {
 							start_game();
-							roomSystem.current_floor = Floors::FLOOR1;
+							roomSystem.setNextFloor(Floors::FLOOR1);
 							spawn_game_entities();
 						}
 						break;

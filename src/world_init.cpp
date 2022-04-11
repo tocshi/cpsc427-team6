@@ -453,7 +453,7 @@ Entity createLivingPebble(RenderSystem* renderer, vec2 pos)
 	stats.atk = 10;
 	stats.def = 999;
 	stats.speed = 11;
-	stats.range = 300;
+	stats.range = 500;
 
 	registry.basestats.insert(entity, stats);
 
@@ -470,6 +470,11 @@ Entity createLivingPebble(RenderSystem* renderer, vec2 pos)
 
 	// add status container to living pebble
 	registry.statuses.emplace(entity);
+
+	// add hp bar 
+	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
+	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 
 	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
 	shadow_container.shadow_entity = createShadow(pos, entity);
@@ -507,7 +512,7 @@ Entity createLivingRock(RenderSystem* renderer, vec2 pos)
 	stats.atk = 0;
 	stats.def = 999;
 	stats.speed = 1;
-	stats.range = 200;
+	stats.range = 400;
 
 	registry.basestats.insert(entity, stats);
 
@@ -524,6 +529,11 @@ Entity createLivingRock(RenderSystem* renderer, vec2 pos)
 
 	// add status container to living pebble
 	registry.statuses.emplace(entity);
+
+	// add hp bar 
+	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
+	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 
 	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
 	shadow_container.shadow_entity = createShadow(pos, entity);
@@ -577,8 +587,13 @@ Entity createApparition(RenderSystem* renderer, vec2 pos)
 	registry.queueables.emplace(entity);
 	registry.solid.emplace(entity);
 
-	// add status container to living pebble
+	// add status container to apparition
 	registry.statuses.emplace(entity);
+
+	// add hp bar 
+	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
+	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
 
 	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
 	shadow_container.shadow_entity = createShadow(pos, entity);

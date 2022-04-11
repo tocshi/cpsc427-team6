@@ -557,32 +557,14 @@ void AISystem::living_pebble_logic(Entity enemy, Entity& player) {
 		registry.enemies.get(enemy).state = ENEMY_STATE::IDLE;
 	}
 
+	printf("pebble hi\n");
+
 	ENEMY_STATE state = registry.enemies.get(enemy).state;
 	// perform action based on state
-	int dx = ichoose(irandRange(-75, -25), irandRange(25, 75));
-	int dy = ichoose(irandRange(-75, -25), irandRange(25, 75));
 
 	switch (state) {
 	case ENEMY_STATE::IDLE:
-		motion_struct.destination = { motion_struct.position.x + dx, motion_struct.position.y + dy };
-
-		// Teleport if out of player sight range
-		if (!player_in_range(motion_struct.position, registry.stats.get(player).range) && !player_in_range(motion_struct.destination, registry.stats.get(player).range)) {
-			// temp check
-			motion_struct.destination = motion_struct.position;
-			motion_struct.position = { motion_struct.position.x + dx, motion_struct.position.y + dy };
-			for (Entity solid : registry.solid.entities) {
-				if (collides_AABB(motion_struct, registry.motions.get(solid))) {
-					motion_struct.position = motion_struct.destination;
-					break;
-				}
-			}
-			motion_struct.in_motion = false;
-		}
-		else {
-			motion_struct.velocity = 180.f * normalize(motion_struct.destination - motion_struct.position);
-			motion_struct.in_motion = true;
-		}
+		motion_struct.in_motion = false;
 		break;
 	case ENEMY_STATE::AGGRO:
 		// move towards player
@@ -603,7 +585,7 @@ void AISystem::living_pebble_logic(Entity enemy, Entity& player) {
 			}
 			else {
 				motion_struct.destination = { dirdist_extrapolate(motion_struct.position,
-					angle + degtorad(irandRange(-10, 10)), min(140.f, dist_to(motion_struct.position,
+					angle + degtorad(irandRange(-10, 10)), min(400.f, dist_to(motion_struct.position,
 					player_motion.position)) + irandRange(-20, -10))
 				};
 			}
@@ -616,6 +598,7 @@ void AISystem::living_pebble_logic(Entity enemy, Entity& player) {
 				vec2 direction = simple_path_find(motion_struct.position, player_motion.position, enemy);
 				motion_struct.velocity = enemy_velocity * direction;
 				motion_struct.in_motion = true;
+				printf("pebble go\n");
 			}
 		}
 		break;
@@ -629,8 +612,15 @@ void AISystem::living_rock_logic(Entity enemy, Entity& player) {
 	ENEMY_STATE& state = registry.enemies.get(enemy).state;
 	float aggroRange = stats.range;
 
+	// Resolve end-of-movement state change
+	if (registry.enemies.get(enemy).state == ENEMY_STATE::ATTACK) {
+		registry.enemies.get(enemy).state = ENEMY_STATE::AGGRO;
+		motion_struct.in_motion = false;
+		return;
+	}
+
 	// Determine enemy state
-	if (player_in_range(motion_struct.position, aggroRange) && stats.hp > 1) {
+	if (player_in_range(motion_struct.position, aggroRange)) {
 		state = ENEMY_STATE::SUMMON;
 	} else {
 		state = ENEMY_STATE::IDLE;
@@ -638,34 +628,39 @@ void AISystem::living_rock_logic(Entity enemy, Entity& player) {
 
 	// perform action
 	switch (state) {
-		case ENEMY_STATE::IDLE:
-			// do nothing
-			break;
-		case ENEMY_STATE::SUMMON:
-			bool summoned = false;
-			while (!summoned) {
-				bool valid_summon = true;
-				int distance = irandRange(ENEMY_BB_WIDTH * 2, ENEMY_BB_WIDTH * 2);
-				float direction = (rand() % 360) * (M_PI / 180);
-				vec2 spawnpoint = dirdist_extrapolate(motion_struct.position, direction, distance);Motion test = {};
-				test.position = spawnpoint;
-				test.scale = { ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT };
-				for (Entity e : registry.solid.entities) {
-					if (collides_AABB(test, registry.motions.get(e))) {
-						valid_summon = false;
-					}
-				}
-				if (valid_summon) {
-					Entity summon = createLivingPebble(world.renderer, spawnpoint);
-					reset_stats(summon);
-					calc_stats(summon);
-					world.turnOrderSystem.turnQueue.addNewEntity(summon);
-					summoned = true;
+	case ENEMY_STATE::IDLE:
+		// do nothing
+		break;
+	case ENEMY_STATE::SUMMON:
+		bool summoned = false;
+		int attempts = 20;
+		while (!summoned && attempts > 0) {
+			bool valid_summon = true;
+			int distance = irandRange(ENEMY_BB_WIDTH * 2, ENEMY_BB_WIDTH * 2);
+			float direction = (rand() % 360) * (M_PI / 180);
+			vec2 spawnpoint = dirdist_extrapolate(motion_struct.position, direction, distance);
+			Motion test = {};
+			test.position = spawnpoint;
+			test.scale = { ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT };
+			for (Entity e : registry.solid.entities) {
+				if (collides_AABB(test, registry.motions.get(e))) {
+					valid_summon = false;
 				}
 			}
-			take_damage(enemy, 1);
-			break;
+			attempts--;
+			if (valid_summon) {
+				Entity summon = createLivingPebble(world.renderer, spawnpoint);
+				world.turnOrderSystem.turnQueue.addNewEntity(summon);
+				summoned = true;
+				printf("summoned\n");
+			}
+		}
+		take_damage(enemy, 1);
+		if (stats.hp <= 0) { motion_struct.in_motion = true; }
+		printf("tookened\n");
+		break;
 	}
+	printf("endened\n");
 }
 
 void AISystem::apparition_logic(Entity enemy, Entity& player) {

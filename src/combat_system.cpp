@@ -9,8 +9,8 @@
 std::string deal_damage(Entity& attacker, Entity& defender, float multiplier, bool doProcs)
 {
 	// Damage Calculation
-	Stats& attacker_stats = registry.stats.get(attacker);
-	Stats& defender_stats = registry.stats.get(defender);
+	Stats attacker_stats = registry.stats.get(attacker);
+	Stats defender_stats = registry.stats.get(defender);
 	float final_damage = calc_damage(attacker, defender, multiplier);
 
 	// Post-calculation effects

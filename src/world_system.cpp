@@ -1508,7 +1508,7 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
 			int roll = irand(4);
-			roll = 2;
+			roll = 1;
 			switch (roomSystem.current_floor) {
 			case Floors::FLOOR1:
 				// Spawn either a slime or PlantShooter or caveling
@@ -2014,7 +2014,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					else {
 						start_game();
-						roomSystem.current_floor = Floors::FLOOR1;
+						roomSystem.current_floor = Floors::FLOOR2;
 						spawn_game_entities();
 					}
 					break;
@@ -3402,6 +3402,8 @@ void WorldSystem::doTurnOrderLogic() {
 	if (!registry.players.has(currentTurnEntity) && registry.queueables.get(currentTurnEntity).doing_turn) {
 		aiSystem.step(currentTurnEntity);
 
+		printf("if current turn entity is enemy and is still doing_turn call ai.step()\n");
+
 		// now that ai did its step, set doing turn to false
 		registry.queueables.get(currentTurnEntity).doing_turn = false;
 	}
@@ -3672,6 +3674,7 @@ void set_enemy_state_attack(Entity enemy) {
 	if (registry.enemies.get(enemy).type == ENEMY_TYPE::SLIME ||
 		registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER ||
 		registry.enemies.get(enemy).type == ENEMY_TYPE::CAVELING ||
+		registry.enemies.get(enemy).type == ENEMY_TYPE::LIVING_ROCK ||
 		registry.enemies.get(enemy).type == ENEMY_TYPE::LIVING_PEBBLE ||
 		registry.enemies.get(enemy).type == ENEMY_TYPE::APPARITION) {
 		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;

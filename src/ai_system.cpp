@@ -674,16 +674,25 @@ void AISystem::apparition_logic(Entity enemy, Entity& player) {
 	// Perform melee attack if close enough
 	if (registry.enemies.get(enemy).state == ENEMY_STATE::ATTACK) {
 		if (player_in_range(motion_struct.position, meleeRange)) {
-			int roll = irand(2);
-			if (roll < 1) {
+			bool apply_blind = true;
+
+			StatusContainer player_statuses = registry.statuses.get(player);
+			for (StatusEffect s : player_statuses.statuses) {
+				// check if player already has a range debuff
+				if (s.effect == StatusType::RANGE_BUFF && s.value < 0) {
+					apply_blind = false;
+					break;
+				}
+			}
+			if (!apply_blind) {
 				createExplosion(world.renderer, player_motion.position);
 				Mix_PlayChannel(-1, world.fire_explosion_sound, 0);
-				world.logText(deal_damage(enemy, player, stats.atk));
+				world.logText(deal_damage(enemy, player, 100));
 			}
 			else {
 				createExplosion(world.renderer, player_motion.position);
 				Mix_PlayChannel(-1, world.fire_explosion_sound, 0);
-				world.logText(deal_damage(enemy, player, stats.atk/2.f));
+				world.logText(deal_damage(enemy, player, 50));
 				StatusEffect blind = StatusEffect(-0.5f, 2, StatusType::RANGE_BUFF, true, true);
 				apply_status(player, blind);
 			}

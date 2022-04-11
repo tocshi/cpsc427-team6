@@ -159,6 +159,7 @@ class RenderSystem {
 			textures_path("attacks/smoke.png"),
 			textures_path("attacks/mushroom.png"),
 			textures_path("attacks/burrs.png"),
+			textures_path("boss_icon_backing.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;
@@ -171,6 +172,7 @@ class RenderSystem {
 		shader_path("text"),
 		shader_path("fog"),
 		shader_path("ep_range"),
+		shader_path("attack_range"),
 		shader_path("tile"),
 	};
 

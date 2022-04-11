@@ -154,7 +154,8 @@ enum class TEXTURE_ASSET_ID {
 	SMOKE = CURSE + 1,
 	MUSHROOM = SMOKE + 1,
 	BURRS = MUSHROOM + 1,
-	TEXTURE_COUNT = BURRS + 1,
+	BOSS_ICON_BACKING = BURRS + 1,
+	TEXTURE_COUNT = BOSS_ICON_BACKING + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -575,7 +576,9 @@ enum class BUTTON_ACTION_ID {
 	CLOSE_DIALOG = SAVE_QUIT + 1,
 	OPEN_ATTACK_DIALOG = CLOSE_DIALOG + 1,
 	CLOSE_ATTACK_DIALOG = OPEN_ATTACK_DIALOG + 1,
-	SCROLL_DOWN = CLOSE_ATTACK_DIALOG + 1,
+	OPEN_EQUIPMENT_DIALOG = CLOSE_ATTACK_DIALOG + 1,
+	CLOSE_EQUIPMENT_DIALOG = OPEN_EQUIPMENT_DIALOG + 1,
+	SCROLL_DOWN = CLOSE_EQUIPMENT_DIALOG + 1,
 	SCROLL_UP = SCROLL_DOWN + 1,
 	USE_ATTACK = SCROLL_DOWN + 1,
 	PREPARE_ATTACK = USE_ATTACK + 1,
@@ -604,8 +607,22 @@ struct AttackDialog {
 	std::string cost = "";
 };
 
+struct EquipmentDialog {
+	std::string atk = "";
+	std::string def = "";
+	std::string speed = "";
+	std::string hp = "";
+	std::string mp = "";
+};
+
 struct EpRange {
 	float radius = 450.f;
+	float resolution = 2000.f;
+	vec2 screen_resolution = { 1600.f, 900.f };
+};
+
+struct AttackRange {
+	float radius = 200.f;
 	float resolution = 2000.f;
 	vec2 screen_resolution = { 1600.f, 900.f };
 };
@@ -806,6 +823,7 @@ struct EnemyHPBar {
 
 struct BossHPBar {
 	Entity icon;
+	Entity iconBacking;
 	Entity hpBacking;
 	Entity hpFill;
 };
@@ -826,7 +844,8 @@ enum class EFFECT_ASSET_ID {
 	TEXT = WIND + 1,
 	FOG = TEXT + 1,
 	EP = FOG + 1,
-	TILE = EP + 1,
+	ATTACK_RANGE = EP + 1,
+	TILE = ATTACK_RANGE + 1,
 	EFFECT_COUNT = TILE + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
@@ -839,7 +858,8 @@ enum class GEOMETRY_BUFFER_ID {
 	SPRITESHEET = ANIMATION + 1,
 	FOG = SPRITESHEET + 1,
 	EP = FOG + 1,
-	DEBUG_LINE = EP + 1,
+	ATTACK_RANGE = EP + 1,
+	DEBUG_LINE = ATTACK_RANGE + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
 	TEXTQUAD = SCREEN_TRIANGLE + 1,
 	GEOMETRY_COUNT = TEXTQUAD + 1
@@ -868,7 +888,9 @@ enum class RENDER_LAYER_ID {
 	HP_FILL = HP_BACKING + 1,
 	DAMAGE_TEXT = HP_FILL + 1,
 	UI = HP_FILL + 1,
-	ARTIFACT_ICONS = UI + 1,
+	UI_ICONS = UI + 1,
+	UI_MID = UI_ICONS + 1,
+	ARTIFACT_ICONS = UI_MID + 1,
 	TEXT = ARTIFACT_ICONS + 1,
 	DIALOG = TEXT + 1,
 	DIALOG_TEXT = DIALOG + 1,

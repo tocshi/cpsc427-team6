@@ -163,6 +163,8 @@ Entity createEPFill(RenderSystem* renderer, vec2 position);
 Entity createFog(vec2 pos, float resolution, float radius, vec2 screenResolution);
 // Ep range
 Entity createEpRange(vec2 pos, float resolution, float radius, vec2 screenResolution);
+// Attack range
+Entity createAttackRange(vec2 pos, float resolution, float radius, vec2 screenResolution);
 // Camera
 Entity createCamera(vec2 pos);
 // Tiles
@@ -189,6 +191,8 @@ Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifa
 Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack);
 // Attack type dialog
 Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack, bool prepared);
+// equipment type dialog
+Entity createEquipmentDialog(RenderSystem* renderer, vec2 pos, Equipment item);
 // cutscene
 Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID textureID);
 // Turn UI
@@ -212,7 +216,7 @@ Entity createItemMenu(RenderSystem* renderer, vec2 top_card_pos, Inventory inv);
 // stats text
 Entity createStatsText(RenderSystem* renderer, vec2 pos, std::string msg, float scale, vec3 textColor);
 // Generate equipment texture for item menu
-Entity createItemEquipmentTexture(RenderSystem* renderer, vec2 pos, Equipment equipment);
+Entity createItemEquipmentTexture(RenderSystem* renderer, vec2 pos, vec2 scale, Equipment equipment);
 // objective counter UI
 Entity createObjectiveCounter(RenderSystem* renderer, vec2 pos);
 // attack animation
@@ -227,5 +231,13 @@ Entity createSaveQuit(RenderSystem* renderer, vec2 pos);
 Entity createEnemyHPBacking(vec2 position, Entity parent);
 // Enemy HP bar's fill (red line)
 Entity createEnemyHPFill(vec2 position, Entity parent);
+// Boss HP bar's backing (black line)
+Entity createBossHPBacking(vec2 position, Entity parent);
+// Boss HP bar's fill (red line)
+Entity createBossHPFill(vec2 position, Entity parent);
+// Boss icon background
+Entity createBossIconBacking(RenderSystem* renderer, vec2 pos, Entity parent);
+// Boss icon
+Entity createBossIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id, Entity parent);
 // shadow for enemies
 Entity createShadow(vec2 pos, Entity caster);

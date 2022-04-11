@@ -1781,7 +1781,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 		// pause menu
 		// close the menu if pressed again
-		if (current_game_state != GameStates::MAIN_MENU) {
+		if (current_game_state != GameStates::MAIN_MENU && current_game_state != GameStates::CREDITS) {
 			if (current_game_state == GameStates::CUTSCENE) {
 				int w, h;
 				glfwGetWindowSize(window, &w, &h);

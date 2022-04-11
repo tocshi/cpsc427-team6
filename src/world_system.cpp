@@ -1996,26 +1996,28 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						// TODO: pause enimies if it is their turn
 						
 						// inMenu = true;
-						set_gamestate(GameStates::PAUSE_MENU);
-						// render save and quit button
-						createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale});
-
-					// render cancel button
-					createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale});
-						
+						if (current_game_state != GameStates::GAME_OVER_MENU) {
+							set_gamestate(GameStates::PAUSE_MENU);
+							// render save and quit button
+							createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale });
+							// render cancel button
+							createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale });
+						}						
 					return;
 				case BUTTON_ACTION_ID::ACTIONS_CANCEL:
 					cancelAction();
 					return;
 				case BUTTON_ACTION_ID::COLLECTION:
-					// if the button is pressed again while the menu is already open, close the menu
-					if (current_game_state == GameStates::COLLECTION_MENU) {
-						set_gamestate(GameStates::BATTLE_MENU);
-					}
-					else {
-						// render the collection menu
-						createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player_main);
-						set_gamestate(GameStates::COLLECTION_MENU);
+					if (current_game_state != GameStates::GAME_OVER_MENU) {
+						// if the button is pressed again while the menu is already open, close the menu
+						if (current_game_state == GameStates::COLLECTION_MENU) {
+							set_gamestate(GameStates::BATTLE_MENU);
+						}
+						else {
+							// render the collection menu
+							createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player_main);
+							set_gamestate(GameStates::COLLECTION_MENU);
+						}
 					}
 					return;
 				case BUTTON_ACTION_ID::ACTIONS_BACK:

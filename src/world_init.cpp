@@ -1771,7 +1771,7 @@ Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player) {
 		 RENDER_LAYER_ID::UI_MID });
 
 	// render game over title
-	Entity title = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f, pos.y - COLLECTION_MENU_BB_HEIGHT / 1.8f + 20.f), "Game Over", 8.5f, vec3(1.0f, 0.f, 0.0f));
+	Entity title = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f, pos.y - COLLECTION_MENU_BB_HEIGHT / 5.f + 20.f), "Game Over", 8.5f, vec3(1.0f, 0.f, 0.0f));
 	registry.menuItems.emplace(title);
 
 	// todo: render game over data
@@ -1790,7 +1790,7 @@ Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player) {
 	auto& close_motion = registry.motions.emplace(close_entity);
 	close_motion.angle = 0.f;
 	close_motion.velocity = { 0.f, 0.f };
-	close_motion.position = vec2(pos.x, pos.y + COLLECTION_MENU_BB_HEIGHT / 2.2f);
+	close_motion.position = vec2(pos.x, pos.y + COLLECTION_MENU_BB_HEIGHT / 2.7f);
 
 	close_motion.scale = vec2({ QUIT_BB_WIDTH, QUIT_BB_HEIGHT });
 

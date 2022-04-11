@@ -1522,7 +1522,6 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
 			int roll = irand(4);
-			roll = 1;
 			switch (roomSystem.current_floor) {
 			case Floors::FLOOR1:
 				// Spawn either a slime or PlantShooter or caveling
@@ -2031,7 +2030,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					else {
 						start_game();
-						roomSystem.current_floor = Floors::FLOOR2;
+						roomSystem.current_floor = Floors::FLOOR1;
 						spawn_game_entities();
 					}
 					break;

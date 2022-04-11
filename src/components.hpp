@@ -777,7 +777,9 @@ enum class Floors {
 	TUTORIAL = DEBUG + 1,
 	FLOOR1 = TUTORIAL + 1,
 	BOSS1 = FLOOR1 + 1,
-	FLOOR_COUNT = BOSS1 + 1
+	FLOOR2 = BOSS1 + 1,
+	BOSS2 = FLOOR2 + 1,
+	FLOOR_COUNT = BOSS2 + 1
 };
 
 const int floor_count = (int)Floors::FLOOR_COUNT;

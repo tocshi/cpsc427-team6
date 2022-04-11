@@ -275,7 +275,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
-	    registry.remove_all_components_of(registry.debugComponents.entities.back());
+		registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
@@ -1210,7 +1210,7 @@ void WorldSystem::restart_game() {
 	//current_game_state = true;
 	set_gamestate(GameStates::MAIN_MENU);
 
-	if (current_game_state == GameStates::MAIN_MENU) {
+	if (current_game_state == GameStates::MAIN_MENU && current_music != Music::MENU) {
 		playMusic(Music::MENU);
 	}
 
@@ -1222,10 +1222,19 @@ void WorldSystem::restart_game() {
 	//current_game_state = GameStates::MAIN_MENU;
 	//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
 
-	createMenuStart(renderer, { window_width_px / 2, 400.f * ui_scale});
-	createMenuContinue(renderer, { window_width_px / 2, 600.f * ui_scale});
-	createMenuQuit(renderer, { window_width_px / 2, 800.f * ui_scale});
-	createMenuTitle(renderer, { window_width_px / 2, 150.f * ui_scale});
+	
+
+	createMenuStart(renderer, { window_width_px / 6, 500.f * ui_scale });
+	createMenuContinue(renderer, { window_width_px / 6, 650.f * ui_scale });
+	createMenuQuit(renderer, { window_width_px / 6, 800.f * ui_scale });
+	createMenuCredits(renderer, { window_width_px - 150.f, 850.f * ui_scale });
+	createMenuTitle(renderer, { window_width_px / 2, window_height_px / 2 });
+
+	if (saveSystem.saveDataExists()) {
+		printf("%d size of inventory\n", registry.inventories.size());
+		// width: window_width_px / 5, height = (600.f*ui_scale/2)
+		update_background_collection(window_width_px / 5, (600.f*ui_scale / 2));
+	}
 }
 
 void WorldSystem::handle_end_player_turn(Entity player) {
@@ -1772,7 +1781,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 		// pause menu
 		// close the menu if pressed again
-		if (current_game_state != GameStates::MAIN_MENU) {
+		if (current_game_state != GameStates::MAIN_MENU && current_game_state != GameStates::CREDITS) {
 			if (current_game_state == GameStates::CUTSCENE) {
 				int w, h;
 				glfwGetWindowSize(window, &w, &h);
@@ -1939,6 +1948,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			return;
 		}
 
+		if (current_game_state == GameStates::CREDITS) {
+			set_gamestate(GameStates::MAIN_MENU);
+			restart_game();
+			return;
+		}
+
 		if (current_game_state == GameStates::DIALOGUE) {
 			advanceTextbox();
 			return;
@@ -1968,71 +1983,73 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
 
 				switch (action_taken) {
+				case BUTTON_ACTION_ID::MENU_START:
+					if (tutorial) {
+						start_tutorial();
+						spawn_tutorial_entities();
+					}
+					else {
+						start_game();
+						roomSystem.current_floor = Floors::FLOOR1;
+						spawn_game_entities();
+					}
+					break;
+				case BUTTON_ACTION_ID::CREDITS:
+					enter_credits();
+					return;
+				case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
+				case BUTTON_ACTION_ID::CONTINUE:
+					// if save data exists reset the game
+					if (saveSystem.saveDataExists()) {
+						start_game();
+						// remove entities to load in entities
+						removeForLoad();
+						//printf("Removed for load\n");
+						// get saved game data
+						json gameData = saveSystem.getSaveData();
+						//printf("getting gameData\n");
+						// load the entities in
+						loadFromData(gameData);
+						Inventory test = registry.inventories.get(player_main);
+						//printf("load game data?\n");
+						logText("Game state loaded!");
+						remove_fog_of_war();
+						create_fog_of_war();
+					}
+					break;
+				case BUTTON_ACTION_ID::SAVE_QUIT:
+					if (!tutorial) {
+						saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
+						logText("Game state saved!");
+					}
+					glfwSetWindowShouldClose(window, true); break;
+					break;
+				case BUTTON_ACTION_ID::ACTIONS_ATTACK:
+					if (current_game_state == GameStates::BATTLE_MENU) {
+						attackAction();
+					}
+					break;
+				case BUTTON_ACTION_ID::ACTIONS_MOVE:
+					if (registry.stats.get(player_main).ep <= 0) {
+						logText("Cannot move with 0 EP!");
+						Mix_PlayChannel(-1, error_sound, 0);
+						break;
+					}
+					if (current_game_state == GameStates::BATTLE_MENU) {
+						moveAction();
+					}
+					break;
+				case BUTTON_ACTION_ID::PAUSE:
+					// TODO: pause enimies if it is their turn
 
-					case BUTTON_ACTION_ID::MENU_START: 
-						if (tutorial) { 
-							start_tutorial();
-							spawn_tutorial_entities();
-						}
-						else {
-							start_game();
-							roomSystem.setNextFloor(Floors::FLOOR1);
-							spawn_game_entities();
-						}
-						break;
-					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
-					case BUTTON_ACTION_ID::CONTINUE:
-						// if save data exists reset the game
-						if (saveSystem.saveDataExists()) {
-							start_game();
-							// remove entities to load in entities
-							removeForLoad();
-							//printf("Removed for load\n");
-							// get saved game data
-							json gameData = saveSystem.getSaveData();
-							//printf("getting gameData\n");
-							// load the entities in
-							loadFromData(gameData);
-							Inventory test = registry.inventories.get(player_main);
-							//printf("load game data?\n");
-							logText("Game state loaded!");
-							remove_fog_of_war();
-							create_fog_of_war();
-						}
-						break;
-					case BUTTON_ACTION_ID::SAVE_QUIT:
-						if (!tutorial) {
-							saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
-							logText("Game state saved!");
-						}
-						glfwSetWindowShouldClose(window, true); break;
-						break;
-					case BUTTON_ACTION_ID::ACTIONS_ATTACK:
-						if (current_game_state == GameStates::BATTLE_MENU) {
-							attackAction();
-						}
-						break;
-					case BUTTON_ACTION_ID::ACTIONS_MOVE:
-						if (registry.stats.get(player_main).ep <= 0) {
-							logText("Cannot move with 0 EP!");
-							Mix_PlayChannel(-1, error_sound, 0);
-							break;
-						}
-						if (current_game_state == GameStates::BATTLE_MENU) {
-							moveAction();
-						}
-						break;
-					case BUTTON_ACTION_ID::PAUSE:
-						// TODO: pause enimies if it is their turn
-						
-						// inMenu = true;
-						set_gamestate(GameStates::PAUSE_MENU);
-						// render save and quit button
-						createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale});
+					// inMenu = true;
+					set_gamestate(GameStates::PAUSE_MENU);
+					// render save and quit button
+					createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale });
 
 					// render cancel button
-					createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale});
-						
+					createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale });
+
 					return;
 				case BUTTON_ACTION_ID::ACTIONS_CANCEL:
 					cancelAction();
@@ -2193,7 +2210,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				Stats& player_stats = registry.stats.get(player_main);
 
 				switch (current_game_state) {
-					
+
 				case GameStates::ATTACK_MENU:
 					use_attack(world_pos);
 					break;
@@ -2716,6 +2733,108 @@ Entity WorldSystem::loadPlayer(json playerData) {
 	return e;
 }
 
+// loading artifact collection onto the title screen
+Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float floor_width, float floor_height) {
+
+	
+	Inventory inv;
+	json inventoryData = playerData["inventory"];
+	printf("YES ???? we are finally in collection loading \n");
+	std::vector<vec2> arifact_type_num; 
+
+	
+	//printf("column :%d \n", column);
+	// Max height for spawning 
+	// width + moves it right 
+	// height + moves it down the screen 
+	float max_height_top = 600.f; // less
+	float max_height_bot = window_height_px*ui_scale - 72.f; // greater
+	float h_diff = max_height_bot - max_height_top; // less
+
+	float max_width_left_edge = window_width_px / 3 + 40.f;
+	float max_width_right_edge = window_width_px * (2/3); // greater
+	float w_diff =  max_width_right_edge- max_width_left_edge;
+
+	
+	printf("max_w left :%fl\n", max_width_left_edge);
+	printf("max_w right :%fl\n", max_width_right_edge);
+
+	printf("max height top :%fl\n", max_height_top);
+	printf("max height bot :%fl\n", max_height_bot);
+
+	// copy of the inventory - make sure it's copy by duplicate and not reference 
+	// count up the total nuumer of artifacts in there 
+	// while >0 
+	// irand range random x and y position (feed the boundaries into i rand range)
+	// 2 of artifact want two sitting on the floor 
+	// decrement total artifacts by 1 
+	// get json obj for inventory saved in saveData
+
+	// get artifacts
+	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
+	int i = 0;
+	int count_total_artifacts = 0;
+
+	// looping the list of artifacts 
+	// int i gives the artifact type 
+	// artifact gives the number of artifact the player has 
+	for (auto& artifact : inventoryData["artifact"]) {
+
+		inv.artifact[i] = artifact;
+		if (artifact > 0) {
+
+			int num_cur_artifacts = static_cast<int>(inv.artifact[i]);
+
+			count_total_artifacts += num_cur_artifacts;
+			printf("count of artifacts :%d\n", count_total_artifacts);
+			
+			while (num_cur_artifacts> 0) {
+				int pos_x = 0;
+				int pos_y = 0;
+				int attempts = 20;
+				bool valid = true;
+
+				Entity icon = createArtifactIcon(renderer, vec2(pos_x, pos_y),
+					static_cast<ARTIFACT>(i));
+				Motion& icon_motion = registry.motions.get(icon);
+				icon_motion.angle = irandRange(-450, 450) * (M_PI / 1800);
+
+				while (attempts > 0) {
+					icon_motion.position.x = irandRange(max_width_left_edge, max_width_right_edge);
+					icon_motion.position.y = irandRange(max_height_top, max_height_bot);
+
+					for (Entity e : registry.artifactIcons.entities) {
+						if (collides_circle(registry.motions.get(e), registry.motions.get(icon))) {
+							valid = false;
+							break;
+						}
+					}
+					if (valid) {
+						break;
+					}
+					attempts--;
+				}
+				num_cur_artifacts--;
+			}
+		}
+		i++;
+	}
+
+	// I don't need to return inventory, just need to check (1) if weapon/ artifact exist if yes 
+	// render the stupid sprite
+
+	printf("done QQ \n");
+	printf("number of total artifacts :%d\n", count_total_artifacts);
+	return inv;
+
+
+}
+
+int WorldSystem::calculate_abs_value(float v1, float v2) {
+	
+	return abs(v2 - v1);
+}
+
 Entity WorldSystem::loadEnemy(json enemyData) {
 	Entity e;
 	if (enemyData["enemy"]["type"] == ENEMY_TYPE::SLIME) {
@@ -2770,7 +2889,7 @@ void WorldSystem::loadStats(Entity e, json stats) {
 
 	registry.stats.get(e).epratemove = stats["epratemove"];
 	registry.stats.get(e).eprateatk = stats["eprateatk"];
-	
+
 	registry.stats.get(e).atk = stats["atk"];
 	registry.stats.get(e).def = stats["def"];
 	registry.stats.get(e).speed = stats["speed"];
@@ -3538,6 +3657,14 @@ void set_gamestate(GameStates state) {
 	current_game_state = state;
 }
 
+// Enter Credits (This only exists because switch statements don't like variable initialization)
+void WorldSystem::enter_credits() {
+	set_gamestate(GameStates::CREDITS);
+	Entity bg = createBackground(renderer, { window_width_px / 2, window_height_px / 2 });
+	registry.renderRequests.get(bg).used_texture = TEXTURE_ASSET_ID::CG_CREDITS;
+	registry.renderRequests.get(bg).used_layer = RENDER_LAYER_ID::UI_TOP;
+}
+
 // Check if entity has a status effect;
 bool has_status(Entity e, StatusType status) {
 	if (!registry.statuses.has(e)) { return false; }
@@ -3696,7 +3823,7 @@ void WorldSystem::itemAction() {
 	Inventory& inv = registry.inventories.get(player_main);
 	printf("sprite: %d", inv.equipped[0].sprite);
 	createItemMenu(renderer, { window_width_px - 125.f, 200.f * ui_scale }, inv);
-	
+
 	handleActionButtonPress();
 
 	// set game state to move menu
@@ -3804,7 +3931,7 @@ void WorldSystem::update_turn_ui() {
 
 	Motion& turn_ui_motion = registry.motions.get(turnUI);
 	vec2 position = turn_ui_motion.position;
-	vec2 startPos = vec2(turn_ui_motion.scale[0]/2.f, 0.f);
+	vec2 startPos = vec2(turn_ui_motion.scale[0] / 2.f, 0.f);
 	vec2 offset = vec2(0.f);
 
 	// get queue
@@ -3820,6 +3947,44 @@ void WorldSystem::update_turn_ui() {
 		}
 	}
 	return;
+}
+
+void WorldSystem::update_background_collection(float floor_w, float floor_h) {
+
+
+	if (current_game_state == GameStates::MAIN_MENU) {
+		printf("!@!@#!@$@$@\n");
+		float x_offset = 0.f;
+		float y_offset = 0.f;
+		vec2 pos = { 0,0 };
+		if (saveSystem.saveDataExists()) {
+			// remove entities to load in entities
+			//removeForLoad();
+			//printf("Removed for load\n");
+			// get saved game data
+			json data = saveSystem.getSaveData();
+			// load player
+			json entityList = data["entities"];
+			//json collidablesList = data["map"]["collidables"];
+			//json interactablesList = data["map"]["interactables"];
+			//json tilesList = data["map"]["tiles"];
+			//json roomSystemJson = data["room"];
+			//json attackIndicatorList = data["attack_indicators"];
+
+			// load enemies
+			std::queue<Entity> entities;
+			for (auto& entity : entityList) {
+				Entity e;
+				Inventory inv;
+				if (entity["type"] == "player") {
+					printf("111 type is player successful... loading player invetory \n");
+					loadPlayerCollectionTitleScreen(entity,floor_w, floor_h);
+					//player_main = e; 
+				}
+			}
+		}
+
+	}
 }
 
 void WorldSystem::updateGameBackground() {

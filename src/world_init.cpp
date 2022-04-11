@@ -872,10 +872,11 @@ Entity createGameBackground(RenderSystem* renderer, vec2 position, TEXTURE_ASSET
 
 // create entity for cutScene
 Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID tID) {
+
 	auto entity = Entity();
 
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
+	//Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	//registry.meshPtrs.emplace(entity, &mesh);
 
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -892,7 +893,7 @@ Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID tID) {
 		 tID, // textureAssetID
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::CUTSCENE
+		 RENDER_LAYER_ID::BG
 
 		}
 	);

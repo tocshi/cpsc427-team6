@@ -130,7 +130,7 @@ void TurnQueue::removeEntity(Entity e) {
 	}
 	// iterate through queue
 	Node* current = head->next;
-	while (current) {
+	while (current && current != (Node*)(0xcdcdcdcdcdcdcdcd)) {
 		// if current is the entity to be removed
 		if (current->e == e) {
 			// set the current previous one to point to the next
@@ -174,6 +174,7 @@ void TurnQueue::restructure() {
 	std::vector<EntityStatsStruct> esFaster;
 	while (length > 0) {
 		Entity e = getNext();
+		if (!registry.stats.has(e)) { continue; }
 		Stats s = registry.stats.get(e);
 		// if speed is greater, add to greater vector
 		if (s.speed > playerSpeed) {

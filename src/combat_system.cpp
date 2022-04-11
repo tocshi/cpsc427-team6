@@ -8,9 +8,10 @@
 // Parameters subject to change
 std::string deal_damage(Entity& attacker, Entity& defender, float multiplier, bool doProcs)
 {
+	if (!registry.stats.has(attacker) || !registry.stats.has(attacker)) { return "Error getting stats!"; }
 	// Damage Calculation
-	Stats& attacker_stats = registry.stats.get(attacker);
-	Stats& defender_stats = registry.stats.get(defender);
+	Stats attacker_stats = registry.stats.get(attacker);
+	Stats defender_stats = registry.stats.get(defender);
 	float final_damage = calc_damage(attacker, defender, multiplier);
 
 	// Post-calculation effects
@@ -53,9 +54,36 @@ std::string deal_damage(Entity& attacker, Entity& defender, float multiplier, bo
 	if (registry.players.has(attacker) && registry.enemies.has(defender)) {
 		auto& enemy_struct = registry.enemies.get(defender);
 		enemy_struct.hit_by_player = true;
+		// apparition teleport
+		if (registry.enemies.get(defender).type == ENEMY_TYPE::APPARITION) {
+			teleport(defender, attacker);
+		}
 	}
 
 	return log;
+}
+
+void teleport(Entity& enemy, Entity& player)
+{
+	Motion& player_motion = registry.motions.get(player);
+	Motion& enemy_motion = registry.motions.get(enemy);
+	bool valid = true;
+	vec2 new_pos = enemy_motion.position;
+	do {
+		float angle = irandRange(-M_PI, M_PI);
+		new_pos = dirdist_extrapolate(player_motion.position, angle, irandRange(600, 800));
+		Motion test = {};
+		test.position = new_pos;
+		test.scale = { ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT };
+		for (Entity e : registry.solid.entities) {
+			if ((registry.players.has(e) || registry.players.has(e)) &&
+				collides_circle(test, registry.motions.get(e))) {
+				valid = false;
+				break;
+			}
+		}
+	} while (!valid);
+	enemy_motion.position = new_pos;
 }
 
 // Entity directly takes damage
@@ -314,7 +342,8 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 	// Fungifier
 	if (attacker_inv.artifact[(int)ARTIFACT::FUNGIFIER] > 0 && final_damage >= defender_stats.hp) {
 		float multiplier = 130 * attacker_inv.artifact[(int)ARTIFACT::FUNGIFIER];
-		createTrap(world.renderer, attacker, defender_motion.position, {64, 64}, multiplier, 2, 1, TEXTURE_ASSET_ID::MUSHROOM);
+		Entity mushroom = createTrap(world.renderer, attacker, {0, 0}, { 64, 64 }, multiplier, 2, 1, TEXTURE_ASSET_ID::MUSHROOM);
+		registry.motions.get(mushroom).destination = defender_motion.position;
 	}
 	return final_damage;
 }
@@ -421,6 +450,8 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 					else {
 						stats.range += status.value;
 					}
+					world.remove_fog_of_war();
+					world.create_fog_of_war();
 					break;
 				case (StatusType::SLIMED):
 					if (status.percentage && registry.stats.has(entity)) {
@@ -476,6 +507,11 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 void handle_traps() {
 	for (Entity t : registry.traps.entities) {
 		Trap& trap = registry.traps.get(t);
+
+		if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
+			registry.motions.get(t).position = registry.motions.get(t).destination;
+		}
+
 		if (trap.turns <= 0 || trap.triggers <= 0) {
 			if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
 				trigger_trap(t, t);
@@ -490,23 +526,27 @@ void handle_traps() {
 // t is trap
 // trapped is the unfortunate victim
 void trigger_trap(Entity t, Entity trapped) {
+	if (!registry.motions.has(t)) { return; }
 	Trap& trap = registry.traps.get(t);
 	Motion& trap_motion = registry.motions.get(t);
 
 	// pre-switch instantiations (this is why I hate C++)
 	StatusEffect burrs = StatusEffect(0, 1, StatusType::BURR_DEBUFF, false, true);
+	if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
+		Entity explosion = createExplosion(world.renderer, trap_motion.position);
+		registry.motions.get(explosion).scale *= 2.f;
+		registry.colors.insert(explosion, { 0.8f, 2.f, 2.f, 1.f });
+	}
 
 	// do trap effect based on texture
 	switch (registry.renderRequests.get(t).used_texture) {
 	case TEXTURE_ASSET_ID::MUSHROOM:
 		for (Entity e : registry.enemies.entities) {
+			if (!e) { continue; }
 			Motion enemy_motion = registry.motions.get(e);
 			if (dist_to_edge(enemy_motion, registry.motions.get(t)) <= 50.f) {
 				deal_damage(trap.owner, e, trap.multiplier);
 			}
-			Entity explosion = createExplosion(world.renderer, trap_motion.position);
-			registry.motions.get(explosion).scale *= 2.f;
-			registry.colors.insert(explosion, {0.8f, 1.f, 1.f, 1.f});
 		}
 		break;
 	case TEXTURE_ASSET_ID::BURRS:

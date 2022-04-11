@@ -43,6 +43,9 @@ class RenderSystem {
 			textures_path("enemy/caveling.png"),
 			textures_path("enemy/kingslime.png"),
 			textures_path("attacks/slimeprojectile.png"),
+			textures_path("enemy/living_pebble.png"),
+			textures_path("enemy/living_rock.png"),
+			textures_path("enemy/apparition.png"),
 			textures_path("artifact.png"),
 			textures_path("consumable.png"),
 			textures_path("item/equipment.png"),
@@ -157,6 +160,8 @@ class RenderSystem {
 			textures_path("attacks/mushroom.png"),
 			textures_path("attacks/burrs.png"),
 			textures_path("boss_icon_backing.png"),
+			textures_path("cg/credits.png"),
+			textures_path("credits.png"),
 			textures_path("particles/poison_bubble.png"),
 			textures_path("particles/buff_arrow.png"),
 			textures_path("particles/slime_droplet.png"),
@@ -172,6 +177,7 @@ class RenderSystem {
 		shader_path("text"),
 		shader_path("fog"),
 		shader_path("ep_range"),
+		shader_path("attack_range"),
 		shader_path("tile"),
 	};
 

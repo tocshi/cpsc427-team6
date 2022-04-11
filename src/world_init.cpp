@@ -424,6 +424,184 @@ Entity createKingSlime(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+// Living Pebble
+Entity createLivingPebble(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 200;
+
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+
+	auto& enemy = registry.enemies.emplace(entity);
+	enemy.initialPosition = pos;
+	enemy.state = ENEMY_STATE::IDLE;
+	enemy.type = ENEMY_TYPE::LIVING_PEBBLE;
+	registry.inventories.emplace(entity);
+
+	// Create living pebble stats
+	auto& stats = registry.stats.emplace(entity);
+	stats.name = "Living Pebble";
+	stats.prefix = "the";
+	stats.maxhp = 1;
+	stats.hp = stats.maxhp;
+	stats.atk = 10;
+	stats.def = 999;
+	stats.speed = 11;
+	stats.range = 500;
+
+	registry.basestats.insert(entity, stats);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::LIVING_PEBBLE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
+
+	// add enemy to queuables
+	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
+
+	// add status container to living pebble
+	registry.statuses.emplace(entity);
+
+	// add hp bar 
+	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
+	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+
+	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
+	shadow_container.shadow_entity = createShadow(pos, entity);
+	return entity;
+}
+
+// Living Rock
+Entity createLivingRock(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 200;
+
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+
+	auto& enemy = registry.enemies.emplace(entity);
+	enemy.initialPosition = pos;
+	enemy.state = ENEMY_STATE::IDLE;
+	enemy.type = ENEMY_TYPE::LIVING_ROCK;
+	registry.inventories.emplace(entity);
+
+	// Create living pebble stats
+	auto& stats = registry.stats.emplace(entity);
+	stats.name = "Living Rock";
+	stats.prefix = "the";
+	stats.maxhp = 10;
+	stats.hp = stats.maxhp;
+	stats.atk = 0;
+	stats.def = 999;
+	stats.speed = 1;
+	stats.range = 400;
+
+	registry.basestats.insert(entity, stats);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::LIVING_ROCK,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
+
+	// add enemy to queuables
+	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
+
+	// add status container to living pebble
+	registry.statuses.emplace(entity);
+
+	// add hp bar 
+	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
+	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+
+	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
+	shadow_container.shadow_entity = createShadow(pos, entity);
+	return entity;
+}
+
+// Apparition
+Entity createApparition(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 200;
+
+	motion.scale = vec2({ ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT });
+
+	auto& enemy = registry.enemies.emplace(entity);
+	enemy.initialPosition = pos;
+	enemy.state = ENEMY_STATE::IDLE;
+	enemy.type = ENEMY_TYPE::APPARITION;
+	registry.inventories.emplace(entity);
+
+	// Create Apparition stats
+	auto& stats = registry.stats.emplace(entity);
+	stats.name = "Apparition";
+	stats.prefix = "the";
+	stats.maxhp = 40;
+	stats.hp = stats.maxhp;
+	stats.atk = 13;
+	stats.def = 4;
+	stats.speed = 13;
+	stats.range = 700;
+
+	registry.basestats.insert(entity, stats);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::APPARITION,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::APPARITION });
+	registry.hidables.emplace(entity);
+
+	// add enemy to queuables
+	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
+
+	// add status container to apparition
+	registry.statuses.emplace(entity);
+
+	// add hp bar 
+	EnemyHPBar& hpbar = registry.enemyHPBars.emplace(entity);
+	hpbar.hpBacking = createEnemyHPBacking(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+	hpbar.hpFill = createEnemyHPFill(pos + vec2(0, ENEMY_HP_BAR_OFFSET), entity);
+
+	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
+	shadow_container.shadow_entity = createShadow(pos, entity);
+	return entity;
+}
+
 // Generate Random Equipment
 Equipment createEquipment(EQUIPMENT type, int tier) {
 
@@ -1050,6 +1228,34 @@ Entity createMenuQuit(RenderSystem* renderer, vec2 pos)
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI_TOP });
+
+	return entity;
+}
+
+// Menu Credits Button
+Entity createMenuCredits(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ START_BB_WIDTH / 2, START_BB_HEIGHT / 2 });
+
+	// Create and (empty) START component to be able to refer to all start buttons
+	registry.menuItems.emplace(entity);
+	registry.buttons.insert(
+		entity,
+		{ BUTTON_ACTION_ID::CREDITS
+		});
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::CREDITS,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
 
 	return entity;
 }
@@ -2069,7 +2275,7 @@ Entity createMenuTitle(RenderSystem* renderer, vec2 pos)
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
 
-	motion.scale = vec2({ TITLE_BB_WIDTH, TITLE_BB_HEIGHT });
+	motion.scale = vec2({ window_width_px, window_height_px });
 
 	// Create and (empty) TITLE component to be able to refer to all title objects
 	registry.menuItems.emplace(entity);
@@ -2366,6 +2572,31 @@ Entity createEpRange(vec2 pos, float resolution, float radius, vec2 screen_resol
 			EFFECT_ASSET_ID::EP,
 			GEOMETRY_BUFFER_ID::EP,
 			RENDER_LAYER_ID::EFFECT });
+
+	return entity;
+}
+
+Entity createAttackRange(vec2 pos, float resolution, float radius, vec2 screen_resolution) {
+	auto entity = Entity();
+
+	// Setting initial motion values
+	Motion& motion = registry.motions.emplace(entity);
+	motion.position = pos;
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.scale = { resolution, resolution };
+
+	AttackRange& ar = registry.attackRange.emplace(entity);
+	ar.resolution = resolution;
+	ar.radius = radius;
+	ar.screen_resolution = screen_resolution;
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
+			EFFECT_ASSET_ID::ATTACK_RANGE,
+			GEOMETRY_BUFFER_ID::ATTACK_RANGE,
+			RENDER_LAYER_ID::FLOOR_DECO });
 
 	return entity;
 }

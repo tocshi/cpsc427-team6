@@ -86,6 +86,12 @@ Entity createTrap(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, fl
 Entity createCaveling(RenderSystem* renderer, vec2 pos);
 // King Slime
 Entity createKingSlime(RenderSystem* renderer, vec2 pos);
+// Living Pebble
+Entity createLivingPebble(RenderSystem* renderer, vec2 pos);
+// Living Rock
+Entity createLivingRock(RenderSystem* renderer, vec2 pos);
+// Apparition
+Entity createApparition(RenderSystem* renderer, vec2 pos);
 // Equipment
 Equipment createEquipment(EQUIPMENT type, int tier);
 Entity createEquipmentEntity(RenderSystem* renderer, vec2 pos, Equipment equipment);
@@ -111,6 +117,8 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 scale);
 Entity createMenuStart(RenderSystem* renderer, vec2 pos);
 // Menu quit
 Entity createMenuQuit(RenderSystem* renderer, vec2 pos);
+// Menu Credits
+Entity createMenuCredits(RenderSystem* renderer, vec2 pos);
 // Menu title
 Entity createMenuTitle(RenderSystem* renderer, vec2 pos);
 // Hotkey icon
@@ -157,6 +165,8 @@ Entity createEPFill(RenderSystem* renderer, vec2 position);
 Entity createFog(vec2 pos, float resolution, float radius, vec2 screenResolution);
 // Ep range
 Entity createEpRange(vec2 pos, float resolution, float radius, vec2 screenResolution);
+// Attack range
+Entity createAttackRange(vec2 pos, float resolution, float radius, vec2 screenResolution);
 // Camera
 Entity createCamera(vec2 pos);
 // Tiles

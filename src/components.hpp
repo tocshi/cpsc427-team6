@@ -38,7 +38,10 @@ enum class TEXTURE_ASSET_ID {
 	CAVELING = PLANT_PROJECTILE + 1,
 	KINGSLIME = CAVELING + 1,
 	SLIMEPROJECTILE = KINGSLIME + 1,
-	ARTIFACT = SLIMEPROJECTILE + 1,
+	LIVING_PEBBLE = SLIMEPROJECTILE + 1,
+	LIVING_ROCK = LIVING_PEBBLE + 1,
+	APPARITION = LIVING_ROCK + 1,
+	ARTIFACT = APPARITION + 1,
 	CONSUMABLE = ARTIFACT + 1,
 	EQUIPMENT = CONSUMABLE + 1,
 	CHEST_ITEM_CLOSED = EQUIPMENT + 1,
@@ -152,7 +155,9 @@ enum class TEXTURE_ASSET_ID {
 	MUSHROOM = SMOKE + 1,
 	BURRS = MUSHROOM + 1,
 	BOSS_ICON_BACKING = BURRS + 1,
-	POISON_BUBBLE = BOSS_ICON_BACKING + 1,
+	CG_CREDITS = BOSS_ICON_BACKING + 1,
+	CREDITS = CG_CREDITS + 1,
+	POISON_BUBBLE = CREDITS + 1,
 	BUFF_ARROW = POISON_BUBBLE + 1,
 	SLIME_DROPLET = BUFF_ARROW + 1,
 	TEXTURE_COUNT = SLIME_DROPLET + 1,
@@ -532,7 +537,10 @@ enum class ENEMY_TYPE {
 	PLANT_SHOOTER = SLIME + 1,
 	CAVELING = PLANT_SHOOTER + 1,
 	KING_SLIME = CAVELING + 1,
-	TYPE_COUNT = KING_SLIME + 1
+	LIVING_PEBBLE = KING_SLIME + 1,
+	LIVING_ROCK = LIVING_PEBBLE + 1,
+	APPARITION = LIVING_ROCK + 1,
+	TYPE_COUNT = APPARITION + 1
 };
 
 // simple component for all enemies
@@ -579,7 +587,8 @@ enum class BUTTON_ACTION_ID {
 	SCROLL_UP = SCROLL_DOWN + 1,
 	USE_ATTACK = SCROLL_DOWN + 1,
 	PREPARE_ATTACK = USE_ATTACK + 1,
-	ACTION_COUNT = PREPARE_ATTACK + 1
+	CREDITS = PREPARE_ATTACK + 1,
+	ACTION_COUNT = CREDITS + 1
 };
 const int button_action_count = (int)BUTTON_ACTION_ID::ACTION_COUNT;
 
@@ -614,6 +623,12 @@ struct EquipmentDialog {
 
 struct EpRange {
 	float radius = 450.f;
+	float resolution = 2000.f;
+	vec2 screen_resolution = { 1600.f, 900.f };
+};
+
+struct AttackRange {
+	float radius = 200.f;
 	float resolution = 2000.f;
 	vec2 screen_resolution = { 1600.f, 900.f };
 };
@@ -771,7 +786,9 @@ enum class Floors {
 	TUTORIAL = DEBUG + 1,
 	FLOOR1 = TUTORIAL + 1,
 	BOSS1 = FLOOR1 + 1,
-	FLOOR_COUNT = BOSS1 + 1
+	FLOOR2 = BOSS1 + 1,
+	BOSS2 = FLOOR2 + 1,
+	FLOOR_COUNT = BOSS2 + 1
 };
 
 const int floor_count = (int)Floors::FLOOR_COUNT;
@@ -834,7 +851,8 @@ enum class EFFECT_ASSET_ID {
 	TEXT = WIND + 1,
 	FOG = TEXT + 1,
 	EP = FOG + 1,
-	TILE = EP + 1,
+	ATTACK_RANGE = EP + 1,
+	TILE = ATTACK_RANGE + 1,
 	EFFECT_COUNT = TILE + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
@@ -847,7 +865,8 @@ enum class GEOMETRY_BUFFER_ID {
 	SPRITESHEET = ANIMATION + 1,
 	FOG = SPRITESHEET + 1,
 	EP = FOG + 1,
-	DEBUG_LINE = EP + 1,
+	ATTACK_RANGE = EP + 1,
+	DEBUG_LINE = ATTACK_RANGE + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
 	TEXTQUAD = SCREEN_TRIANGLE + 1,
 	GEOMETRY_COUNT = TEXTQUAD + 1
@@ -870,7 +889,8 @@ enum class RENDER_LAYER_ID {
 	WALLS = WALLS_INSTANCED + 1,
 	RANDOM_WALLS_INSTANCED = WALLS + 1,
 	RANDOM_WALLS = RANDOM_WALLS_INSTANCED + 1,
-	EFFECT = RANDOM_WALLS + 1,
+	APPARITION = RANDOM_WALLS + 1,
+	EFFECT = APPARITION + 1,
 	HP_BACKING = EFFECT + 1,
 	HP_FILL = HP_BACKING + 1,
 	DAMAGE_TEXT = HP_FILL + 1,
@@ -1104,7 +1124,7 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::SCOUT_STRIDE, "Consume 12% (*12% per stack) less EP when moving."},
 	{ARTIFACT::ART_CONSERVE, "Consume 8% (*8% per stack) less EP when attacking."},
 	{ARTIFACT::ARCANE_FUNNEL, "Upon defeating an enemy, gain a buff that doubles your MP regeneration for 1 (+1 per stack) turns."},
-	{ARTIFACT::FUNGIFIER, "Upon defeating an enemy, an explosive mushroom is dropped at their location. When an enemy steps on the mushroom, or after 3 turns, the mushroom explodes, dealing 130% (+130% per stack) ATK in damage in a small AoE."},
+	{ARTIFACT::FUNGIFIER, "Upon defeating an enemy, an explosive mushroom grows at their location on your next turn. When an enemy steps on the mushroom, or after 3 turns, the mushroom explodes, dealing 130% (+130% per stack) ATK in damage in a small AoE."},
 	{ARTIFACT::BURRBAG, "At the start of each turn, leave a patch of burrs on the ground that last for 5 turns or until activated 1 (+1 per stack) times. Enemies that step over the burrs will take 40% ATK in damage."},
 	{ARTIFACT::SMOKE_POWDER, "When opening a chest, release a cloud of smoke that halves the aggro range of enemies within 200 (+75 per stack) units for 1 turn."},
 	{ARTIFACT::LIVELY_BULB, "At the start of each turn, fire a seed projectile that deals 80% (+80% per stack) ATK damage towards the lowest HP enemy within your sight range."},

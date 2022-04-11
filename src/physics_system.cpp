@@ -224,6 +224,9 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 							}
 							else if (collides_AABB(motion, motion_registry.components[j])) {
 								target_valid = false;
+								if (registry.enemies.has(entity) && registry.enemies.get(entity).type == ENEMY_TYPE::APPARITION) {
+									target_valid = true;
+								}
 								break;
 							}
 						}

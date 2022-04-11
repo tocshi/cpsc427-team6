@@ -352,6 +352,9 @@ void apply_status(Entity& target, StatusEffect& status) {
 				add_emitter = true;
 			}
 			break;
+		case StatusType::SLIMED:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::SLIMED);
+			add_emitter = true;
 		default:
 			break;
 	}

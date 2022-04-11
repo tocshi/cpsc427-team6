@@ -1029,6 +1029,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				color.a -= (0.75 * elapsed_ms_since_last_update / 1500);
 			}
 			break;
+		case (PARTICLE_TYPE::SLIMED):
+			if (registry.motions.has(entity)) {
+				Motion& motion = registry.motions.get(entity);
+				motion.velocity.y += 0.4 * elapsed_ms_since_last_update; // gravity-like effect
+			}
+			break;
 		default:
 			break;
 		}
@@ -2860,6 +2866,9 @@ void WorldSystem::loadStatuses(Entity e, json statuses) {
 				add_emitter = true;
 			}
 			break;
+		case StatusType::SLIMED:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::SLIMED);
+			add_emitter = true;
 		default:
 			break;
 		}
@@ -4383,6 +4392,27 @@ ParticleEmitter setupParticleEmitter(PARTICLE_TYPE type) {
 		emitter.min_angle = M_PI;
 		emitter.max_angle = M_PI;
 		emitter.color_shift = { 1.f, 1.f, 0.f, 0.75f };
+		break;
+	case PARTICLE_TYPE::SLIMED:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::SLIME_DROPLET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 200;
+		emitter.max_interval_ms = 500;
+		emitter.particle_decay_ms = 520;
+		emitter.base_scale = vec2(12, 12);
+		emitter.min_scale_factor = 1.0;
+		emitter.max_scale_factor = 2.0;
+		emitter.min_offset_x = -32;
+		emitter.max_offset_x = 32;
+		emitter.min_offset_y = -32;
+		emitter.max_offset_y = -32;
+		emitter.min_velocity_x = 0;
+		emitter.max_velocity_x = 0;
+		emitter.min_velocity_y = 20;
+		emitter.max_velocity_y = 40;
 		break;
 	default:
 		break;

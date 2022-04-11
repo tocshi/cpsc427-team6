@@ -751,6 +751,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (enemy_stats.hp <= 0 || trap.triggers <= 0) { continue; }
 				else if (collides_circle(trap_motion, enemy_motion)) {
 					trigger_trap(t, e);
+					break;
 				}
 			}
 		}
@@ -761,6 +762,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (player_stats.hp <= 0 || trap.triggers <= 0) { continue; }
 				else if (collides_circle(trap_motion, player_motion)) {
 					trigger_trap(t, p);
+					break;
 				}
 			}
 		}
@@ -787,6 +789,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			registry.queueables.get(enemy).doing_turn = false;
 			if (registry.motions.get(enemy).in_motion) {
 				registry.motions.get(enemy).in_motion = false;
+				registry.motions.get(enemy).velocity = { 0, 0 };
 				doTurnOrderLogic();
 			}
 			
@@ -1662,7 +1665,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_9) {
-		int give = (int)ARTIFACT::FUNGIFIER;
+		int give = (int)ARTIFACT::KB_MALLET;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
@@ -1676,7 +1679,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
-		int give = (int)ARTIFACT::BURRBAG;
+		int give = (int)ARTIFACT::FUNGIFIER;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;

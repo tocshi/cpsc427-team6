@@ -1770,7 +1770,13 @@ Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player) {
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI_MID });
 
-	// render the x button
+	// render game over title
+	Entity title = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f, pos.y - COLLECTION_MENU_BB_HEIGHT / 1.8f + 20.f), "Game Over", 8.5f, vec3(1.0f, 0.f, 0.0f));
+	registry.menuItems.emplace(title);
+
+	// todo: render game over data
+
+	// create continue button (tiggers the black fade out and deletes the old save file)
 	auto close_entity = Entity();
 
 	Mesh& close_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
@@ -1784,25 +1790,16 @@ Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player) {
 	auto& close_motion = registry.motions.emplace(close_entity);
 	close_motion.angle = 0.f;
 	close_motion.velocity = { 0.f, 0.f };
-	close_motion.position = { pos.x + (COLLECTION_MENU_BB_WIDTH / 2) - 60, pos.y - (COLLECTION_MENU_BB_HEIGHT / 2) + 50 };
+	close_motion.position = vec2(pos.x, pos.y + COLLECTION_MENU_BB_HEIGHT / 2.2f);
 
-	close_motion.scale = vec2({ PAUSE_BUTTON_BB_WIDTH / 1.5, PAUSE_BUTTON_BB_HEIGHT / 1.5 });
+	close_motion.scale = vec2({ QUIT_BB_WIDTH, QUIT_BB_HEIGHT });
 
 	registry.renderRequests.insert(
 		close_entity,
-		{ TEXTURE_ASSET_ID::MENU_CLOSE,
+		{ TEXTURE_ASSET_ID::CONTINUE,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI_TOP });
-
-	// render game over title
-	Entity title = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 2.f + 20.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 3.f), "Game Over", 8.5f, vec3(1.0f, 0.f, 0.0f));
-	registry.menuItems.emplace(title);
-
-	// render game over data
-
-	// create continue button (tiggers the black fade out and deletes the old save file)
-
 
 	return entity;
 }

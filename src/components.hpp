@@ -38,7 +38,10 @@ enum class TEXTURE_ASSET_ID {
 	CAVELING = PLANT_PROJECTILE + 1,
 	KINGSLIME = CAVELING + 1,
 	SLIMEPROJECTILE = KINGSLIME + 1,
-	ARTIFACT = SLIMEPROJECTILE + 1,
+	LIVING_PEBBLE = SLIMEPROJECTILE + 1,
+	LIVING_ROCK = LIVING_PEBBLE + 1,
+	APPARITION = LIVING_ROCK + 1,
+	ARTIFACT = APPARITION + 1,
 	CONSUMABLE = ARTIFACT + 1,
 	EQUIPMENT = CONSUMABLE + 1,
 	CHEST_ITEM_CLOSED = EQUIPMENT + 1,
@@ -531,7 +534,10 @@ enum class ENEMY_TYPE {
 	PLANT_SHOOTER = SLIME + 1,
 	CAVELING = PLANT_SHOOTER + 1,
 	KING_SLIME = CAVELING + 1,
-	TYPE_COUNT = KING_SLIME + 1
+	LIVING_PEBBLE = KING_SLIME + 1,
+	LIVING_ROCK = LIVING_PEBBLE + 1,
+	APPARITION = LIVING_ROCK + 1,
+	TYPE_COUNT = APPARITION + 1
 };
 
 // simple component for all enemies
@@ -880,7 +886,8 @@ enum class RENDER_LAYER_ID {
 	WALLS = WALLS_INSTANCED + 1,
 	RANDOM_WALLS_INSTANCED = WALLS + 1,
 	RANDOM_WALLS = RANDOM_WALLS_INSTANCED + 1,
-	EFFECT = RANDOM_WALLS + 1,
+	APPARITION = RANDOM_WALLS + 1,
+	EFFECT = APPARITION + 1,
 	HP_BACKING = EFFECT + 1,
 	HP_FILL = HP_BACKING + 1,
 	DAMAGE_TEXT = HP_FILL + 1,
@@ -1065,7 +1072,7 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::SCOUT_STRIDE, "Consume 12% (*12% per stack) less EP when moving."},
 	{ARTIFACT::ART_CONSERVE, "Consume 8% (*8% per stack) less EP when attacking."},
 	{ARTIFACT::ARCANE_FUNNEL, "Upon defeating an enemy, gain a buff that doubles your MP regeneration for 1 (+1 per stack) turns."},
-	{ARTIFACT::FUNGIFIER, "Upon defeating an enemy, an explosive mushroom is dropped at their location. When an enemy steps on the mushroom, or after 3 turns, the mushroom explodes, dealing 130% (+130% per stack) ATK in damage in a small AoE."},
+	{ARTIFACT::FUNGIFIER, "Upon defeating an enemy, an explosive mushroom grows at their location on your next turn. When an enemy steps on the mushroom, or after 3 turns, the mushroom explodes, dealing 130% (+130% per stack) ATK in damage in a small AoE."},
 	{ARTIFACT::BURRBAG, "At the start of each turn, leave a patch of burrs on the ground that last for 5 turns or until activated 1 (+1 per stack) times. Enemies that step over the burrs will take 40% ATK in damage."},
 	{ARTIFACT::SMOKE_POWDER, "When opening a chest, release a cloud of smoke that halves the aggro range of enemies within 200 (+75 per stack) units for 1 turn."},
 	{ARTIFACT::LIVELY_BULB, "At the start of each turn, fire a seed projectile that deals 80% (+80% per stack) ATK damage towards the lowest HP enemy within your sight range."},

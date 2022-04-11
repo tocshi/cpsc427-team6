@@ -86,6 +86,12 @@ Entity createTrap(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, fl
 Entity createCaveling(RenderSystem* renderer, vec2 pos);
 // King Slime
 Entity createKingSlime(RenderSystem* renderer, vec2 pos);
+// Living Pebble
+Entity createLivingPebble(RenderSystem* renderer, vec2 pos);
+// Living Rock
+Entity createLivingRock(RenderSystem* renderer, vec2 pos);
+// Apparition
+Entity createApparition(RenderSystem* renderer, vec2 pos);
 // Equipment
 Equipment createEquipment(EQUIPMENT type, int tier);
 Entity createEquipmentEntity(RenderSystem* renderer, vec2 pos, Equipment equipment);

@@ -356,6 +356,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 		update_turn_ui();
 		doTurnOrderLogic();
+		remove_fog_of_war();
+		create_fog_of_war();
 	}
 
 	double mouseXpos, mouseYpos;
@@ -575,7 +577,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (registry.actionButtons.entities.size() < 4) {
 			// bring back all of the buttons
-			// TODO: tutorial (sequentially add buttons depending on flags)
+			// sequentially add buttons depending on flags
 			if (tutorial) {
 				if (tutorial_flags & SIGN_1 && registry.actionButtons.entities.size() < 1) { createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale }); }
 				if (tutorial_flags & EP_DEPLETED && registry.actionButtons.entities.size() < 2) { createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD); }
@@ -737,16 +739,21 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Check traps for collisions/activations
 	for (Entity t : registry.traps.entities) {
+		if (!registry.traps.has(t)) { continue; }
 		Trap& trap = registry.traps.get(t);
+		if (trap.triggers <= 0) { continue; }
 		Motion& trap_motion = registry.motions.get(t);
 		
 		if (registry.players.has(trap.owner)) {
 			for (Entity e : registry.enemies.entities) {
+				// hacky way of having enemies not die when spawning on top of a trap
+				if (registry.iFrameTimers.has(e)) { continue; }
 				Motion& enemy_motion = registry.motions.get(e);
 				Stats& enemy_stats = registry.stats.get(e);
 				if (enemy_stats.hp <= 0 || trap.triggers <= 0) { continue; }
 				else if (collides_circle(trap_motion, enemy_motion)) {
 					trigger_trap(t, e);
+					break;
 				}
 			}
 		}
@@ -757,6 +764,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (player_stats.hp <= 0 || trap.triggers <= 0) { continue; }
 				else if (collides_circle(trap_motion, player_motion)) {
 					trigger_trap(t, p);
+					break;
 				}
 			}
 		}
@@ -774,19 +782,24 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			playEnemyDeathSound(registry.enemies.get(enemy).type);
       
-			// TEMP: drop healing item from enemy with 1/3 chance
 			int roll = irand(3);
-			if (roll == 0 && !tutorial) {
-				createConsumable(renderer, registry.motions.get(enemy).position + vec2(16, 16), CONSUMABLE::INSTANT);
-			}
 
-			// remove from turn queue
-			turnOrderSystem.removeFromQueue(enemy);
+			registry.queueables.get(enemy).doing_turn = false;
+			if (current_game_state == GameStates::ENEMY_TURN) {
+				registry.motions.get(enemy).in_motion = false;
+				registry.motions.get(enemy).velocity = { 0, 0 };
+				doTurnOrderLogic();
+			}
+			
 			// remove from solids
 			if (registry.solid.has(enemy)) {
 				registry.solid.remove(enemy);
 			}
-			if (!tutorial)
+			if (!tutorial && registry.enemies.get(enemy).type != ENEMY_TYPE::LIVING_PEBBLE)
+				// TEMP: drop healing item from enemy with 1/3 chance
+				if (roll == 0 && !tutorial) {
+					createConsumable(renderer, registry.motions.get(enemy).position + vec2(16, 16), CONSUMABLE::INSTANT);
+				}
 				roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
 			if (registry.bosses.has(enemy)) {
 				roomSystem.updateObjective(ObjectiveType::DEFEAT_BOSS, 1);
@@ -804,8 +817,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			// remove from enemy list so aoes don't crash the game trying to deal damage to a dead enemy
 			if (registry.enemies.has(enemy)) {
+				// remove from turn queue
+				turnOrderSystem.removeFromQueue(enemy);
 				registry.enemies.remove(enemy);
 			}
+
+			
 		}
 	}
 
@@ -1024,6 +1041,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// remove entity once the timer has expired
 		if (counter.counter_ms < 0) {
 			registry.remove_all_components_of(entity);
+		}
+	}
+
+	// iframe timers for enemies to not get spawnkilled by traps and break turn ui
+	for (Entity entity : registry.iFrameTimers.entities) {
+		// progress timer
+		ExpandTimer& counter = registry.iFrameTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+
+		// remove entity once the timer has expired
+		if (counter.counter_ms < 0) {
+			registry.iFrameTimers.remove(entity);
 		}
 	}
 
@@ -1509,6 +1538,14 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 			case Floors::BOSS1:
 				createKingSlime(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 				break;
+			case Floors::FLOOR2:
+				if (roll < 2) {
+					createLivingRock(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				}
+				else {
+					createApparition(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				}
+				break;
 			}
 		}
 	}
@@ -1630,6 +1667,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		Mix_PlayChannel(-1, ui_click, 0);
 	}
 
+	// DEBUG: TRAP
+	if (action == GLFW_RELEASE && key == GLFW_KEY_Q) {
+		createTrap(world.renderer, player_main, registry.motions.get(player_main).position, {64, 64}, 400, 4, 5, TEXTURE_ASSET_ID::BURRS);
+	}
+
 	// DEBUG: HEAL PLAYER
 	if (action == GLFW_RELEASE && key == GLFW_KEY_EQUAL) {
 		Stats& stat = registry.stats.get(player_main);
@@ -1641,7 +1683,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_9) {
-		int give = (int)ARTIFACT::FUNGIFIER;
+		int give = (int)ARTIFACT::BURRBAG;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
@@ -1655,7 +1697,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
-		int give = (int)ARTIFACT::LIVELY_BULB;
+		int give = (int)ARTIFACT::FUNGIFIER;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
@@ -1719,7 +1761,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_3) {
 		// end turn/ guard
-		if (current_game_state == GameStates::BATTLE_MENU) {
+		if (current_game_state == GameStates::BATTLE_MENU && registry.squishTimers.size() <= 0) {
 			if (tutorial) {
 				if (tutorial_flags & EP_DEPLETED) {
 					for (Entity e : registry.guardButtons.entities) {
@@ -1811,6 +1853,9 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		if (current_game_state == GameStates::ATTACK_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ITEM_MENU) {
 			backAction();
 		}
+
+		// no ending turn if enemies are currently in the process of dying
+		if (registry.squishTimers.size() <= 0) { return; }
 
 		if (tutorial) {
 			if (tutorial_flags & EP_DEPLETED) {
@@ -1992,6 +2037,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						start_game();
 						roomSystem.current_floor = Floors::FLOOR1;
 						spawn_game_entities();
+						roomSystem.setRandomObjective();
 					}
 					break;
 				case BUTTON_ACTION_ID::CREDITS:
@@ -2164,7 +2210,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		///////////////////////////
 		// logic for guard button presses
 		///////////////////////////
-		if (current_game_state == GameStates::BATTLE_MENU) {
+		if (current_game_state == GameStates::BATTLE_MENU && registry.squishTimers.size() <= 0) {
 			for (Entity e : registry.guardButtons.entities) {
 				if (!registry.motions.has(e)) {
 					continue;
@@ -3367,7 +3413,6 @@ void WorldSystem::doTurnOrderLogic() {
 			logText("It is now your turn!");
 			set_gamestate(GameStates::BATTLE_MENU);
 		}
-
 		// handle start-of-turn behaviour
 		handle_status_ticks(currentTurnEntity, true, false);
 		reset_stats(currentTurnEntity);
@@ -3644,9 +3689,13 @@ void WorldSystem::updateTutorial() {
 
 // Set attack state for enemies who attack after moving
 void set_enemy_state_attack(Entity enemy) {
+	if (!registry.enemies.has(enemy)) { return; }
 	if (registry.enemies.get(enemy).type == ENEMY_TYPE::SLIME ||
 		registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER ||
-		registry.enemies.get(enemy).type == ENEMY_TYPE::CAVELING) {
+		registry.enemies.get(enemy).type == ENEMY_TYPE::CAVELING ||
+		registry.enemies.get(enemy).type == ENEMY_TYPE::LIVING_ROCK ||
+		registry.enemies.get(enemy).type == ENEMY_TYPE::LIVING_PEBBLE ||
+		registry.enemies.get(enemy).type == ENEMY_TYPE::APPARITION) {
 		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
 	}
 }
@@ -3715,7 +3764,6 @@ void remove_status(Entity e, StatusType status, int number) {
 	}
 	reset_stats(e);
 	calc_stats(e);
-	return;
 }
   
 void WorldSystem::handleActionButtonPress() {
@@ -3939,6 +3987,7 @@ void WorldSystem::update_turn_ui() {
 
 	for (int count = 0; !queue.empty() && count < 5; queue.pop()) {
 		Entity e = queue.front();
+		if (!registry.motions.has(e)) { continue; }
 		if (!registry.hidden.has(e)) {
 			offset[0] = 48.f*count + 32.f;
 			TEXTURE_ASSET_ID texture_id = registry.renderRequests.get(e).used_texture;

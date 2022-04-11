@@ -1215,6 +1215,34 @@ Entity createMenuQuit(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+// Menu Credits Button
+Entity createMenuCredits(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ START_BB_WIDTH / 2, START_BB_HEIGHT / 2 });
+
+	// Create and (empty) START component to be able to refer to all start buttons
+	registry.menuItems.emplace(entity);
+	registry.buttons.insert(
+		entity,
+		{ BUTTON_ACTION_ID::CREDITS
+		});
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::CREDITS,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+
+	return entity;
+}
+
 // Keybind icons
 Entity createKeyIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture) {
 	auto entity = Entity();
@@ -2230,7 +2258,7 @@ Entity createMenuTitle(RenderSystem* renderer, vec2 pos)
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
 
-	motion.scale = vec2({ TITLE_BB_WIDTH, TITLE_BB_HEIGHT });
+	motion.scale = vec2({ window_width_px, window_height_px });
 
 	// Create and (empty) TITLE component to be able to refer to all title objects
 	registry.menuItems.emplace(entity);

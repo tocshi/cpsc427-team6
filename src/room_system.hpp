@@ -21,12 +21,12 @@ public:
 private:
 	const std::map<Floors, std::vector<std::string>> floor_map_data = {
 		{
-			Floors::TUTORIAL,
-			{"tutorial1.tmx"}
-		},
-		{
 			Floors::DEBUG,
 			{"debug_room.tmx"}
+		},
+		{
+			Floors::TUTORIAL,
+			{"tutorial1.tmx"}
 		},
 		{
 			Floors::FLOOR1, 
@@ -38,7 +38,11 @@ private:
 		},
 		{
 			Floors::FLOOR2,
-			{"map1.tmx", "map2.tmx", "map3.tmx"}	// TODO: replace with floor 2 maps
+			{"map4.tmx", "map5.tmx", "map6.tmx"}
+		},
+		{
+			Floors::BOSS2,
+			{"boss2.tmx"}
 		}
 	};
 };

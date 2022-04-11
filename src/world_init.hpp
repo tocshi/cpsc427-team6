@@ -117,6 +117,8 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 scale);
 Entity createMenuStart(RenderSystem* renderer, vec2 pos);
 // Menu quit
 Entity createMenuQuit(RenderSystem* renderer, vec2 pos);
+// Menu Credits
+Entity createMenuCredits(RenderSystem* renderer, vec2 pos);
 // Menu title
 Entity createMenuTitle(RenderSystem* renderer, vec2 pos);
 // Hotkey icon

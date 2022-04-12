@@ -604,7 +604,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		hideGuardButton = false;
 	}
 	// Update HP/MP/EP bars and movement
-	// Check for player death
+	// Check for player death / walking
 	for (Entity player : registry.players.entities) {
 		Player& p = registry.players.get(player);
 		
@@ -615,6 +615,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		float& maxhp = registry.stats.get(player).maxhp;
 		float& maxmp = registry.stats.get(player).maxmp;
 		float& maxep = registry.stats.get(player).maxep;
+
+		// stop walking
+		if (!registry.motions.get(player_main).in_motion && registry.animations.has(player_main)) {
+			registry.animations.remove(player_main);
+			registry.renderRequests.get(player_main).used_texture = TEXTURE_ASSET_ID::PLAYER;
+			registry.renderRequests.get(player_main).used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+		}
 
 		// Check if player has died
 		if (hp <= 0 && !registry.deathTimers.has(player)) {
@@ -2349,11 +2356,25 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						float x_component = cos(angle) * speed;
 						float y_component = sin(angle) * speed;
 						motion_struct.velocity = { x_component, y_component };
-						//motion_struct.angle = angle + (0.5 * M_PI);
 						motion_struct.destination = { world_pos.x, world_pos.y };
 						motion_struct.in_motion = true;
 						player_move_click = true;
 						player.moved = true;
+
+						// set walk animation
+						if (!registry.animations.has(player_main)) {
+							AnimationData& anim = registry.animations.emplace(player_main);
+							anim.spritesheet_texture = TEXTURE_ASSET_ID::PLAYER_SHEET;
+							anim.frametime_ms = 80;
+							anim.frame_indices = { 0, 1, 2, 3 };
+							anim.spritesheet_columns = 4;
+							anim.spritesheet_rows = 1;
+							anim.spritesheet_width = 128;
+							anim.spritesheet_height = 32;
+							anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
+							registry.renderRequests.get(player_main).used_texture = TEXTURE_ASSET_ID::PLAYER_SHEET;
+							registry.renderRequests.get(player_main).used_geometry = GEOMETRY_BUFFER_ID::ANIMATION;
+						}
 					}
 					break;
 				default:
@@ -4179,7 +4200,13 @@ void WorldSystem::update_turn_ui() {
 		if (!registry.motions.has(e)) { continue; }
 		if (!registry.hidden.has(e)) {
 			offset[0] = 48.f*count + 32.f;
-			TEXTURE_ASSET_ID texture_id = registry.renderRequests.get(e).used_texture;
+			TEXTURE_ASSET_ID texture_id;
+			if (registry.players.has(e)) {
+				texture_id = TEXTURE_ASSET_ID::PLAYER;
+			}
+			else {
+				texture_id = registry.renderRequests.get(e).used_texture;
+			}
 			createIcon(renderer, position - startPos + offset, texture_id);
 			count++;
 		}

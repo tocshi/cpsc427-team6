@@ -617,7 +617,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Check if player has died
 		if (hp <= 0 && !registry.deathTimers.has(player) && current_game_state != GameStates::GAME_OVER_MENU) {
 			// render the game over dialog
-			createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player);
+			// todo: get actual floor location
+			if (p.floor == 1) {
+				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::FLOOR_ONE);
+			}
+			else {
+				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::FLOOR_TWO);
+			}
 			set_gamestate(GameStates::GAME_OVER_MENU);
 			logText("You have died!");
 			player_move_click = false;

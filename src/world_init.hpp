@@ -188,7 +188,7 @@ Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack, bool 
 // equipment type dialog
 Entity createEquipmentDialog(RenderSystem* renderer, vec2 pos, Equipment item);
 // game over dialog
-Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player);
+Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player, GAME_OVER_REASON reason, GAME_OVER_LOCATION location);
 // cutscene
 Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID textureID);
 // Turn UI

@@ -1750,7 +1750,7 @@ Entity createEquipmentDialog(RenderSystem* renderer, vec2 pos, Equipment item) {
 }
 
 // game over dialog
-Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player) {
+Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player, GAME_OVER_REASON reason, GAME_OVER_LOCATION location) {
 	auto entity = Entity();
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
@@ -1771,10 +1771,75 @@ Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player) {
 		 RENDER_LAYER_ID::UI_MID });
 
 	// render game over title
-	Entity title = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f, pos.y - COLLECTION_MENU_BB_HEIGHT / 5.f + 20.f), "Game Over", 8.5f, vec3(1.0f, 0.f, 0.0f));
+	Entity title = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f, pos.y - COLLECTION_MENU_BB_HEIGHT / 6.f + 20.f), "Game Over", 8.5f, vec3(1.0f, 0.f, 0.0f));
 	registry.menuItems.emplace(title);
 
 	// todo: render game over data
+	// render reason
+	Entity reasonEnt;
+	switch (reason) {
+	case GAME_OVER_REASON::PLAYER_DIED:
+		reasonEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 200.f), "You have fallen...", 2.5f, vec3(0.0f));
+		registry.equipmentDialogs.emplace(reasonEnt);
+		break;
+	case GAME_OVER_REASON::BOSS_DEFEATED:
+		reasonEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 200.f), "You have risen...", 2.5f, vec3(0.0f));
+		registry.equipmentDialogs.emplace(reasonEnt);
+		break;
+	}
+
+	// render location
+	Entity locationEnt;
+	switch (location) {
+	case GAME_OVER_LOCATION::FLOOR_ONE:
+		locationEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 100.f), "With naive wanderlust, you crawl to safety.", 2.5f, vec3(0.0f));
+		registry.equipmentDialogs.emplace(locationEnt);
+		break;
+	case GAME_OVER_LOCATION::BOSS_ONE:
+		locationEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 100.f), "Overcome by adversity, you withdraw.", 2.5f, vec3(0.0f));
+		registry.equipmentDialogs.emplace(locationEnt);
+		break;
+	case GAME_OVER_LOCATION::FLOOR_TWO:
+		locationEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 100.f), "Grasping onto shreds of hope, you collapse.", 2.5f, vec3(0.0f));
+		registry.equipmentDialogs.emplace(locationEnt);
+		break;
+	case GAME_OVER_LOCATION::BOSS_TWO:
+		locationEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 100.f), "Struggling to face your reflection, you retreat.", 2.5f, vec3(0.0f));
+		registry.equipmentDialogs.emplace(locationEnt);
+		break;
+	}
+
+	// case where you beat the final boss
+	if (reason == GAME_OVER_REASON::BOSS_DEFEATED && location == GAME_OVER_LOCATION::BOSS_TWO) {
+		Entity finalEnt = createDialogText(renderer, vec2(pos.x - COLLECTION_MENU_BB_WIDTH / 4.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 100.f), "With newfound revelations, you break free.", 2.5f, vec3(0.0f));
+		registry.equipmentDialogs.emplace(finalEnt);
+	}
+
+	// render stats
+	Player player_comp = registry.players.get(player);
+
+	std::string floorString = "Floors cleared: " + std::to_string((int)player_comp.floor - 1);
+	Entity floorsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2), floorString, 2.f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(floorsEnt);
+
+	std::string roomsString = "Rooms cleared: " + std::to_string((int)player_comp.total_rooms);
+	Entity roomsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 50.f), roomsString, 2.f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(roomsEnt);
+
+	// TODO: chests opened
+
+	Inventory inv = registry.inventories.get(player);
+	int artifact_count = 0;
+	for (int i = 0; i < (int)ARTIFACT::ARTIFACT_COUNT; i++) {
+		if (inv.artifact[i] > 0) {
+			artifact_count++;
+		}
+	}
+	std::string artifactsString = "Unique Artifacts collected: " + std::to_string((int)artifact_count);
+	Entity artifactsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 100.f), artifactsString, 2.f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(artifactsEnt);
+
+	// TODO: potions consumed
 
 	// create continue button (tiggers the black fade out and deletes the old save file)
 	auto close_entity = Entity();

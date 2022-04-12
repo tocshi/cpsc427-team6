@@ -930,6 +930,22 @@ struct GuardButton {
 	BUTTON_ACTION_ID action = BUTTON_ACTION_ID::ACTIONS_GUARD;
 };
 
+// game over reasons
+enum class GAME_OVER_REASON {
+	PLAYER_DIED = 0,
+	BOSS_DEFEATED = PLAYER_DIED + 1,
+	GAME_OVER_COUNT = BOSS_DEFEATED + 1
+};
+
+// game over location
+enum class GAME_OVER_LOCATION {
+	FLOOR_ONE = 0,
+	BOSS_ONE = FLOOR_ONE + 1,
+	FLOOR_TWO = BOSS_ONE + 1,
+	BOSS_TWO = FLOOR_TWO + 1,
+	GAME_OVER_LOCATION_COUNT = FLOOR_TWO + 1
+};
+
 // hotkey icon
 struct KeyIcon {
 

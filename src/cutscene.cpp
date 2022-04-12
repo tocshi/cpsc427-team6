@@ -27,8 +27,8 @@ void CutSceneSystem::cut_scene_text_log(RenderSystem* renderer, std::string msg)
 
 
 void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number) {
-	//“Submit your dungeon - themed game here!Winner will be decided by a board of professional judges...”
-	//“...$1000 cash reward, and a chance to work with a development team to further expand your game idea!”
+	//"Submit your dungeon - themed game here!Winner will be decided by a board of professional judges..."
+	//"..$1000 cash reward, and a chance to work with a development team to further expand your game idea!"
 	while (registry.textboxes.entities.size() > 0) {
 		registry.remove_all_components_of(registry.textboxes.entities.back());
 	}
@@ -109,7 +109,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 	if (cut_scene_number == 8) { // notebook 
 		messages = {
 			{
-				"Alright! Now that’s a lot of progress for now, but I’ve still got a ways ",
+				"Alright! Now that's a lot of progress for now, but I've still got a ways ",
 				"to go.",
 			},
 		};
@@ -126,7 +126,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 	if (cut_scene_number == 10) { //[room] angry 
 		messages = {
 			{
-				"Ugh, not now, not while I’m still in the groove!",
+				"Ugh, not now, not while I'm still in the groove!",
 			},
 		};
 	}
@@ -174,7 +174,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 	if (cut_scene_number == 16) { //screen fades to black
 		messages = {
 			{
-				"*screen fades to black*",
+				"",
 			},
 		};
 	}
@@ -190,7 +190,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 	if (cut_scene_number == 18) { //confused cave
 		messages = {
 			{
-				"This place...where am I? And why...? I can’t seem to remember...",
+				"This place...where am I? And why...? I can't seem to remember...",
 				
 			},
 		};
@@ -208,7 +208,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 	if (cut_scene_number == 20) { //screen fades to black
 		messages = {
 			{
-				"There’s gotta be something around here...",
+				"There's gotta be something around here...",
 
 			},
 		};
@@ -294,10 +294,9 @@ void CutSceneSystem::scene_transition(RenderSystem* renderer, int cut_scene_numb
 
 	}
 	else if (cut_scene_number == 16){ // fade to black or main_menu
-	
-		printf("screen should fade to black");
-		updateDialogue(renderer, cut_scene_number);
-	
+		Entity temp = Entity();
+		FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+		timer.type = TRANSITION_TYPE::CUTSCENE_SWITCH;
 	}
 	else if (cut_scene_number == 17 || cut_scene_number == 18) { // cave confused
 		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_CAVE);

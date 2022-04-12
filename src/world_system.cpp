@@ -900,6 +900,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			case (TRANSITION_TYPE::MAIN_TO_CREDITS):
 				enter_credits();
 				break;
+			case (TRANSITION_TYPE::CUTSCENE_SWITCH):
+				countCutScene++;
+				cutSceneSystem.updateDialogue(renderer, countCutScene);
+				break;
 			default:
 				break;
 			}
@@ -1299,6 +1303,7 @@ void WorldSystem::cut_scene_start() {
 		registry.remove_all_components_of(registry.cameras.entities.back());
 
 	// Add a camera entity
+	registry.remove_all_components_of(active_camera_entity);
 	active_camera_entity = createCamera({ 0, 0 });
 
 	registry.list_all_components();

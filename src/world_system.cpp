@@ -2056,15 +2056,15 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			printf(":%d\n", countCutScene);
 			countCutScene++;
 			/*if (current_game_state != GameStates::CUTSCENE_DIALOGUE) {
-				
+
 				printf("true not in cut_scene dialoge\n");
-				
+
 			}*/
-		
-			
+
+
 
 			cut_scene_start();
-			if (current_game_state == GameStates::CUTSCENE && countCutScene == 19) {
+			if (current_game_state == GameStates::CUTSCENE && countCutScene == 21){
 				// fade to main_menu screen 
 				//screen.darken_screen_factor = 0;
 				set_gamestate(GameStates::MAIN_MENU);

@@ -780,8 +780,15 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 
 	// Stand Your Ground
 	if (registry.hidden.has(enemy) && (state == ENEMY_STATE::AGGRO || state == ENEMY_STATE::ATTACK)) {
-		
+		printf("Turn Number %i: Stand Your Ground!\n", boss.num_turns);
+		// Random Dialogue
+		roll = irand(3);
+		if (roll < 1) { world.logText("???: Running won't do you any good!", { 1.0, 0.2, 0.2 }); }
+		else if (roll < 2) { world.logText("???: Don't let me out of your sight!", { 1.0, 0.2, 0.2 }); }
+		else { world.logText("???: You can't escape your fate!", { 1.0, 0.2, 0.2 }); }
 
+
+		state == ENEMY_STATE::ATTACK;
 		boss.num_turns++;
 		return;
 	}
@@ -814,7 +821,7 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 			if (player_in_range(motion_struct.position, 300.f)) {
 				if (!registry.knockbacks.has(player)) {
 					KnockBack& knockback = registry.knockbacks.emplace(player);
-					knockback.remaining_distance = max(0.f, 400 - dist_to(motion_struct.position, player_motion.position));
+					knockback.remaining_distance = max(50.f, 350 - dist_to(motion_struct.position, player_motion.position));
 					knockback.angle = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
 				}
 			}
@@ -841,16 +848,72 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 		state = ENEMY_STATE::AGGRO;
 		break;
 	case ENEMY_STATE::AGGRO:
-		
+
+		// Random Attack
+		roll = irand(3);
+		// Choose Your Fate
+		if (roll < 1) { 
+			printf("Turn Number %i: Choose Your Fate!\n", boss.num_turns);
+			// Random Dialogue
+			roll = irand(3);
+			if (roll < 1) { world.logText("???: Come. Take your pick.", { 1.0, 0.2, 0.2 }); }
+			else if (roll < 2) { world.logText("???: Let's see what you can do.", { 1.0, 0.2, 0.2 }); }
+			else { world.logText("???: Now now, you won't get forever to decide.", { 1.0, 0.2, 0.2 }); }
+
+
+
+			state = ENEMY_STATE::CHARGING_MELEE;
+		}
+		// Be Not Alone
+		else if (roll < 2) { 
+			printf("Turn Number %i: Be Not Alone!\n", boss.num_turns);
+			// Random Dialogue
+			roll = irand(3);
+			if (roll < 1) { world.logText("???: Let me introduce you to my friends...", { 1.0, 0.2, 0.2 }); }
+			else if (roll < 2) { world.logText("???: These ones shall keep you in good company...", { 1.0, 0.2, 0.2 }); }
+			else { world.logText("???: Let's see if you can handle this.", { 1.0, 0.2, 0.2 }); }
+
+
+
+			state = ENEMY_STATE::CHARGING_RANGED;
+		}
+		// Be Not Afraid
+		else { 
+			printf("Turn Number %i: Be Not Afraid!\n", boss.num_turns);
+			// Random Dialogue
+			roll = irand(3);
+			if (roll < 1) { world.logText("???: Your fear will be your downfall!", { 1.0, 0.2, 0.2 }); }
+			else if (roll < 2) { world.logText("???: There's no escape!", { 1.0, 0.2, 0.2 }); }
+			else { world.logText("???: Feeling afraid?", { 1.0, 0.2, 0.2 }); }
+
+
+
+			state = ENEMY_STATE::ATTACK;
+		}
+
 		break;
 	case ENEMY_STATE::CHARGING_MELEE:
+		printf("Turn Number %i: Triggering AoE!\n", boss.num_turns);
+		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
+			if (player_in_range(motion_struct.position, registry.motions.get(registry.attackIndicators.entities[i]).scale.x / 2)) {
+				world.logText(deal_damage(enemy, player, 200));
+			}
+			printf("Removed Attack Indicator!\n");
+			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
+		}
 		state = ENEMY_STATE::ATTACK;
 		break;
 	case ENEMY_STATE::CHARGING_RANGED:
+		printf("Turn Number %i: Triggering Global ATK Buff!\n", boss.num_turns);
+		for (Entity e : registry.enemies.entities) {
+			StatusEffect buff = StatusEffect(0.5, 3, StatusType::ATK_BUFF, true, true);
+			apply_status(e, buff);
+		}
 		state = ENEMY_STATE::ATTACK;
 		break;
 	case ENEMY_STATE::DEATH:
 		// death
+		world.logText("???: Looks like...you've found what you're looking for...", { 1.0, 0.2, 0.2 });
 		world.playMusic(Music::RUINS);
 		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
 			printf("Removed Attack Indicator!\n");

@@ -37,31 +37,31 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 	if (cut_scene_number == 0) {
 		std::vector<std::vector<std::string>> messages = {
 			{
-				"''Daring Dungeons Game Jam''",
+				"\"Daring Dungeons Game Jam\"",
 
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.255),messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2),messages);
 	}
 	
 	if (cut_scene_number == 1) {
 		std::vector<std::vector<std::string>> messages = {
 			{
-				"''Submit your dungeon-themed game here! Winners will be decided by",
-				"a board of professional judges...''",
+				"\"Submit your dungeon-themed game here! Winners will be decided by",
+				"a board of professional judges...\"",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25), messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 
 	if (cut_scene_number == 2) {
 		std::vector<std::vector<std::string>> messages = {
 			{	
-				"''...$1000 cash reward, and a chance to work with a development team to",
-				"further expand your game idea!.''",
+				"\"...$1000 cash reward, and a chance to work with a development team to",
+				"further expand your game idea!.\"",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25),messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2),messages);
 	}
 
 	if (cut_scene_number == 3) { // happy
@@ -70,7 +70,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 			"Oh heck yes! I feel like I was made for this!",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25),messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2),messages);
 	}
 	
 	if (cut_scene_number == 4) { // normal
@@ -79,16 +79,16 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 			"Wait...how long do I have to make a game?",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25),messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2),messages);
 	}
 	
 	if (cut_scene_number == 5) { // surprised
 		std::vector<std::vector<std::string>> messages = {
 			{
-				" By the end of the month?!? Whoa whoa whoa!!",
+				"By the end of the month?!? Whoa whoa whoa!!",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25), messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 6) { // normal
@@ -98,7 +98,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 				
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25), messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 7) { // normal + many hours of writing 
@@ -107,7 +107,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 				"*many hours of writing and brainstorming later...*",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25), messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 8) { // notebook 
@@ -117,7 +117,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 				"to go.",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25), messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 
 	if (cut_scene_number == 9) { // stomache growling
@@ -126,7 +126,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 				"*stomach growling*",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25), messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 10) { //[room] angry 
@@ -135,7 +135,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 				"Ugh, not now, not while I’m still in the groove!",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25), messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 11) { //[room] normal
@@ -144,7 +144,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 				"Just a bit more...",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25), messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 12) { //[room] normal
@@ -153,7 +153,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 				"Just...",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25), messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 13) { //[room] angry
@@ -162,7 +162,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 				"a...",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25), messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 14) { //[room] angry
@@ -171,7 +171,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 				"bit...",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25), messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 15) { //[room] angry
@@ -180,7 +180,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 				"mor-",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25), messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 16) { //screen fades to black
@@ -189,7 +189,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 				"*screen fades to black*",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25), messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 17) { // confused cave
@@ -198,7 +198,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 				"Where...? What...?",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25), messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 18) { //confused cave
@@ -208,7 +208,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 				
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25), messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 19) { //screen fades to black
@@ -218,17 +218,17 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 				
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25), messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 20) { //screen fades to black
 		std::vector<std::vector<std::string>> messages = {
 			{
-				"There’s gotta be something around here…",
+				"There’s gotta be something around here...",
 
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.25), messages);
+		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	//updateTextBox(renderer, activeTextbox);
 }
@@ -268,7 +268,7 @@ void CutSceneSystem::updateTextBox(RenderSystem* renderer, Entity activeTextbox)
 
 
 void CutSceneSystem::scene_transition(RenderSystem* renderer, int cut_scene_number) {
-	cut_scene_text_log(renderer, "Press Escape to skip");
+	cut_scene_text_log(renderer, "Press Esc to skip");
 	
 	if (cut_scene_number == 0 || cut_scene_number ==1 || cut_scene_number== 2) {
 		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);

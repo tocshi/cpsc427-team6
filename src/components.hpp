@@ -32,13 +32,18 @@
 enum class TEXTURE_ASSET_ID {
 	BG = 0,
 	PLAYER = BG + 1,
-	SLIME = PLAYER + 1,
+	PLAYER_SHEET = PLAYER + 1,
+	REFLEXION = PLAYER_SHEET + 1,
+	SLIME = REFLEXION + 1,
 	PLANT_SHOOTER = SLIME + 1,
 	PLANT_PROJECTILE = PLANT_SHOOTER + 1,
 	CAVELING = PLANT_PROJECTILE + 1,
 	KINGSLIME = CAVELING + 1,
 	SLIMEPROJECTILE = KINGSLIME + 1,
-	ARTIFACT = SLIMEPROJECTILE + 1,
+	LIVING_PEBBLE = SLIMEPROJECTILE + 1,
+	LIVING_ROCK = LIVING_PEBBLE + 1,
+	APPARITION = LIVING_ROCK + 1,
+	ARTIFACT = APPARITION + 1,
 	CONSUMABLE = ARTIFACT + 1,
 	EQUIPMENT = CONSUMABLE + 1,
 	CHEST_ITEM_CLOSED = EQUIPMENT + 1,
@@ -152,7 +157,17 @@ enum class TEXTURE_ASSET_ID {
 	MUSHROOM = SMOKE + 1,
 	BURRS = MUSHROOM + 1,
 	BOSS_ICON_BACKING = BURRS + 1,
-	TEXTURE_COUNT = BOSS_ICON_BACKING + 1,
+	CG_CREDITS = BOSS_ICON_BACKING + 1,
+	CREDITS = CG_CREDITS + 1,
+	POISON_BUBBLE = CREDITS + 1,
+	BUFF_ARROW = POISON_BUBBLE + 1,
+	SLIME_DROPLET = BUFF_ARROW + 1,
+	STUN_PARTICLE = SLIME_DROPLET + 1,
+	INVINCIBLE_PARTICLE = STUN_PARTICLE + 1,
+	HP_REGEN_PARTICLE = INVINCIBLE_PARTICLE + 1,
+	FATE = HP_REGEN_PARTICLE + 1,
+	ORB = FATE + 1,
+	TEXTURE_COUNT = ORB + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -310,7 +325,7 @@ struct Player
 {
 	float s;
 	int gacha_pity = 0;
-	int floor = 1; // TODO: turn this back to 0 when tutorial is implemented
+	int floor = 1;
 	int room = 0;
 	int total_rooms = 0;
 	// current action taking (count acts as no current action being taken)
@@ -336,7 +351,9 @@ enum class Music {
 	BACKGROUND = NONE + 1,
 	MENU = BACKGROUND + 1,
 	CUTSCENE = MENU + 1,
-	BOSS0 = CUTSCENE + 1
+	BOSS0 = CUTSCENE + 1,
+	RUINS = BOSS0 + 1,
+	BOSS1 = RUINS + 1
 };
 
 // All data relevant to the shape and motion of entities
@@ -529,7 +546,11 @@ enum class ENEMY_TYPE {
 	PLANT_SHOOTER = SLIME + 1,
 	CAVELING = PLANT_SHOOTER + 1,
 	KING_SLIME = CAVELING + 1,
-	TYPE_COUNT = KING_SLIME + 1
+	LIVING_PEBBLE = KING_SLIME + 1,
+	LIVING_ROCK = LIVING_PEBBLE + 1,
+	APPARITION = LIVING_ROCK + 1,
+	REFLEXION = APPARITION + 1,
+	TYPE_COUNT = REFLEXION + 1
 };
 
 // simple component for all enemies
@@ -576,7 +597,8 @@ enum class BUTTON_ACTION_ID {
 	SCROLL_UP = SCROLL_DOWN + 1,
 	USE_ATTACK = SCROLL_DOWN + 1,
 	PREPARE_ATTACK = USE_ATTACK + 1,
-	ACTION_COUNT = PREPARE_ATTACK + 1
+	CREDITS = PREPARE_ATTACK + 1,
+	ACTION_COUNT = CREDITS + 1
 };
 const int button_action_count = (int)BUTTON_ACTION_ID::ACTION_COUNT;
 
@@ -774,7 +796,9 @@ enum class Floors {
 	TUTORIAL = DEBUG + 1,
 	FLOOR1 = TUTORIAL + 1,
 	BOSS1 = FLOOR1 + 1,
-	FLOOR_COUNT = BOSS1 + 1
+	FLOOR2 = BOSS1 + 1,
+	BOSS2 = FLOOR2 + 1,
+	FLOOR_COUNT = BOSS2 + 1
 };
 
 const int floor_count = (int)Floors::FLOOR_COUNT;
@@ -869,13 +893,15 @@ enum class RENDER_LAYER_ID {
 	FLOOR_DECO_INSTANCED = FLOOR + 1,
 	FLOOR_DECO = FLOOR_DECO_INSTANCED + 1,
 	SHADOW = FLOOR_DECO + 1,
-	SPRITE = SHADOW + 1,
+	TRAPS = SHADOW + 1,
+	SPRITE = TRAPS + 1,
 	PLAYER = SPRITE + 1,
 	WALLS_INSTANCED = PLAYER + 1,
 	WALLS = WALLS_INSTANCED + 1,
 	RANDOM_WALLS_INSTANCED = WALLS + 1,
 	RANDOM_WALLS = RANDOM_WALLS_INSTANCED + 1,
-	EFFECT = RANDOM_WALLS + 1,
+	APPARITION = RANDOM_WALLS + 1,
+	EFFECT = APPARITION + 1,
 	HP_BACKING = EFFECT + 1,
 	HP_FILL = HP_BACKING + 1,
 	DAMAGE_TEXT = HP_FILL + 1,
@@ -970,6 +996,57 @@ struct ItemCard {
 struct ExpandTimer {
 	float counter_ms = 300;
 	float target_scale = 1.0;
+};
+
+enum class PARTICLE_TYPE {
+	POISON = 0,
+	ATK_UP = POISON + 1,
+	ATK_DOWN = ATK_UP + 1,
+	RANGE_UP = ATK_DOWN + 1,
+	RANGE_DOWN = RANGE_UP + 1,
+	DEF_UP = RANGE_DOWN + 1,
+	DEF_DOWN = DEF_UP + 1,
+	INVINCIBLE = DEF_DOWN + 1,
+	SLIMED = INVINCIBLE + 1,
+	HP_REGEN = SLIMED + 1,
+	STUN = HP_REGEN + 1,
+};
+
+struct ParticleEmitter {
+	PARTICLE_TYPE type;
+	RenderRequest render_data;
+	float min_interval_ms = 500;
+	float max_interval_ms = 500;
+	float counter_ms = 0;
+	float particle_decay_ms = 1000;
+
+	vec2 base_scale;
+	float min_scale_factor;
+	float max_scale_factor;
+
+	float min_offset_x;
+	float max_offset_x;
+	float min_offset_y;
+	float max_offset_y;
+
+	float min_velocity_x;
+	float max_velocity_x;
+	float min_velocity_y;
+	float max_velocity_y;
+
+	float min_angle;
+	float max_angle;
+
+	vec4 color_shift = { 1.f, 1.f, 1.f, 1.f };
+};
+
+struct Particle {
+	PARTICLE_TYPE type;
+	float counter_ms;
+};
+
+struct ParticleContainer {
+	std::vector<ParticleEmitter> emitters;
 };
 
 // Artifact name map
@@ -1076,7 +1153,7 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::SCOUT_STRIDE, "Consume 12% (*12% per stack) less EP when moving."},
 	{ARTIFACT::ART_CONSERVE, "Consume 8% (*8% per stack) less EP when attacking."},
 	{ARTIFACT::ARCANE_FUNNEL, "Upon defeating an enemy, gain a buff that doubles your MP regeneration for 1 (+1 per stack) turns."},
-	{ARTIFACT::FUNGIFIER, "Upon defeating an enemy, an explosive mushroom is dropped at their location. When an enemy steps on the mushroom, or after 3 turns, the mushroom explodes, dealing 130% (+130% per stack) ATK in damage in a small AoE."},
+	{ARTIFACT::FUNGIFIER, "Upon defeating an enemy, an explosive mushroom grows at their location on your next turn. When an enemy steps on the mushroom, or after 3 turns, the mushroom explodes, dealing 130% (+130% per stack) ATK in damage in a small AoE."},
 	{ARTIFACT::BURRBAG, "At the start of each turn, leave a patch of burrs on the ground that last for 5 turns or until activated 1 (+1 per stack) times. Enemies that step over the burrs will take 40% ATK in damage."},
 	{ARTIFACT::SMOKE_POWDER, "When opening a chest, release a cloud of smoke that halves the aggro range of enemies within 200 (+75 per stack) units for 1 turn."},
 	{ARTIFACT::LIVELY_BULB, "At the start of each turn, fire a seed projectile that deals 80% (+80% per stack) ATK damage towards the lowest HP enemy within your sight range."},

@@ -86,6 +86,14 @@ Entity createTrap(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, fl
 Entity createCaveling(RenderSystem* renderer, vec2 pos);
 // King Slime
 Entity createKingSlime(RenderSystem* renderer, vec2 pos);
+// Living Pebble
+Entity createLivingPebble(RenderSystem* renderer, vec2 pos);
+// Living Rock
+Entity createLivingRock(RenderSystem* renderer, vec2 pos);
+// Apparition
+Entity createApparition(RenderSystem* renderer, vec2 pos);
+// Reflexion
+Entity createReflexion(RenderSystem* renderer, vec2 pos);
 // Equipment
 Equipment createEquipment(EQUIPMENT type, int tier);
 Entity createEquipmentEntity(RenderSystem* renderer, vec2 pos, Equipment equipment);
@@ -111,6 +119,8 @@ Entity createWall(RenderSystem* renderer, vec2 pos, vec2 scale);
 Entity createMenuStart(RenderSystem* renderer, vec2 pos);
 // Menu quit
 Entity createMenuQuit(RenderSystem* renderer, vec2 pos);
+// Menu Credits
+Entity createMenuCredits(RenderSystem* renderer, vec2 pos);
 // Menu title
 Entity createMenuTitle(RenderSystem* renderer, vec2 pos);
 // Hotkey icon
@@ -237,3 +247,5 @@ Entity createBossIconBacking(RenderSystem* renderer, vec2 pos, Entity parent);
 Entity createBossIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id, Entity parent);
 // shadow for enemies
 Entity createShadow(vec2 pos, Entity caster);
+// spawn particle
+Entity createParticle(vec2 pos, ParticleEmitter& emitter);

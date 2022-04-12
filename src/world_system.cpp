@@ -9,6 +9,7 @@
 
 #include "physics_system.hpp"
 #include "combat_system.hpp"
+#include "save_system.hpp"
 
 // Game configuration
 // decalre gamestates
@@ -624,6 +625,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			else {
 				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::FLOOR_TWO);
 			}
+			save_system.deleteFile();
 			set_gamestate(GameStates::GAME_OVER_MENU);
 			logText("You have died!");
 			player_move_click = false;

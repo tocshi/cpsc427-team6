@@ -21,6 +21,7 @@ public:
 	void living_pebble_logic(Entity enemy, Entity& player);
 	void living_rock_logic(Entity enemy, Entity& player);
 	void apparition_logic(Entity enemy, Entity& player);
+	void reflexion_logic(Entity enemy, Entity& player);
 	bool player_in_range(vec2 position, float radius);
 };
 

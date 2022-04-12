@@ -349,7 +349,9 @@ enum class Music {
 	BACKGROUND = NONE + 1,
 	MENU = BACKGROUND + 1,
 	CUTSCENE = MENU + 1,
-	BOSS0 = CUTSCENE + 1
+	BOSS0 = CUTSCENE + 1,
+	RUINS = BOSS0 + 1,
+	BOSS1 = RUINS + 1
 };
 
 // All data relevant to the shape and motion of entities
@@ -545,7 +547,8 @@ enum class ENEMY_TYPE {
 	LIVING_PEBBLE = KING_SLIME + 1,
 	LIVING_ROCK = LIVING_PEBBLE + 1,
 	APPARITION = LIVING_ROCK + 1,
-	TYPE_COUNT = APPARITION + 1
+	REFLEXION = APPARITION + 1,
+	TYPE_COUNT = REFLEXION + 1
 };
 
 // simple component for all enemies

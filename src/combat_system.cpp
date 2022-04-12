@@ -273,12 +273,14 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 		int roll = irand(100);
 		int chance = 15 * attacker_inv.artifact[(int)ARTIFACT::THUNDER_TWIG];
 		if (roll < chance) {
-			//world.logText("The Thundering Twig summons a bolt of lightning!");
 			float damage = attacker_stats.atk * 0.60;
 			// using bigslash as a template entity LOL
 			Entity lightning = createBigSlash(world.renderer, { defender_motion.position.x, defender_motion.position.y - 512.f }, 0, 0);
 			registry.renderRequests.get(lightning).used_texture = TEXTURE_ASSET_ID::LIGHTNING;
 			registry.motions.get(lightning).scale = {1024, 1024};
+			Entity explosion = createExplosion(world.renderer, defender_motion.position);
+			registry.motions.get(explosion).scale *= 2.f;
+			registry.colors.insert(explosion, { 2.f, 0.8f, 2.f, 1.f });
 
 			for (Entity e : registry.enemies.entities) {
 				Motion enemy_motion = registry.motions.get(e);

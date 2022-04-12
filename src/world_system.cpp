@@ -35,6 +35,12 @@ void WorldSystem::destroyMusic() {
 		Mix_FreeMusic(menu_music);
 	if (cutscene_music != nullptr)
 		Mix_FreeMusic(cutscene_music);
+	if (boss0_music != nullptr)
+		Mix_FreeMusic(boss0_music);
+	if (ruins_music != nullptr)
+		Mix_FreeMusic(ruins_music);
+	if (boss1_music != nullptr)
+		Mix_FreeMusic(boss1_music);
 	if (door_sound != nullptr)
 		Mix_FreeChunk(door_sound);
 	if (switch_sound != nullptr)
@@ -180,6 +186,8 @@ GLFWwindow* WorldSystem::create_window() {
 	menu_music = Mix_LoadMUS(audio_path("bgm/menu0.wav").c_str());
 	cutscene_music = Mix_LoadMUS(audio_path("bgm/dream0.wav").c_str());
 	boss0_music = Mix_LoadMUS(audio_path("bgm/boss0.wav").c_str());
+	ruins_music = Mix_LoadMUS(audio_path("bgm/ruins0.wav").c_str());
+	boss1_music = Mix_LoadMUS(audio_path("bgm/boss1.wav").c_str());
 
 	// Sounds and volumes
 	fire_explosion_sound = Mix_LoadWAV(audio_path("feedback/fire_explosion.wav").c_str());
@@ -1000,7 +1008,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			registry.motions.get(entity).scale = counter.orig_scale;
 			registry.wobbleTimers.remove(entity);
 
-			if (registry.enemies.get(entity).type == ENEMY_TYPE::KING_SLIME && !registry.solid.has(entity)) {
+			if (registry.bosses.has(entity) && !registry.solid.has(entity)) {
 				registry.solid.emplace(entity);
 			}
 		}
@@ -1367,7 +1375,7 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 
 	set_is_player_turn(false);
 	player_move_click = false;
-	logText("It is now the enemies' turn!");
+	logText("It is now the enemies' turn!", {0.6, 0.6, 0.6});
 	// set player's doing_turn to false
 	registry.queueables.get(player).doing_turn = false;
 	set_gamestate(GameStates::ENEMY_TURN);
@@ -1500,7 +1508,7 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::BOSS2, true);
 	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 
 	spawnData = createTiles(renderer, next_map);
@@ -1630,6 +1638,9 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 					createApparition(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 				}
 				break;
+			case Floors::BOSS2:
+				createReflexion(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				break;
 			}
 		}
 	}
@@ -1652,6 +1663,7 @@ void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int
 			
 			switch (roomSystem.current_floor) {
 			case Floors::BOSS1:
+			case Floors::BOSS2:
 				createCampfire(renderer, { itemSpawns[i].x, itemSpawns[i].y });
 			default:
 				// temporary, later we can also randomize the item types
@@ -1781,7 +1793,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
-		int give = (int)ARTIFACT::POISON_FANG;
+		int give = (int)ARTIFACT::FUNGIFIER;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
@@ -2121,9 +2133,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					else {
 						start_game();
-						roomSystem.current_floor = Floors::FLOOR1;
+						roomSystem.current_floor = Floors::BOSS2;
 						spawn_game_entities();
-						roomSystem.setRandomObjective();
+						roomSystem.setObjective(ObjectiveType::DEFEAT_BOSS, 1);
+						//roomSystem.setRandomObjective();
 					}
 					break;
 				case BUTTON_ACTION_ID::CREDITS:
@@ -3520,7 +3533,7 @@ void WorldSystem::loadAttackIndicators(json indicatorList) {
 	}
 }
 
-void WorldSystem::logText(std::string msg) {
+void WorldSystem::logText(std::string msg, vec3 color) {
 	// (note: if we want to use createText in other applications, we can create a logged text entity)
 	// shift existing logged text upwards
 
@@ -3531,9 +3544,8 @@ void WorldSystem::logText(std::string msg) {
 
 	// vec2 defaultPos = vec2((2.0f * window_width_px) * (1.f/20.f), (2.0f * window_height_px) * (7.f/10.f));
 	vec2 defaultPos = vec2(50.f, (2.0f * window_height_px) * (7.f/10.f));
-	vec3 textColor = vec3(1.0f, 1.0f, 1.0f); // white
 
-	Entity e = createText(renderer, defaultPos, msg, 1.5f, textColor);
+	Entity e = createText(renderer, defaultPos, msg, 1.5f, color);
 	TextTimer& timer = registry.textTimers.emplace(e);
 	timer.counter_ms = 8000;
 }
@@ -3567,7 +3579,7 @@ void WorldSystem::doTurnOrderLogic() {
 		if (registry.players.has(currentTurnEntity)) {
 			set_is_player_turn(true);
 			start_player_turn();
-			logText("It is now your turn!");
+			logText("It is now your turn!", { 0.6, 0.6, 0.6 });
 			set_gamestate(GameStates::BATTLE_MENU);
 		}
 		// handle start-of-turn behaviour
@@ -4165,7 +4177,7 @@ void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
 	turnOrderSystem.getNextTurn();
 
 	// create an objective
-	if (roomSystem.current_floor == Floors::BOSS1) {
+	if (roomSystem.current_floor == Floors::BOSS1 || roomSystem.current_floor == Floors::BOSS2) {
 		roomSystem.setObjective(ObjectiveType::DEFEAT_BOSS, 1);
 	}
 	else {
@@ -4655,6 +4667,14 @@ void WorldSystem::playMusic(Music music) {
 	case Music::BOSS0:
 		current_music = music;
 		Mix_PlayMusic(boss0_music, -1);
+		break;
+	case Music::RUINS:
+		current_music = music;
+		Mix_PlayMusic(ruins_music, -1);
+		break;
+	case Music::BOSS1:
+		current_music = music;
+		Mix_PlayMusic(boss1_music, -1);
 		break;
 	default:
 		printf("unsupported Music enum value %d\n", music);

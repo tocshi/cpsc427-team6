@@ -70,6 +70,9 @@ void AISystem::step(Entity e)
 				case ENEMY_TYPE::APPARITION:
 					apparition_logic(e, player);
 					break;
+				case ENEMY_TYPE::REFLEXION:
+					reflexion_logic(e, player);
+					break;
 			}
 		}
 	}
@@ -762,6 +765,102 @@ void AISystem::apparition_logic(Entity enemy, Entity& player) {
 		}
 		break;
 	}
+}
+
+void AISystem::reflexion_logic(Entity enemy, Entity& player) {
+	Motion& player_motion = registry.motions.get(player);
+	Boss& boss = registry.bosses.get(enemy);
+	Stats& stats = registry.stats.get(enemy);
+	Motion& motion_struct = registry.motions.get(enemy);
+	ENEMY_STATE& state = registry.enemies.get(enemy).state;
+	int roll = irand(3);
+	float aggroRange = stats.range;
+	float meleeRange = 100.f;
+	float dir = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
+
+	// Stand Your Ground
+	if (registry.hidden.has(enemy) && (state == ENEMY_STATE::AGGRO || state == ENEMY_STATE::ATTACK)) {
+		
+
+		boss.num_turns++;
+		return;
+	}
+
+	// perform action (trust me, I'm not YandereDev, this is just a sequential state machine)
+	switch (state) {
+	case ENEMY_STATE::IDLE:
+		printf("Turn Number %i: Doing Nothing!\n", boss.num_turns);
+		if (boss.num_turns < 2) { world.logText("???: So you've made it this far...", { 1.0, 0.2, 0.2 }); }
+		else if (boss.num_turns < 3) { world.logText("???: Perhaps, you may have found the answer you're looking for.", { 1.0, 0.2, 0.2 }); }
+		else if (boss.num_turns < 4) { world.logText("???: It would be a shame to have gotten to this point only to fall...", { 1.0, 0.2, 0.2 }); }
+		else if (boss.num_turns < 5) { 
+			world.logText("???: Oh, where are my manners?", { 1.0, 0.2, 0.2 });
+			world.logText("???: Let me take a form you're more familiar with...", { 1.0, 0.2, 0.2 });
+		}
+		else if (boss.num_turns < 6) {
+			world.logText("???: So tell me, just what is it you desire?", { 1.0, 0.2, 0.2 });
+
+			motion_struct.position = motion_struct.destination;
+
+			// remove solid lol
+			if (!registry.wobbleTimers.has(enemy)) {
+				WobbleTimer& wobble = registry.wobbleTimers.emplace(enemy);
+				wobble.orig_scale = motion_struct.scale;
+				wobble.counter_ms = 500;
+				registry.solid.remove(enemy);
+			}
+
+			// KB player
+			if (player_in_range(motion_struct.position, 300.f)) {
+				if (!registry.knockbacks.has(player)) {
+					KnockBack& knockback = registry.knockbacks.emplace(player);
+					knockback.remaining_distance = max(0.f, 400 - dist_to(motion_struct.position, player_motion.position));
+					knockback.angle = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
+				}
+			}
+
+			// add hp bar 
+			BossHPBar& hpbar = registry.bossHPBars.emplace(enemy);
+			vec2 anchorPos = { window_width_px * 0.5f, window_height_px * (1.f / 16.f) };
+			hpbar.icon = createBossIcon(world.renderer, anchorPos, TEXTURE_ASSET_ID::REFLEXION, enemy);
+			hpbar.iconBacking = createBossIconBacking(world.renderer, anchorPos, enemy);
+			hpbar.hpBacking = createBossHPBacking(anchorPos + vec2(0, 48), enemy);
+			hpbar.hpFill = createBossHPFill(anchorPos + vec2(0, 48), enemy);
+
+			Entity curse = createBigSlash(world.renderer, motion_struct.position, 0, 10000);
+			registry.renderRequests.get(curse).used_texture = TEXTURE_ASSET_ID::CURSE;
+			registry.expandTimers.get(curse).counter_ms = 500;
+			registry.colors.insert(curse, {0.f, 0.f, 0.f, 1.f});
+
+			world.playMusic(Music::BOSS1);
+			state = ENEMY_STATE::AGGRO;
+		}
+		break;
+	case ENEMY_STATE::ATTACK:
+		printf("Turn Number %i: Taking Break!\n", boss.num_turns);
+		state = ENEMY_STATE::AGGRO;
+		break;
+	case ENEMY_STATE::AGGRO:
+		
+		break;
+	case ENEMY_STATE::CHARGING_MELEE:
+		state = ENEMY_STATE::ATTACK;
+		break;
+	case ENEMY_STATE::CHARGING_RANGED:
+		state = ENEMY_STATE::ATTACK;
+		break;
+	case ENEMY_STATE::DEATH:
+		// death
+		world.playMusic(Music::RUINS);
+		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
+			printf("Removed Attack Indicator!\n");
+			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
+		}
+		break;
+	default:
+		printf("Enemy State not supported!\n");
+	}
+	boss.num_turns++;
 }
 
 // returns true if the player entity is in range of the given position and radius

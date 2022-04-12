@@ -602,6 +602,61 @@ Entity createApparition(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
+// Final Boss
+Entity createReflexion(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = { 0.f, 0.f };
+	motion.destination = pos;
+	motion.in_motion = false;
+	motion.movement_speed = 7174;
+
+	motion.scale = vec2({ PLAYER_BB_WIDTH, PLAYER_BB_HEIGHT });
+
+	auto& enemy = registry.enemies.emplace(entity);
+	enemy.initialPosition = pos;
+	enemy.state = ENEMY_STATE::IDLE;
+	enemy.type = ENEMY_TYPE::REFLEXION;
+	registry.inventories.emplace(entity);
+	registry.bosses.emplace(entity);
+
+	// Create reflexion stats
+	auto& stats = registry.stats.emplace(entity);
+	stats.name = "???";
+	stats.prefix = "";
+	stats.maxhp = 1000;
+	stats.hp = stats.maxhp;
+	stats.atk = 15;
+	stats.def = 6;
+	stats.speed = 10;
+	stats.range = 3000;
+
+	registry.basestats.insert(entity, stats);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::REFLEXION,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE });
+	registry.hidables.emplace(entity);
+
+	// add enemy to queuables
+	registry.queueables.emplace(entity);
+	registry.solid.emplace(entity);
+
+	// add status container to boss
+	registry.statuses.emplace(entity);
+
+	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
+	shadow_container.shadow_entity = createShadow(pos, entity);
+	return entity;
+}
+
 // Generate Random Equipment
 Equipment createEquipment(EQUIPMENT type, int tier) {
 
@@ -2907,8 +2962,8 @@ Entity createExplosion(RenderSystem* renderer, vec2 pos) {
 	anim.frame_indices = { 0, 1, 2, 3, 4, 5, 6, 7 };
 	anim.spritesheet_columns = 2;
 	anim.spritesheet_rows = 4;
-	anim.spritesheet_width = 367;
-	anim.spritesheet_height = 185;
+	anim.spritesheet_width = 192;
+	anim.spritesheet_height = 364;
 	anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
 
 	Motion& motion = registry.motions.emplace(entity);

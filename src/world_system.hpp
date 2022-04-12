@@ -71,7 +71,7 @@ public:
 	Entity player_main;
 
 	// Tutorial flags
-	bool tutorial = true;
+	bool tutorial = false;
 	unsigned short tutorial_flags = 0x0; // 16 bits
 	enum flags {
 		SIGN_1 = 1, // welcome -> movement
@@ -136,6 +136,8 @@ public:
 	Mix_Music* menu_music;
 	Mix_Music* cutscene_music;
 	Mix_Music* boss0_music;
+	Mix_Music* ruins_music;
+	Mix_Music* boss1_music;
 
 	Music current_music = Music::NONE;
 
@@ -166,7 +168,7 @@ public:
 	Entity activeTextbox;
 
 	// log text
-	void logText(std::string msg);
+	void logText(std::string msg, vec3 color = { 1.0, 1.0, 1.0 });
 
 	void spawn_doors_random_location(int quantity, bool has_boss_doors = false);
 	void spawn_switches_random_location(int quantity);

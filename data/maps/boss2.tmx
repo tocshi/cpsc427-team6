@@ -171,7 +171,7 @@
   <object id="543" x="160" y="640" width="192" height="160"/>
   <object id="544" x="448" y="640" width="192" height="160"/>
   <object id="545" x="352" y="768" width="96" height="32"/>
-  <object id="546" x="160" y="0" width="480" height="160"/>
+  <object id="546" x="160" y="0" width="480" height="146"/>
  </objectgroup>
  <objectgroup id="8" name="item">
   <properties>

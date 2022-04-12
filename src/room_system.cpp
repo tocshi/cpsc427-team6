@@ -38,7 +38,6 @@ void RoomSystem::setObjective(ObjectiveType type, int quantity) {
 		world.logText("Find and destroy the enemy hive!");
 		break;
 	case ObjectiveType::DEFEAT_BOSS:
-		world.logText("Defeat the boss monster.");
 		break;
 	default:
 		break;

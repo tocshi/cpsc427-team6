@@ -3389,8 +3389,23 @@ void WorldSystem::loadTraps(json trapList) {
 			if (traps["owner"] == "player") {
 				printf("loading the traps back to page \n");
 				p = player_main;
-				createTrap(renderer, player_main, m.position, m.scale, multipler, turns, triggers, texture);
+				createTrap(renderer, p, m.position, m.scale, multipler, turns, triggers, texture);
 			}
+			else if (traps["owner"] == "enemy") {
+				for (Entity e : registry.enemies.entities) {
+					if (registry.enemies.has(e)) {
+						p = e;
+						break;
+					}
+				}
+				createTrap(renderer, p, m.position, m.scale, multipler, turns, triggers, texture);
+				printf("loading trap back to page enemy owned\n");
+			}
+			if (traps["colors"] != nullptr) { // if has color insert it 
+				printf("it has colors");
+				registry.colors.insert(p, vec4(traps["colors"]["x"], traps["colors"]["y"], traps["colors"]["z"], traps["colors"]["w"]));
+			}
+
 		}
 	}
 

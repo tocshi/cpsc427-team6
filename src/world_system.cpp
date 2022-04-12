@@ -278,7 +278,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Updating window title with points
 	std::stringstream title_ss;
-	title_ss << "Adrift In Somnium: Alpha Build";
+	title_ss << "Adrift In Somnium";
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step

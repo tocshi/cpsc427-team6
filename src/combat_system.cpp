@@ -573,7 +573,7 @@ void trigger_trap(Entity t, Entity trapped) {
 
 	// pre-switch instantiations (this is why I hate C++)
 	StatusEffect burrs = StatusEffect(0, 1, StatusType::BURR_DEBUFF, false, true);
-	StatusEffect boss_poison = StatusEffect(0.2 * registry.stats.get(t).atk, 5, StatusType::POISON, false, false);
+	StatusEffect boss_poison = StatusEffect(0.2 * trap.multiplier, 5, StatusType::POISON, false, false);
 	StatusEffect boss_atk_buff = StatusEffect(0.3, 3, StatusType::ATK_BUFF, true, true);
 	StatusEffect boss_regen_buff = StatusEffect(10, 3, StatusType::HP_REGEN, false, true);
 	vec4 color = vec4(1.f);

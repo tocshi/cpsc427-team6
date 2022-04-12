@@ -166,7 +166,7 @@ public:
 	Entity activeTextbox;
 
 	// log text
-	void logText(std::string msg);
+	void logText(std::string msg, vec3 textColor = vec3(1.0f));
 
 	void spawn_doors_random_location(int quantity, bool has_boss_doors = false);
 	void spawn_switches_random_location(int quantity);

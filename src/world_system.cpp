@@ -1793,7 +1793,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
-		int give = (int)ARTIFACT::FUNGIFIER;
+		int give = (int)ARTIFACT::POISON_FANG;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
@@ -1953,7 +1953,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 
 		// no ending turn if enemies are currently in the process of dying
-		if (registry.squishTimers.size() <= 0) { return; }
+		if (registry.squishTimers.size() > 0) { return; }
 
 		if (tutorial) {
 			if (tutorial_flags & EP_DEPLETED) {
@@ -4694,18 +4694,18 @@ ParticleEmitter setupParticleEmitter(PARTICLE_TYPE type) {
 			RENDER_LAYER_ID::EFFECT };
 		emitter.min_interval_ms = 300;
 		emitter.max_interval_ms = 600;
-		emitter.particle_decay_ms = 2000;
-		emitter.base_scale = vec2(32, 32);
+		emitter.particle_decay_ms = 1500;
+		emitter.base_scale = vec2(20, 20);
 		emitter.min_scale_factor = 0.5;
 		emitter.max_scale_factor = 1.2;
 		emitter.min_offset_x = -8;
 		emitter.max_offset_x = 8;
-		emitter.min_offset_y = -16;
-		emitter.max_offset_y = 0;
+		emitter.min_offset_y = 0;
+		emitter.max_offset_y = 24;
 		emitter.min_velocity_x = -40;
 		emitter.max_velocity_x = 40;
-		emitter.min_velocity_y = -40;
-		emitter.max_velocity_y= -100;
+		emitter.min_velocity_y = -20;
+		emitter.max_velocity_y= -60;
 		emitter.min_angle = 0;
 		emitter.max_angle = 0;
 		break;

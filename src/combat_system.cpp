@@ -117,7 +117,7 @@ void take_damage(Entity& entity, float damage)
 			apply_status(entity, invincible);
 
 			inv.artifact[(int)ARTIFACT::THICK_TOME]--;
-			world.logText("The Unnecessarily Thick Tome miraculously blocks the fatal blow and disintegrates!");
+			world.logText("The Unnecessarily Thick Tome miraculously blocks the fatal blow and disintegrates!", {0.2, 1.0, 1.0});
 		}
 	}
 }
@@ -233,7 +233,7 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 						apply_status(defender, cd);
 					}
 				}
-				world.logText("You are surrounded by a raging gust!");
+				world.logText("You are surrounded by a raging gust!", { 0.2, 1.0, 1.0 });
 			}
 		}
 
@@ -250,7 +250,7 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 			Entity curse = createBigSlash(world.renderer, defender_motion.position, 0, defender_stats.range);
 			registry.renderRequests.get(curse).used_texture = TEXTURE_ASSET_ID::CURSE;
 			registry.expandTimers.get(curse).counter_ms = 1000;
-			world.logText("A dreadful curse befalls your enemies!");
+			world.logText("A dreadful curse befalls your enemies!", { 0.2, 1.0, 1.0 });
 		}
 	}
 
@@ -258,7 +258,7 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 	if (attacker_inv.artifact[(int)ARTIFACT::POISON_FANG] > 0 && doProcs) {
 		int roll = irand(100);
 		if (roll < 30) {
-			world.logText("The Discarded Fang unleashes its poison!");
+			world.logText("The Discarded Fang unleashes its poison!", { 0.2, 1.0, 1.0 });
 			float damage = (attacker_stats.atk * 0.15) + (attacker_stats.atk * 0.1 * attacker_inv.artifact[(int)ARTIFACT::POISON_FANG] - 1);
 			std::cout << damage << std::endl;
 
@@ -295,14 +295,14 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 	if (attacker_inv.artifact[(int)ARTIFACT::LUCKY_CHIP] > 0) {
 		int roll = irand(100);
 		if (roll < 7 * attacker_inv.artifact[(int)ARTIFACT::LUCKY_CHIP]) {
-			world.logText("You feel extremely lucky!");
+			world.logText("You feel extremely lucky!", { 0.2, 1.0, 1.0 });
 			final_damage *= 7.77f;
 		}
 	}
 	if (defender_inv.artifact[(int)ARTIFACT::LUCKY_CHIP] > 0) {
 		int roll = irand(100);
 		if (roll < 7 * defender_inv.artifact[(int)ARTIFACT::LUCKY_CHIP]) {
-			world.logText("You feel extremely lucky!");
+			world.logText("You feel extremely lucky!", { 0.2, 1.0, 1.0 });
 			final_damage = max(1.f,final_damage - 777.f);
 		}
 	}

@@ -1103,8 +1103,6 @@ Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID tID) {
 
 	motion.scale = vec2({ window_width_px, window_height_px });
 
-	registry.colors.insert(entity, {0.5f, 0.5f, 0.5f, 1.f});
-
 	registry.renderRequests.insert(
 		entity,
 		{

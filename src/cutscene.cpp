@@ -33,203 +33,188 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 		registry.remove_all_components_of(registry.textboxes.entities.back());
 	}
 
+	if (cut_scene_number < 0) { return; }
+
+	std::vector<std::vector<std::string>> messages;
+
 	printf("cut scene number :%d\n", cut_scene_number);
 	if (cut_scene_number == 0) {
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"\"Daring Dungeons Game Jam\"",
 
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2),messages);
 	}
-	
+
 	if (cut_scene_number == 1) {
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"\"Submit your dungeon-themed game here! Winners will be decided by",
 				"a board of professional judges...\"",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 
 	if (cut_scene_number == 2) {
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{	
 				"\"...$1000 cash reward, and a chance to work with a development team to",
 				"further expand your game idea!.\"",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2),messages);
 	}
 
 	if (cut_scene_number == 3) { // happy
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 		{
 			"Oh heck yes! I feel like I was made for this!",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2),messages);
 	}
 	
 	if (cut_scene_number == 4) { // normal
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 		{
 			"Wait...how long do I have to make a game?",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2),messages);
 	}
 	
 	if (cut_scene_number == 5) { // surprised
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"By the end of the month?!? Whoa whoa whoa!!",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 6) { // normal
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"Okay, okay. I know I can handle this. I just have to start...right now!",
 				
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 7) { // normal + many hours of writing 
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"*many hours of writing and brainstorming later...*",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 8) { // notebook 
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"Alright! Now that’s a lot of progress for now, but I’ve still got a ways ",
 				"to go.",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 
 	if (cut_scene_number == 9) { // stomache growling
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"*stomach growling*",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 10) { //[room] angry 
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"Ugh, not now, not while I’m still in the groove!",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 11) { //[room] normal
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"Just a bit more...",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 12) { //[room] normal
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"Just...",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 13) { //[room] angry
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"a...",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 14) { //[room] angry
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"bit...",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 15) { //[room] angry
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"mor-",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 16) { //screen fades to black
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"*screen fades to black*",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 17) { // confused cave
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"Where...? What...?",
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 18) { //confused cave
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"This place...where am I? And why...? I can’t seem to remember...",
 				
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 19) { //screen fades to black
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"Well, I guess the only way to find out is to look around.",
 				
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
 	
 	if (cut_scene_number == 20) { //screen fades to black
-		std::vector<std::vector<std::string>> messages = {
+		messages = {
 			{
 				"There’s gotta be something around here...",
 
 			},
 		};
-		activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages);
 	}
+
+	activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages, true);
 	//updateTextBox(renderer, activeTextbox);
 }
 

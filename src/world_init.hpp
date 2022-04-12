@@ -108,7 +108,7 @@ Entity createSign(RenderSystem* renderer, vec2 pos, std::vector<std::pair<std::s
 // Sign using textboxes
 Entity createSign2(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std::string>>& messages);
 // Textbox
-Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std::string>>& messages);
+Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std::string>>& messages, bool isCutscene = false);
 // Stair
 Entity createStair(RenderSystem* renderer, vec2 pos);
 // Wall

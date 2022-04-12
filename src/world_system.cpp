@@ -795,12 +795,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (registry.solid.has(enemy)) {
 				registry.solid.remove(enemy);
 			}
-			if (!tutorial && registry.enemies.get(enemy).type != ENEMY_TYPE::LIVING_PEBBLE)
+			if (!tutorial && registry.enemies.get(enemy).type != ENEMY_TYPE::LIVING_PEBBLE) {
 				// TEMP: drop healing item from enemy with 1/3 chance
 				if (roll == 0 && !tutorial) {
 					createConsumable(renderer, registry.motions.get(enemy).position + vec2(16, 16), CONSUMABLE::INSTANT);
 				}
 				roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
+			}
 			if (registry.bosses.has(enemy)) {
 				roomSystem.updateObjective(ObjectiveType::DEFEAT_BOSS, 1);
 				// TODO: replace with stairs when implemented
@@ -3821,8 +3822,8 @@ void WorldSystem::updateTutorial() {
 		stat.mp = stat.maxmp;
 		stat.ep = stat.maxep;
 		tutorial = false;
+		if (has_status(player_main, StatusType::HP_REGEN)) { remove_status(player_main, StatusType::HP_REGEN); }
 	}
-
 }
 
 // Set attack state for enemies who attack after moving

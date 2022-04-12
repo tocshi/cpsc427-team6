@@ -942,7 +942,7 @@ Entity createSign2(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std
 	return entity;
 }
 
-Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std::string>>& messages)
+Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std::string>>& messages, bool isCutscene)
 {
 	auto entity = Entity();
 
@@ -953,12 +953,24 @@ Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<s
 	if (textbox.num_messages > 0) {
 		for (std::string line : messages[0]) {
 			textbox.num_lines++;
-			Entity text = createText(renderer, pos*2.f + vec2(-TEXTBOX_BB_WIDTH + 100.f, -TEXTBOX_BB_HEIGHT + 128.f + 75.f * textbox.num_lines), line, 2.0f, vec3(1.f));
+			Entity text;
+			if (isCutscene) {
+				text = createText(renderer, pos * 2.f + vec2(-TEXTBOX_BB_WIDTH + 100.f, -TEXTBOX_BB_HEIGHT + 128.f + 75.f * textbox.num_lines), line, 2.0f, vec3(1.f));
+			}
+			else {
+				text = createText(renderer, pos * 2.f + vec2(-TEXTBOX_BB_WIDTH + 100.f, -TEXTBOX_BB_HEIGHT + 75.f * textbox.num_lines), line, 2.0f, vec3(1.f));
+			}
 			textbox.lines.push_back(text);
 		}
 	}
 	textbox.next_message = 1;
-	textbox.icon = createMouseAnimationUI(renderer, { pos[0] + TEXTBOX_BB_WIDTH/2.f - 64.f*ui_scale, pos[1] + TEXTBOX_BB_HEIGHT/3.f - 64.f * ui_scale });
+	if (isCutscene) {
+		textbox.icon = createMouseAnimationUI(renderer, { pos[0] + TEXTBOX_BB_WIDTH / 2.f - 64.f * ui_scale, pos[1] + TEXTBOX_BB_HEIGHT / 3.f - 64.f * ui_scale });
+	}
+	else {
+		textbox.icon = createMouseAnimationUI(renderer, { pos[0] + TEXTBOX_BB_WIDTH / 2.f - 64.f * ui_scale, pos[1] + TEXTBOX_BB_HEIGHT / 2.f - 64.f * ui_scale });
+	}
+	
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -966,7 +978,13 @@ Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<s
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
 
-	motion.scale = vec2({ TEXTBOX_BB_WIDTH, TEXTBOX_BB_HEIGHT /1.5});
+	if (isCutscene) {
+		motion.scale = vec2({ TEXTBOX_BB_WIDTH, TEXTBOX_BB_HEIGHT / 1.5 });
+	}
+	else {
+		motion.scale = vec2({ TEXTBOX_BB_WIDTH, TEXTBOX_BB_HEIGHT });
+	}
+	
 
 	registry.renderRequests.insert(
 		entity,

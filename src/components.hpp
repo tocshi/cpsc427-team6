@@ -807,6 +807,20 @@ struct RoomTransitionTimer {
 	bool repeat_allowed = false; // whether the next room is allowed to use the same map file as the current
 };
 
+enum class TRANSITION_TYPE {
+	MAIN_TO_CREDITS = 0,
+	CREDITS_TO_MAIN = MAIN_TO_CREDITS + 1,
+	MAIN_TO_GAME = CREDITS_TO_MAIN + 1,
+	CUTSCENE_TO_MAIN = MAIN_TO_GAME + 1,
+	CUTSCENE_SWITCH = CUTSCENE_TO_MAIN + 1,
+	GAME_OVER = CUTSCENE_SWITCH + 1,
+};
+
+struct FadeTransitionTimer {
+	float counter_ms = 500.f;
+	TRANSITION_TYPE type;
+};
+
 struct LoadingTimer {
 	float counter_ms = 250.f; // We use it to wait some amount of time or until a long step has passed
 };

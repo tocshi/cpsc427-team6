@@ -864,8 +864,50 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			return true;
 		}
 	}
+
 	// reduce window brightness if any of the present chickens is dying
 	screen.darken_screen_factor = max(1 - min_death_counter_ms / 3000, 1 - min_room_counter_ms / 750);
+
+	float min_fadeout_counter_ms = 500.f;
+	for (Entity entity : registry.fadeTransitionTimers.entities) {
+		// progress timer
+		FadeTransitionTimer& counter = registry.fadeTransitionTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if (counter.counter_ms < min_fadeout_counter_ms) {
+			min_fadeout_counter_ms = counter.counter_ms;
+		}
+		
+		if (counter.counter_ms <= 0) {
+			registry.loadingTimers.emplace(entity);
+			switch (counter.type) {
+			case (TRANSITION_TYPE::MAIN_TO_GAME):
+				if (tutorial) {
+					start_tutorial();
+					spawn_tutorial_entities();
+				}
+				else {
+					start_game();
+					roomSystem.current_floor = Floors::FLOOR1;
+					spawn_game_entities();
+					roomSystem.setRandomObjective();
+				}
+				break;
+			case (TRANSITION_TYPE::CUTSCENE_TO_MAIN):
+			case (TRANSITION_TYPE::CREDITS_TO_MAIN):
+				set_gamestate(GameStates::MAIN_MENU);
+				restart_game();
+				break;
+			case (TRANSITION_TYPE::MAIN_TO_CREDITS):
+				enter_credits();
+				break;
+			default:
+				break;
+			}
+			registry.fadeTransitionTimers.remove(entity);
+			break;
+		}
+	}
+	screen.darken_screen_factor = max(screen.darken_screen_factor, 1 - min_fadeout_counter_ms / 500.f);
 
 	float max_fadein_counter_ms = 0.f;
 	for (Entity entity : registry.fadeins.entities) {
@@ -1897,7 +1939,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			if (current_game_state == GameStates::CUTSCENE) {
 				int w, h;
 				glfwGetWindowSize(window, &w, &h);
-				restart_game();
+				if (registry.fadeTransitionTimers.size() == 0) {
+					Entity temp = Entity();
+					FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+					timer.type = TRANSITION_TYPE::CUTSCENE_TO_MAIN;
+				}
 			}
 			else if (current_game_state == GameStates::PAUSE_MENU) {
 				backAction();
@@ -2039,6 +2085,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	// no interactions when being knocked back
 	if (registry.knockbacks.has(player_main)) { return; }
 
+	// disable input during transitions
+	if (registry.roomTransitions.size() > 0) { return; }
+	if (registry.fadeTransitionTimers.size() > 0) { return; }
+
 	double xpos, ypos;
 	//getting cursor position
 	glfwGetCursorPos(window, &xpos, &ypos);
@@ -2068,16 +2118,18 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			if (current_game_state == GameStates::CUTSCENE && countCutScene == 21){
 				// fade to main_menu screen 
 				//screen.darken_screen_factor = 0;
-				set_gamestate(GameStates::MAIN_MENU);
-				
-				restart_game();
+				Entity temp = Entity();
+				FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+				timer.type = TRANSITION_TYPE::CUTSCENE_TO_MAIN;
+				// logic is handled in step() when the timer expires
 			}
 			return;
 		}
 
 		if (current_game_state == GameStates::CREDITS) {
-			set_gamestate(GameStates::MAIN_MENU);
-			restart_game();
+			Entity temp = Entity();
+			FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+			timer.type = TRANSITION_TYPE::CREDITS_TO_MAIN;
 			return;
 		}
 
@@ -2111,19 +2163,19 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 				switch (action_taken) {
 				case BUTTON_ACTION_ID::MENU_START:
-					if (tutorial) {
-						start_tutorial();
-						spawn_tutorial_entities();
+					if (registry.fadeTransitionTimers.size() == 0) {
+						Entity temp = Entity();
+						FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+						timer.type = TRANSITION_TYPE::MAIN_TO_GAME;
 					}
-					else {
-						start_game();
-						roomSystem.current_floor = Floors::FLOOR1;
-						spawn_game_entities();
-						roomSystem.setRandomObjective();
-					}
+					// logic has been moved to when the timer expires in step()
 					break;
 				case BUTTON_ACTION_ID::CREDITS:
-					enter_credits();
+					if (registry.fadeTransitionTimers.size() == 0) {
+						Entity temp = Entity();
+						FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+						timer.type = TRANSITION_TYPE::MAIN_TO_CREDITS;
+					}
 					return;
 				case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 				case BUTTON_ACTION_ID::CONTINUE:

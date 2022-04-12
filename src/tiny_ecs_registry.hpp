@@ -88,6 +88,7 @@ public:
 	ComponentContainer<Shadow> shadows;
 	ComponentContainer<ParticleContainer> particleContainers;
 	ComponentContainer<Particle> particles;
+	ComponentContainer<FadeTransitionTimer> fadeTransitionTimers;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -171,6 +172,7 @@ public:
 		registry_list.push_back(&shadows);
 		registry_list.push_back(&particleContainers);
 		registry_list.push_back(&particles);
+		registry_list.push_back(&fadeTransitionTimers);
 	}
 
 	void clear_all_components() {

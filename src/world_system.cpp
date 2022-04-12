@@ -3500,8 +3500,8 @@ void WorldSystem::loadAttackIndicators(json indicatorList) {
 }
 
 void WorldSystem::logText(std::string msg, vec3 textColor) {
-	const int NUM_LINES = 5;
-	vec2 defaultPos = vec2(50.f, (2.0f * window_height_px) * (7.f/10.f));
+	const int NUM_LINES = 12;
+	vec2 defaultPos = vec2(50.f, (2.0f * window_height_px) * (7.5f/10.f));
 	// vec3 textColor = vec3(1.0f, 1.0f, 1.0f); // white
 
 	// shift existing logged text upwards

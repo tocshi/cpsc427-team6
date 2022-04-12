@@ -38,7 +38,10 @@ enum class TEXTURE_ASSET_ID {
 	CAVELING = PLANT_PROJECTILE + 1,
 	KINGSLIME = CAVELING + 1,
 	SLIMEPROJECTILE = KINGSLIME + 1,
-	ARTIFACT = SLIMEPROJECTILE + 1,
+	LIVING_PEBBLE = SLIMEPROJECTILE + 1,
+	LIVING_ROCK = LIVING_PEBBLE + 1,
+	APPARITION = LIVING_ROCK + 1,
+	ARTIFACT = APPARITION + 1,
 	CONSUMABLE = ARTIFACT + 1,
 	EQUIPMENT = CONSUMABLE + 1,
 	CHEST_ITEM_CLOSED = EQUIPMENT + 1,
@@ -137,14 +140,30 @@ enum class TEXTURE_ASSET_ID {
 	THUNDER_TWIG = THICK_TOME + 1,
 	WARM_CLOAK = THUNDER_TWIG + 1,
 	WINDBAG = WARM_CLOAK + 1,
-	MOUSE_SPRITESHEET = WINDBAG + 1,
+	MALEDICTION = WINDBAG + 1,
+	MOUSE_SPRITESHEET = MALEDICTION + 1,
 	SLASH_SPRITESHEET = MOUSE_SPRITESHEET + 1,
 	OBJECTIVE_COUNTER = SLASH_SPRITESHEET + 1,
 	BIGSLASH = OBJECTIVE_COUNTER + 1,
 	ATTACK_INDICATOR_CIRCLE = BIGSLASH + 1,
 	ATTACK_INDICATOR_RECTANGLE = ATTACK_INDICATOR_CIRCLE + 1,
 	SHADOW = ATTACK_INDICATOR_RECTANGLE + 1,
-	TEXTURE_COUNT = SHADOW + 1,
+	LIGHTNING = SHADOW + 1,
+	MANACIRCLE = LIGHTNING + 1,
+	CURSE = MANACIRCLE + 1,
+	SMOKE = CURSE + 1,
+	MUSHROOM = SMOKE + 1,
+	BURRS = MUSHROOM + 1,
+	BOSS_ICON_BACKING = BURRS + 1,
+	CG_CREDITS = BOSS_ICON_BACKING + 1,
+	CREDITS = CG_CREDITS + 1,
+	POISON_BUBBLE = CREDITS + 1,
+	BUFF_ARROW = POISON_BUBBLE + 1,
+	SLIME_DROPLET = BUFF_ARROW + 1,
+	STUN_PARTICLE = SLIME_DROPLET + 1,
+	INVINCIBLE_PARTICLE = STUN_PARTICLE + 1,
+	HP_REGEN_PARTICLE = INVINCIBLE_PARTICLE + 1,
+	TEXTURE_COUNT = HP_REGEN_PARTICLE + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -218,8 +237,8 @@ enum class ARTIFACT {
 	SMOKE_POWDER = BURRBAG + 1,
 	LIVELY_BULB = SMOKE_POWDER + 1,
 	MALEDICTION = LIVELY_BULB + 1,
-	CHIMERARM = MALEDICTION + 1,
-	ARTIFACT_COUNT = CHIMERARM + 1
+	//CHIMERARM = MALEDICTION + 1,
+	ARTIFACT_COUNT = MALEDICTION + 1
 };
 
 // Artifact Rarity Arrays
@@ -227,34 +246,34 @@ enum class ARTIFACT {
 const int artifact_T1[] {
 	(int)ARTIFACT::BLADE_POLISH,
 	(int)ARTIFACT::HQ_FLETCHING,
-	//(int)ARTIFACT::MESSENGER_CAP, // blocked by stat calc system
-	//(int)ARTIFACT::WARM_CLOAK, // blocked by stat calc system
+	(int)ARTIFACT::MESSENGER_CAP,
+	(int)ARTIFACT::WARM_CLOAK,
 	(int)ARTIFACT::GOLIATH_BELT,
-	(int)ARTIFACT::BLOOD_RUBY
+	(int)ARTIFACT::BLOOD_RUBY,
 };
 const int artifact_T2[] {
 	(int)ARTIFACT::POISON_FANG,
-	//(int)ARTIFACT::GUIDE_HEALBUFF, // blocked by healing interactions and stat calc system
+	(int)ARTIFACT::GUIDE_HEALBUFF,
 	(int)ARTIFACT::WINDBAG,
 	(int)ARTIFACT::SCOUT_STRIDE,
 	(int)ARTIFACT::ART_CONSERVE,
-	//(int)ARTIFACT::SMOKE_POWDER // blocked by item pickup
+	(int)ARTIFACT::SMOKE_POWDER,
 };
 const int artifact_T3[] {
 	(int)ARTIFACT::GLAD_HOPLON,
-	//(int)ARTIFACT::THUNDER_TWIG, // not blocked but effect takes some time to implement
+	(int)ARTIFACT::THUNDER_TWIG,
 	(int)ARTIFACT::KB_MALLET,
-	(int)ARTIFACT::ARCANE_SPECS
-	//(int)ARTIFACT::ARCANE_FUNNEL, // blocked by mp usage system
-	//(int)ARTIFACT::BURRBAG // blocked by stat calc system
+	(int)ARTIFACT::ARCANE_SPECS,
+	(int)ARTIFACT::ARCANE_FUNNEL,
+	(int)ARTIFACT::BURRBAG,
 };
 const int artifact_T4[] {
 	(int)ARTIFACT::LUCKY_CHIP,
 	(int)ARTIFACT::THICK_TOME,
-	//(int)ARTIFACT::FUNGIFIER, // not blocked but effect takes some time to implement
-	//(int)ARTIFACT::LIVELY_BULB, // not blocked but effect takes some time to implement
-	//(int)ARTIFACT::MALEDICTION, // blocked by stat calc system
-	//(int)ARTIFACT::CHIMERARM // blocked by stat calc system and weapon generation
+	(int)ARTIFACT::FUNGIFIER,
+	(int)ARTIFACT::LIVELY_BULB,
+	(int)ARTIFACT::MALEDICTION,
+	//(int)ARTIFACT::CHIMERARM, // blocked by blunt/ranged weapons
 };
 
 struct Spritesheet {
@@ -401,6 +420,14 @@ struct ProjectileTimer
 	Entity owner;
 };
 
+struct Trap
+{
+	int turns = 1;
+	int triggers = 1;
+	float multiplier = 100;
+	Entity owner;
+};
+
 // Single Vertex Buffer element for non-textured meshes (coloured.vs.glsl)
 struct ColoredVertex
 {
@@ -513,7 +540,10 @@ enum class ENEMY_TYPE {
 	PLANT_SHOOTER = SLIME + 1,
 	CAVELING = PLANT_SHOOTER + 1,
 	KING_SLIME = CAVELING + 1,
-	TYPE_COUNT = KING_SLIME + 1
+	LIVING_PEBBLE = KING_SLIME + 1,
+	LIVING_ROCK = LIVING_PEBBLE + 1,
+	APPARITION = LIVING_ROCK + 1,
+	TYPE_COUNT = APPARITION + 1
 };
 
 // simple component for all enemies
@@ -554,11 +584,14 @@ enum class BUTTON_ACTION_ID {
 	CLOSE_DIALOG = SAVE_QUIT + 1,
 	OPEN_ATTACK_DIALOG = CLOSE_DIALOG + 1,
 	CLOSE_ATTACK_DIALOG = OPEN_ATTACK_DIALOG + 1,
-	SCROLL_DOWN = CLOSE_ATTACK_DIALOG + 1,
+	OPEN_EQUIPMENT_DIALOG = CLOSE_ATTACK_DIALOG + 1,
+	CLOSE_EQUIPMENT_DIALOG = OPEN_EQUIPMENT_DIALOG + 1,
+	SCROLL_DOWN = CLOSE_EQUIPMENT_DIALOG + 1,
 	SCROLL_UP = SCROLL_DOWN + 1,
 	USE_ATTACK = SCROLL_DOWN + 1,
 	PREPARE_ATTACK = USE_ATTACK + 1,
-	ACTION_COUNT = PREPARE_ATTACK + 1
+	CREDITS = PREPARE_ATTACK + 1,
+	ACTION_COUNT = CREDITS + 1
 };
 const int button_action_count = (int)BUTTON_ACTION_ID::ACTION_COUNT;
 
@@ -583,8 +616,22 @@ struct AttackDialog {
 	std::string cost = "";
 };
 
+struct EquipmentDialog {
+	std::string atk = "";
+	std::string def = "";
+	std::string speed = "";
+	std::string hp = "";
+	std::string mp = "";
+};
+
 struct EpRange {
 	float radius = 450.f;
+	float resolution = 2000.f;
+	vec2 screen_resolution = { 1600.f, 900.f };
+};
+
+struct AttackRange {
+	float radius = 200.f;
 	float resolution = 2000.f;
 	vec2 screen_resolution = { 1600.f, 900.f };
 };
@@ -675,6 +722,7 @@ enum class StatusType {
 	FOCUSING = PRIMAL_RAGE + 1,
 	DISENGAGE_TRIGGER = FOCUSING + 1,
 	SLIMED = DISENGAGE_TRIGGER + 1,
+	HP_REGEN = SLIMED + 1,
 };
 
 struct StatusEffect {
@@ -741,7 +789,9 @@ enum class Floors {
 	TUTORIAL = DEBUG + 1,
 	FLOOR1 = TUTORIAL + 1,
 	BOSS1 = FLOOR1 + 1,
-	FLOOR_COUNT = BOSS1 + 1
+	FLOOR2 = BOSS1 + 1,
+	BOSS2 = FLOOR2 + 1,
+	FLOOR_COUNT = BOSS2 + 1
 };
 
 const int floor_count = (int)Floors::FLOOR_COUNT;
@@ -783,6 +833,7 @@ struct EnemyHPBar {
 
 struct BossHPBar {
 	Entity icon;
+	Entity iconBacking;
 	Entity hpBacking;
 	Entity hpFill;
 };
@@ -803,7 +854,8 @@ enum class EFFECT_ASSET_ID {
 	TEXT = WIND + 1,
 	FOG = TEXT + 1,
 	EP = FOG + 1,
-	TILE = EP + 1,
+	ATTACK_RANGE = EP + 1,
+	TILE = ATTACK_RANGE + 1,
 	EFFECT_COUNT = TILE + 1
 };
 const int effect_count = (int)EFFECT_ASSET_ID::EFFECT_COUNT;
@@ -816,7 +868,8 @@ enum class GEOMETRY_BUFFER_ID {
 	SPRITESHEET = ANIMATION + 1,
 	FOG = SPRITESHEET + 1,
 	EP = FOG + 1,
-	DEBUG_LINE = EP + 1,
+	ATTACK_RANGE = EP + 1,
+	DEBUG_LINE = ATTACK_RANGE + 1,
 	SCREEN_TRIANGLE = DEBUG_LINE + 1,
 	TEXTQUAD = SCREEN_TRIANGLE + 1,
 	GEOMETRY_COUNT = TEXTQUAD + 1
@@ -839,12 +892,15 @@ enum class RENDER_LAYER_ID {
 	WALLS = WALLS_INSTANCED + 1,
 	RANDOM_WALLS_INSTANCED = WALLS + 1,
 	RANDOM_WALLS = RANDOM_WALLS_INSTANCED + 1,
-	EFFECT = RANDOM_WALLS + 1,
+	APPARITION = RANDOM_WALLS + 1,
+	EFFECT = APPARITION + 1,
 	HP_BACKING = EFFECT + 1,
 	HP_FILL = HP_BACKING + 1,
 	DAMAGE_TEXT = HP_FILL + 1,
 	UI = HP_FILL + 1,
-	ARTIFACT_ICONS = UI + 1,
+	UI_ICONS = UI + 1,
+	UI_MID = UI_ICONS + 1,
+	ARTIFACT_ICONS = UI_MID + 1,
 	TEXT = ARTIFACT_ICONS + 1,
 	DIALOG = TEXT + 1,
 	DIALOG_TEXT = DIALOG + 1,
@@ -918,6 +974,55 @@ struct ExpandTimer {
 	float target_scale = 1.0;
 };
 
+enum class PARTICLE_TYPE {
+	POISON = 0,
+	ATK_UP = POISON + 1,
+	ATK_DOWN = ATK_UP + 1,
+	RANGE_UP = ATK_DOWN + 1,
+	RANGE_DOWN = RANGE_UP + 1,
+	INVINCIBLE = RANGE_DOWN + 1,
+	SLIMED = INVINCIBLE + 1,
+	HP_REGEN = SLIMED + 1,
+	STUN = HP_REGEN + 1,
+};
+
+struct ParticleEmitter {
+	PARTICLE_TYPE type;
+	RenderRequest render_data;
+	float min_interval_ms = 500;
+	float max_interval_ms = 500;
+	float counter_ms = 0;
+	float particle_decay_ms = 1000;
+
+	vec2 base_scale;
+	float min_scale_factor;
+	float max_scale_factor;
+
+	float min_offset_x;
+	float max_offset_x;
+	float min_offset_y;
+	float max_offset_y;
+
+	float min_velocity_x;
+	float max_velocity_x;
+	float min_velocity_y;
+	float max_velocity_y;
+
+	float min_angle;
+	float max_angle;
+
+	vec4 color_shift = { 1.f, 1.f, 1.f, 1.f };
+};
+
+struct Particle {
+	PARTICLE_TYPE type;
+	float counter_ms;
+};
+
+struct ParticleContainer {
+	std::vector<ParticleEmitter> emitters;
+};
+
 // Artifact name map
 const std::map <ARTIFACT, std::string>artifact_names = {
 	{ARTIFACT::POISON_FANG, "Discarded Fang"},
@@ -943,7 +1048,7 @@ const std::map <ARTIFACT, std::string>artifact_names = {
 	{ARTIFACT::SMOKE_POWDER, "Smoke Powder"},
 	{ARTIFACT::LIVELY_BULB, "Lively Bulb"},
 	{ARTIFACT::MALEDICTION, "Malediction"},
-	{ARTIFACT::CHIMERARM, "Chimera's Arm"}
+	//{ARTIFACT::CHIMERARM, "Chimera's Arm"}
 };
 
 // Artifact description map
@@ -971,7 +1076,7 @@ const std::map <ARTIFACT, std::string>artifact_descriptions = {
 	{ARTIFACT::SMOKE_POWDER, "\"Come get it today! Our newly patented powder that, when thrown on the ground, produces a cloud of smoke that lets you slip out of sight far easier than ever before!\""},
 	{ARTIFACT::LIVELY_BULB, "You may have unintentionally allowed this plant to think you\'re its parent. You also may have named it \"Bobby\"."},
 	{ARTIFACT::MALEDICTION, "\"Your suffering...I want to savour it!\""},
-	{ARTIFACT::CHIMERARM, "A disfigured limb belonging to a monster of unknown origin. It seems to be wrapped in a strange aura that warps nearby weapons in an inexplicable way. You hear a strange voice from the back of your head saying that you can use it to create an armament of unparalleled power."}
+	//{ARTIFACT::CHIMERARM, "A disfigured limb belonging to a monster of unknown origin. It seems to be wrapped in a strange aura that warps nearby weapons in an inexplicable way. You hear a strange voice from the back of your head saying that you can use it to create an armament of unparalleled power."}
 };
 
 // Artifact texture map
@@ -998,8 +1103,8 @@ const std::map <ARTIFACT, TEXTURE_ASSET_ID>artifact_textures = {
 	{ARTIFACT::BURRBAG, TEXTURE_ASSET_ID::BURRBAG},
 	{ARTIFACT::SMOKE_POWDER, TEXTURE_ASSET_ID::SMOKE_POWDER},
 	{ARTIFACT::LIVELY_BULB, TEXTURE_ASSET_ID::LIVELY_BULB},
-	{ARTIFACT::MALEDICTION, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
-	{ARTIFACT::CHIMERARM, TEXTURE_ASSET_ID::CHIMERARM}
+	{ARTIFACT::MALEDICTION, TEXTURE_ASSET_ID::MALEDICTION},
+	//{ARTIFACT::CHIMERARM, TEXTURE_ASSET_ID::CHIMERARM}
 };
 
 // Artifact effect map
@@ -1011,8 +1116,8 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::MESSENGER_CAP, "10% (+5% per stack) of your base ATK stat is added onto your Speed stat."},
 	{ARTIFACT::WARM_CLOAK, "10% (+5% per stack) of your base ATK stat is added onto your DEF stat."},
 	{ARTIFACT::THUNDER_TWIG, "Attacks have a 15% (+15% per stack) chance to summon a lightning bolt that deals 60% ATK damage in a small AoE."},
-	{ARTIFACT::LUCKY_CHIP, "7% (+7% per stack) chance for your attack to deal 777% damage. 7 % (+7% per stack) chance to reduce incoming damage by 777. Lowest damage taken per attack is 1."},
-	{ARTIFACT::GUIDE_HEALBUFF, "Health-restoring items and interactables grant a 30% (+30% per stack) ATK buff for 5 turns."},
+	{ARTIFACT::LUCKY_CHIP, "7% (+7% per stack) chance for your attack to deal 777% damage. 7% (+7% per stack) chance to reduce incoming damage by 777. Lowest damage taken per attack is 1."},
+	{ARTIFACT::GUIDE_HEALBUFF, "Health-restoring items and interactables grant a 20% (+20% per stack) ATK buff for 5 turns."},
 	{ARTIFACT::THICK_TOME, "Upon taking lethal damage, survive with 1 HP and gain 3 turns of invincibility. This artifact is consumed when this effect activates."},
 	{ARTIFACT::GOLIATH_BELT, "When HP is above 80%, increases ATK by 20% (+20% per stack)."},
 	{ARTIFACT::BLOOD_RUBY, "When HP is below 40%, increases ATK by 20% (+20% per stack)."},
@@ -1022,12 +1127,12 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::SCOUT_STRIDE, "Consume 12% (*12% per stack) less EP when moving."},
 	{ARTIFACT::ART_CONSERVE, "Consume 8% (*8% per stack) less EP when attacking."},
 	{ARTIFACT::ARCANE_FUNNEL, "Upon defeating an enemy, gain a buff that doubles your MP regeneration for 1 (+1 per stack) turns."},
-	{ARTIFACT::FUNGIFIER, "Upon defeating an enemy, an explosive mushroom is dropped at their location. When an enemy steps on the mushroom, or after 3 turns, the mushroom explodes, dealing 130% (+130% per stack) ATK in damage in a small AoE."},
-	{ARTIFACT::BURRBAG, "At the start of each turn, leave a patch of burrs on the ground that last for 5 turns or until activated 1 (+1 per stack) times. Enemies that step over the burrs will take 40% ATK in damage and can move only 50% of their regular distance on their next turn."},
-	{ARTIFACT::SMOKE_POWDER, "Upon picking up an item, release a cloud of smoke that halves the aggro range of enemies within 200 (+75 per stack) units for 1 turn. Has a 5 turn cooldown."},
-	{ARTIFACT::LIVELY_BULB, "Whenever you perform a Normal Attack, fire 1 (+1 per stack) seed projectile that deals 90% ATK damage towards the lowest HP enemy within your sight range."},
-	{ARTIFACT::MALEDICTION, "When you are attacked, all enemies in sight range will be affected with a curse that reduces their ATK by 40% for 3 turns. Has a 10 (-1 per stack) turn cooldown."},
-	{ARTIFACT::CHIMERARM, "Your current weapon, and newly generated weapons will have +4 ATK (+4 ATK per stack), and its 2nd Attack Skill will become a random attack skill from any weapon type."}
+	{ARTIFACT::FUNGIFIER, "Upon defeating an enemy, an explosive mushroom grows at their location on your next turn. When an enemy steps on the mushroom, or after 3 turns, the mushroom explodes, dealing 130% (+130% per stack) ATK in damage in a small AoE."},
+	{ARTIFACT::BURRBAG, "At the start of each turn, leave a patch of burrs on the ground that last for 5 turns or until activated 1 (+1 per stack) times. Enemies that step over the burrs will take 40% ATK in damage."},
+	{ARTIFACT::SMOKE_POWDER, "When opening a chest, release a cloud of smoke that halves the aggro range of enemies within 200 (+75 per stack) units for 1 turn."},
+	{ARTIFACT::LIVELY_BULB, "At the start of each turn, fire a seed projectile that deals 80% (+80% per stack) ATK damage towards the lowest HP enemy within your sight range."},
+	{ARTIFACT::MALEDICTION, "When you are attacked, all visible enemies will be affected with a curse that reduces their ATK by 40% for 3 turns. Has a 10 (-1 per stack) turn cooldown."},
+	//{ARTIFACT::CHIMERARM, "Your current weapon, and newly generated weapons will have +4 ATK (+4 ATK per stack), and its 2nd Attack Skill will become a random attack skill from any weapon type."}
 };
 
 // Attack texture map TODO: finish this
@@ -1066,7 +1171,7 @@ const std::map <ATTACK, std::string>attack_names = {
 };
 
 const std::map <ATTACK, std::string>attack_descriptions = {
-	{ATTACK::NONE, "Deals 100% of ATK in damage to a single target."},
+	{ATTACK::NONE, "Deals 100% of ATK in damage to a single target. Restores 10 MP"},
 	{ATTACK::ROUNDSLASH, "Deals 80% of ATK in damage in a circle around you."},
 	{ATTACK::SAPPING_STRIKE, "Deals 80% of ATK in damage to a single target, and restores 30 MP."},
 	{ATTACK::PIERCING_THRUST, "Deals 120% of ATK in damage in a line, and ignores 40% DEF of any enemies you hit."},
@@ -1091,7 +1196,7 @@ const std::map <ATTACK, std::string>attack_descriptions = {
 const std::map <ATTACK, std::string>attack_costs_string = {
 	{ATTACK::NONE, "0 MP, 50 EP"},
 	{ATTACK::ROUNDSLASH, "30 MP, 50 EP"},
-	{ATTACK::SAPPING_STRIKE, "0 MP, 90 EP"},
+	{ATTACK::SAPPING_STRIKE, "0 MP, 80 EP"},
 	{ATTACK::PIERCING_THRUST, "40 MP, 40 EP"},
 	{ATTACK::PARRYING_STANCE, "50 MP, 30+ EP"},
 	{ATTACK::DISENGAGE, "30 MP, 0 EP"},
@@ -1135,7 +1240,7 @@ const std::map <ATTACK, float>attack_mpcosts = {
 const std::map <ATTACK, float>attack_epcosts = {
 	{ATTACK::NONE, 50},
 	{ATTACK::ROUNDSLASH, 50},
-	{ATTACK::SAPPING_STRIKE, 90},
+	{ATTACK::SAPPING_STRIKE, 80},
 	{ATTACK::PIERCING_THRUST, 40},
 	{ATTACK::PARRYING_STANCE, 30},
 	{ATTACK::DISENGAGE, 0},

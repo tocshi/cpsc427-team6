@@ -275,7 +275,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Remove debug info from the last step
 	while (registry.debugComponents.entities.size() > 0)
-	    registry.remove_all_components_of(registry.debugComponents.entities.back());
+		registry.remove_all_components_of(registry.debugComponents.entities.back());
 
 	// Removing out of screen entities
 	auto& motions_registry = registry.motions;
@@ -321,6 +321,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (registry.consumables.has(entity)) {
 				Consumable consumable = registry.consumables.get(entity);
 				Stats stats = registry.stats.get(player_main);
+				Stats basestats = registry.basestats.get(player_main);
+				StatusEffect regen = StatusEffect(stats.maxhp * 0.06, 5, StatusType::HP_REGEN, false, true);
 				switch (consumable.type) {
 				case CONSUMABLE::REDPOT:
 					break;
@@ -329,7 +331,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				case CONSUMABLE::YELPOT:
 					break;
 				case CONSUMABLE::INSTANT:
-					heal(player_main, stats.maxhp * 0.3);
+					if (has_status(player_main, StatusType::HP_REGEN)) { remove_status(player_main, StatusType::HP_REGEN); }
+					apply_status(player_main, regen);
+
+					// Guide to Healthy Eating
+					if (inv.artifact[(int)ARTIFACT::GUIDE_HEALBUFF] > 0) {
+						StatusEffect buff = StatusEffect(0.2 * inv.artifact[(int)ARTIFACT::GUIDE_HEALBUFF], 5, StatusType::ATK_BUFF, true, true);
+						if (has_status(player_main, StatusType::ATK_BUFF)) { remove_status(player_main, StatusType::ATK_BUFF); }
+						apply_status(player_main, buff);
+					}
 					break;
 				default:
 					break;
@@ -346,6 +356,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 		update_turn_ui();
 		doTurnOrderLogic();
+		remove_fog_of_war();
+		create_fog_of_war();
 	}
 
 	double mouseXpos, mouseYpos;
@@ -409,6 +421,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		hpfill_motion.position = hpbacking_motion.position - vec2((hpbacking_motion.scale.x - hpfill_motion.scale.x) / 2, 0);
 	}
 
+	// update the boss hp bar
+	for (int i = 0; i < registry.bossHPBars.size(); i++) {
+		Entity boss = registry.bossHPBars.entities[i];
+		BossHPBar& hpbar = registry.bossHPBars.components[i];
+		if (!registry.motions.has(hpbar.hpBacking) || !registry.motions.has(hpbar.hpFill)) {
+			continue;
+		}
+		Stats& stats = registry.stats.get(boss);
+
+		Motion& hpbacking_motion = registry.motions.get(hpbar.hpBacking);
+		Motion& hpfill_motion = registry.motions.get(hpbar.hpFill);
+
+		hpfill_motion.scale.x = hpbacking_motion.scale.x * max(0.f, (stats.hp / stats.maxhp));
+		hpfill_motion.position = hpbacking_motion.position - vec2((hpbacking_motion.scale.x - hpfill_motion.scale.x) / 2, 0);
+	}
+
 	// update per-enemy shadows
 	for (int i = 0; i < registry.shadowContainers.size(); i++) {
 		Entity enemy = registry.shadowContainers.entities[i];
@@ -448,6 +476,33 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// update the fog of war if the player is being knocked back
 			remove_fog_of_war();
 			create_fog_of_war();
+		}
+
+		// render the attack range
+		if (current_game_state == GameStates::ATTACK_MENU) {
+			// render the attack range based on the currently prepared attack
+			if (player.using_attack == ATTACK::NONE || player.using_attack == ATTACK::ROUNDSLASH || player.using_attack == ATTACK::SAPPING_STRIKE
+				|| player.using_attack == ATTACK::PIERCING_THRUST || player.using_attack == ATTACK::TERMINUS_VERITAS) {
+				float attack_range = 50.f + player_motion.scale.x / 2;
+				switch (player.using_attack) {
+				case ATTACK::ROUNDSLASH:
+					attack_range = 150.f;
+					break;
+				case ATTACK::PIERCING_THRUST:
+					attack_range = 250.f;
+					break;
+				case ATTACK::TERMINUS_VERITAS:
+					attack_range = stats.range;
+					break;
+				}
+				create_attack_range(attack_range, player_motion.position);
+			}
+			else {
+				remove_attack_range();
+			}
+		}
+		else {
+			remove_attack_range();
 		}
 
 		// perform in-motion behaviour
@@ -522,7 +577,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (registry.actionButtons.entities.size() < 4) {
 			// bring back all of the buttons
-			// TODO: tutorial (sequentially add buttons depending on flags)
+			// sequentially add buttons depending on flags
 			if (tutorial) {
 				if (tutorial_flags & SIGN_1 && registry.actionButtons.entities.size() < 1) { createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale }); }
 				if (tutorial_flags & EP_DEPLETED && registry.actionButtons.entities.size() < 2) { createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD); }
@@ -682,6 +737,39 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
 	}
 
+	// Check traps for collisions/activations
+	for (Entity t : registry.traps.entities) {
+		if (!registry.traps.has(t)) { continue; }
+		Trap& trap = registry.traps.get(t);
+		if (trap.triggers <= 0) { continue; }
+		Motion& trap_motion = registry.motions.get(t);
+		
+		if (registry.players.has(trap.owner)) {
+			for (Entity e : registry.enemies.entities) {
+				// hacky way of having enemies not die when spawning on top of a trap
+				if (registry.iFrameTimers.has(e)) { continue; }
+				Motion& enemy_motion = registry.motions.get(e);
+				Stats& enemy_stats = registry.stats.get(e);
+				if (enemy_stats.hp <= 0 || trap.triggers <= 0) { continue; }
+				else if (collides_circle(trap_motion, enemy_motion)) {
+					trigger_trap(t, e);
+					break;
+				}
+			}
+		}
+		else {
+			for (Entity p : registry.players.entities) {
+				Motion& player_motion = registry.motions.get(p);
+				Stats& player_stats = registry.stats.get(p);
+				if (player_stats.hp <= 0 || trap.triggers <= 0) { continue; }
+				else if (collides_circle(trap_motion, player_motion)) {
+					trigger_trap(t, p);
+					break;
+				}
+			}
+		}
+	}
+
 	// Check for enemy death
 	for (Entity& enemy : registry.enemies.entities) {
 		if (registry.stats.get(enemy).hp <= 0 && !registry.squishTimers.has(enemy)) {
@@ -694,22 +782,30 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 			playEnemyDeathSound(registry.enemies.get(enemy).type);
       
-			// TEMP: drop healing item from enemy with 1/3 chance
 			int roll = irand(3);
-			if (roll == 0 && !tutorial) {
-				createConsumable(renderer, registry.motions.get(enemy).position + vec2(16, 16), CONSUMABLE::INSTANT);
-			}
 
-			// remove from turn queue
-			turnOrderSystem.removeFromQueue(enemy);
-			registry.solid.remove(enemy);
-			if (!tutorial)
+			registry.queueables.get(enemy).doing_turn = false;
+			if (current_game_state == GameStates::ENEMY_TURN) {
+				registry.motions.get(enemy).in_motion = false;
+				registry.motions.get(enemy).velocity = { 0, 0 };
+				doTurnOrderLogic();
+			}
+			
+			// remove from solids
+			if (registry.solid.has(enemy)) {
+				registry.solid.remove(enemy);
+			}
+			if (!tutorial && registry.enemies.get(enemy).type != ENEMY_TYPE::LIVING_PEBBLE)
+				// TEMP: drop healing item from enemy with 1/3 chance
+				if (roll == 0 && !tutorial) {
+					createConsumable(renderer, registry.motions.get(enemy).position + vec2(16, 16), CONSUMABLE::INSTANT);
+				}
 				roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
 			if (registry.bosses.has(enemy)) {
 				roomSystem.updateObjective(ObjectiveType::DEFEAT_BOSS, 1);
 				// TODO: replace with stairs when implemented
 				createDoor(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f }, false);
-				roomSystem.current_floor = Floors::FLOOR1;
+				roomSystem.setNextFloor(Floors((int)roomSystem.current_floor + 1));
 				createCampfire(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y + 64.f });
 				registry.enemies.get(enemy).state = ENEMY_STATE::DEATH;
 				aiSystem.step(enemy);
@@ -719,6 +815,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(shadow_container.shadow_entity);
 				registry.shadowContainers.remove(enemy);
 			}
+			// remove from enemy list so aoes don't crash the game trying to deal damage to a dead enemy
+			if (registry.enemies.has(enemy)) {
+				// remove from turn queue
+				turnOrderSystem.removeFromQueue(enemy);
+				registry.enemies.remove(enemy);
+			}
+
+			
 		}
 	}
 
@@ -914,6 +1018,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				registry.remove_all_components_of(hpbar.hpBacking);
 				registry.remove_all_components_of(hpbar.hpFill);
 			}
+			if (registry.bossHPBars.has(entity)) {
+				BossHPBar& hpbar = registry.bossHPBars.get(entity);
+				registry.remove_all_components_of(hpbar.icon);
+				registry.remove_all_components_of(hpbar.iconBacking);
+				registry.remove_all_components_of(hpbar.hpBacking);
+				registry.remove_all_components_of(hpbar.hpFill);
+			}
 			registry.remove_all_components_of(entity);
 		}
 	}
@@ -929,6 +1040,95 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		// remove entity once the timer has expired
 		if (counter.counter_ms < 0) {
+			registry.remove_all_components_of(entity);
+		}
+	}
+
+	// iframe timers for enemies to not get spawnkilled by traps and break turn ui
+	for (Entity entity : registry.iFrameTimers.entities) {
+		// progress timer
+		ExpandTimer& counter = registry.iFrameTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+
+		// remove entity once the timer has expired
+		if (counter.counter_ms < 0) {
+			registry.iFrameTimers.remove(entity);
+		}
+	}
+
+	// particle effects
+	for (Entity entity : registry.particleContainers.entities) {
+		ParticleContainer& container = registry.particleContainers.get(entity);
+		for (ParticleEmitter& emitter : container.emitters) {
+			emitter.counter_ms -= elapsed_ms_since_last_update;
+
+			if (emitter.counter_ms < 0) {
+				emitter.counter_ms = emitter.min_interval_ms + uniform_dist(rng) * (emitter.max_interval_ms - emitter.min_interval_ms);
+				Motion& motion = registry.motions.get(entity);
+				createParticle(motion.position, emitter);
+			}
+		}
+	}
+	
+	for (int i = registry.particles.size() - 1; i >= 0; i--) {
+		Entity entity = registry.particles.entities[i];
+		Particle& particle = registry.particles.components[i];
+		particle.counter_ms -= elapsed_ms_since_last_update;
+
+		switch (particle.type) {
+		case (PARTICLE_TYPE::ATK_UP):
+		case (PARTICLE_TYPE::ATK_DOWN):
+		case (PARTICLE_TYPE::RANGE_UP):
+		case (PARTICLE_TYPE::RANGE_DOWN):
+			if (registry.colors.has(entity)) {
+				vec4& color = registry.colors.get(entity);
+				color.a -= (0.75 * elapsed_ms_since_last_update / 1500.f);
+			}
+			break;
+		case (PARTICLE_TYPE::SLIMED):
+			if (registry.motions.has(entity)) {
+				Motion& motion = registry.motions.get(entity);
+				motion.velocity.y += 0.4 * elapsed_ms_since_last_update; // gravity-like effect
+			}
+			break;
+		case (PARTICLE_TYPE::STUN):
+			if (registry.colors.has(entity)) {
+				vec4& color = registry.colors.get(entity);
+				color.a -= (0.8 * elapsed_ms_since_last_update / 1000.f);
+			}
+			break;
+		case (PARTICLE_TYPE::INVINCIBLE):
+			if (registry.colors.has(entity)) {
+				vec4& color = registry.colors.get(entity);
+				color.a -= elapsed_ms_since_last_update / 1000.f;
+			}
+			if (registry.motions.has(entity)) {
+				Motion& motion = registry.motions.get(entity);
+				motion.scale.x += 16 * elapsed_ms_since_last_update / 2000.f;
+				motion.scale.y += 16 * elapsed_ms_since_last_update / 2000.f;
+			}
+			break;
+		case (PARTICLE_TYPE::HP_REGEN):
+			if (registry.colors.has(entity)) {
+				vec4& color = registry.colors.get(entity);
+				color.a -= elapsed_ms_since_last_update / 1000.f;
+			}
+			if (particle.counter_ms > 333) {
+				Motion& motion = registry.motions.get(entity);
+				motion.scale.x += 8 * elapsed_ms_since_last_update / 667.f;
+				motion.scale.y += 8 * elapsed_ms_since_last_update / 667.f;
+			}
+			else {
+				Motion& motion = registry.motions.get(entity);
+				motion.scale.x -= 16 * elapsed_ms_since_last_update / 333.f;
+				motion.scale.y -= 16 * elapsed_ms_since_last_update / 333.f;
+			}
+			break;
+		default:
+			break;
+		}
+
+		if (particle.counter_ms < 0) {
 			registry.remove_all_components_of(entity);
 		}
 	}
@@ -984,6 +1184,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (chest.isArtifact) {
 					if (chest.opened) {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_OPEN;
+
+						// Smoke Powder effect
+						if (registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER] > 0) {
+							float range = 125 + 75 * registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER];
+							for (Entity e : registry.enemies.entities) {
+								if (dist_to(registry.motions.get(e).position, registry.motions.get(player_main).position) > range) { continue; }
+								StatusEffect debuff = StatusEffect(-0.5, 2, StatusType::RANGE_BUFF, true, true);
+								apply_status(e, debuff);
+							}
+
+							Entity smoke = createBigSlash(world.renderer, registry.motions.get(player_main).position, 0, range);
+							registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
+							registry.expandTimers.get(smoke).counter_ms = 1000;
+						}
 					}
 					else {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_CLOSED;
@@ -992,6 +1206,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				else {
 					if (chest.opened) {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_OPEN;
+
+						// Smoke Powder effect
+						if (registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER] > 0) {
+							float range = 125 + 75 * registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER];
+							for (Entity e : registry.enemies.entities) {
+								if (dist_to(registry.motions.get(e).position, registry.motions.get(player_main).position) > range) { continue; }
+								StatusEffect debuff = StatusEffect(-0.5, 2, StatusType::RANGE_BUFF, true, true);
+								apply_status(e, debuff);
+							}
+
+							Entity smoke = createBigSlash(world.renderer, registry.motions.get(player_main).position, 0, range);
+							registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
+							registry.expandTimers.get(smoke).counter_ms = 1000;
+						}
 					}
 					else {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_CLOSED;
@@ -1078,7 +1306,7 @@ void WorldSystem::restart_game() {
 	//current_game_state = true;
 	set_gamestate(GameStates::MAIN_MENU);
 
-	if (current_game_state == GameStates::MAIN_MENU) {
+	if (current_game_state == GameStates::MAIN_MENU && current_music != Music::MENU) {
 		playMusic(Music::MENU);
 	}
 
@@ -1090,10 +1318,19 @@ void WorldSystem::restart_game() {
 	//current_game_state = GameStates::MAIN_MENU;
 	//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
 
-	createMenuStart(renderer, { window_width_px / 2, 400.f * ui_scale});
-	createMenuContinue(renderer, { window_width_px / 2, 600.f * ui_scale});
-	createMenuQuit(renderer, { window_width_px / 2, 800.f * ui_scale});
-	createMenuTitle(renderer, { window_width_px / 2, 150.f * ui_scale});
+	
+
+	createMenuStart(renderer, { window_width_px / 6, 500.f * ui_scale });
+	createMenuContinue(renderer, { window_width_px / 6, 650.f * ui_scale });
+	createMenuQuit(renderer, { window_width_px / 6, 800.f * ui_scale });
+	createMenuCredits(renderer, { window_width_px - 150.f, 850.f * ui_scale });
+	createMenuTitle(renderer, { window_width_px / 2, window_height_px / 2 });
+
+	if (saveSystem.saveDataExists()) {
+		printf("%d size of inventory\n", registry.inventories.size());
+		// width: window_width_px / 5, height = (600.f*ui_scale/2)
+		update_background_collection(window_width_px / 5, (600.f*ui_scale / 2));
+	}
 }
 
 void WorldSystem::handle_end_player_turn(Entity player) {
@@ -1292,7 +1529,26 @@ void WorldSystem::create_ep_range(float remaining_ep, float speed, vec2 pos) {
 	float ep_radius = remaining_ep * (1 / player_stats.epratemove) * speed * 0.015 + ((110.f * remaining_ep * (1 / player_stats.epratemove)) / 100);
 
 	Entity ep = createEpRange({ pos.x , pos.y }, ep_resolution, ep_radius, { window_width_px, window_height_px });
-	registry.colors.insert(ep, { 0.2, 0.2, 8.7 });
+	registry.colors.insert(ep, { 0.2, 0.2, 1.f, 1.f });
+}
+
+// render attack range around the given position
+void WorldSystem::create_attack_range(float range, vec2 pos) {
+	// remove previously rendered attack_range
+	remove_attack_range();
+
+	Stats player_stats = registry.stats.get(player_main);
+	float attack_radius = range;
+
+	Entity ar = createAttackRange({ pos.x , pos.y }, ep_resolution, attack_radius, { window_width_px, window_height_px });
+	registry.colors.insert(ar, { 0.0, 1.0, 1.0, 1.0 });
+}
+
+// remove all attack ranges
+void WorldSystem::remove_attack_range() {
+	for (Entity e : registry.attackRange.entities) {
+		registry.remove_all_components_of(e);
+	}
 }
 
 // render fog of war around the player
@@ -1304,7 +1560,7 @@ void WorldSystem::create_fog_of_war() {
 	float playerY = player_motion.position.y;
 
 	Entity fog = createFog({ playerX, playerY }, fog_resolution, player_stats.range, { window_width_px, window_height_px });
-	registry.colors.insert(fog, { 0.2, 0.2, 0.2 });
+	registry.colors.insert(fog, { 0.2, 0.2, 0.2, 1.f });
 }
 
 // remove all fog entities
@@ -1312,7 +1568,6 @@ void WorldSystem::remove_fog_of_war() {
 	for (Entity e : registry.fog.entities) {
 		registry.remove_all_components_of(e);
 	}
-
 }
 
 // spawn player entity in random location
@@ -1349,6 +1604,14 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 				break;
 			case Floors::BOSS1:
 				createKingSlime(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				break;
+			case Floors::FLOOR2:
+				if (roll < 2) {
+					createLivingRock(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				}
+				else {
+					createApparition(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				}
 				break;
 			}
 		}
@@ -1471,6 +1734,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		Mix_PlayChannel(-1, ui_click, 0);
 	}
 
+	// DEBUG: TRAP
+	if (action == GLFW_RELEASE && key == GLFW_KEY_Q) {
+		createTrap(world.renderer, player_main, registry.motions.get(player_main).position, {64, 64}, 400, 4, 5, TEXTURE_ASSET_ID::BURRS);
+	}
+
 	// DEBUG: HEAL PLAYER
 	if (action == GLFW_RELEASE && key == GLFW_KEY_EQUAL) {
 		Stats& stat = registry.stats.get(player_main);
@@ -1480,8 +1748,38 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		registry.players.get(player_main).attacked = false;
 	}
 
+	// DEBUG: Testing artifact/stacking
+	if (action == GLFW_RELEASE && key == GLFW_KEY_9) {
+		int give = (int)ARTIFACT::BURRBAG;
+		for (Entity& p : registry.players.entities) {
+			Inventory& inv = registry.inventories.get(p);
+			inv.artifact[give]++;
+
+			std::string name = artifact_names.at((ARTIFACT)give);
+			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
+			reset_stats(p);
+			calc_stats(p);
+		}
+	}
+
+	// DEBUG: Testing artifact/stacking
+	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
+		int give = (int)ARTIFACT::POISON_FANG;
+		for (Entity& p : registry.players.entities) {
+			Inventory& inv = registry.inventories.get(p);
+			inv.artifact[give]++;
+
+			std::string name = artifact_names.at((ARTIFACT)give);
+			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
+			reset_stats(p);
+			calc_stats(p);
+		}
+	}
+
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
 		auto& stats = registry.stats.get(player_main);
+		StatusEffect test = StatusEffect(10, 2, StatusType::INVINCIBLE, false, true);
+		apply_status(player_main, test);
 		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\nrange: %f\nepmove: %f\nepatk: %f\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp, stats.range, stats.epratemove, stats.eprateatk);
 	}
 
@@ -1532,7 +1830,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_3) {
 		// end turn/ guard
-		if (current_game_state == GameStates::BATTLE_MENU) {
+		if (current_game_state == GameStates::BATTLE_MENU && registry.squishTimers.size() <= 0) {
 			if (tutorial) {
 				if (tutorial_flags & EP_DEPLETED) {
 					for (Entity e : registry.guardButtons.entities) {
@@ -1594,7 +1892,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 		// pause menu
 		// close the menu if pressed again
-		if (current_game_state != GameStates::MAIN_MENU) {
+		if (current_game_state != GameStates::MAIN_MENU && current_game_state != GameStates::CREDITS) {
 			if (current_game_state == GameStates::CUTSCENE) {
 				int w, h;
 				glfwGetWindowSize(window, &w, &h);
@@ -1619,27 +1917,41 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 
-	// DEBUG: Testing artifact/stacking
-	if (action == GLFW_RELEASE && key == GLFW_KEY_8) {
-		int give = (int)ARTIFACT::KB_MALLET;
-		for (Entity& p : registry.players.entities) {
-			Inventory& inv = registry.inventories.get(p);
-			inv.artifact[give]++;
+	// global end turn
+	if (action == GLFW_RELEASE && key == GLFW_KEY_ENTER) {
+		if (current_game_state == GameStates::ATTACK_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ITEM_MENU) {
+			backAction();
+		}
 
-			std::string name = artifact_names.at((ARTIFACT)give);
-			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
+		// no ending turn if enemies are currently in the process of dying
+		if (registry.squishTimers.size() <= 0) { return; }
+
+		if (tutorial) {
+			if (tutorial_flags & EP_DEPLETED) {
+				Player p = registry.players.get(player_main);
+				Stats s = registry.stats.get(player_main);
+
+				if (!p.attacked && !p.moved && s.ep > 50) {
+					logText("You brace yourself...");
+					registry.stats.get(player_main).guard = true;	
+				}
+				handle_end_player_turn(player_main);
+			}
+		}
+		else {
+			for (Entity e : registry.guardButtons.entities) {
+				Player p = registry.players.get(player_main);
+				Stats s = registry.stats.get(player_main);
+
+				if (!p.attacked && !p.moved && s.ep > 50) {
+					logText("You brace yourself...");
+					registry.stats.get(player_main).guard = true;
+				}
+				handle_end_player_turn(player_main);
+			}
 		}
 	}
-	if (action == GLFW_RELEASE && key == GLFW_KEY_9) {
-		int give = (int)ARTIFACT::WINDBAG;
-		for (Entity& p : registry.players.entities) {
-			Inventory& inv = registry.inventories.get(p);
-			inv.artifact[give]++;
 
-			std::string name = artifact_names.at((ARTIFACT)give);
-			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
-		}
-	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_Q) {
 		for (Entity& p : registry.players.entities) {
 			StatusEffect test = StatusEffect(20, 5, StatusType::ATK_BUFF, false, true);
@@ -1759,6 +2071,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			return;
 		}
 
+		if (current_game_state == GameStates::CREDITS) {
+			set_gamestate(GameStates::MAIN_MENU);
+			restart_game();
+			return;
+		}
+
 		if (current_game_state == GameStates::DIALOGUE) {
 			advanceTextbox();
 			return;
@@ -1788,71 +2106,74 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
 
 				switch (action_taken) {
+				case BUTTON_ACTION_ID::MENU_START:
+					if (tutorial) {
+						start_tutorial();
+						spawn_tutorial_entities();
+					}
+					else {
+						start_game();
+						roomSystem.current_floor = Floors::FLOOR1;
+						spawn_game_entities();
+						roomSystem.setRandomObjective();
+					}
+					break;
+				case BUTTON_ACTION_ID::CREDITS:
+					enter_credits();
+					return;
+				case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
+				case BUTTON_ACTION_ID::CONTINUE:
+					// if save data exists reset the game
+					if (saveSystem.saveDataExists()) {
+						start_game();
+						// remove entities to load in entities
+						removeForLoad();
+						//printf("Removed for load\n");
+						// get saved game data
+						json gameData = saveSystem.getSaveData();
+						//printf("getting gameData\n");
+						// load the entities in
+						loadFromData(gameData);
+						Inventory test = registry.inventories.get(player_main);
+						//printf("load game data?\n");
+						logText("Game state loaded!");
+						remove_fog_of_war();
+						create_fog_of_war();
+					}
+					break;
+				case BUTTON_ACTION_ID::SAVE_QUIT:
+					if (!tutorial) {
+						saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
+						logText("Game state saved!");
+					}
+					glfwSetWindowShouldClose(window, true); break;
+					break;
+				case BUTTON_ACTION_ID::ACTIONS_ATTACK:
+					if (current_game_state == GameStates::BATTLE_MENU) {
+						attackAction();
+					}
+					break;
+				case BUTTON_ACTION_ID::ACTIONS_MOVE:
+					if (registry.stats.get(player_main).ep <= 0) {
+						logText("Cannot move with 0 EP!");
+						Mix_PlayChannel(-1, error_sound, 0);
+						break;
+					}
+					if (current_game_state == GameStates::BATTLE_MENU) {
+						moveAction();
+					}
+					break;
+				case BUTTON_ACTION_ID::PAUSE:
+					// TODO: pause enimies if it is their turn
 
-					case BUTTON_ACTION_ID::MENU_START: 
-						if (tutorial) { 
-							start_tutorial();
-							spawn_tutorial_entities();
-						}
-						else {
-							start_game();
-							roomSystem.current_floor = Floors::FLOOR1;
-							spawn_game_entities();
-						}
-						break;
-					case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
-					case BUTTON_ACTION_ID::CONTINUE:
-						// if save data exists reset the game
-						if (saveSystem.saveDataExists()) {
-							start_game();
-							// remove entities to load in entities
-							removeForLoad();
-							//printf("Removed for load\n");
-							// get saved game data
-							json gameData = saveSystem.getSaveData();
-							//printf("getting gameData\n");
-							// load the entities in
-							loadFromData(gameData);
-							Inventory test = registry.inventories.get(player_main);
-							//printf("load game data?\n");
-							logText("Game state loaded!");
-							remove_fog_of_war();
-							create_fog_of_war();
-						}
-						break;
-					case BUTTON_ACTION_ID::SAVE_QUIT:
-						if (!tutorial) {
-							saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
-							logText("Game state saved!");
-						}
-						glfwSetWindowShouldClose(window, true); break;
-						break;
-					case BUTTON_ACTION_ID::ACTIONS_ATTACK:
-						if (current_game_state == GameStates::BATTLE_MENU) {
-							attackAction();
-						}
-						break;
-					case BUTTON_ACTION_ID::ACTIONS_MOVE:
-						if (registry.stats.get(player_main).ep <= 0) {
-							logText("Cannot move with 0 EP!");
-							Mix_PlayChannel(-1, error_sound, 0);
-							break;
-						}
-						if (current_game_state == GameStates::BATTLE_MENU) {
-							moveAction();
-						}
-						break;
-					case BUTTON_ACTION_ID::PAUSE:
-						// TODO: pause enimies if it is their turn
-						
-						// inMenu = true;
-						set_gamestate(GameStates::PAUSE_MENU);
-						// render save and quit button
-						createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale});
+					// inMenu = true;
+					set_gamestate(GameStates::PAUSE_MENU);
+					// render save and quit button
+					createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale });
 
 					// render cancel button
-					createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale});
-						
+					createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale });
+
 					return;
 				case BUTTON_ACTION_ID::ACTIONS_CANCEL:
 					cancelAction();
@@ -1915,6 +2236,24 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						registry.remove_all_components_of(ad);
 					}
 					return;
+				case BUTTON_ACTION_ID::OPEN_EQUIPMENT_DIALOG:
+					// remove all other eqiupment dialog components
+					for (Entity ed : registry.equipmentDialogs.entities) {
+						registry.remove_all_components_of(ed);
+					}
+
+					// get which icon was clicked
+					if (registry.itemCards.has(e)) {
+						Equipment equipment = registry.itemCards.get(e).item;
+						createEquipmentDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f * ui_scale), equipment);
+					}
+					break;
+				case BUTTON_ACTION_ID::CLOSE_EQUIPMENT_DIALOG:
+					// remove all equipment dialog components
+					for (Entity ed : registry.equipmentDialogs.entities) {
+						registry.remove_all_components_of(ed);
+					}
+					break;
 				case BUTTON_ACTION_ID::USE_ATTACK:
 					registry.players.get(player_main).using_attack = registry.players.get(player_main).selected_attack;
 					for (Entity ad : registry.attackDialogs.entities) {
@@ -1949,7 +2288,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		///////////////////////////
 		// logic for guard button presses
 		///////////////////////////
-		if (current_game_state == GameStates::BATTLE_MENU) {
+		if (current_game_state == GameStates::BATTLE_MENU && registry.squishTimers.size() <= 0) {
 			for (Entity e : registry.guardButtons.entities) {
 				if (!registry.motions.has(e)) {
 					continue;
@@ -1995,7 +2334,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				Stats& player_stats = registry.stats.get(player_main);
 
 				switch (current_game_state) {
-					
+
 				case GameStates::ATTACK_MENU:
 					use_attack(world_pos);
 					break;
@@ -2145,6 +2484,13 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								if (!interactable.interacted) {
 									Stats& stats = registry.stats.get(player_main);
 									heal(player_main, stats.maxhp);
+									stats.mp = stats.maxmp;
+									// Guide to Healthy Eating
+									if (registry.inventories.get(player_main).artifact[(int)ARTIFACT::GUIDE_HEALBUFF] > 0) {
+										StatusEffect buff = StatusEffect(0.2 * registry.inventories.get(player_main).artifact[(int)ARTIFACT::GUIDE_HEALBUFF], 5, StatusType::ATK_BUFF, true, true);
+										if (has_status(player_main, StatusType::ATK_BUFF)) { remove_status(player_main, StatusType::ATK_BUFF); }
+										apply_status(player_main, buff);
+									}
 									interactable.interacted = true;
 									break;
 								}
@@ -2234,7 +2580,7 @@ void WorldSystem::start_tutorial() {
 
 	set_gamestate(GameStates::BATTLE_MENU);
 	if (current_game_state != GameStates::CUTSCENE || current_game_state != GameStates::MAIN_MENU) {
-		Mix_PlayMusic(background_music, -1);
+		playMusic(Music::BACKGROUND);
 	}
 	// spawn the actions bar
 	// createActionsBar(renderer, { window_width_px / 2, window_height_px - 100.f });
@@ -2298,6 +2644,7 @@ void WorldSystem::start_player_turn() {
 	float& maxep = registry.stats.get(player_main).maxep;
 	float& ep = registry.stats.get(player_main).ep;
 	Player& p = registry.players.get(player_main);
+	Inventory& inv = registry.inventories.get(player_main);
 	p.attacked = false;
 	p.moved = false;
 	p.prepared = false;
@@ -2314,6 +2661,40 @@ void WorldSystem::start_player_turn() {
 		auto& enemy_struct = registry.enemies.get(enemy);
 
 		enemy_struct.hit_by_player = false;
+	}
+
+	// handle traps
+	handle_traps();
+
+	// Burrbag effect
+	if (inv.artifact[(int)ARTIFACT::BURRBAG] > 0) {
+		int triggers = inv.artifact[(int)ARTIFACT::BURRBAG];
+		createTrap(world.renderer, player_main, registry.motions.get(player_main).position, {64, 64}, 40, 4, triggers, TEXTURE_ASSET_ID::BURRS);
+	}
+
+	// Lively Bulb effect
+	if (inv.artifact[(int)ARTIFACT::LIVELY_BULB] > 0) {
+		Motion& player_motion = registry.motions.get(player_main);
+		int stacks = inv.artifact[(int)ARTIFACT::LIVELY_BULB];
+		float frac = 999;
+		float dir = 0;
+		bool valid = false;
+
+		// choose target
+		for (Entity& e : registry.enemies.entities) {
+			if (registry.hidden.has(e)) { continue; }
+			Motion& enemy_motion = registry.motions.get(e);
+			Stats& enemy_stats = registry.stats.get(e);
+			if (enemy_stats.hp / enemy_stats.maxhp < frac) {
+				valid = true;
+				dir = atan2(enemy_motion.position.y - player_motion.position.y, enemy_motion.position.x - player_motion.position.x);
+			}
+		}
+
+		if (valid) {
+			// fire
+			createProjectile(renderer, player_main, dirdist_extrapolate(player_motion.position, dir, 64), { 16, 16 }, dir, 80 * stacks, TEXTURE_ASSET_ID::PLANT_PROJECTILE);
+		}
 	}
 }
 
@@ -2410,7 +2791,7 @@ void WorldSystem::loadFromData(json data) {
 	if (data["music"] != nullptr) {
 		playMusic(data["music"]);
 	}
-	tutorial = data["tutorial"] == nullptr ? false : data["tutorial"];
+	tutorial = false;
 
 	// load player
 	json entityList = data["entities"];
@@ -2476,6 +2857,108 @@ Entity WorldSystem::loadPlayer(json playerData) {
 	return e;
 }
 
+// loading artifact collection onto the title screen
+Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float floor_width, float floor_height) {
+
+	
+	Inventory inv;
+	json inventoryData = playerData["inventory"];
+	printf("YES ???? we are finally in collection loading \n");
+	std::vector<vec2> arifact_type_num; 
+
+	
+	//printf("column :%d \n", column);
+	// Max height for spawning 
+	// width + moves it right 
+	// height + moves it down the screen 
+	float max_height_top = 600.f; // less
+	float max_height_bot = window_height_px*ui_scale - 72.f; // greater
+	float h_diff = max_height_bot - max_height_top; // less
+
+	float max_width_left_edge = window_width_px / 3 + 40.f;
+	float max_width_right_edge = window_width_px * (2/3); // greater
+	float w_diff =  max_width_right_edge- max_width_left_edge;
+
+	
+	printf("max_w left :%fl\n", max_width_left_edge);
+	printf("max_w right :%fl\n", max_width_right_edge);
+
+	printf("max height top :%fl\n", max_height_top);
+	printf("max height bot :%fl\n", max_height_bot);
+
+	// copy of the inventory - make sure it's copy by duplicate and not reference 
+	// count up the total nuumer of artifacts in there 
+	// while >0 
+	// irand range random x and y position (feed the boundaries into i rand range)
+	// 2 of artifact want two sitting on the floor 
+	// decrement total artifacts by 1 
+	// get json obj for inventory saved in saveData
+
+	// get artifacts
+	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
+	int i = 0;
+	int count_total_artifacts = 0;
+
+	// looping the list of artifacts 
+	// int i gives the artifact type 
+	// artifact gives the number of artifact the player has 
+	for (auto& artifact : inventoryData["artifact"]) {
+
+		inv.artifact[i] = artifact;
+		if (artifact > 0) {
+
+			int num_cur_artifacts = static_cast<int>(inv.artifact[i]);
+
+			count_total_artifacts += num_cur_artifacts;
+			printf("count of artifacts :%d\n", count_total_artifacts);
+			
+			while (num_cur_artifacts> 0) {
+				int pos_x = 0;
+				int pos_y = 0;
+				int attempts = 20;
+				bool valid = true;
+
+				Entity icon = createArtifactIcon(renderer, vec2(pos_x, pos_y),
+					static_cast<ARTIFACT>(i));
+				Motion& icon_motion = registry.motions.get(icon);
+				icon_motion.angle = irandRange(-450, 450) * (M_PI / 1800);
+
+				while (attempts > 0) {
+					icon_motion.position.x = irandRange(max_width_left_edge, max_width_right_edge);
+					icon_motion.position.y = irandRange(max_height_top, max_height_bot);
+
+					for (Entity e : registry.artifactIcons.entities) {
+						if (collides_circle(registry.motions.get(e), registry.motions.get(icon))) {
+							valid = false;
+							break;
+						}
+					}
+					if (valid) {
+						break;
+					}
+					attempts--;
+				}
+				num_cur_artifacts--;
+			}
+		}
+		i++;
+	}
+
+	// I don't need to return inventory, just need to check (1) if weapon/ artifact exist if yes 
+	// render the stupid sprite
+
+	printf("done QQ \n");
+	printf("number of total artifacts :%d\n", count_total_artifacts);
+	return inv;
+
+
+}
+
+int WorldSystem::calculate_abs_value(float v1, float v2) {
+	
+	return abs(v2 - v1);
+}
+
 Entity WorldSystem::loadEnemy(json enemyData) {
 	Entity e;
 	if (enemyData["enemy"]["type"] == ENEMY_TYPE::SLIME) {
@@ -2530,7 +3013,7 @@ void WorldSystem::loadStats(Entity e, json stats) {
 
 	registry.stats.get(e).epratemove = stats["epratemove"];
 	registry.stats.get(e).eprateatk = stats["eprateatk"];
-	
+
 	registry.stats.get(e).atk = stats["atk"];
 	registry.stats.get(e).def = stats["def"];
 	registry.stats.get(e).speed = stats["speed"];
@@ -2628,6 +3111,63 @@ void WorldSystem::loadStatuses(Entity e, json statuses) {
 		bool percentage = status["percentage"];
 		bool apply_at_turn_start = status["apply_at_turn_start"];
 		statusContainer.statuses.push_back(StatusEffect(value, turns_remaining, effect, percentage, apply_at_turn_start));
+		
+		ParticleEmitter emitter;
+		bool add_emitter = false;
+		switch (effect) {
+		case StatusType::POISON:
+		case StatusType::FANG_POISON:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::POISON);
+			add_emitter = true;
+			break;
+		case StatusType::ATK_BUFF:
+			if (value < 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::ATK_DOWN);
+				add_emitter = true;
+			}
+			else if (value > 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::ATK_UP);
+				add_emitter = true;
+			}
+			break;
+		case StatusType::RANGE_BUFF:
+			if (value < 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::RANGE_DOWN);
+				add_emitter = true;
+			}
+			else if (value > 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::RANGE_UP);
+				add_emitter = true;
+			}
+			break;
+		case StatusType::SLIMED:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::SLIMED);
+			add_emitter = true;
+		case StatusType::STUN:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::STUN);
+			add_emitter = true;
+			break;
+		case StatusType::INVINCIBLE:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::INVINCIBLE);
+			add_emitter = true;
+			break;
+		case StatusType::HP_REGEN:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::HP_REGEN);
+			add_emitter = true;
+			break;
+		default:
+			break;
+		}
+		if (add_emitter) {
+			if (!registry.particleContainers.has(e)) {
+				ParticleContainer& particleContainer = registry.particleContainers.emplace(e);
+				particleContainer.emitters.push_back(emitter);
+			}
+			else {
+				ParticleContainer& particleContainer = registry.particleContainers.get(e);
+				particleContainer.emitters.push_back(emitter);
+			}
+		}
 	}
 }
 
@@ -2800,7 +3340,7 @@ void WorldSystem::loadBossDoor(Entity e) {
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(e, &mesh);
 	registry.solid.emplace(e);
-	registry.colors.insert(e, vec3(1, 0.4, 0.4));
+	registry.colors.insert(e, vec4(1, 0.4, 0.4, 1.f));
 
 	registry.renderRequests.insert(
 		e,
@@ -3008,7 +3548,6 @@ void WorldSystem::doTurnOrderLogic() {
 			logText("It is now your turn!");
 			set_gamestate(GameStates::BATTLE_MENU);
 		}
-
 		// handle start-of-turn behaviour
 		handle_status_ticks(currentTurnEntity, true, false);
 		reset_stats(currentTurnEntity);
@@ -3278,15 +3817,20 @@ void WorldSystem::updateTutorial() {
 		stat.hp = stat.maxhp;
 		stat.mp = stat.maxmp;
 		stat.ep = stat.maxep;
+		tutorial = false;
 	}
 
 }
 
 // Set attack state for enemies who attack after moving
 void set_enemy_state_attack(Entity enemy) {
+	if (!registry.enemies.has(enemy)) { return; }
 	if (registry.enemies.get(enemy).type == ENEMY_TYPE::SLIME ||
 		registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER ||
-		registry.enemies.get(enemy).type == ENEMY_TYPE::CAVELING) {
+		registry.enemies.get(enemy).type == ENEMY_TYPE::CAVELING ||
+		registry.enemies.get(enemy).type == ENEMY_TYPE::LIVING_ROCK ||
+		registry.enemies.get(enemy).type == ENEMY_TYPE::LIVING_PEBBLE ||
+		registry.enemies.get(enemy).type == ENEMY_TYPE::APPARITION) {
 		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
 	}
 }
@@ -3295,6 +3839,14 @@ void set_enemy_state_attack(Entity enemy) {
 void set_gamestate(GameStates state) {
 	previous_game_state = current_game_state;
 	current_game_state = state;
+}
+
+// Enter Credits (This only exists because switch statements don't like variable initialization)
+void WorldSystem::enter_credits() {
+	set_gamestate(GameStates::CREDITS);
+	Entity bg = createBackground(renderer, { window_width_px / 2, window_height_px / 2 });
+	registry.renderRequests.get(bg).used_texture = TEXTURE_ASSET_ID::CG_CREDITS;
+	registry.renderRequests.get(bg).used_layer = RENDER_LAYER_ID::UI_TOP;
 }
 
 // Check if entity has a status effect;
@@ -3337,17 +3889,69 @@ void remove_status(Entity e, StatusType status, int number) {
 	if (!registry.statuses.has(e)) { return; }
 
 	int index = 0;
-	StatusContainer statuses = registry.statuses.get(e);
+	StatusContainer& statuses = registry.statuses.get(e);
+	statuses.sort_statuses_reverse();
 	for (StatusEffect s : statuses.statuses) {
 		if (s.effect == status && number > 0) {
 			statuses.statuses.erase(statuses.statuses.begin() + index);
 			number--;
 			index++;
+			remove_status_particle(e, s);
 		}
 	}
 	reset_stats(e);
 	calc_stats(e);
 	return;
+}
+
+void remove_status_particle(Entity e, StatusEffect status) {
+	if (!registry.particleContainers.has(e)) { return; }
+	ParticleContainer& particleContainer = registry.particleContainers.get(e);
+	PARTICLE_TYPE particle_type;
+	switch (status.effect)
+	{
+	case StatusType::POISON:
+	case StatusType::FANG_POISON:
+		particle_type = PARTICLE_TYPE::POISON;
+		break;
+	case StatusType::ATK_BUFF:
+		if (status.value < 0) {
+			particle_type = PARTICLE_TYPE::ATK_DOWN;
+		}
+		else if (status.value > 0) {
+			particle_type = PARTICLE_TYPE::ATK_UP;
+		}
+		break;
+	case StatusType::RANGE_BUFF:
+		if (status.value < 0) {
+			particle_type = PARTICLE_TYPE::RANGE_DOWN;
+		}
+		else if (status.value > 0) {
+			particle_type = PARTICLE_TYPE::RANGE_UP;
+		}
+		break;
+	case StatusType::SLIMED:
+		particle_type = PARTICLE_TYPE::SLIMED;
+		break;
+	case StatusType::STUN:
+		particle_type = PARTICLE_TYPE::STUN;
+		break;
+	case StatusType::INVINCIBLE:
+		particle_type = PARTICLE_TYPE::INVINCIBLE;
+		break;
+	case StatusType::HP_REGEN:
+		particle_type = PARTICLE_TYPE::HP_REGEN;
+		break;
+	default:
+		return;
+	}
+
+	for (int i = 0; i < particleContainer.emitters.size(); i++) {
+		if (particleContainer.emitters[i].type == particle_type) {
+			particleContainer.emitters.erase(particleContainer.emitters.begin() + i);
+			return;
+		}
+	}
 }
   
 void WorldSystem::handleActionButtonPress() {
@@ -3440,6 +4044,12 @@ void WorldSystem::backAction() {
 	for (Entity dd : registry.descriptionDialogs.entities) {
 		registry.remove_all_components_of(dd);
 	}
+
+	// remove all equipment dialogs
+	for (Entity ed : registry.equipmentDialogs.entities) {
+		registry.remove_all_components_of(ed);
+	}
+
 	// set gamestate back to normal
 	set_gamestate(GameStates::BATTLE_MENU);
 
@@ -3449,7 +4059,7 @@ void WorldSystem::itemAction() {
 	Inventory& inv = registry.inventories.get(player_main);
 	printf("sprite: %d", inv.equipped[0].sprite);
 	createItemMenu(renderer, { window_width_px - 125.f, 200.f * ui_scale }, inv);
-	
+
 	handleActionButtonPress();
 
 	// set game state to move menu
@@ -3559,7 +4169,7 @@ void WorldSystem::update_turn_ui() {
 
 	Motion& turn_ui_motion = registry.motions.get(turnUI);
 	vec2 position = turn_ui_motion.position;
-	vec2 startPos = vec2(turn_ui_motion.scale[0]/2.f, 0.f);
+	vec2 startPos = vec2(turn_ui_motion.scale[0] / 2.f, 0.f);
 	vec2 offset = vec2(0.f);
 
 	// get queue
@@ -3567,6 +4177,7 @@ void WorldSystem::update_turn_ui() {
 
 	for (int count = 0; !queue.empty() && count < 5; queue.pop()) {
 		Entity e = queue.front();
+		if (!registry.motions.has(e)) { continue; }
 		if (!registry.hidden.has(e)) {
 			offset[0] = 48.f*count + 32.f;
 			TEXTURE_ASSET_ID texture_id = registry.renderRequests.get(e).used_texture;
@@ -3575,6 +4186,44 @@ void WorldSystem::update_turn_ui() {
 		}
 	}
 	return;
+}
+
+void WorldSystem::update_background_collection(float floor_w, float floor_h) {
+
+
+	if (current_game_state == GameStates::MAIN_MENU) {
+		printf("!@!@#!@$@$@\n");
+		float x_offset = 0.f;
+		float y_offset = 0.f;
+		vec2 pos = { 0,0 };
+		if (saveSystem.saveDataExists()) {
+			// remove entities to load in entities
+			//removeForLoad();
+			//printf("Removed for load\n");
+			// get saved game data
+			json data = saveSystem.getSaveData();
+			// load player
+			json entityList = data["entities"];
+			//json collidablesList = data["map"]["collidables"];
+			//json interactablesList = data["map"]["interactables"];
+			//json tilesList = data["map"]["tiles"];
+			//json roomSystemJson = data["room"];
+			//json attackIndicatorList = data["attack_indicators"];
+
+			// load enemies
+			std::queue<Entity> entities;
+			for (auto& entity : entityList) {
+				Entity e;
+				Inventory inv;
+				if (entity["type"] == "player") {
+					printf("111 type is player successful... loading player invetory \n");
+					loadPlayerCollectionTitleScreen(entity,floor_w, floor_h);
+					//player_main = e; 
+				}
+			}
+		}
+
+	}
 }
 
 void WorldSystem::updateGameBackground() {
@@ -3645,6 +4294,13 @@ void WorldSystem::use_attack(vec2 target_pos) {
 					}
 
 					player_stats.mp = min(player_stats.maxmp, player_stats.mp + (player_stats.maxmp * 0.1f * player_stats.mpregen));
+					// Arcane Funnel effect
+					if (has_status(player_main, StatusType::ARCANE_FUNNEL)) {
+						player_stats.mp = min(player_stats.maxmp, player_stats.mp + (player_stats.maxmp * 0.1f * player_stats.mpregen));
+						Entity mana = createBigSlash(world.renderer, { m.position.x, m.position.y }, 0, 256);
+						registry.renderRequests.get(mana).used_texture = TEXTURE_ASSET_ID::MANACIRCLE;
+					}
+
 					attack_success = true;
 				}
 				else if (player_stats.ep < ep_cost) {
@@ -3725,7 +4381,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 
 					// show attack animation
 					Entity anim = createAttackAnimation(renderer, { m.position.x, m.position.y }, player.using_attack);
-					registry.colors.insert(anim, {0.f, 0.f, 1.f});
+					registry.colors.insert(anim, {0.f, 0.f, 1.f, 1.f});
 
 					// play attack sound
 					Mix_PlayChannel(-1, sword_parry, 0);
@@ -3977,4 +4633,225 @@ void WorldSystem::playMusic(Music music) {
 	default:
 		printf("unsupported Music enum value %d\n", music);
 	}
+}
+
+ParticleEmitter setupParticleEmitter(PARTICLE_TYPE type) {
+	ParticleEmitter emitter = ParticleEmitter();
+	emitter.type = type;
+
+	switch (type) {
+	case PARTICLE_TYPE::POISON:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::POISON_BUBBLE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 300;
+		emitter.max_interval_ms = 600;
+		emitter.particle_decay_ms = 2000;
+		emitter.base_scale = vec2(32, 32);
+		emitter.min_scale_factor = 0.5;
+		emitter.max_scale_factor = 1.2;
+		emitter.min_offset_x = -8;
+		emitter.max_offset_x = 8;
+		emitter.min_offset_y = -16;
+		emitter.max_offset_y = 0;
+		emitter.min_velocity_x = -40;
+		emitter.max_velocity_x = 40;
+		emitter.min_velocity_y = -40;
+		emitter.max_velocity_y= -100;
+		emitter.min_angle = 0;
+		emitter.max_angle = 0;
+		break;
+	case PARTICLE_TYPE::ATK_UP:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::BUFF_ARROW,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 300;
+		emitter.max_interval_ms = 700;
+		emitter.particle_decay_ms = 1500;
+		emitter.base_scale = vec2(32, 32);
+		emitter.min_scale_factor = 0.75;
+		emitter.max_scale_factor = 1;
+		emitter.min_offset_x = -48;
+		emitter.max_offset_x = 48;
+		emitter.min_offset_y = -16;
+		emitter.max_offset_y = 0;
+		emitter.min_velocity_x = 0;
+		emitter.max_velocity_x = 0;
+		emitter.min_velocity_y = -60;
+		emitter.max_velocity_y = -40;
+		emitter.min_angle = 0;
+		emitter.max_angle = 0;
+		emitter.color_shift = { 1.f, 0.f, 0.f, 0.75f };
+		break;
+	case PARTICLE_TYPE::ATK_DOWN:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::BUFF_ARROW,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 300;
+		emitter.max_interval_ms = 700;
+		emitter.particle_decay_ms = 1500;
+		emitter.base_scale = vec2(32, 32);
+		emitter.min_scale_factor = 0.75;
+		emitter.max_scale_factor = 1;
+		emitter.min_offset_x = -48;
+		emitter.max_offset_x = 48;
+		emitter.min_offset_y = -64;
+		emitter.max_offset_y = -32;
+		emitter.min_velocity_x = 0;
+		emitter.max_velocity_x = 0;
+		emitter.min_velocity_y = 30;
+		emitter.max_velocity_y = 50;
+		emitter.min_angle = M_PI;
+		emitter.max_angle = M_PI;
+		emitter.color_shift = { 1.f, 0.f, 0.f, 0.75f };
+		break;
+	case PARTICLE_TYPE::RANGE_UP:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::BUFF_ARROW,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 300;
+		emitter.max_interval_ms = 700;
+		emitter.particle_decay_ms = 1500;
+		emitter.base_scale = vec2(32, 32);
+		emitter.min_scale_factor = 0.75;
+		emitter.max_scale_factor = 1;
+		emitter.min_offset_x = -48;
+		emitter.max_offset_x = 48;
+		emitter.min_offset_y = -16;
+		emitter.max_offset_y = 0;
+		emitter.min_velocity_x = 0;
+		emitter.max_velocity_x = 0;
+		emitter.min_velocity_y = -60;
+		emitter.max_velocity_y = -40;
+		emitter.min_angle = 0;
+		emitter.max_angle = 0;
+		emitter.color_shift = { 1.f, 1.f, 0.f, 0.75f };
+		break;
+	case PARTICLE_TYPE::RANGE_DOWN:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::BUFF_ARROW,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 300;
+		emitter.max_interval_ms = 700;
+		emitter.particle_decay_ms = 1500;
+		emitter.base_scale = vec2(32, 32);
+		emitter.min_scale_factor = 0.75;
+		emitter.max_scale_factor = 1;
+		emitter.min_offset_x = -48;
+		emitter.max_offset_x = 48;
+		emitter.min_offset_y = -64;
+		emitter.max_offset_y = -32;
+		emitter.min_velocity_x = 0;
+		emitter.max_velocity_x = 0;
+		emitter.min_velocity_y = 30;
+		emitter.max_velocity_y = 50;
+		emitter.min_angle = M_PI;
+		emitter.max_angle = M_PI;
+		emitter.color_shift = { 1.f, 1.f, 0.f, 0.75f };
+		break;
+	case PARTICLE_TYPE::SLIMED:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::SLIME_DROPLET,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 200;
+		emitter.max_interval_ms = 500;
+		emitter.particle_decay_ms = 520;
+		emitter.base_scale = vec2(12, 12);
+		emitter.min_scale_factor = 1.0;
+		emitter.max_scale_factor = 2.0;
+		emitter.min_offset_x = -32;
+		emitter.max_offset_x = 32;
+		emitter.min_offset_y = -32;
+		emitter.max_offset_y = -32;
+		emitter.min_velocity_x = 0;
+		emitter.max_velocity_x = 0;
+		emitter.min_velocity_y = 20;
+		emitter.max_velocity_y = 40;
+		break;
+	case PARTICLE_TYPE::STUN:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::STUN_PARTICLE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 200;
+		emitter.max_interval_ms = 400;
+		emitter.particle_decay_ms = 1000;
+		emitter.base_scale = vec2(32, 32);
+		emitter.min_scale_factor = 0.5;
+		emitter.max_scale_factor = 1;
+		emitter.min_offset_x = 0;
+		emitter.max_offset_x = 0;
+		emitter.min_offset_y = -24;
+		emitter.max_offset_y = -24;
+		emitter.min_velocity_x = -60;
+		emitter.max_velocity_x = 60;
+		emitter.min_velocity_y = -60;
+		emitter.max_velocity_y = 60;
+		emitter.min_angle = 0;
+		emitter.max_angle = 2*M_PI;
+		emitter.color_shift = { 1.f, 1.f, 1.f, 0.8f };
+		break;
+	case PARTICLE_TYPE::INVINCIBLE:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::INVINCIBLE_PARTICLE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 450;
+		emitter.max_interval_ms = 800;
+		emitter.particle_decay_ms = 2000;
+		emitter.base_scale = vec2(32, 32);
+		emitter.min_scale_factor = 1;
+		emitter.max_scale_factor = 1;
+		emitter.min_offset_x = -32;
+		emitter.max_offset_x = 32;
+		emitter.min_offset_y = -32;
+		emitter.max_offset_y = 32;
+		emitter.min_velocity_x = 0;
+		emitter.max_velocity_x = 0;
+		emitter.min_velocity_y = 0;
+		emitter.max_velocity_y = 0;
+		emitter.min_angle = 0;
+		emitter.max_angle = 0;
+		break;
+	case PARTICLE_TYPE::HP_REGEN:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::HP_REGEN_PARTICLE,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 300;
+		emitter.max_interval_ms = 500;
+		emitter.particle_decay_ms = 1000;
+		emitter.base_scale = vec2(16, 16);
+		emitter.min_scale_factor = 1;
+		emitter.max_scale_factor = 1;
+		emitter.min_offset_x = -32;
+		emitter.max_offset_x = 32;
+		emitter.min_offset_y = -32;
+		emitter.max_offset_y = 32;
+		emitter.min_velocity_x = 0;
+		emitter.max_velocity_x = 0;
+		emitter.min_velocity_y = 0;
+		emitter.max_velocity_y = 0;
+		emitter.min_angle = 0;
+		emitter.max_angle = 0;
+		break;
+	default:
+		break;
+	}
+	return emitter;
 }

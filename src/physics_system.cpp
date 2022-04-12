@@ -177,6 +177,11 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 						if (has_status(player, StatusType::SLIMED)) { remove_status(player, StatusType::SLIMED); }
 						apply_status(player, slimed);
 					}
+					if (registry.enemies.get(owner).type == ENEMY_TYPE::REFLEXION) {
+						StatusEffect debuff = StatusEffect(-0.5, 1, StatusType::DEF_BUFF, true, true);
+						apply_status(player, debuff);
+						printf("%i\n", has_status(player, StatusType::DEF_BUFF));
+					}
 					timer.counter_ms = 0;
 					motion_registry.get(owner).in_motion = false;
 				}
@@ -214,6 +219,14 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 					motion.position = target_position;
 					bool target_valid = true;
 					for (uint j = 0; j < motion_registry.size(); j++) {
+
+						// ignore solids if apparition
+						if (registry.enemies.has(entity)) {
+							if (registry.enemies.get(entity).type == ENEMY_TYPE::APPARITION) {
+								break;
+							}
+						}
+
 						if (j != i && registry.solid.has(motion_registry.entities[j])) {
 							// differentiate between walls and non-walls
 							if (registry.enemies.has(motion_registry.entities[j]) || registry.players.has(motion_registry.entities[j])) {
@@ -224,7 +237,7 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 							}
 							else if (collides_AABB(motion, motion_registry.components[j])) {
 								target_valid = false;
-								if (registry.enemies.has(entity) && registry.enemies.get(entity).type == ENEMY_TYPE::APPARITION) {
+								if (registry.enemies.has(entity)) {
 									target_valid = true;
 								}
 								break;
@@ -264,6 +277,11 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 										StatusEffect slimed = StatusEffect(4, 3, StatusType::SLIMED, true, true);
 										if (has_status(player, StatusType::SLIMED)) { remove_status(player, StatusType::SLIMED); }
 										apply_status(player, slimed);
+									}
+									if (registry.enemies.get(owner).type == ENEMY_TYPE::REFLEXION) {
+										StatusEffect debuff = StatusEffect(-0.5, 1, StatusType::DEF_BUFF, true, true);
+										apply_status(player, debuff);
+										printf("%i\n", has_status(player, StatusType::DEF_BUFF));
 									}
 								}
 								motion_registry.get(owner).in_motion = false;

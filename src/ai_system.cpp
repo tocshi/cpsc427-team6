@@ -144,7 +144,7 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 			float angle = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
 
 			// Special behaviour if special slime
-			if (stats.range > 1000.f) {
+			if (stats.range > 2999.f) {
 				motion_struct.destination = { dirdist_extrapolate(motion_struct.position,
 					angle + degtorad(irandRange(-10, 10)), min(300.f, dist_to(motion_struct.position,
 					player_motion.position)) + irandRange(-20, -10))
@@ -545,10 +545,24 @@ void AISystem::living_pebble_logic(Entity enemy, Entity& player) {
 	// Perform melee attack if close enough
 	if (registry.enemies.get(enemy).state == ENEMY_STATE::ATTACK) {
 		if (player_in_range(motion_struct.position, meleeRange)) {
-			createExplosion(world.renderer, player_motion.position);
+			if (stats.range > 2999.f) {
+				Entity explosion = createExplosion(world.renderer, motion_struct.position);
+				registry.motions.get(explosion).scale = { 300, 300 };
+				registry.colors.insert(explosion, { 1.f, 0.f, 0.f, 1.f });
+				take_damage(enemy, 9999);
+			}
+			else {
+				createExplosion(world.renderer, player_motion.position);
+			}
 			Mix_PlayChannel(-1, world.fire_explosion_sound, 0);
 			world.logText(deal_damage(enemy, player, 100));
 		}
+
+		// Special enemy
+		if (stats.range > 2999.f && stats.hp > 0) {
+			take_damage(enemy, 999);
+		}
+
 		registry.enemies.get(enemy).state = ENEMY_STATE::AGGRO;
 		return;
 	}
@@ -580,9 +594,9 @@ void AISystem::living_pebble_logic(Entity enemy, Entity& player) {
 			float angle = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
 
 			// Special behaviour if special enemy
-			if (stats.range > 1000.f) {
+			if (stats.range > 2999.f) {
 				motion_struct.destination = { dirdist_extrapolate(motion_struct.position,
-					angle + degtorad(irandRange(-10, 10)), min(300.f, dist_to(motion_struct.position,
+					angle + degtorad(irandRange(-10, 10)), min(140.f, dist_to(motion_struct.position,
 					player_motion.position)) + irandRange(-20, -10))
 				};
 			}
@@ -635,7 +649,7 @@ void AISystem::living_rock_logic(Entity enemy, Entity& player) {
 		break;
 	case ENEMY_STATE::SUMMON:
 		bool summoned = false;
-		int attempts = 20;
+		int attempts = 50;
 		while (!summoned && attempts > 0) {
 			bool valid_summon = true;
 			int distance = irandRange(ENEMY_BB_WIDTH * 2, ENEMY_BB_WIDTH * 2);
@@ -695,7 +709,7 @@ void AISystem::apparition_logic(Entity enemy, Entity& player) {
 				createExplosion(world.renderer, player_motion.position);
 				Mix_PlayChannel(-1, world.fire_explosion_sound, 0);
 				world.logText(deal_damage(enemy, player, 50));
-				StatusEffect blind = StatusEffect(-0.5f, 2, StatusType::RANGE_BUFF, true, true);
+				StatusEffect blind = StatusEffect(-0.5f, 1, StatusType::RANGE_BUFF, true, true);
 				apply_status(player, blind);
 			}
 		}
@@ -787,8 +801,44 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 		else if (roll < 2) { world.logText("???: Don't let me out of your sight!", { 1.0, 0.2, 0.2 }); }
 		else { world.logText("???: You can't escape your fate!", { 1.0, 0.2, 0.2 }); }
 
+		// teleporto
+		bool valid = false;
+		int attempts = 50;
+		while (!valid && attempts > 0) {
+			bool valid_tp = true;
+			int distance = irandRange(ENEMY_BB_WIDTH, ENEMY_BB_WIDTH * 4);
+			float direction = (rand() % 360) * (M_PI / 180);
+			vec2 tp = dirdist_extrapolate(player_motion.position, direction, distance);
+			Motion test = {};
+			test.position = tp;
+			test.scale = motion_struct.scale;
+			for (Entity e : registry.solid.entities) {
+				if (collides_AABB(test, registry.motions.get(e))) {
+					valid_tp = false;
+					break;
+				}
+			}
+			attempts--;
+			if (valid_tp) {
+				valid = true;
+				motion_struct.position = tp;
+				break;
+			}
+		}
 
-		state == ENEMY_STATE::ATTACK;
+		// fire projectile
+		dir = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
+		Entity projectile = createProjectile(world.renderer, enemy, motion_struct.position, { 32, 32 }, dir, 50, TEXTURE_ASSET_ID::ORB);
+		registry.colors.insert(projectile, {0.f, 0.f, 1.f, 0.7f});
+		registry.solid.remove(enemy);
+		registry.motions.get(enemy).in_motion = true;
+
+		for (Entity e : registry.enemies.entities) {
+			StatusEffect buff = StatusEffect(2000, 1, StatusType::RANGE_BUFF, false, true);
+			apply_status(e, buff);
+		}
+
+		registry.enemies.get(enemy).state == ENEMY_STATE::ATTACK;
 		boss.num_turns++;
 		return;
 	}
@@ -840,7 +890,7 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 			registry.colors.insert(curse, {0.f, 0.f, 0.f, 1.f});
 
 			world.playMusic(Music::BOSS1);
-			state = ENEMY_STATE::AGGRO;
+			registry.enemies.get(enemy).state = ENEMY_STATE::AGGRO;
 		}
 		break;
 	case ENEMY_STATE::ATTACK:
@@ -860,9 +910,21 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 			else if (roll < 2) { world.logText("???: Let's see what you can do.", { 1.0, 0.2, 0.2 }); }
 			else { world.logText("???: Now now, you won't get forever to decide.", { 1.0, 0.2, 0.2 }); }
 
+			for (int i = 0; i < 4; ++i) {
+				float dir = i * (M_PI / 2);
+				roll = irand(4);
+				vec2 pos = dirdist_extrapolate(player_motion.position, dir, 120);
+				Entity trap = createTrap(world.renderer, enemy, pos, { 150, 150 }, 0, 1, 1, TEXTURE_ASSET_ID::FATE);
 
+				if (roll < 1) { registry.colors.insert(trap, { 1.f, 0.f, 0.f, 0.9f }); }
+				else if (roll < 2) { registry.colors.insert(trap, { 0.f, 1.f, 0.f, 0.9f }); }
+				else if (roll < 3) { registry.colors.insert(trap, { 0.f, 0.f, 1.f, 0.9f }); }
+				else { registry.colors.insert(trap, { 1.f, 0.f, 1.f, 0.9f }); }
+			}
 
-			state = ENEMY_STATE::CHARGING_MELEE;
+			createAttackIndicator(world.renderer, player_motion.position, 400, 400, true);
+
+			registry.enemies.get(enemy).state = ENEMY_STATE::CHARGING_MELEE;
 		}
 		// Be Not Alone
 		else if (roll < 2) { 
@@ -873,9 +935,62 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 			else if (roll < 2) { world.logText("???: These ones shall keep you in good company...", { 1.0, 0.2, 0.2 }); }
 			else { world.logText("???: Let's see if you can handle this.", { 1.0, 0.2, 0.2 }); }
 
+			int num_summons = 2;
+			while (num_summons > 0) {
+				bool valid_summon = true;
+				int distance = irandRange(ENEMY_BB_WIDTH * 2, ENEMY_BB_WIDTH * 3.5);
+				float direction = (rand() % 360) * (M_PI / 180);
+				vec2 spawnpoint = dirdist_extrapolate(motion_struct.position, direction, distance);
+				Motion test = {};
+				test.position = spawnpoint;
+				test.scale = { ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT };
+				for (Entity e : registry.solid.entities) {
+					if (collides_AABB(test, registry.motions.get(e))) {
+						valid_summon = false;
+					}
+				}
+				if (valid_summon) {
+					// summon random monster with bias towards apparition
+					roll = irand(6);
+					Entity summon;
+					if (roll < 1) { 
+						summon = createEnemy(world.renderer, spawnpoint);
+						Stats& summon_stats = registry.basestats.get(summon);
+						summon_stats.maxhp = 56;
+						summon_stats.atk = 20;
+						registry.stats.get(summon).hp = summon_stats.maxhp;
+					}
+					else if (roll < 2) { 
+						summon = createPlantShooter(world.renderer, spawnpoint);
+						Stats& summon_stats = registry.basestats.get(summon);
+						summon_stats.maxhp = 48;
+						summon_stats.atk = 16;
+						registry.stats.get(summon).hp = summon_stats.maxhp;
+					}
+					else if (roll < 3) {
+						summon = createCaveling(world.renderer, spawnpoint);
+						Stats& summon_stats = registry.basestats.get(summon);
+						summon_stats.maxhp = 38;
+						summon_stats.atk = 12;
+						registry.stats.get(summon).hp = summon_stats.maxhp;
+					}
+					else if (roll < 4) { 
+						summon = createLivingRock(world.renderer, spawnpoint);
+					}
+					else { 
+						summon = createApparition(world.renderer, spawnpoint);
+					}
 
+					reset_stats(summon);
+					calc_stats(summon);
+					world.turnOrderSystem.turnQueue.addNewEntity(summon);
+					ExpandTimer iframe = registry.iFrameTimers.emplace(summon);
+					iframe.counter_ms = 50;
+					num_summons--;
+				}
+			}
 
-			state = ENEMY_STATE::CHARGING_RANGED;
+			registry.enemies.get(enemy).state = ENEMY_STATE::CHARGING_RANGED;
 		}
 		// Be Not Afraid
 		else { 
@@ -886,22 +1001,59 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 			else if (roll < 2) { world.logText("???: There's no escape!", { 1.0, 0.2, 0.2 }); }
 			else { world.logText("???: Feeling afraid?", { 1.0, 0.2, 0.2 }); }
 
+			int num_summons = 2;
+			while (num_summons > 0) {
+				bool valid_summon = true;
+				int distance = irandRange(ENEMY_BB_WIDTH * 2, ENEMY_BB_WIDTH * 4);
+				float direction = (rand() % 360) * (M_PI / 180);
+				vec2 spawnpoint = dirdist_extrapolate(motion_struct.position, direction, distance);
+				Motion test = {};
+				test.position = spawnpoint;
+				test.scale = { ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT };
+				for (Entity e : registry.solid.entities) {
+					if (collides_AABB(test, registry.motions.get(e))) {
+						valid_summon = false;
+					}
+				}
+				if (valid_summon) {
+					Entity summon = createLivingPebble(world.renderer, spawnpoint);
+					Stats& summon_stats = registry.basestats.get(summon);
+					summon_stats.name = "Orb of Fear";
+					summon_stats.maxhp = 2400;
+					summon_stats.speed = 1;
+					summon_stats.atk = stats.atk;
+					summon_stats.def = 999;
+					summon_stats.range = 3000;
+					registry.stats.get(summon).hp = summon_stats.maxhp;
+					reset_stats(summon);
+					calc_stats(summon);
+					world.turnOrderSystem.turnQueue.addNewEntity(summon);
+					registry.renderRequests.get(summon).used_texture = TEXTURE_ASSET_ID::ORB;
 
+					ExpandTimer iframe = registry.iFrameTimers.emplace(summon);
+					iframe.counter_ms = 50;
+					num_summons--;
+				}
+			}
 
-			state = ENEMY_STATE::ATTACK;
+			registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
 		}
 
 		break;
 	case ENEMY_STATE::CHARGING_MELEE:
 		printf("Turn Number %i: Triggering AoE!\n", boss.num_turns);
 		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
-			if (player_in_range(motion_struct.position, registry.motions.get(registry.attackIndicators.entities[i]).scale.x / 2)) {
+			if (player_in_range(registry.motions.get(registry.attackIndicators.entities[i]).position, registry.motions.get(registry.attackIndicators.entities[i]).scale.x / 2)) {
 				world.logText(deal_damage(enemy, player, 200));
+
 			}
-			printf("Removed Attack Indicator!\n");
+			Entity explosion = createExplosion(world.renderer, registry.motions.get(registry.attackIndicators.entities[i]).position);
+			registry.motions.get(explosion).scale = { 400, 400 };
+			registry.colors.insert(explosion, { 0.2f, 0.2f, 0.2f, 0.5f });
 			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
+			Mix_PlayChannel(-1, world.fire_explosion_sound, 0);
 		}
-		state = ENEMY_STATE::ATTACK;
+		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
 		break;
 	case ENEMY_STATE::CHARGING_RANGED:
 		printf("Turn Number %i: Triggering Global ATK Buff!\n", boss.num_turns);
@@ -909,7 +1061,7 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 			StatusEffect buff = StatusEffect(0.5, 3, StatusType::ATK_BUFF, true, true);
 			apply_status(e, buff);
 		}
-		state = ENEMY_STATE::ATTACK;
+		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
 		break;
 	case ENEMY_STATE::DEATH:
 		// death

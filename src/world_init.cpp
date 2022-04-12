@@ -282,7 +282,7 @@ Entity createTrap(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, fl
 	motion.scale = scale;
 
 	// Initilalize stats
-	auto& stat = registry.stats.emplace(entity);
+	Stats& stat = registry.stats.emplace(entity);
 	stat = registry.stats.get(owner);
 
 	auto& trap = registry.traps.emplace(entity);
@@ -296,7 +296,7 @@ Entity createTrap(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, fl
 		{ texture,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::FLOOR_DECO });
+		 RENDER_LAYER_ID::TRAPS });
 
 	return entity;
 }
@@ -587,7 +587,6 @@ Entity createApparition(RenderSystem* renderer, vec2 pos)
 
 	// add enemy to queuables
 	registry.queueables.emplace(entity);
-	registry.solid.emplace(entity);
 
 	// add status container to apparition
 	registry.statuses.emplace(entity);
@@ -599,6 +598,7 @@ Entity createApparition(RenderSystem* renderer, vec2 pos)
 
 	ShadowContainer& shadow_container = registry.shadowContainers.emplace(entity);
 	shadow_container.shadow_entity = createShadow(pos, entity);
+	registry.colors.insert(entity, { 1.f, 1.f, 1.f, 0.6f });
 	return entity;
 }
 

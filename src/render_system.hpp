@@ -170,6 +170,8 @@ class RenderSystem {
 			textures_path("particles/stun.png"),
 			textures_path("particles/invincible.png"),
 			textures_path("particles/hp_regen.png"),
+			textures_path("attacks/fate.png"),
+			textures_path("enemy/orb.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

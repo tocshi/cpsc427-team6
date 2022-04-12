@@ -750,35 +750,37 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Update the camera to follow the player
 		Camera& camera = registry.cameras.get(active_camera_entity);
 		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
-	}
 
-	// Check traps for collisions/activations
-	for (Entity t : registry.traps.entities) {
-		if (!registry.traps.has(t)) { continue; }
-		Trap& trap = registry.traps.get(t);
-		if (trap.triggers <= 0) { continue; }
-		Motion& trap_motion = registry.motions.get(t);
-		
-		if (registry.players.has(trap.owner)) {
-			for (Entity e : registry.enemies.entities) {
-				// hacky way of having enemies not die when spawning on top of a trap
-				if (registry.iFrameTimers.has(e)) { continue; }
-				Motion& enemy_motion = registry.motions.get(e);
-				Stats& enemy_stats = registry.stats.get(e);
-				if (enemy_stats.hp <= 0 || trap.triggers <= 0) { continue; }
-				else if (collides_circle(trap_motion, enemy_motion)) {
-					trigger_trap(t, e);
-					break;
+		// Check traps for collisions/activations
+		for (Entity t : registry.traps.entities) {
+			if (!registry.traps.has(t)) { continue; }
+			Trap& trap = registry.traps.get(t);
+			if (trap.triggers <= 0) { continue; }
+			Motion& trap_motion = registry.motions.get(t);
+
+			if (registry.players.has(trap.owner)) {
+				for (Entity e : registry.enemies.entities) {
+					// hacky way of having enemies not die when spawning on top of a trap
+					if (registry.iFrameTimers.has(e)) { continue; }
+					Motion& enemy_motion = registry.motions.get(e);
+					Stats& enemy_stats = registry.stats.get(e);
+					if (enemy_stats.hp <= 0 || trap.triggers <= 0) { continue; }
+					else if (collides_circle(trap_motion, enemy_motion)) {
+						trigger_trap(t, e);
+						break;
+					}
 				}
 			}
-		}
-		else {
-			for (Entity p : registry.players.entities) {
-				Motion& player_motion = registry.motions.get(p);
-				Stats& player_stats = registry.stats.get(p);
+			else {
+				// internal trap cooldown
+				if (registry.iFrameTimers.has(player)) { continue; }
+				Motion& player_motion = registry.motions.get(player);
+				Stats& player_stats = registry.stats.get(player);
 				if (player_stats.hp <= 0 || trap.triggers <= 0) { continue; }
 				else if (collides_circle(trap_motion, player_motion)) {
-					trigger_trap(t, p);
+					ExpandTimer iframe = registry.iFrameTimers.emplace(player);
+					iframe.counter_ms = 50;
+					trigger_trap(t, player);
 					break;
 				}
 			}
@@ -788,12 +790,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Check for enemy death
 	for (Entity& enemy : registry.enemies.entities) {
 		if (registry.stats.get(enemy).hp <= 0 && !registry.squishTimers.has(enemy)) {
-			std::string log_text = "The enemy ";
-			log_text = log_text.append(registry.stats.get(enemy).name.append(" is defeated!"));
-			logText(log_text);
-
 			SquishTimer& squish = registry.squishTimers.emplace(enemy);
 			squish.orig_scale = registry.motions.get(enemy).scale;
+
+			// special behaviour if orb
+			if (registry.renderRequests.get(enemy).used_texture == TEXTURE_ASSET_ID::ORB) {
+				squish.counter_ms = 50;
+			}
+			else {
+				std::string log_text = "The enemy ";
+				log_text = log_text.append(registry.stats.get(enemy).name.append(" is defeated!"));
+				logText(log_text);
+			}
 
 			playEnemyDeathSound(registry.enemies.get(enemy).type);
       
@@ -810,16 +818,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (registry.solid.has(enemy)) {
 				registry.solid.remove(enemy);
 			}
-			if (!tutorial && registry.enemies.get(enemy).type != ENEMY_TYPE::LIVING_PEBBLE)
+			if (!tutorial && registry.enemies.get(enemy).type != ENEMY_TYPE::LIVING_PEBBLE) {
 				// TEMP: drop healing item from enemy with 1/3 chance
 				if (roll == 0 && !tutorial) {
 					createConsumable(renderer, registry.motions.get(enemy).position + vec2(16, 16), CONSUMABLE::INSTANT);
 				}
 				roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
+			}
 			if (registry.bosses.has(enemy)) {
 				roomSystem.updateObjective(ObjectiveType::DEFEAT_BOSS, 1);
 				// TODO: replace with stairs when implemented
-				createDoor(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f }, false);
+				createDoor(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f }, true);
 				roomSystem.setNextFloor(Floors((int)roomSystem.current_floor + 1));
 				createCampfire(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y + 64.f });
 				registry.enemies.get(enemy).state = ENEMY_STATE::DEATH;
@@ -1016,6 +1025,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Squish Timers
 	for (Entity entity : registry.squishTimers.entities) {
+		if (!registry.motions.has(entity)) { continue; }
 		// progress timer
 		SquishTimer& counter = registry.squishTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
@@ -1093,6 +1103,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		switch (particle.type) {
 		case (PARTICLE_TYPE::ATK_UP):
 		case (PARTICLE_TYPE::ATK_DOWN):
+		case (PARTICLE_TYPE::DEF_UP):
+		case (PARTICLE_TYPE::DEF_DOWN):
 		case (PARTICLE_TYPE::RANGE_UP):
 		case (PARTICLE_TYPE::RANGE_DOWN):
 			if (registry.colors.has(entity)) {
@@ -1205,7 +1217,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 							float range = 125 + 75 * registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER];
 							for (Entity e : registry.enemies.entities) {
 								if (dist_to(registry.motions.get(e).position, registry.motions.get(player_main).position) > range) { continue; }
-								StatusEffect debuff = StatusEffect(-0.5, 2, StatusType::RANGE_BUFF, true, true);
+								StatusEffect debuff = StatusEffect(-0.5, 1, StatusType::RANGE_BUFF, true, true);
 								apply_status(e, debuff);
 							}
 
@@ -1227,7 +1239,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 							float range = 125 + 75 * registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER];
 							for (Entity e : registry.enemies.entities) {
 								if (dist_to(registry.motions.get(e).position, registry.motions.get(player_main).position) > range) { continue; }
-								StatusEffect debuff = StatusEffect(-0.5, 2, StatusType::RANGE_BUFF, true, true);
+								StatusEffect debuff = StatusEffect(-0.5, 1, StatusType::RANGE_BUFF, true, true);
 								apply_status(e, debuff);
 							}
 
@@ -1807,8 +1819,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
 		auto& stats = registry.stats.get(player_main);
-		StatusEffect test = StatusEffect(10, 2, StatusType::INVINCIBLE, false, true);
-		apply_status(player_main, test);
+		//StatusEffect test = StatusEffect(10, 2, StatusType::INVINCIBLE, false, true);
+		//apply_status(player_main, test);
 		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\nrange: %f\nepmove: %f\nepatk: %f\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp, stats.range, stats.epratemove, stats.eprateatk);
 	}
 
@@ -1889,6 +1901,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 					// perform action based on button ENUM
 					BUTTON_ACTION_ID action = registry.guardButtons.get(e).action;
 
+					// no ending turn if enemies are currently in the process of dying
+					if (registry.squishTimers.size() > 0) {
+						Mix_PlayChannel(-1, error_sound, 0);
+						return;
+					}
+
 					switch (action) {
 					case BUTTON_ACTION_ID::ACTIONS_GUARD:
 						logText("You brace yourself...");
@@ -1953,7 +1971,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 
 		// no ending turn if enemies are currently in the process of dying
-		if (registry.squishTimers.size() > 0) { return; }
+		if (registry.squishTimers.size() > 0) { 
+			Mix_PlayChannel(-1, error_sound, 0);
+			return; 
+		}
 
 		if (tutorial) {
 			if (tutorial_flags & EP_DEPLETED) {
@@ -2309,7 +2330,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		///////////////////////////
 		// logic for guard button presses
 		///////////////////////////
-		if (current_game_state == GameStates::BATTLE_MENU && registry.squishTimers.size() <= 0) {
+		if (current_game_state == GameStates::BATTLE_MENU) {
 			for (Entity e : registry.guardButtons.entities) {
 				if (!registry.motions.has(e)) {
 					continue;
@@ -2323,8 +2344,15 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					if (!registry.guardButtons.has(e)) {
 						continue;
 					}
-					// button sound
-					Mix_PlayChannel(-1, ui_click, 0);
+					// no ending turn if enemies are currently in the process of dying
+					if (registry.squishTimers.size() > 0) {
+						Mix_PlayChannel(-1, error_sound, 0);
+						return;
+					}
+					else {
+						// button sound
+						Mix_PlayChannel(-1, ui_click, 0);
+					}
 
 					// perform action based on button ENUM
 					BUTTON_ACTION_ID action = registry.guardButtons.get(e).action;
@@ -3956,6 +3984,14 @@ void remove_status_particle(Entity e, StatusEffect status) {
 			particle_type = PARTICLE_TYPE::ATK_UP;
 		}
 		break;
+	case StatusType::DEF_BUFF:
+		if (status.value < 0) {
+			particle_type = PARTICLE_TYPE::DEF_DOWN;
+		}
+		else if (status.value > 0) {
+			particle_type = PARTICLE_TYPE::DEF_UP;
+		}
+		break;
 	case StatusType::RANGE_BUFF:
 		if (status.value < 0) {
 			particle_type = PARTICLE_TYPE::RANGE_DOWN;
@@ -4512,7 +4548,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				logText("Parrying Stance activated!");
 				Mix_PlayChannel(-1, special_sound, 0);
 
-				StatusEffect stance = StatusEffect(0, 1, StatusType::PARRYING_STANCE, false, true);
+				StatusEffect stance = StatusEffect(0, 0, StatusType::PARRYING_STANCE, false, true);
 				apply_status(player_main, stance);
 
 				ep_cost = 0;
@@ -4804,6 +4840,54 @@ ParticleEmitter setupParticleEmitter(PARTICLE_TYPE type) {
 		emitter.min_angle = M_PI;
 		emitter.max_angle = M_PI;
 		emitter.color_shift = { 1.f, 1.f, 0.f, 0.75f };
+		break;
+	case PARTICLE_TYPE::DEF_UP:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::BUFF_ARROW,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 300;
+		emitter.max_interval_ms = 700;
+		emitter.particle_decay_ms = 1500;
+		emitter.base_scale = vec2(32, 32);
+		emitter.min_scale_factor = 0.75;
+		emitter.max_scale_factor = 1;
+		emitter.min_offset_x = -48;
+		emitter.max_offset_x = 48;
+		emitter.min_offset_y = -16;
+		emitter.max_offset_y = 0;
+		emitter.min_velocity_x = 0;
+		emitter.max_velocity_x = 0;
+		emitter.min_velocity_y = -60;
+		emitter.max_velocity_y = -40;
+		emitter.min_angle = 0;
+		emitter.max_angle = 0;
+		emitter.color_shift = { 0.f, 0.f, 1.f, 0.75f };
+		break;
+	case PARTICLE_TYPE::DEF_DOWN:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::BUFF_ARROW,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 300;
+		emitter.max_interval_ms = 700;
+		emitter.particle_decay_ms = 1500;
+		emitter.base_scale = vec2(32, 32);
+		emitter.min_scale_factor = 0.75;
+		emitter.max_scale_factor = 1;
+		emitter.min_offset_x = -48;
+		emitter.max_offset_x = 48;
+		emitter.min_offset_y = -64;
+		emitter.max_offset_y = -32;
+		emitter.min_velocity_x = 0;
+		emitter.max_velocity_x = 0;
+		emitter.min_velocity_y = 30;
+		emitter.max_velocity_y = 50;
+		emitter.min_angle = M_PI;
+		emitter.max_angle = M_PI;
+		emitter.color_shift = { 0.f, 0.f, 1.f, 0.75f };
 		break;
 	case PARTICLE_TYPE::SLIMED:
 		emitter.render_data = RenderRequest{

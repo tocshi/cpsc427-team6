@@ -383,6 +383,16 @@ void apply_status(Entity& target, StatusEffect& status) {
 				add_emitter = true;
 			}
 			break;
+		case StatusType::DEF_BUFF:
+			if (status.value < 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::DEF_DOWN);
+				add_emitter = true;
+			}
+			else if (status.value > 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::DEF_UP);
+				add_emitter = true;
+			}
+			break;
 		case StatusType::SLIMED:
 			emitter = setupParticleEmitter(PARTICLE_TYPE::SLIMED);
 			add_emitter = true;
@@ -431,11 +441,11 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 		for (int i = statusContainer.statuses.size() - 1; i >= 0; i--) {
 			StatusEffect& status = statusContainer.statuses[i];
 			// in case something was accidentally added with 0 turn duration
-			if (status.turns_remaining <= 0) {
-				remove_status_particle(entity, status);
-				statusContainer.statuses.erase(statusContainer.statuses.begin()+i);
-				continue;
-			}
+			//if (status.turns_remaining <= 0) {
+			//	remove_status_particle(entity, status);
+			//	statusContainer.statuses.erase(statusContainer.statuses.begin()+i);
+			//	continue;
+			//}
 			if (status.apply_at_turn_start != applied_from_turn_start) {
 				continue;
 			}
@@ -456,6 +466,14 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 					}
 					else {
 						stats.atk += status.value;
+					}
+					break;
+				case (StatusType::DEF_BUFF):
+					if (status.percentage && registry.stats.has(entity)) {
+						stats.def += basestats.def * status.value;
+					}
+					else {
+						stats.def += status.value;
 					}
 					break;
 				case (StatusType::RANGE_BUFF):
@@ -541,16 +559,27 @@ void handle_traps() {
 // t is trap
 // trapped is the unfortunate victim
 void trigger_trap(Entity t, Entity trapped) {
-	if (!registry.motions.has(t)) { return; }
+	if (!registry.stats.has(t)) { return; }
 	Trap& trap = registry.traps.get(t);
+	if (trap.triggers <= 0) { return; }
 	Motion& trap_motion = registry.motions.get(t);
 
 	// pre-switch instantiations (this is why I hate C++)
 	StatusEffect burrs = StatusEffect(0, 1, StatusType::BURR_DEBUFF, false, true);
+	StatusEffect boss_poison = StatusEffect(0.2 * registry.stats.get(t).atk, 5, StatusType::POISON, false, false);
+	StatusEffect boss_atk_buff = StatusEffect(0.3, 3, StatusType::ATK_BUFF, true, true);
+	StatusEffect boss_regen_buff = StatusEffect(10, 3, StatusType::HP_REGEN, false, true);
+	vec4 color = registry.colors.get(t);
 	if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
 		Entity explosion = createExplosion(world.renderer, trap_motion.position);
 		registry.motions.get(explosion).scale *= 2.f;
 		registry.colors.insert(explosion, { 0.8f, 2.f, 2.f, 1.f });
+	}
+	if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::FATE) {
+		Entity smoke = createBigSlash(world.renderer, trap_motion.position, 0, 200);
+		registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
+		registry.expandTimers.get(smoke).counter_ms = 1000;
+		registry.colors.insert(smoke, color);
 	}
 
 	// do trap effect based on texture
@@ -569,6 +598,32 @@ void trigger_trap(Entity t, Entity trapped) {
 		if (has_status(trapped, StatusType::BURR_DEBUFF)) { return; }
 		apply_status(trapped, burrs);
 		deal_damage(trap.owner, trapped, trap.multiplier);
+		break;
+	case TEXTURE_ASSET_ID::FATE:
+		// switch based on colour
+		if (color == vec4(1.f, 0.f, 0.f, 0.9f)) {
+			for (Entity e : registry.enemies.entities) {
+				apply_status(e, boss_atk_buff);
+			}
+			world.logText("A magical mist empowers the enemies!");
+		}
+		else if (color == vec4(0.f, 1.f, 0.f, 0.9f)) {
+			for (Entity e : registry.enemies.entities) {
+				apply_status(e, boss_regen_buff);
+			}
+			world.logText("A magical mist mends the enemies' wounds!");
+		}
+		else if (color == vec4(0.f, 0.f, 1.f, 0.9f)) {
+			world.logText("An apparition materializes from the mist!");
+			Entity summon = createApparition(world.renderer, trap_motion.position);
+			world.turnOrderSystem.turnQueue.addNewEntity(summon);
+			ExpandTimer iframe = registry.iFrameTimers.emplace(summon);
+			iframe.counter_ms = 50;
+		}
+		else {
+			world.logText("You inhale a poisonous mist!");
+			apply_status(trapped, boss_poison);
+		}
 		break;
 	default:
 		break;

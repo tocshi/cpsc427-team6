@@ -90,7 +90,7 @@ Most of our feedback for the attack system centred around the fact that users di
 
 Confusion with Doors
 
-Almost every user we saw play our game had confusion with handling doors in our game. Many thought that they could just move to the door and move through it, which is not the case. In almost all cases we had to explain that to go through the door the user had to click on the door. Understandably we want the doors to work more intuitively, so we added the ability to just move to the door and be able to go through it automatically.
+Almost every user we saw play our game had confusion with handling doors in our game. Many thought that they could just move to the door and move through it, which is not the case. In almost all cases we had to explain that to go through the door the user had to click on the door. To deal with this, we made it part of the tutorial to explain how to use doors by clicking on them.
 
 “How much health do enemies have?”
 

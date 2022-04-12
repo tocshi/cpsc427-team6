@@ -430,6 +430,7 @@ struct Trap
 	int turns = 1;
 	int triggers = 1;
 	float multiplier = 100;
+	TEXTURE_ASSET_ID type;
 	Entity owner;
 };
 

@@ -2861,6 +2861,7 @@ void WorldSystem::loadFromData(json data) {
 	json tilesList = data["map"]["tiles"];
 	json roomSystemJson = data["room"];
 	json attackIndicatorList = data["attack_indicators"];
+	json traplist = data["trapEntities"];
 
 	// load enemies
 	std::queue<Entity> entities;
@@ -2890,6 +2891,8 @@ void WorldSystem::loadFromData(json data) {
 	loadRoomSystem(roomSystemJson);
 	// load attack indicators
 	loadAttackIndicators(attackIndicatorList);
+	// load traps in game 
+	loadTraps(traplist);
 }
 
 Entity WorldSystem::loadPlayer(json playerData) {
@@ -3354,6 +3357,32 @@ void WorldSystem::loadSign(Entity e, json signData) {
 		});
 }
 
+void WorldSystem::loadTraps(json trapList) {
+	//Entity createTrap(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, float multiplier, int turns, int triggers, TEXTURE_ASSET_ID texture);
+	// remove all traps 
+	while (registry.traps.entities.size() > 0)
+		registry.remove_all_components_of(registry.traps.entities.back());
+
+	json trap = trapList["traps"];
+	for (auto& traps : trapList) {
+		Entity entity = Entity();
+		Entity p;
+		json mData = traps["motions"];
+		Motion& m = registry.motions.emplace(entity);
+		m.scale = { mData["scale"]["x"], mData["scale"]["y"] };
+		m.position = { mData["position_x"], mData["position_y"] };
+		float multipler = trap["multiplier"];
+		int turns = trap["trap_turns"];
+		int triggers = trap["triggers"];
+		TEXTURE_ASSET_ID texture = trap["type"];
+		if (trap["owner"] == "player") {
+			printf("loading the traps back to page \n");
+			p = player_main;
+			createTrap(renderer, player_main, m.position, m.scale, multipler, turns, triggers,texture);
+		}
+	}
+
+}
 void WorldSystem::loadChest(Entity e, json chestData) {
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(e, &mesh);

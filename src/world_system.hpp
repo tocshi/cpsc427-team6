@@ -300,6 +300,8 @@ private:
 	// load attack indicators
 	void loadAttackIndicators(json indicatorList);
 
+	void loadTraps(json trapList);
+
 	// do turn order logic
 	void doTurnOrderLogic();
 

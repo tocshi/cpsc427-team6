@@ -290,6 +290,7 @@ Entity createTrap(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, fl
 	trap.triggers = triggers;
 	trap.multiplier = multiplier;
 	trap.owner = owner;
+	trap.type = texture;
 
 	registry.renderRequests.insert(
 		entity,

@@ -3364,23 +3364,27 @@ void WorldSystem::loadTraps(json trapList) {
 		registry.remove_all_components_of(registry.traps.entities.back());
 
 	json trap = trapList["traps"];
-	for (auto& traps : trapList) {
-		Entity entity = Entity();
-		Entity p;
-		json mData = traps["motions"];
-		Motion& m = registry.motions.emplace(entity);
-		m.scale = { mData["scale"]["x"], mData["scale"]["y"] };
-		m.position = { mData["position_x"], mData["position_y"] };
-		float multipler = trap["multiplier"];
-		int turns = trap["trap_turns"];
-		int triggers = trap["triggers"];
-		TEXTURE_ASSET_ID texture = trap["type"];
-		if (trap["owner"] == "player") {
-			printf("loading the traps back to page \n");
-			p = player_main;
-			createTrap(renderer, player_main, m.position, m.scale, multipler, turns, triggers,texture);
+	if (trap.size() > 0) {
+		printf("there is smt store there in the json\n");
+		for (auto& traps : trapList) {
+			Entity entity = Entity();
+			Entity p;
+			json mData = traps["motions"];
+			Motion& m = registry.motions.emplace(entity);
+			m.scale = { mData["scale"]["x"], mData["scale"]["y"] };
+			m.position = { mData["position_x"], mData["position_y"] };
+			float multipler = trap["multiplier"];
+			int turns = trap["trap_turns"];
+			int triggers = trap["triggers"];
+			TEXTURE_ASSET_ID texture = trap["type"];
+			if (trap["owner"] == "player") {
+				printf("loading the traps back to page \n");
+				p = player_main;
+				createTrap(renderer, player_main, m.position, m.scale, multipler, turns, triggers, texture);
+			}
 		}
 	}
+
 
 }
 void WorldSystem::loadChest(Entity e, json chestData) {

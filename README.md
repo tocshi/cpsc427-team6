@@ -44,6 +44,22 @@ Implemented Features:
 		<li> world_system.cpp | line TO_BE_UPDATED </li>
 	</ul>
     </ul>
+    
+ - Tutorial Rework
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_system.cpp | line TO_BE_UPDATED </li>
+	</ul>
+    </ul>
+    
+ - New enemies (Living Rock, Living Pebble, Apparition)
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> ai_system.cpp | line TO_BE_UPDATED </li>
+	</ul>
+    </ul>
 
 Team 6 - User Feedback Report
 User Testing Performed:

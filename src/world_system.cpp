@@ -795,12 +795,13 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (registry.solid.has(enemy)) {
 				registry.solid.remove(enemy);
 			}
-			if (!tutorial && registry.enemies.get(enemy).type != ENEMY_TYPE::LIVING_PEBBLE)
+			if (!tutorial && registry.enemies.get(enemy).type != ENEMY_TYPE::LIVING_PEBBLE) {
 				// TEMP: drop healing item from enemy with 1/3 chance
 				if (roll == 0 && !tutorial) {
 					createConsumable(renderer, registry.motions.get(enemy).position + vec2(16, 16), CONSUMABLE::INSTANT);
 				}
 				roomSystem.updateObjective(ObjectiveType::KILL_ENEMIES, 1);
+			}
 			if (registry.bosses.has(enemy)) {
 				roomSystem.updateObjective(ObjectiveType::DEFEAT_BOSS, 1);
 				// TODO: replace with stairs when implemented
@@ -863,8 +864,54 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			return true;
 		}
 	}
+
 	// reduce window brightness if any of the present chickens is dying
 	screen.darken_screen_factor = max(1 - min_death_counter_ms / 3000, 1 - min_room_counter_ms / 750);
+
+	float min_fadeout_counter_ms = 500.f;
+	for (Entity entity : registry.fadeTransitionTimers.entities) {
+		// progress timer
+		FadeTransitionTimer& counter = registry.fadeTransitionTimers.get(entity);
+		counter.counter_ms -= elapsed_ms_since_last_update;
+		if (counter.counter_ms < min_fadeout_counter_ms) {
+			min_fadeout_counter_ms = counter.counter_ms;
+		}
+		
+		if (counter.counter_ms <= 0) {
+			registry.loadingTimers.emplace(entity);
+			switch (counter.type) {
+			case (TRANSITION_TYPE::MAIN_TO_GAME):
+				if (tutorial) {
+					start_tutorial();
+					spawn_tutorial_entities();
+				}
+				else {
+					start_game();
+					roomSystem.current_floor = Floors::FLOOR1;
+					spawn_game_entities();
+					roomSystem.setRandomObjective();
+				}
+				break;
+			case (TRANSITION_TYPE::CUTSCENE_TO_MAIN):
+			case (TRANSITION_TYPE::CREDITS_TO_MAIN):
+				set_gamestate(GameStates::MAIN_MENU);
+				restart_game();
+				break;
+			case (TRANSITION_TYPE::MAIN_TO_CREDITS):
+				enter_credits();
+				break;
+			case (TRANSITION_TYPE::CUTSCENE_SWITCH):
+				countCutScene++;
+				cutSceneSystem.updateDialogue(renderer, countCutScene);
+				break;
+			default:
+				break;
+			}
+			registry.fadeTransitionTimers.remove(entity);
+			break;
+		}
+	}
+	screen.darken_screen_factor = max(screen.darken_screen_factor, 1 - min_fadeout_counter_ms / 500.f);
 
 	float max_fadein_counter_ms = 0.f;
 	for (Entity entity : registry.fadeins.entities) {
@@ -1243,6 +1290,9 @@ void WorldSystem::cut_scene_start() {
 	registry.list_all_components();
 	printf("CUT SCENE STARTING \n");
 
+	
+	
+
 	while (registry.motions.entities.size() > 0)
 		registry.remove_all_components_of(registry.motions.entities.back());
 
@@ -1253,6 +1303,7 @@ void WorldSystem::cut_scene_start() {
 		registry.remove_all_components_of(registry.cameras.entities.back());
 
 	// Add a camera entity
+	registry.remove_all_components_of(active_camera_entity);
 	active_camera_entity = createCamera({ 0, 0 });
 
 	registry.list_all_components();
@@ -1264,21 +1315,8 @@ void WorldSystem::cut_scene_start() {
 
 	// on left click change scene to new one (x2)
 	// checks how many times left click was one with countCutScene & makes sure the game state is CutScene 
-	if (current_game_state == GameStates::CUTSCENE && countCutScene == 0) {
-			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);
-			printf("%d the cutscene 1 and cutscene count is \n", countCutScene);
-			printf("Cut Scene\n");
-	}
-	if (current_game_state == GameStates::CUTSCENE && countCutScene == 1) {
-			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE2);
-			printf("cutScene 2\n");
-			printf("%d the cutscene 2 and cutscene count is \n", countCutScene);
-	}
-	
-	if (current_game_state == GameStates::CUTSCENE && countCutScene == 2) {
-			createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE3);
-			printf("cutScene 3 \n");
-			printf("%d the cutscene 3 and cutscene count is \n", countCutScene);
+	if (current_game_state == GameStates::CUTSCENE) {
+		cutSceneSystem.scene_transition(renderer, countCutScene);
 	}
 
 }
@@ -1906,7 +1944,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			if (current_game_state == GameStates::CUTSCENE) {
 				int w, h;
 				glfwGetWindowSize(window, &w, &h);
-				restart_game();
+				if (registry.fadeTransitionTimers.size() == 0) {
+					Entity temp = Entity();
+					FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+					timer.type = TRANSITION_TYPE::CUTSCENE_TO_MAIN;
+				}
 			}
 			else if (current_game_state == GameStates::PAUSE_MENU) {
 				backAction();
@@ -2048,6 +2090,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	// no interactions when being knocked back
 	if (registry.knockbacks.has(player_main)) { return; }
 
+	// disable input during transitions
+	if (registry.roomTransitions.size() > 0) { return; }
+	if (registry.fadeTransitionTimers.size() > 0) { return; }
+
 	double xpos, ypos;
 	//getting cursor position
 	glfwGetCursorPos(window, &xpos, &ypos);
@@ -2062,19 +2108,33 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 		// Advance cutscene
 		if (!player_move_click && current_game_state == GameStates::CUTSCENE) {
+			printf("set to cut scene dialogue\n");
+			printf(":%d\n", countCutScene);
 			countCutScene++;
+			/*if (current_game_state != GameStates::CUTSCENE_DIALOGUE) {
+
+				printf("true not in cut_scene dialoge\n");
+
+			}*/
+
+
 
 			cut_scene_start();
-			if (current_game_state == GameStates::CUTSCENE && countCutScene == 3) {
-				set_gamestate(GameStates::MAIN_MENU);
-				restart_game();
+			if (current_game_state == GameStates::CUTSCENE && countCutScene == 21){
+				// fade to main_menu screen 
+				//screen.darken_screen_factor = 0;
+				Entity temp = Entity();
+				FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+				timer.type = TRANSITION_TYPE::CUTSCENE_TO_MAIN;
+				// logic is handled in step() when the timer expires
 			}
 			return;
 		}
 
 		if (current_game_state == GameStates::CREDITS) {
-			set_gamestate(GameStates::MAIN_MENU);
-			restart_game();
+			Entity temp = Entity();
+			FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+			timer.type = TRANSITION_TYPE::CREDITS_TO_MAIN;
 			return;
 		}
 
@@ -2108,19 +2168,19 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 				switch (action_taken) {
 				case BUTTON_ACTION_ID::MENU_START:
-					if (tutorial) {
-						start_tutorial();
-						spawn_tutorial_entities();
+					if (registry.fadeTransitionTimers.size() == 0) {
+						Entity temp = Entity();
+						FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+						timer.type = TRANSITION_TYPE::MAIN_TO_GAME;
 					}
-					else {
-						start_game();
-						roomSystem.current_floor = Floors::FLOOR1;
-						spawn_game_entities();
-						roomSystem.setRandomObjective();
-					}
+					// logic has been moved to when the timer expires in step()
 					break;
 				case BUTTON_ACTION_ID::CREDITS:
-					enter_credits();
+					if (registry.fadeTransitionTimers.size() == 0) {
+						Entity temp = Entity();
+						FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+						timer.type = TRANSITION_TYPE::MAIN_TO_CREDITS;
+					}
 					return;
 				case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 				case BUTTON_ACTION_ID::CONTINUE:
@@ -2801,6 +2861,7 @@ void WorldSystem::loadFromData(json data) {
 	json tilesList = data["map"]["tiles"];
 	json roomSystemJson = data["room"];
 	json attackIndicatorList = data["attack_indicators"];
+	json traplist = data["trapEntities"];
 
 	// load enemies
 	std::queue<Entity> entities;
@@ -2830,6 +2891,8 @@ void WorldSystem::loadFromData(json data) {
 	loadRoomSystem(roomSystemJson);
 	// load attack indicators
 	loadAttackIndicators(attackIndicatorList);
+	// load traps in game 
+	loadTraps(traplist);
 }
 
 Entity WorldSystem::loadPlayer(json playerData) {
@@ -3294,6 +3357,36 @@ void WorldSystem::loadSign(Entity e, json signData) {
 		});
 }
 
+void WorldSystem::loadTraps(json trapList) {
+	//Entity createTrap(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, float multiplier, int turns, int triggers, TEXTURE_ASSET_ID texture);
+	// remove all traps 
+	while (registry.traps.entities.size() > 0)
+		registry.remove_all_components_of(registry.traps.entities.back());
+
+	json trap = trapList["traps"];
+	if (trap.size() > 0) {
+		printf("there is smt store there in the json\n");
+		for (auto& traps : trapList) {
+			Entity entity = Entity();
+			Entity p;
+			json mData = traps["motions"];
+			Motion& m = registry.motions.emplace(entity);
+			m.scale = { mData["scale"]["x"], mData["scale"]["y"] };
+			m.position = { mData["position_x"], mData["position_y"] };
+			float multipler = trap["multiplier"];
+			int turns = trap["trap_turns"];
+			int triggers = trap["triggers"];
+			TEXTURE_ASSET_ID texture = trap["type"];
+			if (trap["owner"] == "player") {
+				printf("loading the traps back to page \n");
+				p = player_main;
+				createTrap(renderer, player_main, m.position, m.scale, multipler, turns, triggers, texture);
+			}
+		}
+	}
+
+
+}
 void WorldSystem::loadChest(Entity e, json chestData) {
 	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
 	registry.meshPtrs.emplace(e, &mesh);
@@ -3821,8 +3914,8 @@ void WorldSystem::updateTutorial() {
 		stat.mp = stat.maxmp;
 		stat.ep = stat.maxep;
 		tutorial = false;
+		if (has_status(player_main, StatusType::HP_REGEN)) { remove_status(player_main, StatusType::HP_REGEN); }
 	}
-
 }
 
 // Set attack state for enemies who attack after moving
@@ -4075,8 +4168,10 @@ void WorldSystem::cancelAction() {
 
 void WorldSystem::advanceTextbox() {
 	if (registry.textboxes.size() == 0) {
+		if(current_game_state != GameStates::CUTSCENE){
 			set_gamestate(GameStates::BATTLE_MENU);
 		}
+	}
 		Textbox& textbox = registry.textboxes.get(activeTextbox);
 		// clear lines
 		for (Entity text : textbox.lines) {

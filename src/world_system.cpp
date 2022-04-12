@@ -830,6 +830,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				// TODO: replace with stairs when implemented
 				createDoor(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f }, true);
 				roomSystem.setNextFloor(Floors((int)roomSystem.current_floor + 1));
+				registry.players.get(player_main).floor++;
 				createCampfire(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y + 64.f });
 				registry.enemies.get(enemy).state = ENEMY_STATE::DEATH;
 				aiSystem.step(enemy);
@@ -1805,7 +1806,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
-		int give = (int)ARTIFACT::POISON_FANG;
+		int give = (int)ARTIFACT::FUNGIFIER;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;

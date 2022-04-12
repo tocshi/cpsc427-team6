@@ -325,7 +325,7 @@ struct Player
 {
 	float s;
 	int gacha_pity = 0;
-	int floor = 1; // TODO: turn this back to 0 when tutorial is implemented
+	int floor = 1;
 	int room = 0;
 	int total_rooms = 0;
 	// current action taking (count acts as no current action being taken)

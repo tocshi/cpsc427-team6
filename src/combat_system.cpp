@@ -576,7 +576,8 @@ void trigger_trap(Entity t, Entity trapped) {
 	StatusEffect boss_poison = StatusEffect(0.2 * registry.stats.get(t).atk, 5, StatusType::POISON, false, false);
 	StatusEffect boss_atk_buff = StatusEffect(0.3, 3, StatusType::ATK_BUFF, true, true);
 	StatusEffect boss_regen_buff = StatusEffect(10, 3, StatusType::HP_REGEN, false, true);
-	vec4 color = registry.colors.get(t);
+	vec4 color = vec4(1.f);
+	if (registry.colors.has(t)) { color = registry.colors.get(t); }
 	if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
 		Entity explosion = createExplosion(world.renderer, trap_motion.position);
 		registry.motions.get(explosion).scale *= 2.f;

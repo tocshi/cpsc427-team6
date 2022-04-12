@@ -96,6 +96,11 @@ class RenderSystem {
 			textures_path("cg/bg_bedroom.png"), // add for cutscenes 
 			textures_path("cg/shou_angry.png"),
 			textures_path("cg/shou_confused.png"),
+			textures_path("cg/shou_happy.png"),
+			textures_path("cg/shou_normal.png"),
+			textures_path("cg/shou_surprised.png"),
+			textures_path("cg/bg_notebook.png"),
+			textures_path("cg/bg_cave.png"),
 
 			textures_path("turn_ui.png"),
 			textures_path("switch_default.png"),

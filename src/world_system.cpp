@@ -2064,8 +2064,11 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			
 
 			cut_scene_start();
-			if (current_game_state == GameStates::CUTSCENE && countCutScene == 3) {
+			if (current_game_state == GameStates::CUTSCENE && countCutScene == 19) {
+				// fade to main_menu screen 
+				//screen.darken_screen_factor = 0;
 				set_gamestate(GameStates::MAIN_MENU);
+				
 				restart_game();
 			}
 			return;

@@ -4,7 +4,7 @@
 in vec3 vcolor;
 
 // Application data
-uniform vec3 fcolor;
+uniform vec4 fcolor;
 uniform float distance;
 // (just the width because this is a box)
 uniform float resolution;
@@ -33,9 +33,9 @@ void main()
 		gradient = (pow(distance, 2) - absSum) * 50.f;
 
 		// draw the color based on how far the current point is from the radius
-		color = vec4(fcolor * vcolor, 0.7 - gradient);
+		color = vec4(fcolor.xyz * vcolor, 0.7 - gradient);
 	} else {
 		// alpha is higher
-		color = vec4(fcolor * vcolor, 0.7);
+		color = vec4(fcolor.xyz * vcolor, 0.7);
 	}
 }

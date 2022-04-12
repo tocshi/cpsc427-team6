@@ -1,6 +1,7 @@
 #include "world_init.hpp"
 #include "combat_system.hpp"
 #include "tiny_ecs_registry.hpp"
+#include "world_system.hpp"
 
 Entity createLine(vec2 position, vec2 scale)
 {
@@ -106,6 +107,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 
 	// add status container to player
 	registry.statuses.emplace(entity);
+	registry.particleContainers.emplace(entity);
 
 	return entity;
 }
@@ -851,7 +853,7 @@ Entity createDoor(RenderSystem* renderer, vec2 pos, bool boss_door)
 	auto& interactable = registry.interactables.emplace(entity);
 	if (boss_door) {
 		interactable.type = INTERACT_TYPE::BOSS_DOOR;
-		registry.colors.insert(entity, vec3(1, 0.4, 0.4));
+		registry.colors.insert(entity, vec4(1, 0.4, 0.4, 1.f));
 	}
 	else {
 		interactable.type = INTERACT_TYPE::DOOR;
@@ -1100,7 +1102,7 @@ Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID tID) {
 
 	motion.scale = vec2({ window_width_px, window_height_px });
 
-	registry.colors.insert(entity, {0.5f, 0.5f, 0.5f});
+	registry.colors.insert(entity, {0.5f, 0.5f, 0.5f, 1.f});
 
 	registry.renderRequests.insert(
 		entity,
@@ -2509,7 +2511,7 @@ Entity createEPFill(RenderSystem* renderer, vec2 position) {
 	// Setting initial values
 	motion.scale = vec2({ STAT_BB_WIDTH , STAT_BB_HEIGHT });
 
-	registry.colors.insert(statEntity, {0.9f, 0.9f, 0.f});
+	registry.colors.insert(statEntity, {0.9f, 0.9f, 0.f, 1.f});
 
 	registry.renderRequests.insert(
 		statEntity,
@@ -3060,7 +3062,7 @@ Entity createEnemyHPBacking(vec2 position, Entity parent)
 		 EFFECT_ASSET_ID::LINE,
 		 GEOMETRY_BUFFER_ID::DEBUG_LINE,
 		RENDER_LAYER_ID::HP_BACKING});
-	registry.colors.insert(entity, {0,0,0});
+	registry.colors.insert(entity, {0,0,0, 1.f});
 
 	// Create motion
 	Motion& motion = registry.motions.emplace(entity);
@@ -3118,6 +3120,27 @@ Entity createShadow(vec2 pos, Entity caster) {
 	return entity;
 }
 
+Entity createParticle(vec2 pos, ParticleEmitter& emitter) {
+	Entity entity = Entity();
+
+	Motion& motion = registry.motions.emplace(entity);
+	motion.scale = emitter.base_scale * (emitter.min_scale_factor + world.uniform_dist(world.rng) * (emitter.max_scale_factor - emitter.min_scale_factor));
+	motion.velocity.x = emitter.min_velocity_x + world.uniform_dist(world.rng) * (emitter.max_velocity_x - emitter.min_velocity_x);
+	motion.velocity.y = emitter.min_velocity_y + world.uniform_dist(world.rng) * (emitter.max_velocity_y - emitter.min_velocity_y);
+	motion.angle = emitter.min_angle + world.uniform_dist(world.rng) * (emitter.max_angle - emitter.min_angle);
+	motion.position.x = pos.x + emitter.min_offset_x + world.uniform_dist(world.rng) * (emitter.max_offset_x - emitter.min_offset_x);
+	motion.position.y = pos.y + emitter.min_offset_y + world.uniform_dist(world.rng) * (emitter.max_offset_y - emitter.min_offset_y);
+
+	Particle& particle = registry.particles.emplace(entity);
+	particle.type = emitter.type;
+	particle.counter_ms = emitter.particle_decay_ms;
+
+	registry.colors.insert(entity, emitter.color_shift);
+
+	registry.renderRequests.insert(entity, emitter.render_data);
+	return entity;
+}
+
 Entity createBossHPBacking(vec2 position, Entity parent)
 {
 	Entity entity = Entity();
@@ -3128,7 +3151,7 @@ Entity createBossHPBacking(vec2 position, Entity parent)
 		 EFFECT_ASSET_ID::LINE,
 		 GEOMETRY_BUFFER_ID::DEBUG_LINE,
 		RENDER_LAYER_ID::UI });
-	registry.colors.insert(entity, { 0,0,0 });
+	registry.colors.insert(entity, { 0,0,0,1 });
 
 	// Create motion
 	Motion& motion = registry.motions.emplace(entity);

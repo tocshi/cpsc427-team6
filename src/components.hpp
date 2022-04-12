@@ -157,7 +157,13 @@ enum class TEXTURE_ASSET_ID {
 	BOSS_ICON_BACKING = BURRS + 1,
 	CG_CREDITS = BOSS_ICON_BACKING + 1,
 	CREDITS = CG_CREDITS + 1,
-	TEXTURE_COUNT = CREDITS + 1,
+	POISON_BUBBLE = CREDITS + 1,
+	BUFF_ARROW = POISON_BUBBLE + 1,
+	SLIME_DROPLET = BUFF_ARROW + 1,
+	STUN_PARTICLE = SLIME_DROPLET + 1,
+	INVINCIBLE_PARTICLE = STUN_PARTICLE + 1,
+	HP_REGEN_PARTICLE = INVINCIBLE_PARTICLE + 1,
+	TEXTURE_COUNT = HP_REGEN_PARTICLE + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -966,6 +972,55 @@ struct ItemCard {
 struct ExpandTimer {
 	float counter_ms = 300;
 	float target_scale = 1.0;
+};
+
+enum class PARTICLE_TYPE {
+	POISON = 0,
+	ATK_UP = POISON + 1,
+	ATK_DOWN = ATK_UP + 1,
+	RANGE_UP = ATK_DOWN + 1,
+	RANGE_DOWN = RANGE_UP + 1,
+	INVINCIBLE = RANGE_DOWN + 1,
+	SLIMED = INVINCIBLE + 1,
+	HP_REGEN = SLIMED + 1,
+	STUN = HP_REGEN + 1,
+};
+
+struct ParticleEmitter {
+	PARTICLE_TYPE type;
+	RenderRequest render_data;
+	float min_interval_ms = 500;
+	float max_interval_ms = 500;
+	float counter_ms = 0;
+	float particle_decay_ms = 1000;
+
+	vec2 base_scale;
+	float min_scale_factor;
+	float max_scale_factor;
+
+	float min_offset_x;
+	float max_offset_x;
+	float min_offset_y;
+	float max_offset_y;
+
+	float min_velocity_x;
+	float max_velocity_x;
+	float min_velocity_y;
+	float max_velocity_y;
+
+	float min_angle;
+	float max_angle;
+
+	vec4 color_shift = { 1.f, 1.f, 1.f, 1.f };
+};
+
+struct Particle {
+	PARTICLE_TYPE type;
+	float counter_ms;
+};
+
+struct ParticleContainer {
+	std::vector<ParticleEmitter> emitters;
 };
 
 // Artifact name map

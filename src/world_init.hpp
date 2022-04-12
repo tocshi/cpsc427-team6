@@ -243,3 +243,5 @@ Entity createBossIconBacking(RenderSystem* renderer, vec2 pos, Entity parent);
 Entity createBossIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture_id, Entity parent);
 // shadow for enemies
 Entity createShadow(vec2 pos, Entity caster);
+// spawn particle
+Entity createParticle(vec2 pos, ParticleEmitter& emitter);

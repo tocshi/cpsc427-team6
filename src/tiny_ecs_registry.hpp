@@ -20,7 +20,7 @@ public:
 	ComponentContainer<RenderRequest> renderRequests;
 	ComponentContainer<ScreenState> screenStates;
 	ComponentContainer<DebugComponent> debugComponents;
-	ComponentContainer<vec3> colors;
+	ComponentContainer<vec4> colors;
 	ComponentContainer<Damageable> damageables;
 	ComponentContainer<Consumable> consumables;
 	ComponentContainer<Equipment> equipment;
@@ -86,6 +86,8 @@ public:
 	ComponentContainer<BossHPBar> bossHPBars;
 	ComponentContainer<ShadowContainer> shadowContainers;
 	ComponentContainer<Shadow> shadows;
+	ComponentContainer<ParticleContainer> particleContainers;
+	ComponentContainer<Particle> particles;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -167,6 +169,8 @@ public:
 		registry_list.push_back(&bossHPBars);
 		registry_list.push_back(&shadowContainers);
 		registry_list.push_back(&shadows);
+		registry_list.push_back(&particleContainers);
+		registry_list.push_back(&particles);
 	}
 
 	void clear_all_components() {

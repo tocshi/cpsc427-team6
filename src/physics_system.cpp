@@ -153,6 +153,11 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 
 		vec2 pos_final = {pos.x + (vel.x * step_seconds), pos.y + (vel.y * step_seconds)};
 
+		if (registry.particles.has(entity)) {
+			motion.position = pos_final;
+			continue;
+		}
+
 		// projectile collision
 		if (registry.projectileTimers.has(entity)) {
 			Entity& player = registry.players.entities[0];

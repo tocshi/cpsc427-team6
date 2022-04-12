@@ -351,6 +351,65 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 void apply_status(Entity& target, StatusEffect& status) {
 	StatusContainer& statusContainer = registry.statuses.get(target);
 	statusContainer.statuses.push_back(status);
+	statusContainer.sort_statuses_reverse();
+
+	ParticleEmitter emitter;
+	bool add_emitter = false;
+	switch (status.effect) {
+		case StatusType::POISON:
+		case StatusType::FANG_POISON:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::POISON);
+			add_emitter = true;
+			break;
+		case StatusType::ATK_BUFF:
+			if (status.value < 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::ATK_DOWN);
+				add_emitter = true;
+			}
+			else if (status.value > 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::ATK_UP);
+				add_emitter = true;
+			}
+			break;
+		case StatusType::RANGE_BUFF:
+			if (status.value < 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::RANGE_DOWN);
+				add_emitter = true;
+			}
+			else if (status.value > 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::RANGE_UP);
+				add_emitter = true;
+			}
+			break;
+		case StatusType::SLIMED:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::SLIMED);
+			add_emitter = true;
+			break;
+		case StatusType::STUN:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::STUN);
+			add_emitter = true;
+			break;
+		case StatusType::INVINCIBLE:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::INVINCIBLE);
+			add_emitter = true;
+			break;
+		case StatusType::HP_REGEN:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::HP_REGEN);
+			add_emitter = true;
+			break;
+		default:
+			break;
+	}
+	if (add_emitter) {
+		if (!registry.particleContainers.has(target)) {
+			ParticleContainer& particleContainer = registry.particleContainers.emplace(target);
+			particleContainer.emitters.push_back(emitter);
+		}
+		else {
+			ParticleContainer& particleContainer = registry.particleContainers.get(target);
+			particleContainer.emitters.push_back(emitter);
+		}
+	}
 
 	// recalculate stats for entity
 	reset_stats(target);
@@ -371,6 +430,7 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 			StatusEffect& status = statusContainer.statuses[i];
 			// in case something was accidentally added with 0 turn duration
 			if (status.turns_remaining <= 0) {
+				remove_status_particle(entity, status);
 				statusContainer.statuses.erase(statusContainer.statuses.begin()+i);
 				continue;
 			}
@@ -443,6 +503,7 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 			// properly remove statuses that have expired, except for things with >=999 turns (we treat those as infinite)
 			if (!stats_only) {
 				if (status.turns_remaining <= 0) {
+					remove_status_particle(entity, status);
 					statusContainer.statuses.erase(statusContainer.statuses.begin() + i);
 					reset_stats(entity);
 					calc_stats(entity);
@@ -487,7 +548,7 @@ void trigger_trap(Entity t, Entity trapped) {
 	if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
 		Entity explosion = createExplosion(world.renderer, trap_motion.position);
 		registry.motions.get(explosion).scale *= 2.f;
-		registry.colors.insert(explosion, { 0.8f, 2.f, 2.f });
+		registry.colors.insert(explosion, { 0.8f, 2.f, 2.f, 1.f });
 	}
 
 	// do trap effect based on texture

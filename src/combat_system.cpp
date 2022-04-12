@@ -256,8 +256,15 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 
 	// Discarded Fang
 	if (attacker_inv.artifact[(int)ARTIFACT::POISON_FANG] > 0 && doProcs) {
+		bool valid = true;
+		// rocks cannot be poisoned
+		if (registry.enemies.has(defender)) {
+			if (registry.enemies.get(defender).type == ENEMY_TYPE::LIVING_ROCK) {
+				valid = false;
+			}
+		}
 		int roll = irand(100);
-		if (roll < 30) {
+		if (roll < 30 && valid) {
 			world.logText("The Discarded Fang unleashes its poison!", { 0.2, 1.0, 1.0 });
 			float damage = (attacker_stats.atk * 0.15) + (attacker_stats.atk * 0.1 * attacker_inv.artifact[(int)ARTIFACT::POISON_FANG] - 1);
 			std::cout << damage << std::endl;

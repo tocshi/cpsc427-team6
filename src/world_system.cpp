@@ -3038,6 +3038,15 @@ Entity WorldSystem::loadEnemy(json enemyData) {
 		e = createKingSlime(renderer, { 0, 0 });
 		loadBoss(e, enemyData["boss"]);
 	}
+	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::APPARITION) {
+		e = createApparition(renderer, { 0, 0 });
+	}
+	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::LIVING_PEBBLE) {
+		e = createLivingPebble(renderer, { 0, 0 });
+	}
+	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::LIVING_ROCK) {
+		e = createLivingRock(renderer, { 0, 0 });
+	}
 	// load motion
 	loadMotion(e, enemyData["motion"]);
 	// load queueable

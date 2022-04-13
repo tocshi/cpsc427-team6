@@ -244,6 +244,9 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(fire_sound, 48);
 	potion_sound = Mix_LoadWAV(audio_path("sfx/potion.wav").c_str());
 	Mix_VolumeChunk(potion_sound, 32);
+	smokescreen_sound = Mix_LoadWAV(audio_path("sfx/smoke.wav").c_str());
+	Mix_VolumeChunk(smokescreen_sound, 32);
+
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr
 		|| error_sound == nullptr || footstep_sound == nullptr
@@ -1322,7 +1325,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 								StatusEffect debuff = StatusEffect(-0.5, 1, StatusType::RANGE_BUFF, true, true);
 								apply_status(e, debuff);
 							}
-
+							
+							Mix_PlayChannel(-1, world.smokescreen_sound, 0);
 							Entity smoke = createBigSlash(world.renderer, registry.motions.get(player_main).position, 0, range);
 							registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
 							registry.expandTimers.get(smoke).counter_ms = 1000;
@@ -1345,7 +1349,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 								StatusEffect debuff = StatusEffect(-0.5, 1, StatusType::RANGE_BUFF, true, true);
 								apply_status(e, debuff);
 							}
-
+							
+							Mix_PlayChannel(-1, world.smokescreen_sound, 0);
 							Entity smoke = createBigSlash(world.renderer, registry.motions.get(player_main).position, 0, range);
 							registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
 							registry.expandTimers.get(smoke).counter_ms = 1000;
@@ -1920,7 +1925,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
-		int give = (int)ARTIFACT::FUNGIFIER;
+		int give = (int)ARTIFACT::SMOKE_POWDER;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;

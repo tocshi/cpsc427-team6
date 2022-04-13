@@ -138,6 +138,7 @@ public:
 	Mix_Chunk* pebble_move;
 	Mix_Chunk* fire_sound;
 	Mix_Chunk* potion_sound;
+	Mix_Chunk* smokescreen_sound;
 
 	Mix_Music* background_music;
 	Mix_Music* menu_music;

@@ -585,6 +585,7 @@ void trigger_trap(Entity t, Entity trapped) {
 		registry.colors.insert(explosion, { 0.8f, 2.f, 2.f, 1.f });
 	}
 	if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::FATE) {
+		Mix_PlayChannel(-1, world.smokescreen_sound, 0);
 		Entity smoke = createBigSlash(world.renderer, trap_motion.position, 0, 200);
 		registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
 		registry.expandTimers.get(smoke).counter_ms = 1000;

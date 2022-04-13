@@ -52,8 +52,14 @@ Implemented Features:
 		<li> world_system.cpp | line TO_BE_UPDATED </li>
 	</ul>
     </ul>
-    
  - New enemies (Living Rock, Living Pebble, Apparition)
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> ai_system.cpp | line TO_BE_UPDATED </li>
+	</ul>
+    </ul>
+- Complex Boss Encounter AIs (King Slime, Reflexion)
     <ul>
 	<li> Entry point: </li>
 	 <ul>

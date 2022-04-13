@@ -158,19 +158,11 @@ GLFWwindow* WorldSystem::create_window() {
 
 	// Set the game to start on the menu screen
 	previous_game_state = current_game_state;
-	//printf("Previous Game State : Game state = MAIN_MENU");
-	//printf()
-	//current_game_state = GameStates::CUTSCENE;
 
 	current_game_state = GameStates::MAIN_MENU;
-	printf("previous state in Now %d \n", static_cast<int>(previous_game_state));
 
 	// set previous_game_state to current_game_state
 	previous_game_state = current_game_state;
-	printf("ACTION: SET THE GAME TO START : Game state = MAIN_MENU\n");
-	printf("Current current_game_state Game state %d \n", static_cast<int>(current_game_state));
-	printf("previous state in Now %d \n", static_cast<int>(previous_game_state));
-
 
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
@@ -994,6 +986,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (true) {
 					Player temp = registry.players.get(player_main);
 					temp_player_data = temp;
+					Inventory temp_inv = registry.inventories.get(player_main);
+					temp_inv_data = temp_inv;
 					set_gamestate(GameStates::CUTSCENE);
 					playMusic(Music::CUTSCENE);
 					countCutScene = 22;
@@ -1009,6 +1003,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					player_main = player_temp;
 					Player& player_data = registry.players.get(player_temp);
 					player_data = temp_player_data;
+					Inventory& temp_inv = registry.inventories.get(player_main);
+					temp_inv = temp_inv_data;
 					
 					createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player_temp, GAME_OVER_REASON::BOSS_DEFEATED, GAME_OVER_LOCATION::BOSS_TWO);
 					saveSystem.deleteFile();
@@ -2708,6 +2704,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
 									transition.floor = roomSystem.current_floor;
 								}
+								player.total_rooms++;
 							}
 							// Boss Door Behaviour
 							else if (interactable.type == INTERACT_TYPE::BOSS_DOOR && dist_to(registry.motions.get(player_main).position, motion.position) <= 150) {
@@ -2723,12 +2720,14 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									}
 									roomSystem.setNextFloor(transition.floor);
 								}
+								player.total_rooms++;
 							}
 							// End_Light Behaviour
 							else if (interactable.type == INTERACT_TYPE::END_LIGHT && dist_to(registry.motions.get(player_main).position, motion.position) <= 200) {
 								Entity temp = Entity();
 								FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
 								timer.type = TRANSITION_TYPE::GAME_TO_FINAL_CUTSCENE;
+								player.total_rooms++;
 							}
 							// Switch Behaviour
 							else if (interactable.type == INTERACT_TYPE::SWITCH && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {

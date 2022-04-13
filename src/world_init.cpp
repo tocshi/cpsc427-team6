@@ -2076,7 +2076,7 @@ Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player, GAM
 		break;
 	case GAME_OVER_REASON::BOSS_DEFEATED:
 		// render game over title
-		title = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 50.f, pos.y - (COLLECTION_MENU_BB_HEIGHT / 6.f - 90.f)), "Game Over?", 8.5f, vec3(0.0f, 1.f, 0.4f));
+		title = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 50.f, pos.y - (COLLECTION_MENU_BB_HEIGHT / 6.f - 90.f)), "Game Over", 8.5f, vec3(0.0f, 1.f, 0.4f));
 		registry.menuItems.emplace(title);
 
 		reasonEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 200.f), "You have risen...", 3.f, vec3(0.0f, 1.f, 1.f));
@@ -2100,6 +2100,9 @@ Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player, GAM
 		registry.equipmentDialogs.emplace(locationEnt);
 		break;
 	case GAME_OVER_LOCATION::BOSS_TWO:
+		if (reason == GAME_OVER_REASON::BOSS_DEFEATED) {
+			break;
+		}
 		locationEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 50.f), "Struggling to face your reflection, you retreat.", 2.0f, vec3(0.0f));
 		registry.equipmentDialogs.emplace(locationEnt);
 		break;
@@ -2107,7 +2110,7 @@ Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player, GAM
 
 	// case where you beat the final boss
 	if (reason == GAME_OVER_REASON::BOSS_DEFEATED && location == GAME_OVER_LOCATION::BOSS_TWO) {
-		Entity finalEnt = createDialogText(renderer, vec2(pos.x - COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 50.f), "With newfound revelations, you break free.", 2.0f, vec3(0.0f));
+		Entity finalEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 50.f), "With newfound revelations, you break free.", 2.0f, vec3(0.0f));
 		registry.equipmentDialogs.emplace(finalEnt);
 	}
 

@@ -390,7 +390,9 @@ void CutSceneSystem::updateTextBox(RenderSystem* renderer, Entity activeTextbox)
 
 
 void CutSceneSystem::scene_transition(RenderSystem* renderer, int cut_scene_number) {
-	cut_scene_text_log(renderer, "Press Esc to skip");
+	if (cut_scene_number <= 21) {
+		cut_scene_text_log(renderer, "Press Esc to skip");
+	}
 	
 	if (cut_scene_number == 0 || cut_scene_number == 1 || cut_scene_number == 2) {
 		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_ROOM);

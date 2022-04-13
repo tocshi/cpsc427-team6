@@ -947,7 +947,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				}
 				else {
 					start_game();
-					roomSystem.current_floor = Floors::FLOOR1;
+					roomSystem.current_floor = Floors::FLOOR2;
 					spawn_game_entities();
 					roomSystem.setRandomObjective();
 				}
@@ -2093,11 +2093,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 						FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
 						timer.type = TRANSITION_TYPE::CUTSCENE_TO_MAIN;
 					}
+					/*
 					else {
 						Entity temp = Entity();
 						FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
 						timer.type = TRANSITION_TYPE::CUTSCENE_TO_GAMEOVER;
 					}
+					*/
 				}
 			}
 			else if (current_game_state == GameStates::PAUSE_MENU) {

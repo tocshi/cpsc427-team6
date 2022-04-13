@@ -6,12 +6,12 @@
 
 // strong type to prevent any errors
 enum class GameStates {
-	
+
 	SPLASH_SCREEN,  //TRUE GO TO MAIN MENU STATE
 	INTRO_SCENE, ////TRUE GO TO MAIN MENU STATE
 
 	MAIN_MENU,
-	ARCHIVE_MENU,
+	CREDITS,
 	OPTIONS_MENU,
 
 	// STARTING GAME
@@ -26,6 +26,7 @@ enum class GameStates {
 	ATTACK_MENU,
 	ITEM_MENU,
 	COLLECTION_MENU,
+	DIALOGUE,
 
 	ENEMY_TURN,
 	

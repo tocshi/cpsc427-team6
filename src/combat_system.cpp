@@ -8,13 +8,14 @@
 // Parameters subject to change
 std::string deal_damage(Entity& attacker, Entity& defender, float multiplier, bool doProcs)
 {
+	if (!registry.stats.has(attacker) || !registry.stats.has(attacker)) { return "Error getting stats!"; }
 	// Damage Calculation
-	Stats& attacker_stats = registry.stats.get(attacker);
-	Stats& defender_stats = registry.stats.get(defender);
+	Stats attacker_stats = registry.stats.get(attacker);
+	Stats defender_stats = registry.stats.get(defender);
 	float final_damage = calc_damage(attacker, defender, multiplier);
 
 	// Post-calculation effects
-	final_damage = handle_postcalc_effects(attacker, defender, final_damage);
+	final_damage = handle_postcalc_effects(attacker, defender, final_damage, doProcs);
 
 	// Temp logging
 	std::string attacker_name = "";
@@ -53,9 +54,36 @@ std::string deal_damage(Entity& attacker, Entity& defender, float multiplier, bo
 	if (registry.players.has(attacker) && registry.enemies.has(defender)) {
 		auto& enemy_struct = registry.enemies.get(defender);
 		enemy_struct.hit_by_player = true;
+		// apparition teleport
+		if (registry.enemies.get(defender).type == ENEMY_TYPE::APPARITION) {
+			teleport(defender, attacker);
+		}
 	}
 
 	return log;
+}
+
+void teleport(Entity& enemy, Entity& player)
+{
+	Motion& player_motion = registry.motions.get(player);
+	Motion& enemy_motion = registry.motions.get(enemy);
+	bool valid = true;
+	vec2 new_pos = enemy_motion.position;
+	do {
+		float angle = irandRange(-M_PI, M_PI);
+		new_pos = dirdist_extrapolate(player_motion.position, angle, irandRange(600, 800));
+		Motion test = {};
+		test.position = new_pos;
+		test.scale = { ENEMY_BB_WIDTH, ENEMY_BB_HEIGHT };
+		for (Entity e : registry.solid.entities) {
+			if ((registry.players.has(e) || registry.players.has(e)) &&
+				collides_circle(test, registry.motions.get(e))) {
+				valid = false;
+				break;
+			}
+		}
+	} while (!valid);
+	enemy_motion.position = new_pos;
 }
 
 // Entity directly takes damage
@@ -160,7 +188,7 @@ float calc_damage(Entity& attacker, Entity& defender, float multiplier)
 	return final_damage;
 }
 
-float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) {
+float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, bool doProcs) {
 	float final_damage = damage;
 	Stats& attacker_stats = registry.stats.get(attacker);
 	Stats& defender_stats = registry.stats.get(defender);
@@ -208,10 +236,26 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 				world.logText("You are surrounded by a raging gust!");
 			}
 		}
+
+		// Malediction
+		if (defender_inv.artifact[(int)ARTIFACT::MALEDICTION] > 0 && !has_status(defender, StatusType::MALEDICTION_CD)) {
+			int cd_duration = 11 - defender_inv.artifact[(int)ARTIFACT::MALEDICTION];
+			for (Entity e : registry.enemies.entities) {
+				if (registry.hidden.has(e)) { continue; }
+				StatusEffect debuff = StatusEffect(-0.4, 3, StatusType::ATK_BUFF, true, true);
+				apply_status(e, debuff);
+			}
+			StatusEffect cd = StatusEffect(0, cd_duration, StatusType::MALEDICTION_CD, false, false);
+			apply_status(defender, cd);
+			Entity curse = createBigSlash(world.renderer, defender_motion.position, 0, defender_stats.range);
+			registry.renderRequests.get(curse).used_texture = TEXTURE_ASSET_ID::CURSE;
+			registry.expandTimers.get(curse).counter_ms = 1000;
+			world.logText("A dreadful curse befalls your enemies!");
+		}
 	}
 
 	// Discarded Fang
-	if (attacker_inv.artifact[(int)ARTIFACT::POISON_FANG] > 0) {
+	if (attacker_inv.artifact[(int)ARTIFACT::POISON_FANG] > 0 && doProcs) {
 		int roll = irand(100);
 		if (roll < 30) {
 			world.logText("The Discarded Fang unleashes its poison!");
@@ -225,14 +269,23 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 	}
 
 	// Thunderstruck Twig
-	if (attacker_inv.artifact[(int)ARTIFACT::THUNDER_TWIG] > 0) {
+	if (attacker_inv.artifact[(int)ARTIFACT::THUNDER_TWIG] > 0 && doProcs) {
 		int roll = irand(100);
 		int chance = 15 * attacker_inv.artifact[(int)ARTIFACT::THUNDER_TWIG];
 		if (roll < chance) {
-			world.logText("The Thundering Twig summons a bolt of lightning!");
+			//world.logText("The Thundering Twig summons a bolt of lightning!");
 			float damage = attacker_stats.atk * 0.60;
+			// using bigslash as a template entity LOL
+			Entity lightning = createBigSlash(world.renderer, { defender_motion.position.x, defender_motion.position.y - 512.f }, 0, 0);
+			registry.renderRequests.get(lightning).used_texture = TEXTURE_ASSET_ID::LIGHTNING;
+			registry.motions.get(lightning).scale = {1024, 1024};
 
-			// TODO: do thunder twig effect here
+			for (Entity e : registry.enemies.entities) {
+				Motion enemy_motion = registry.motions.get(e);
+				if (dist_to_edge(enemy_motion, defender_motion) <= 10.f || e == defender) {
+					deal_damage(attacker, e, 60, false);
+				}
+			}
 		}
 	}
 
@@ -278,12 +331,85 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage) 
 		}
 	}
 
+	// Resolve Last!
+	// Arcane Funnel
+	if (attacker_inv.artifact[(int)ARTIFACT::ARCANE_FUNNEL] > 0 && final_damage >= defender_stats.hp) {
+		StatusEffect funnel = StatusEffect(0, attacker_inv.artifact[(int)ARTIFACT::ARCANE_FUNNEL], StatusType::ARCANE_FUNNEL, false, true);
+		if (has_status(attacker, StatusType::ARCANE_FUNNEL)) { remove_status(attacker, StatusType::ARCANE_FUNNEL); }
+		apply_status(attacker, funnel);
+	}
+
+	// Fungifier
+	if (attacker_inv.artifact[(int)ARTIFACT::FUNGIFIER] > 0 && final_damage >= defender_stats.hp) {
+		float multiplier = 130 * attacker_inv.artifact[(int)ARTIFACT::FUNGIFIER];
+		Entity mushroom = createTrap(world.renderer, attacker, {0, 0}, { 64, 64 }, multiplier, 2, 1, TEXTURE_ASSET_ID::MUSHROOM);
+		registry.motions.get(mushroom).destination = defender_motion.position;
+	}
 	return final_damage;
 }
 
 void apply_status(Entity& target, StatusEffect& status) {
 	StatusContainer& statusContainer = registry.statuses.get(target);
 	statusContainer.statuses.push_back(status);
+	statusContainer.sort_statuses_reverse();
+
+	ParticleEmitter emitter;
+	bool add_emitter = false;
+	switch (status.effect) {
+		case StatusType::POISON:
+		case StatusType::FANG_POISON:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::POISON);
+			add_emitter = true;
+			break;
+		case StatusType::ATK_BUFF:
+			if (status.value < 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::ATK_DOWN);
+				add_emitter = true;
+			}
+			else if (status.value > 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::ATK_UP);
+				add_emitter = true;
+			}
+			break;
+		case StatusType::RANGE_BUFF:
+			if (status.value < 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::RANGE_DOWN);
+				add_emitter = true;
+			}
+			else if (status.value > 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::RANGE_UP);
+				add_emitter = true;
+			}
+			break;
+		case StatusType::SLIMED:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::SLIMED);
+			add_emitter = true;
+			break;
+		case StatusType::STUN:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::STUN);
+			add_emitter = true;
+			break;
+		case StatusType::INVINCIBLE:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::INVINCIBLE);
+			add_emitter = true;
+			break;
+		case StatusType::HP_REGEN:
+			emitter = setupParticleEmitter(PARTICLE_TYPE::HP_REGEN);
+			add_emitter = true;
+			break;
+		default:
+			break;
+	}
+	if (add_emitter) {
+		if (!registry.particleContainers.has(target)) {
+			ParticleContainer& particleContainer = registry.particleContainers.emplace(target);
+			particleContainer.emitters.push_back(emitter);
+		}
+		else {
+			ParticleContainer& particleContainer = registry.particleContainers.get(target);
+			particleContainer.emitters.push_back(emitter);
+		}
+	}
 
 	// recalculate stats for entity
 	reset_stats(target);
@@ -304,6 +430,7 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 			StatusEffect& status = statusContainer.statuses[i];
 			// in case something was accidentally added with 0 turn duration
 			if (status.turns_remaining <= 0) {
+				remove_status_particle(entity, status);
 				statusContainer.statuses.erase(statusContainer.statuses.begin()+i);
 				continue;
 			}
@@ -329,6 +456,16 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 						stats.atk += status.value;
 					}
 					break;
+				case (StatusType::RANGE_BUFF):
+					if (status.percentage && registry.stats.has(entity)) {
+						stats.range += basestats.range * status.value;
+					}
+					else {
+						stats.range += status.value;
+					}
+					world.remove_fog_of_war();
+					world.create_fog_of_war();
+					break;
 				case (StatusType::SLIMED):
 					if (status.percentage && registry.stats.has(entity)) {
 						stats.epratemove *= status.value;
@@ -349,6 +486,15 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 							stats.ep += status.value;
 						}
 					}
+				case (StatusType::HP_REGEN):
+					if (!stats_only) {
+						if (status.percentage && registry.stats.has(entity)) {
+							heal(entity, basestats.maxhp * status.value);
+						}
+						else {
+							heal(entity, status.value);
+						}
+					}
 					break;
 				default:
 					break;
@@ -356,17 +502,77 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 
 			// properly remove statuses that have expired, except for things with >=999 turns (we treat those as infinite)
 			if (!stats_only) {
-				if (status.turns_remaining <= 999) {
-					status.turns_remaining--;
-				}
 				if (status.turns_remaining <= 0) {
+					remove_status_particle(entity, status);
 					statusContainer.statuses.erase(statusContainer.statuses.begin() + i);
 					reset_stats(entity);
 					calc_stats(entity);
 				}
+				if (status.turns_remaining <= 999) {
+					status.turns_remaining--;
+				}
 			}
 		}
 	}
+}
+
+// Call at the beginning of every player turn to manage traps
+void handle_traps() {
+	for (Entity t : registry.traps.entities) {
+		Trap& trap = registry.traps.get(t);
+
+		if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
+			registry.motions.get(t).position = registry.motions.get(t).destination;
+		}
+
+		if (trap.turns <= 0 || trap.triggers <= 0) {
+			if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
+				trigger_trap(t, t);
+			}
+			registry.remove_all_components_of(t);
+		}
+		trap.turns--;
+	}
+}
+
+// Trigger trap effects
+// t is trap
+// trapped is the unfortunate victim
+void trigger_trap(Entity t, Entity trapped) {
+	if (!registry.motions.has(t)) { return; }
+	Trap& trap = registry.traps.get(t);
+	Motion& trap_motion = registry.motions.get(t);
+
+	// pre-switch instantiations (this is why I hate C++)
+	StatusEffect burrs = StatusEffect(0, 1, StatusType::BURR_DEBUFF, false, true);
+	if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
+		Entity explosion = createExplosion(world.renderer, trap_motion.position);
+		registry.motions.get(explosion).scale *= 2.f;
+		registry.colors.insert(explosion, { 0.8f, 2.f, 2.f, 1.f });
+	}
+
+	// do trap effect based on texture
+	switch (registry.renderRequests.get(t).used_texture) {
+	case TEXTURE_ASSET_ID::MUSHROOM:
+		for (Entity e : registry.enemies.entities) {
+			if (!e) { continue; }
+			Motion enemy_motion = registry.motions.get(e);
+			if (dist_to_edge(enemy_motion, registry.motions.get(t)) <= 50.f) {
+				deal_damage(trap.owner, e, trap.multiplier);
+			}
+		}
+		break;
+	case TEXTURE_ASSET_ID::BURRS:
+		// don't trigger if already triggered this turn
+		if (has_status(trapped, StatusType::BURR_DEBUFF)) { return; }
+		apply_status(trapped, burrs);
+		deal_damage(trap.owner, trapped, trap.multiplier);
+		break;
+	default:
+		break;
+	}
+	trap.triggers--;
+	if (trap.triggers <= 0) { registry.remove_all_components_of(t); }
 }
 
 // Reset entity stats to base stats
@@ -415,6 +621,16 @@ void calc_stats(Entity& entity) {
 			stats.eprateatk *= 0.93f;
 			stack--;
 		}
+	}
+
+	// Messenger's Cap
+	if (inv.artifact[(int)ARTIFACT::MESSENGER_CAP] > 0) {
+		stats.speed += (0.05 + 0.05 * inv.artifact[(int)ARTIFACT::MESSENGER_CAP]) * basestats.atk;
+	}
+
+	// Warm Cloak
+	if (inv.artifact[(int)ARTIFACT::WARM_CLOAK] > 0) {
+		stats.def += (0.05 + 0.05 * inv.artifact[(int)ARTIFACT::WARM_CLOAK]) * basestats.atk;
 	}
 }
 

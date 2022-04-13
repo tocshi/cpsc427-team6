@@ -175,6 +175,39 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 		glUniform2f(screen_resolution_uloc, ep.screen_resolution.x, ep.screen_resolution.y);
 		gl_has_errors();
 	}
+	else if (render_request.used_effect == EFFECT_ASSET_ID::ATTACK_RANGE) {
+	GLint in_position_loc = glGetAttribLocation(program, "in_position");
+	GLint in_color_loc = glGetAttribLocation(program, "in_color");
+	GLint distance_uloc = glGetUniformLocation(program, "distance");
+	GLint resolution_uloc = glGetUniformLocation(program, "resolution");
+	GLint screen_resolution_uloc = glGetUniformLocation(program, "screen_resolution");
+	gl_has_errors();
+
+	glEnableVertexAttribArray(in_position_loc);
+	glVertexAttribPointer(in_position_loc, 3, GL_FLOAT, GL_FALSE,
+		sizeof(ColoredVertex), (void*)0);
+	gl_has_errors();
+
+	glEnableVertexAttribArray(in_color_loc);
+	glVertexAttribPointer(in_color_loc, 3, GL_FLOAT, GL_FALSE,
+		sizeof(ColoredVertex), (void*)sizeof(vec3));
+	gl_has_errors();
+
+	// set distance
+	AttackRange ar = registry.attackRange.get(entity);
+	float dist = (ar.radius / ar.resolution);
+
+	glUniform1f(distance_uloc, dist);
+	gl_has_errors();
+
+	// set fog resolution
+	glUniform1f(resolution_uloc, ar.resolution);
+	gl_has_errors();
+
+	// set sreen resolution
+	glUniform2f(screen_resolution_uloc, ar.screen_resolution.x, ar.screen_resolution.y);
+	gl_has_errors();
+	}
 	else
 	{
 		assert(false && "Type of render request not supported");
@@ -182,8 +215,8 @@ void RenderSystem::drawTexturedMesh(Entity entity,
 
 	// Getting uniform locations for glUniform* calls
 	GLint color_uloc = glGetUniformLocation(program, "fcolor");
-	const vec3 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec3(1);
-	glUniform3fv(color_uloc, 1, (float *)&color);
+	const vec4 color = registry.colors.has(entity) ? registry.colors.get(entity) : vec4(1);
+	glUniform4fv(color_uloc, 1, (float *)&color);
 	gl_has_errors();
 
 	// Get number of indices from index buffer, which has elements uint16_t
@@ -268,8 +301,8 @@ void RenderSystem::drawText(Entity entity, const mat3 &projection, Camera& camer
 
 	// Getting uniform locations for glUniform* calls
 	GLint color_uloc = glGetUniformLocation(program, "fcolor");
-	const vec3 color = text.textColor;
-	glUniform3fv(color_uloc, 1, (float *)&color);
+	const vec4 color = vec4(text.textColor, 1.f);
+	glUniform4fv(color_uloc, 1, (float *)&color);
 	gl_has_errors();
 
 	GLint currProgram;
@@ -468,8 +501,8 @@ void RenderSystem::drawInstancedTiles(std::vector<Entity> entities, const mat3& 
 
 	// Getting uniform locations for glUniform* calls
 	GLint color_uloc = glGetUniformLocation(program, "fcolor");
-	const vec3 color = registry.colors.has(entities[0]) ? registry.colors.get(entities[0]) : vec3(1);
-	glUniform3fv(color_uloc, 1, (float*)&color);
+	const vec4 color = registry.colors.has(entities[0]) ? registry.colors.get(entities[0]) : vec4(1);
+	glUniform4fv(color_uloc, 1, (float*)&color);
 	gl_has_errors();
 
 	// Get number of indices from index buffer, which has elements uint16_t
@@ -491,7 +524,11 @@ void RenderSystem::drawInstancedTiles(std::vector<Entity> entities, const mat3& 
 	glDrawElementsInstanced(GL_TRIANGLES, num_indices, GL_UNSIGNED_SHORT, nullptr, entities.size());
 	gl_has_errors();
 
-	//glBindVertexArray(VAO);
+	glBindVertexArray(VAO);
+	glDeleteBuffers(1, &buffer);
+	glDeleteBuffers(1, &buffer2);
+	glDeleteBuffers(1, &buffer3);
+	glDeleteVertexArrays(1, &vao);
 }
 
 // draw the intermediate texture to the screen, with some distortion to simulate
@@ -628,7 +665,12 @@ void RenderSystem::draw()
 		else {
 			if (registry.hpDisplays.has(entity)) {
 				Entity parent = registry.hpDisplays.get(entity).parent;
-				if (registry.hidden.has(parent))
+				if (registry.hidden.has(parent) && !registry.bossHPBars.has(parent))
+					continue;
+			}
+			if (registry.shadows.has(entity)) {
+				Entity caster_entity = registry.shadows.get(entity).caster;
+				if (registry.hidden.has(caster_entity))
 					continue;
 			}
 			drawTexturedMesh(entity, projection_2D, camera);

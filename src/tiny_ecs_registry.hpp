@@ -20,7 +20,7 @@ public:
 	ComponentContainer<RenderRequest> renderRequests;
 	ComponentContainer<ScreenState> screenStates;
 	ComponentContainer<DebugComponent> debugComponents;
-	ComponentContainer<vec3> colors;
+	ComponentContainer<vec4> colors;
 	ComponentContainer<Damageable> damageables;
 	ComponentContainer<Consumable> consumables;
 	ComponentContainer<Equipment> equipment;
@@ -43,9 +43,11 @@ public:
 	ComponentContainer<MenuItem> menuItems;
 	ComponentContainer<ModeVisualization> modeVisualizationObjects;
 	ComponentContainer<EpRange> epRange;
+	ComponentContainer<AttackRange> attackRange;
 	ComponentContainer<Fog> fog;
 	ComponentContainer<Camera> cameras;
 	ComponentContainer<Text> texts;
+	ComponentContainer<Test> logTexts;
 	ComponentContainer<TextTimer> textTimers;
 	ComponentContainer<SquishTimer> squishTimers;
 	ComponentContainer<WobbleTimer> wobbleTimers;
@@ -59,11 +61,14 @@ public:
 	ComponentContainer<Artifact> artifacts;
 	ComponentContainer<AnimationData> animations;
 	ComponentContainer<Sign> signs;
+	ComponentContainer<Sign2> signs2;
+	ComponentContainer<Textbox> textboxes;
 	ComponentContainer<StatusContainer> statuses;
 	ComponentContainer<KnockBack> knockbacks;
 	ComponentContainer<AttackCard> attackCards;
 	ComponentContainer<ItemCard> itemCards;
 	ComponentContainer<AttackDialog> attackDialogs;
+	ComponentContainer<EquipmentDialog> equipmentDialogs;
 	ComponentContainer<Icon> icons;
 	ComponentContainer<Spritesheet> spritesheets;
 	ComponentContainer<RoomTransitionTimer> roomTransitions;
@@ -74,11 +79,18 @@ public:
 	ComponentContainer<DamageTextTimer> damageText;
 	ComponentContainer<StatsText> statsText;
 	ComponentContainer<ExpandTimer> expandTimers;
+	ComponentContainer<ExpandTimer> iFrameTimers;
 	ComponentContainer<Test> attackIndicators;
+	ComponentContainer<Trap> traps;
 	ComponentContainer<HPDisplay> hpDisplays;
 	ComponentContainer<EnemyHPBar> enemyHPBars;
 	ComponentContainer<BossHPBar> bossHPBars;
 	ComponentContainer<AstarMotion> aStarMotions;
+	ComponentContainer<ShadowContainer> shadowContainers;
+	ComponentContainer<Shadow> shadows;
+	ComponentContainer<ParticleContainer> particleContainers;
+	ComponentContainer<Particle> particles;
+	ComponentContainer<FadeTransitionTimer> fadeTransitionTimers;
 
 	// constructor that adds all containers for looping over them
 	// IMPORTANT: Don't forget to add any newly added containers!
@@ -114,14 +126,18 @@ public:
 		registry_list.push_back(&modeVisualizationObjects);
 		registry_list.push_back(&menuItems);
 		registry_list.push_back(&epRange);
+		registry_list.push_back(&attackRange);
 		registry_list.push_back(&fog);
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&texts);
+		registry_list.push_back(&logTexts);
 		registry_list.push_back(&textTimers);
 		registry_list.push_back(&squishTimers);
 		registry_list.push_back(&wobbleTimers);
 		registry_list.push_back(&projectileTimers);
 		registry_list.push_back(&signs);
+		registry_list.push_back(&signs2);
+		registry_list.push_back(&textboxes);
 		registry_list.push_back(&hidden);
 		registry_list.push_back(&hidables);
 		registry_list.push_back(&pointers);
@@ -138,6 +154,7 @@ public:
 		registry_list.push_back(&knockbacks);
 		registry_list.push_back(&attackCards);
 		registry_list.push_back(&attackDialogs);
+		registry_list.push_back(&equipmentDialogs);
 		registry_list.push_back(&itemCards);
 		registry_list.push_back(&icons);
 		registry_list.push_back(&spritesheets);
@@ -149,10 +166,17 @@ public:
 		registry_list.push_back(&damageText);
 		registry_list.push_back(&statsText);
 		registry_list.push_back(&expandTimers);
+		registry_list.push_back(&iFrameTimers);
 		registry_list.push_back(&attackIndicators);
+		registry_list.push_back(&traps);
 		registry_list.push_back(&hpDisplays);
 		registry_list.push_back(&enemyHPBars);
 		registry_list.push_back(&bossHPBars);
+		registry_list.push_back(&shadowContainers);
+		registry_list.push_back(&shadows);
+		registry_list.push_back(&particleContainers);
+		registry_list.push_back(&particles);
+		registry_list.push_back(&fadeTransitionTimers);
 	}
 
 	void clear_all_components() {

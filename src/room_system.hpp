@@ -21,12 +21,12 @@ public:
 private:
 	const std::map<Floors, std::vector<std::string>> floor_map_data = {
 		{
-			Floors::TUTORIAL,
-			{"tutorial.tmx"}
-		},
-		{
 			Floors::DEBUG,
 			{"debug_room.tmx"}
+		},
+		{
+			Floors::TUTORIAL,
+			{"tutorial1.tmx"}
 		},
 		{
 			Floors::FLOOR1, 
@@ -35,6 +35,14 @@ private:
 		{
 			Floors::BOSS1,
 			{"boss1.tmx"}
+		},
+		{
+			Floors::FLOOR2,
+			{"map4.tmx", "map5.tmx", "map6.tmx"}
+		},
+		{
+			Floors::BOSS2,
+			{"boss2.tmx"}
 		}
 	};
 };

@@ -92,6 +92,8 @@ Entity createLivingPebble(RenderSystem* renderer, vec2 pos);
 Entity createLivingRock(RenderSystem* renderer, vec2 pos);
 // Apparition
 Entity createApparition(RenderSystem* renderer, vec2 pos);
+// Reflexion
+Entity createReflexion(RenderSystem* renderer, vec2 pos);
 // Equipment
 Equipment createEquipment(EQUIPMENT type, int tier);
 Entity createEquipmentEntity(RenderSystem* renderer, vec2 pos, Equipment equipment);
@@ -195,6 +197,8 @@ Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack);
 Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack, bool prepared);
 // equipment type dialog
 Entity createEquipmentDialog(RenderSystem* renderer, vec2 pos, Equipment item);
+// game over dialog
+Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player, GAME_OVER_REASON reason, GAME_OVER_LOCATION location);
 // cutscene
 Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID textureID);
 // Turn UI

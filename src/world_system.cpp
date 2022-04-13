@@ -35,6 +35,12 @@ void WorldSystem::destroyMusic() {
 		Mix_FreeMusic(menu_music);
 	if (cutscene_music != nullptr)
 		Mix_FreeMusic(cutscene_music);
+	if (boss0_music != nullptr)
+		Mix_FreeMusic(boss0_music);
+	if (ruins_music != nullptr)
+		Mix_FreeMusic(ruins_music);
+	if (boss1_music != nullptr)
+		Mix_FreeMusic(boss1_music);
 	if (door_sound != nullptr)
 		Mix_FreeChunk(door_sound);
 	if (switch_sound != nullptr)
@@ -105,6 +111,10 @@ float enemy_move_audio_time_ms = 200.f;
 
 // button toggles
 bool hideGuardButton = false;
+
+// game over state
+GAME_OVER_REASON game_over_reason;
+GAME_OVER_LOCATION game_over_location;
 
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
@@ -180,6 +190,8 @@ GLFWwindow* WorldSystem::create_window() {
 	menu_music = Mix_LoadMUS(audio_path("bgm/menu0.wav").c_str());
 	cutscene_music = Mix_LoadMUS(audio_path("bgm/dream0.wav").c_str());
 	boss0_music = Mix_LoadMUS(audio_path("bgm/boss0.wav").c_str());
+	ruins_music = Mix_LoadMUS(audio_path("bgm/ruins0.wav").c_str());
+	boss1_music = Mix_LoadMUS(audio_path("bgm/boss1.wav").c_str());
 
 	// Sounds and volumes
 	fire_explosion_sound = Mix_LoadWAV(audio_path("feedback/fire_explosion.wav").c_str());
@@ -270,7 +282,7 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Updating window title with points
 	std::stringstream title_ss;
-	title_ss << "Adrift In Somnium: Alpha Build";
+	title_ss << "Adrift In Somnium";
 	glfwSetWindowTitle(window, title_ss.str().c_str());
 
 	// Remove debug info from the last step
@@ -322,6 +334,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				Consumable consumable = registry.consumables.get(entity);
 				Stats stats = registry.stats.get(player_main);
 				Stats basestats = registry.basestats.get(player_main);
+				registry.players.get(player_main).potions++;
 				StatusEffect regen = StatusEffect(stats.maxhp * 0.06, 5, StatusType::HP_REGEN, false, true);
 				switch (consumable.type) {
 				case CONSUMABLE::REDPOT:
@@ -604,7 +617,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		hideGuardButton = false;
 	}
 	// Update HP/MP/EP bars and movement
-	// Check for player death
+	// Check for player death / walking
 	for (Entity player : registry.players.entities) {
 		Player& p = registry.players.get(player);
 		
@@ -616,9 +629,30 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		float& maxmp = registry.stats.get(player).maxmp;
 		float& maxep = registry.stats.get(player).maxep;
 
+		// stop walking
+		if (!registry.motions.get(player_main).in_motion && registry.animations.has(player_main)) {
+			registry.animations.remove(player_main);
+			registry.renderRequests.get(player_main).used_texture = TEXTURE_ASSET_ID::PLAYER;
+			registry.renderRequests.get(player_main).used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
+		}
+
 		// Check if player has died
-		if (hp <= 0 && !registry.deathTimers.has(player)) {
-			registry.deathTimers.emplace(player);
+		if (hp <= 0 && !registry.deathTimers.has(player) && current_game_state != GameStates::GAME_OVER_MENU) {
+			// render the game over dialog
+			if (roomSystem.current_floor == Floors::FLOOR1) {
+				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::FLOOR_ONE);
+			}
+			else if (roomSystem.current_floor == Floors::FLOOR2) {
+				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::FLOOR_TWO);
+			}
+			else if (roomSystem.current_floor == Floors::BOSS1) {
+				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::BOSS_ONE);
+			}
+			else if (roomSystem.current_floor == Floors::BOSS2) {
+				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::BOSS_TWO);
+			}
+			saveSystem.deleteFile();
+			set_gamestate(GameStates::GAME_OVER_MENU);
 			logText("You have died!");
 			player_move_click = false;
 			break;
@@ -735,35 +769,37 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Update the camera to follow the player
 		Camera& camera = registry.cameras.get(active_camera_entity);
 		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
-	}
 
-	// Check traps for collisions/activations
-	for (Entity t : registry.traps.entities) {
-		if (!registry.traps.has(t)) { continue; }
-		Trap& trap = registry.traps.get(t);
-		if (trap.triggers <= 0) { continue; }
-		Motion& trap_motion = registry.motions.get(t);
-		
-		if (registry.players.has(trap.owner)) {
-			for (Entity e : registry.enemies.entities) {
-				// hacky way of having enemies not die when spawning on top of a trap
-				if (registry.iFrameTimers.has(e)) { continue; }
-				Motion& enemy_motion = registry.motions.get(e);
-				Stats& enemy_stats = registry.stats.get(e);
-				if (enemy_stats.hp <= 0 || trap.triggers <= 0) { continue; }
-				else if (collides_circle(trap_motion, enemy_motion)) {
-					trigger_trap(t, e);
-					break;
+		// Check traps for collisions/activations
+		for (Entity t : registry.traps.entities) {
+			if (!registry.traps.has(t)) { continue; }
+			Trap& trap = registry.traps.get(t);
+			if (trap.triggers <= 0) { continue; }
+			Motion& trap_motion = registry.motions.get(t);
+
+			if (registry.players.has(trap.owner)) {
+				for (Entity e : registry.enemies.entities) {
+					// hacky way of having enemies not die when spawning on top of a trap
+					if (registry.iFrameTimers.has(e)) { continue; }
+					Motion& enemy_motion = registry.motions.get(e);
+					Stats& enemy_stats = registry.stats.get(e);
+					if (enemy_stats.hp <= 0 || trap.triggers <= 0) { continue; }
+					else if (collides_circle(trap_motion, enemy_motion)) {
+						trigger_trap(t, e);
+						break;
+					}
 				}
 			}
-		}
-		else {
-			for (Entity p : registry.players.entities) {
-				Motion& player_motion = registry.motions.get(p);
-				Stats& player_stats = registry.stats.get(p);
+			else {
+				// internal trap cooldown
+				if (registry.iFrameTimers.has(player)) { continue; }
+				Motion& player_motion = registry.motions.get(player);
+				Stats& player_stats = registry.stats.get(player);
 				if (player_stats.hp <= 0 || trap.triggers <= 0) { continue; }
 				else if (collides_circle(trap_motion, player_motion)) {
-					trigger_trap(t, p);
+					ExpandTimer iframe = registry.iFrameTimers.emplace(player);
+					iframe.counter_ms = 50;
+					trigger_trap(t, player);
 					break;
 				}
 			}
@@ -773,12 +809,18 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Check for enemy death
 	for (Entity& enemy : registry.enemies.entities) {
 		if (registry.stats.get(enemy).hp <= 0 && !registry.squishTimers.has(enemy)) {
-			std::string log_text = "The enemy ";
-			log_text = log_text.append(registry.stats.get(enemy).name.append(" is defeated!"));
-			logText(log_text);
-
 			SquishTimer& squish = registry.squishTimers.emplace(enemy);
 			squish.orig_scale = registry.motions.get(enemy).scale;
+
+			// special behaviour if orb
+			if (registry.renderRequests.get(enemy).used_texture == TEXTURE_ASSET_ID::ORB) {
+				squish.counter_ms = 50;
+			}
+			else {
+				std::string log_text = "The enemy ";
+				log_text = log_text.append(registry.stats.get(enemy).name.append(" is defeated!"));
+				logText(log_text);
+			}
 
 			playEnemyDeathSound(registry.enemies.get(enemy).type);
       
@@ -804,12 +846,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			if (registry.bosses.has(enemy)) {
 				roomSystem.updateObjective(ObjectiveType::DEFEAT_BOSS, 1);
-				// TODO: replace with stairs when implemented
-				createDoor(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f }, false);
-				roomSystem.setNextFloor(Floors((int)roomSystem.current_floor + 1));
+				Entity bossdoor = createDoor(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f }, true);
+				//roomSystem.setNextFloor(Floors((int)roomSystem.current_floor + 1));
+				registry.players.get(player_main).floor++;
 				createCampfire(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y + 64.f });
 				registry.enemies.get(enemy).state = ENEMY_STATE::DEATH;
 				aiSystem.step(enemy);
+
+				// Final Boss Death
+				if (registry.enemies.get(enemy).type == ENEMY_TYPE::REFLEXION) {
+					registry.renderRequests.get(bossdoor).used_texture == TEXTURE_ASSET_ID::ENDLIGHT;
+				}
 			}
 			if (registry.shadowContainers.has(enemy)) {
 				ShadowContainer& shadow_container = registry.shadowContainers.get(enemy);
@@ -903,6 +950,24 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			case (TRANSITION_TYPE::CUTSCENE_SWITCH):
 				countCutScene++;
 				cutSceneSystem.updateDialogue(renderer, countCutScene);
+				break;
+			case (TRANSITION_TYPE::CONTINUE_TO_GAME):
+				if (true) {
+					start_game();
+					// remove entities to load in entities
+					removeForLoad();
+					//printf("Removed for load\n");
+					// get saved game data
+					json gameData = saveSystem.getSaveData();
+					//printf("getting gameData\n");
+					// load the entities in
+					loadFromData(gameData);
+					Inventory test = registry.inventories.get(player_main);
+					//printf("load game data?\n");
+					logText("Game state loaded!");
+					remove_fog_of_war();
+					create_fog_of_war();
+				}
 				break;
 			default:
 				break;
@@ -1040,7 +1105,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			registry.motions.get(entity).scale = counter.orig_scale;
 			registry.wobbleTimers.remove(entity);
 
-			if (registry.enemies.get(entity).type == ENEMY_TYPE::KING_SLIME && !registry.solid.has(entity)) {
+			if (registry.bosses.has(entity) && !registry.solid.has(entity)) {
 				registry.solid.emplace(entity);
 			}
 		}
@@ -1048,6 +1113,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// Squish Timers
 	for (Entity entity : registry.squishTimers.entities) {
+		if (!registry.motions.has(entity)) { continue; }
 		// progress timer
 		SquishTimer& counter = registry.squishTimers.get(entity);
 		counter.counter_ms -= elapsed_ms_since_last_update;
@@ -1125,6 +1191,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		switch (particle.type) {
 		case (PARTICLE_TYPE::ATK_UP):
 		case (PARTICLE_TYPE::ATK_DOWN):
+		case (PARTICLE_TYPE::DEF_UP):
+		case (PARTICLE_TYPE::DEF_DOWN):
 		case (PARTICLE_TYPE::RANGE_UP):
 		case (PARTICLE_TYPE::RANGE_DOWN):
 			if (registry.colors.has(entity)) {
@@ -1231,13 +1299,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (chest.isArtifact) {
 					if (chest.opened) {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_OPEN;
+						registry.players.get(player_main).chests++;
 
 						// Smoke Powder effect
 						if (registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER] > 0) {
 							float range = 125 + 75 * registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER];
 							for (Entity e : registry.enemies.entities) {
 								if (dist_to(registry.motions.get(e).position, registry.motions.get(player_main).position) > range) { continue; }
-								StatusEffect debuff = StatusEffect(-0.5, 2, StatusType::RANGE_BUFF, true, true);
+								StatusEffect debuff = StatusEffect(-0.5, 1, StatusType::RANGE_BUFF, true, true);
 								apply_status(e, debuff);
 							}
 
@@ -1253,13 +1322,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				else {
 					if (chest.opened) {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_OPEN;
+						registry.players.get(player_main).chests++;
 
 						// Smoke Powder effect
 						if (registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER] > 0) {
 							float range = 125 + 75 * registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER];
 							for (Entity e : registry.enemies.entities) {
 								if (dist_to(registry.motions.get(e).position, registry.motions.get(player_main).position) > range) { continue; }
-								StatusEffect debuff = StatusEffect(-0.5, 2, StatusType::RANGE_BUFF, true, true);
+								StatusEffect debuff = StatusEffect(-0.5, 1, StatusType::RANGE_BUFF, true, true);
 								apply_status(e, debuff);
 							}
 
@@ -1384,21 +1454,22 @@ void WorldSystem::restart_game() {
 void WorldSystem::handle_end_player_turn(Entity player) {
 	Motion& player_motion = registry.motions.get(player);
 	Player& p = registry.players.get(player);
+
+	// Need to have this outside of handle_status_ticks or else it'll erase the wrong status
+	if (has_status(player_main, StatusType::DISENGAGE_TRIGGER) && !p.attacked) {
+		StatusEffect regen = StatusEffect(30, 0, StatusType::EP_REGEN, false, true);
+		apply_status(player_main, regen);
+	}
+
 	player_motion.velocity = { 0.f, 0.f };
 	player_motion.in_motion = false;
 	p.attacked = false;
 	p.moved = false;
 	enemy_move_audio_time_ms = 0.f;
 
-	// Need to have this outside of handle_status_ticks or else it'll erase the wrong status
-	if (has_status(player_main, StatusType::DISENGAGE_TRIGGER) && !p.attacked) {
-		StatusEffect regen = StatusEffect(30, 1, StatusType::EP_REGEN, false, true);
-		apply_status(player_main, regen);
-	}
-
 	set_is_player_turn(false);
 	player_move_click = false;
-	logText("It is now the enemies' turn!");
+	logText("It is now the enemies' turn!", {0.6, 0.6, 0.6});
 	// set player's doing_turn to false
 	registry.queueables.get(player).doing_turn = false;
 	set_gamestate(GameStates::ENEMY_TURN);
@@ -1430,7 +1501,6 @@ void WorldSystem::spawn_tutorial_entities() {
 	tutorial_sign_1 = createSign2(renderer, { player_motion.position.x - 64*ui_scale, player_motion.position.y - 64*ui_scale }, messages);
 	registry.hidables.emplace(tutorial_sign_1);
 	Entity m1 = createMouseAnimation(renderer, { player_motion.position.x - 64*ui_scale, player_motion.position.y - 2*64*ui_scale });
-	registry.hidables.emplace(m1);
 
 	std::vector<std::vector<std::string>> messages2 = {
 		{
@@ -1446,7 +1516,6 @@ void WorldSystem::spawn_tutorial_entities() {
 	tutorial_sign_2 = createSign2(renderer, { player_motion.position.x + 11*64*ui_scale, player_motion.position.y - 10*64*ui_scale }, messages2);
 	registry.hidables.emplace(tutorial_sign_2);
 	Entity m2 = createMouseAnimation(renderer, { player_motion.position.x + 11*64*ui_scale, player_motion.position.y - 11*64*ui_scale });
-	registry.hidables.emplace(m2);
 
 	std::vector<std::vector<std::string>> messages3 = {
 		{
@@ -1472,7 +1541,6 @@ void WorldSystem::spawn_tutorial_entities() {
 	tutorial_sign_3 = createSign2(renderer, { player_motion.position.x + 10*64*ui_scale + 32*ui_scale, player_motion.position.y - 28*64*ui_scale }, messages3);
 	registry.hidables.emplace(tutorial_sign_3);
 	Entity m3 = createMouseAnimation(renderer, { player_motion.position.x + 10*64*ui_scale + 32*ui_scale, player_motion.position.y - 29*64*ui_scale });
-	registry.hidables.emplace(m3);
 
 	std::vector<std::vector<std::string>> messages4 = {
 		{
@@ -1483,7 +1551,6 @@ void WorldSystem::spawn_tutorial_entities() {
 	tutorial_sign_4 = createSign2(renderer, { player_motion.position.x, player_motion.position.y - 25*64*ui_scale }, messages4);
 	registry.hidables.emplace(tutorial_sign_4);
 	Entity m4 = createMouseAnimation(renderer, { player_motion.position.x, player_motion.position.y - 26*64*ui_scale });
-	registry.hidables.emplace(m4);
 
 	std::vector<std::vector<std::string>> messages5 = {
 		{
@@ -1502,11 +1569,12 @@ void WorldSystem::spawn_tutorial_entities() {
 	tutorial_sign_5 = createSign2(renderer, { player_motion.position.x, player_motion.position.y - 37*64*ui_scale }, messages5);
 	registry.hidables.emplace(tutorial_sign_5);
 	Entity m5 = createMouseAnimation(renderer, { player_motion.position.x, player_motion.position.y - 38*64*ui_scale });
-	registry.hidables.emplace(m5);
 
 	// spawn chests at appropriate locations
 	tutorial_chest_1 = createChest(renderer, { player_motion.position.x + 14*64*ui_scale, player_motion.position.y - 32*64*ui_scale }, false);
+	createMouseAnimation(renderer, { registry.motions.get(tutorial_chest_1).position.x, registry.motions.get(tutorial_chest_1).position.y - 64 });
 	tutorial_chest_2 = createChest(renderer, { player_motion.position.x + 8*64*ui_scale, player_motion.position.y - 32*64*ui_scale }, true);
+	createMouseAnimation(renderer, { registry.motions.get(tutorial_chest_2).position.x, registry.motions.get(tutorial_chest_2).position.y - 64 });
 
 	// spawn removable walls
 	tutorial_wall_1 = createWall(renderer, { player_motion.position.x + 4*64*ui_scale + 32*ui_scale, player_motion.position.y - 13*64*ui_scale }, { 48*ui_scale, 6*64*ui_scale } );
@@ -1567,8 +1635,8 @@ void WorldSystem::spawn_game_entities() {
 	create_fog_of_war();
 
 	// spawn chests beside player
-	createChest(renderer, player_motion.position + vec2(-64, 64), false);
-	createChest(renderer, player_motion.position + vec2(64, 64), true);
+	createChest(renderer, player_motion.position + vec2(-64, 32), false);
+	createChest(renderer, player_motion.position + vec2(64, 32), true);
 }
 
 // render ep range around the given position
@@ -1654,12 +1722,43 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 				createKingSlime(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 				break;
 			case Floors::FLOOR2:
-				if (roll < 2) {
-					createLivingRock(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				roll = irand(9);
+				if (roll < 1) {
+					Entity summon = createEnemy(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
+					Stats& summon_stats = registry.basestats.get(summon);
+					summon_stats.maxhp = 56;
+					summon_stats.atk = 20;
+					registry.stats.get(summon).hp = summon_stats.maxhp;
+					reset_stats(summon);
+					calc_stats(summon);
+				}
+				else if (roll < 2) {
+					Entity summon = createPlantShooter(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
+					Stats& summon_stats = registry.basestats.get(summon);
+					summon_stats.maxhp = 48;
+					summon_stats.atk = 16;
+					registry.stats.get(summon).hp = summon_stats.maxhp;
+					reset_stats(summon);
+					calc_stats(summon);
+				}
+				else if (roll < 3) {
+					Entity summon = createCaveling(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
+					Stats& summon_stats = registry.basestats.get(summon);
+					summon_stats.maxhp = 38;
+					summon_stats.atk = 12;
+					registry.stats.get(summon).hp = summon_stats.maxhp;
+					reset_stats(summon);
+					calc_stats(summon);
+				}
+				else if (roll < 6) {
+					createLivingRock(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
 				}
 				else {
-					createApparition(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+					createApparition(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
 				}
+				break;
+			case Floors::BOSS2:
+				createReflexion(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 				break;
 			}
 		}
@@ -1683,6 +1782,7 @@ void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int
 			
 			switch (roomSystem.current_floor) {
 			case Floors::BOSS1:
+			case Floors::BOSS2:
 				createCampfire(renderer, { itemSpawns[i].x, itemSpawns[i].y });
 			default:
 				// temporary, later we can also randomize the item types
@@ -1777,11 +1877,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// no interactions when being knocked back
 	if (registry.knockbacks.has(player_main)) { return; }
 
-	if (action == GLFW_RELEASE) {
-		// button sound
-		Mix_PlayChannel(-1, ui_click, 0);
-	}
-
 	// DEBUG: TRAP
 	if (action == GLFW_RELEASE && key == GLFW_KEY_Q) {
 		createTrap(world.renderer, player_main, registry.motions.get(player_main).position, {64, 64}, 400, 4, 5, TEXTURE_ASSET_ID::BURRS);
@@ -1812,7 +1907,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
-		int give = (int)ARTIFACT::POISON_FANG;
+		int give = (int)ARTIFACT::FUNGIFIER;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
@@ -1826,9 +1921,10 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
 		auto& stats = registry.stats.get(player_main);
-		StatusEffect test = StatusEffect(10, 2, StatusType::INVINCIBLE, false, true);
-		apply_status(player_main, test);
-		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\nrange: %f\nepmove: %f\nepatk: %f\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp, stats.range, stats.epratemove, stats.eprateatk);
+		auto& player = registry.players.get(player_main);
+		//StatusEffect test = StatusEffect(10, 2, StatusType::INVINCIBLE, false, true);
+		//apply_status(player_main, test);
+		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\nrange: %f\nepmove: %f\nepatk: %f\nfloor: %i\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp, stats.range, stats.epratemove, stats.eprateatk, player.floor);
 	}
 
 	if (action == GLFW_RELEASE && key == GLFW_KEY_O) {
@@ -1878,7 +1974,15 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_3) {
 		// end turn/ guard
-		if (current_game_state == GameStates::BATTLE_MENU && registry.squishTimers.size() <= 0) {
+		if (current_game_state == GameStates::BATTLE_MENU) {
+
+			// no ending turn if enemies are currently in the process of dying
+			if (registry.squishTimers.size() > 0) {
+				world.logText("Please wait...");
+				Mix_PlayChannel(-1, error_sound, 0);
+				return;
+			}
+
 			if (tutorial) {
 				if (tutorial_flags & EP_DEPLETED) {
 					for (Entity e : registry.guardButtons.entities) {
@@ -1976,7 +2080,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 
 		// no ending turn if enemies are currently in the process of dying
-		if (registry.squishTimers.size() <= 0) { return; }
+		if (registry.squishTimers.size() > 0) { 
+			world.logText("Please wait...");
+			Mix_PlayChannel(-1, error_sound, 0);
+			return; 
+		}
 
 		if (tutorial) {
 			if (tutorial_flags & EP_DEPLETED) {
@@ -2082,6 +2190,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		printf("Current speed = %f\n", current_speed);
 	}
 	current_speed = fmax(0.f, current_speed);
+
+	if (action == GLFW_RELEASE) {
+		// button sound
+		Mix_PlayChannel(-1, ui_click, 0);
+	}
 }
 
 // On mouse click callback
@@ -2186,20 +2299,11 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				case BUTTON_ACTION_ID::CONTINUE:
 					// if save data exists reset the game
 					if (saveSystem.saveDataExists()) {
-						start_game();
-						// remove entities to load in entities
-						removeForLoad();
-						//printf("Removed for load\n");
-						// get saved game data
-						json gameData = saveSystem.getSaveData();
-						//printf("getting gameData\n");
-						// load the entities in
-						loadFromData(gameData);
-						Inventory test = registry.inventories.get(player_main);
-						//printf("load game data?\n");
-						logText("Game state loaded!");
-						remove_fog_of_war();
-						create_fog_of_war();
+						if (registry.fadeTransitionTimers.size() == 0) {
+							Entity temp = Entity();
+							FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+							timer.type = TRANSITION_TYPE::CONTINUE_TO_GAME;
+						}
 					}
 					break;
 				case BUTTON_ACTION_ID::SAVE_QUIT:
@@ -2228,26 +2332,28 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					// TODO: pause enimies if it is their turn
 
 					// inMenu = true;
-					set_gamestate(GameStates::PAUSE_MENU);
-					// render save and quit button
-					createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale });
-
-					// render cancel button
-					createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale });
-
+					if (current_game_state != GameStates::GAME_OVER_MENU) {
+						set_gamestate(GameStates::PAUSE_MENU);
+						// render save and quit button
+						createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale });
+						// render cancel button
+						createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale });
+					}
 					return;
 				case BUTTON_ACTION_ID::ACTIONS_CANCEL:
 					cancelAction();
 					return;
 				case BUTTON_ACTION_ID::COLLECTION:
-					// if the button is pressed again while the menu is already open, close the menu
-					if (current_game_state == GameStates::COLLECTION_MENU) {
-						set_gamestate(GameStates::BATTLE_MENU);
-					}
-					else {
-						// render the collection menu
-						createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player_main);
-						set_gamestate(GameStates::COLLECTION_MENU);
+					if (current_game_state != GameStates::GAME_OVER_MENU) {
+						// if the button is pressed again while the menu is already open, close the menu
+						if (current_game_state == GameStates::COLLECTION_MENU) {
+							set_gamestate(GameStates::BATTLE_MENU);
+						}
+						else {
+							// render the collection menu
+							createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player_main);
+							set_gamestate(GameStates::COLLECTION_MENU);
+						}
 					}
 					return;
 				case BUTTON_ACTION_ID::ACTIONS_BACK:
@@ -2349,7 +2455,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		///////////////////////////
 		// logic for guard button presses
 		///////////////////////////
-		if (current_game_state == GameStates::BATTLE_MENU && registry.squishTimers.size() <= 0) {
+		if (current_game_state == GameStates::BATTLE_MENU) {
 			for (Entity e : registry.guardButtons.entities) {
 				if (!registry.motions.has(e)) {
 					continue;
@@ -2363,8 +2469,16 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					if (!registry.guardButtons.has(e)) {
 						continue;
 					}
-					// button sound
-					Mix_PlayChannel(-1, ui_click, 0);
+					// no ending turn if enemies are currently in the process of dying
+					if (registry.squishTimers.size() > 0) {
+						world.logText("Please wait...");
+						Mix_PlayChannel(-1, error_sound, 0);
+						return;
+					}
+					else {
+						// button sound
+						Mix_PlayChannel(-1, ui_click, 0);
+					}
 
 					// perform action based on button ENUM
 					BUTTON_ACTION_ID action = registry.guardButtons.get(e).action;
@@ -2409,11 +2523,25 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						float x_component = cos(angle) * speed;
 						float y_component = sin(angle) * speed;
 						motion_struct.velocity = { x_component, y_component };
-						//motion_struct.angle = angle + (0.5 * M_PI);
 						motion_struct.destination = { world_pos.x, world_pos.y };
 						motion_struct.in_motion = true;
 						player_move_click = true;
 						player.moved = true;
+
+						// set walk animation
+						if (!registry.animations.has(player_main)) {
+							AnimationData& anim = registry.animations.emplace(player_main);
+							anim.spritesheet_texture = TEXTURE_ASSET_ID::PLAYER_SHEET;
+							anim.frametime_ms = 80;
+							anim.frame_indices = { 0, 1, 2, 3 };
+							anim.spritesheet_columns = 4;
+							anim.spritesheet_rows = 1;
+							anim.spritesheet_width = 128;
+							anim.spritesheet_height = 32;
+							anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
+							registry.renderRequests.get(player_main).used_texture = TEXTURE_ASSET_ID::PLAYER_SHEET;
+							registry.renderRequests.get(player_main).used_geometry = GEOMETRY_BUFFER_ID::ANIMATION;
+						}
 					}
 					break;
 				default:
@@ -2525,6 +2653,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								if (!registry.roomTransitions.has(player_main)) {
 									RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
 									transition.floor = Floors((int)roomSystem.current_floor + 1);
+									if (transition.floor == Floors::FLOOR1 || transition.floor == Floors::BOSS1) {
+										playMusic(Music::BACKGROUND);
+									}
+									if (transition.floor == Floors::FLOOR2 || transition.floor == Floors::BOSS2) {
+										playMusic(Music::RUINS);
+									}
 									roomSystem.setNextFloor(transition.floor);
 								}
 							}
@@ -3014,8 +3148,6 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 	printf("done QQ \n");
 	printf("number of total artifacts :%d\n", count_total_artifacts);
 	return inv;
-
-
 }
 
 int WorldSystem::calculate_abs_value(float v1, float v2) {
@@ -3616,8 +3748,10 @@ void WorldSystem::loadAttackIndicators(json indicatorList) {
 	}
 }
 
+
 void WorldSystem::logText(std::string msg, vec3 textColor) {
-	const int NUM_LINES = 12;
+	int NUM_LINES = 12;
+	
 	vec2 defaultPos = vec2(50.f, (2.0f * window_height_px) * (7.5f/10.f));
 	// vec3 textColor = vec3(1.0f, 1.0f, 1.0f); // white
 
@@ -3666,7 +3800,7 @@ void WorldSystem::doTurnOrderLogic() {
 		if (registry.players.has(currentTurnEntity)) {
 			set_is_player_turn(true);
 			start_player_turn();
-			logText("It is now your turn!");
+			logText("It is now your turn!", { 0.6, 0.6, 0.6 });
 			set_gamestate(GameStates::BATTLE_MENU);
 		}
 		// handle start-of-turn behaviour
@@ -3763,7 +3897,7 @@ void WorldSystem::updateTutorial() {
 				{
 					"You will need 50 EP to perform your basic attack!",
 					"And you can only attack once per turn!",
-					"If you do not have enough EP, refresh it by ending your turn."
+					"If you do not have enough EP, refresh it by ending your turn.",
 				},
 				{
 					"To exit attack mode, click on the back button.",
@@ -3782,7 +3916,8 @@ void WorldSystem::updateTutorial() {
 			printf("flag 6 triggered\n");
 			tutorial_flags = tutorial_flags | SLIME1_DEFEATED;
 			// spawn campfire
-			tutorial_campfire = createCampfire(renderer, { sign_motion.position.x, sign_motion.position.y + 96.f*ui_scale });
+			tutorial_campfire = createCampfire(renderer, { sign_motion.position.x, sign_motion.position.y + 128.f*ui_scale });
+			createMouseAnimation(renderer, { registry.motions.get(tutorial_campfire).position.x, registry.motions.get(tutorial_campfire).position.y - 64 });
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
 				{
@@ -3930,6 +4065,7 @@ void WorldSystem::updateTutorial() {
 				}
 				// spawn exit staircase
 				tutorial_door = createDoor(renderer, { 4*64*ui_scale, 4*64*ui_scale }, false );
+				createMouseAnimation(renderer, { 4 * 64 * ui_scale, 3 * 64 * ui_scale });
 			}
 		}
 	}
@@ -4041,6 +4177,14 @@ void remove_status_particle(Entity e, StatusEffect status) {
 		}
 		else if (status.value > 0) {
 			particle_type = PARTICLE_TYPE::ATK_UP;
+		}
+		break;
+	case StatusType::DEF_BUFF:
+		if (status.value < 0) {
+			particle_type = PARTICLE_TYPE::DEF_DOWN;
+		}
+		else if (status.value > 0) {
+			particle_type = PARTICLE_TYPE::DEF_UP;
 		}
 		break;
 	case StatusType::RANGE_BUFF:
@@ -4188,7 +4332,14 @@ void WorldSystem::itemAction() {
 }
 
 void WorldSystem::cancelAction() {
-	backAction();
+	if (current_game_state == GameStates::GAME_OVER_MENU) {
+		for (Entity player : registry.players.entities) {
+			registry.deathTimers.emplace(player);
+		}
+	}
+	else {
+		backAction();
+	}
 }
 
 void WorldSystem::advanceTextbox() {
@@ -4266,7 +4417,7 @@ void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
 	turnOrderSystem.getNextTurn();
 
 	// create an objective
-	if (roomSystem.current_floor == Floors::BOSS1) {
+	if (roomSystem.current_floor == Floors::BOSS1 || roomSystem.current_floor == Floors::BOSS2) {
 		roomSystem.setObjective(ObjectiveType::DEFEAT_BOSS, 1);
 	}
 	else {
@@ -4301,7 +4452,13 @@ void WorldSystem::update_turn_ui() {
 		if (!registry.motions.has(e)) { continue; }
 		if (!registry.hidden.has(e)) {
 			offset[0] = 48.f*count + 32.f;
-			TEXTURE_ASSET_ID texture_id = registry.renderRequests.get(e).used_texture;
+			TEXTURE_ASSET_ID texture_id;
+			if (registry.players.has(e)) {
+				texture_id = TEXTURE_ASSET_ID::PLAYER;
+			}
+			else {
+				texture_id = registry.renderRequests.get(e).used_texture;
+			}
 			createIcon(renderer, position - startPos + offset, texture_id);
 			count++;
 		}
@@ -4595,7 +4752,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				logText("Parrying Stance activated!");
 				Mix_PlayChannel(-1, special_sound, 0);
 
-				StatusEffect stance = StatusEffect(0, 1, StatusType::PARRYING_STANCE, false, true);
+				StatusEffect stance = StatusEffect(0, 0, StatusType::PARRYING_STANCE, false, true);
 				apply_status(player_main, stance);
 
 				ep_cost = 0;
@@ -4625,7 +4782,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				knockback.angle = atan2(target_pos.y - player_motion.position.y, target_pos.x - player_motion.position.x);
 			}
 
-			StatusEffect trigger = StatusEffect(0, 1, StatusType::DISENGAGE_TRIGGER, false, false);
+			StatusEffect trigger = StatusEffect(0, 0, StatusType::DISENGAGE_TRIGGER, false, false);
 			apply_status(player_main, trigger);
 			Mix_PlayChannel(-1, whoosh, 0);
 
@@ -4751,6 +4908,14 @@ void WorldSystem::playMusic(Music music) {
 		current_music = music;
 		Mix_PlayMusic(boss0_music, -1);
 		break;
+	case Music::RUINS:
+		current_music = music;
+		Mix_PlayMusic(ruins_music, -1);
+		break;
+	case Music::BOSS1:
+		current_music = music;
+		Mix_PlayMusic(boss1_music, -1);
+		break;
 	default:
 		printf("unsupported Music enum value %d\n", music);
 	}
@@ -4769,18 +4934,18 @@ ParticleEmitter setupParticleEmitter(PARTICLE_TYPE type) {
 			RENDER_LAYER_ID::EFFECT };
 		emitter.min_interval_ms = 300;
 		emitter.max_interval_ms = 600;
-		emitter.particle_decay_ms = 2000;
-		emitter.base_scale = vec2(32, 32);
+		emitter.particle_decay_ms = 1500;
+		emitter.base_scale = vec2(20, 20);
 		emitter.min_scale_factor = 0.5;
 		emitter.max_scale_factor = 1.2;
 		emitter.min_offset_x = -8;
 		emitter.max_offset_x = 8;
-		emitter.min_offset_y = -16;
-		emitter.max_offset_y = 0;
+		emitter.min_offset_y = 0;
+		emitter.max_offset_y = 24;
 		emitter.min_velocity_x = -40;
 		emitter.max_velocity_x = 40;
-		emitter.min_velocity_y = -40;
-		emitter.max_velocity_y= -100;
+		emitter.min_velocity_y = -20;
+		emitter.max_velocity_y= -60;
 		emitter.min_angle = 0;
 		emitter.max_angle = 0;
 		break;
@@ -4879,6 +5044,54 @@ ParticleEmitter setupParticleEmitter(PARTICLE_TYPE type) {
 		emitter.min_angle = M_PI;
 		emitter.max_angle = M_PI;
 		emitter.color_shift = { 1.f, 1.f, 0.f, 0.75f };
+		break;
+	case PARTICLE_TYPE::DEF_UP:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::BUFF_ARROW,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 300;
+		emitter.max_interval_ms = 700;
+		emitter.particle_decay_ms = 1500;
+		emitter.base_scale = vec2(32, 32);
+		emitter.min_scale_factor = 0.75;
+		emitter.max_scale_factor = 1;
+		emitter.min_offset_x = -48;
+		emitter.max_offset_x = 48;
+		emitter.min_offset_y = -16;
+		emitter.max_offset_y = 0;
+		emitter.min_velocity_x = 0;
+		emitter.max_velocity_x = 0;
+		emitter.min_velocity_y = -60;
+		emitter.max_velocity_y = -40;
+		emitter.min_angle = 0;
+		emitter.max_angle = 0;
+		emitter.color_shift = { 0.f, 0.f, 1.f, 0.75f };
+		break;
+	case PARTICLE_TYPE::DEF_DOWN:
+		emitter.render_data = RenderRequest{
+			TEXTURE_ASSET_ID::BUFF_ARROW,
+			EFFECT_ASSET_ID::TEXTURED,
+			GEOMETRY_BUFFER_ID::SPRITE,
+			RENDER_LAYER_ID::EFFECT };
+		emitter.min_interval_ms = 300;
+		emitter.max_interval_ms = 700;
+		emitter.particle_decay_ms = 1500;
+		emitter.base_scale = vec2(32, 32);
+		emitter.min_scale_factor = 0.75;
+		emitter.max_scale_factor = 1;
+		emitter.min_offset_x = -48;
+		emitter.max_offset_x = 48;
+		emitter.min_offset_y = -64;
+		emitter.max_offset_y = -32;
+		emitter.min_velocity_x = 0;
+		emitter.max_velocity_x = 0;
+		emitter.min_velocity_y = 30;
+		emitter.max_velocity_y = 50;
+		emitter.min_angle = M_PI;
+		emitter.max_angle = M_PI;
+		emitter.color_shift = { 0.f, 0.f, 1.f, 0.75f };
 		break;
 	case PARTICLE_TYPE::SLIMED:
 		emitter.render_data = RenderRequest{

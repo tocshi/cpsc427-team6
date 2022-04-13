@@ -117,7 +117,7 @@ void take_damage(Entity& entity, float damage)
 			apply_status(entity, invincible);
 
 			inv.artifact[(int)ARTIFACT::THICK_TOME]--;
-			world.logText("The Unnecessarily Thick Tome miraculously blocks the fatal blow and disintegrates!");
+			world.logText("The Unnecessarily Thick Tome miraculously blocks the fatal blow and disintegrates!", {0.2, 1.0, 1.0});
 		}
 	}
 }
@@ -233,7 +233,7 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 						apply_status(defender, cd);
 					}
 				}
-				world.logText("You are surrounded by a raging gust!");
+				world.logText("You are surrounded by a raging gust!", { 0.2, 1.0, 1.0 });
 			}
 		}
 
@@ -250,15 +250,22 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 			Entity curse = createBigSlash(world.renderer, defender_motion.position, 0, defender_stats.range);
 			registry.renderRequests.get(curse).used_texture = TEXTURE_ASSET_ID::CURSE;
 			registry.expandTimers.get(curse).counter_ms = 1000;
-			world.logText("A dreadful curse befalls your enemies!");
+			world.logText("A dreadful curse befalls your enemies!", { 0.2, 1.0, 1.0 });
 		}
 	}
 
 	// Discarded Fang
 	if (attacker_inv.artifact[(int)ARTIFACT::POISON_FANG] > 0 && doProcs) {
+		bool valid = true;
+		// rocks cannot be poisoned
+		if (registry.enemies.has(defender)) {
+			if (registry.enemies.get(defender).type == ENEMY_TYPE::LIVING_ROCK) {
+				valid = false;
+			}
+		}
 		int roll = irand(100);
-		if (roll < 30) {
-			world.logText("The Discarded Fang unleashes its poison!");
+		if (roll < 30 && valid) {
+			world.logText("The Discarded Fang unleashes its poison!", { 0.2, 1.0, 1.0 });
 			float damage = (attacker_stats.atk * 0.15) + (attacker_stats.atk * 0.1 * attacker_inv.artifact[(int)ARTIFACT::POISON_FANG] - 1);
 			std::cout << damage << std::endl;
 
@@ -273,12 +280,14 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 		int roll = irand(100);
 		int chance = 15 * attacker_inv.artifact[(int)ARTIFACT::THUNDER_TWIG];
 		if (roll < chance) {
-			//world.logText("The Thundering Twig summons a bolt of lightning!");
 			float damage = attacker_stats.atk * 0.60;
 			// using bigslash as a template entity LOL
 			Entity lightning = createBigSlash(world.renderer, { defender_motion.position.x, defender_motion.position.y - 512.f }, 0, 0);
 			registry.renderRequests.get(lightning).used_texture = TEXTURE_ASSET_ID::LIGHTNING;
 			registry.motions.get(lightning).scale = {1024, 1024};
+			Entity explosion = createExplosion(world.renderer, defender_motion.position);
+			registry.motions.get(explosion).scale *= 2.f;
+			registry.colors.insert(explosion, { 2.f, 0.8f, 2.f, 1.f });
 
 			for (Entity e : registry.enemies.entities) {
 				Motion enemy_motion = registry.motions.get(e);
@@ -293,14 +302,14 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 	if (attacker_inv.artifact[(int)ARTIFACT::LUCKY_CHIP] > 0) {
 		int roll = irand(100);
 		if (roll < 7 * attacker_inv.artifact[(int)ARTIFACT::LUCKY_CHIP]) {
-			world.logText("You feel extremely lucky!");
+			world.logText("You feel extremely lucky!", { 0.2, 1.0, 1.0 });
 			final_damage *= 7.77f;
 		}
 	}
 	if (defender_inv.artifact[(int)ARTIFACT::LUCKY_CHIP] > 0) {
 		int roll = irand(100);
 		if (roll < 7 * defender_inv.artifact[(int)ARTIFACT::LUCKY_CHIP]) {
-			world.logText("You feel extremely lucky!");
+			world.logText("You feel extremely lucky!", { 0.2, 1.0, 1.0 });
 			final_damage = max(1.f,final_damage - 777.f);
 		}
 	}
@@ -381,6 +390,16 @@ void apply_status(Entity& target, StatusEffect& status) {
 				add_emitter = true;
 			}
 			break;
+		case StatusType::DEF_BUFF:
+			if (status.value < 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::DEF_DOWN);
+				add_emitter = true;
+			}
+			else if (status.value > 0) {
+				emitter = setupParticleEmitter(PARTICLE_TYPE::DEF_UP);
+				add_emitter = true;
+			}
+			break;
 		case StatusType::SLIMED:
 			emitter = setupParticleEmitter(PARTICLE_TYPE::SLIMED);
 			add_emitter = true;
@@ -429,11 +448,11 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 		for (int i = statusContainer.statuses.size() - 1; i >= 0; i--) {
 			StatusEffect& status = statusContainer.statuses[i];
 			// in case something was accidentally added with 0 turn duration
-			if (status.turns_remaining <= 0) {
-				remove_status_particle(entity, status);
-				statusContainer.statuses.erase(statusContainer.statuses.begin()+i);
-				continue;
-			}
+			//if (status.turns_remaining <= 0) {
+			//	remove_status_particle(entity, status);
+			//	statusContainer.statuses.erase(statusContainer.statuses.begin()+i);
+			//	continue;
+			//}
 			if (status.apply_at_turn_start != applied_from_turn_start) {
 				continue;
 			}
@@ -454,6 +473,14 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 					}
 					else {
 						stats.atk += status.value;
+					}
+					break;
+				case (StatusType::DEF_BUFF):
+					if (status.percentage && registry.stats.has(entity)) {
+						stats.def += basestats.def * status.value;
+					}
+					else {
+						stats.def += status.value;
 					}
 					break;
 				case (StatusType::RANGE_BUFF):
@@ -486,6 +513,7 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 							stats.ep += status.value;
 						}
 					}
+					break;
 				case (StatusType::HP_REGEN):
 					if (!stats_only) {
 						if (status.percentage && registry.stats.has(entity)) {
@@ -539,16 +567,28 @@ void handle_traps() {
 // t is trap
 // trapped is the unfortunate victim
 void trigger_trap(Entity t, Entity trapped) {
-	if (!registry.motions.has(t)) { return; }
+	if (!registry.stats.has(t)) { return; }
 	Trap& trap = registry.traps.get(t);
+	if (trap.triggers <= 0) { return; }
 	Motion& trap_motion = registry.motions.get(t);
 
 	// pre-switch instantiations (this is why I hate C++)
 	StatusEffect burrs = StatusEffect(0, 1, StatusType::BURR_DEBUFF, false, true);
+	StatusEffect boss_poison = StatusEffect(0.2 * trap.multiplier, 5, StatusType::POISON, false, false);
+	StatusEffect boss_atk_buff = StatusEffect(0.3, 3, StatusType::ATK_BUFF, true, true);
+	StatusEffect boss_regen_buff = StatusEffect(10, 3, StatusType::HP_REGEN, false, true);
+	vec4 color = vec4(1.f);
+	if (registry.colors.has(t)) { color = registry.colors.get(t); }
 	if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
 		Entity explosion = createExplosion(world.renderer, trap_motion.position);
 		registry.motions.get(explosion).scale *= 2.f;
 		registry.colors.insert(explosion, { 0.8f, 2.f, 2.f, 1.f });
+	}
+	if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::FATE) {
+		Entity smoke = createBigSlash(world.renderer, trap_motion.position, 0, 200);
+		registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
+		registry.expandTimers.get(smoke).counter_ms = 1000;
+		registry.colors.insert(smoke, color);
 	}
 
 	// do trap effect based on texture
@@ -567,6 +607,32 @@ void trigger_trap(Entity t, Entity trapped) {
 		if (has_status(trapped, StatusType::BURR_DEBUFF)) { return; }
 		apply_status(trapped, burrs);
 		deal_damage(trap.owner, trapped, trap.multiplier);
+		break;
+	case TEXTURE_ASSET_ID::FATE:
+		// switch based on colour
+		if (color == vec4(1.f, 0.f, 0.f, 0.9f)) {
+			for (Entity e : registry.enemies.entities) {
+				apply_status(e, boss_atk_buff);
+			}
+			world.logText("A magical mist empowers the enemies!");
+		}
+		else if (color == vec4(0.f, 1.f, 0.f, 0.9f)) {
+			for (Entity e : registry.enemies.entities) {
+				apply_status(e, boss_regen_buff);
+			}
+			world.logText("A magical mist mends the enemies' wounds!");
+		}
+		else if (color == vec4(0.f, 0.f, 1.f, 0.9f)) {
+			world.logText("An apparition materializes from the mist!");
+			Entity summon = createApparition(world.renderer, trap_motion.position);
+			world.turnOrderSystem.turnQueue.addNewEntity(summon);
+			ExpandTimer iframe = registry.iFrameTimers.emplace(summon);
+			iframe.counter_ms = 50;
+		}
+		else {
+			world.logText("You inhale a poisonous mist!");
+			apply_status(trapped, boss_poison);
+		}
 		break;
 	default:
 		break;

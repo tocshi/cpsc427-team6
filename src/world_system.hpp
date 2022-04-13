@@ -137,6 +137,8 @@ public:
 	Mix_Music* menu_music;
 	Mix_Music* cutscene_music;
 	Mix_Music* boss0_music;
+	Mix_Music* ruins_music;
+	Mix_Music* boss1_music;
 
 	Music current_music = Music::NONE;
 

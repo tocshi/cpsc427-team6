@@ -6,6 +6,10 @@ void saveToFile(json j) {
 	o << std::setw(4) << j << std::endl;
 }
 
+void SaveSystem::deleteFile() {
+	remove(&SAVE_DATA_PATH[0]);
+}
+
 bool SaveSystem::saveDataExists() {
 	std::ifstream infile(SAVE_DATA_PATH);
 	return infile.good();

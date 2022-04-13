@@ -28,7 +28,7 @@ void RoomSystem::setObjective(ObjectiveType type, int quantity) {
 	current_objective = Objective{type, quantity, false};
 	switch (type) {
 	case ObjectiveType::KILL_ENEMIES:
-		world.logText("Kill " + std::to_string(quantity) + " enemies to proceed!");
+		world.logText("Defeat " + std::to_string(quantity) + " enemies to proceed!");
 		break;
 	case ObjectiveType::ACTIVATE_SWITCHES:
 		world.spawn_switches_random_location(quantity);
@@ -38,7 +38,6 @@ void RoomSystem::setObjective(ObjectiveType type, int quantity) {
 		world.logText("Find and destroy the enemy hive!");
 		break;
 	case ObjectiveType::DEFEAT_BOSS:
-		world.logText("Defeat the boss monster.");
 		break;
 	default:
 		break;
@@ -76,7 +75,7 @@ void RoomSystem::updateObjective(ObjectiveType type, int quantity) {
 	remaining.message = std::to_string(current_objective.remaining_count);
 	switch (current_objective.type) {
 	case ObjectiveType::KILL_ENEMIES:
-		desc.message = "Kill enemies";
+		desc.message = "Defeat enemies";
 		break;
 	case ObjectiveType::ACTIVATE_SWITCHES:
 		desc.message = "Activate the black tiles";
@@ -85,7 +84,7 @@ void RoomSystem::updateObjective(ObjectiveType type, int quantity) {
 		desc.message = "Destroy the enemy hive";
 		break;
 	case ObjectiveType::DEFEAT_BOSS:
-		desc.message = "Defeat the boss monster";
+		desc.message = "Defeat the boss";
 		break;
 	default:
 		desc.message = "";

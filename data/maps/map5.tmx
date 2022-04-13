@@ -194,7 +194,7 @@
  <group id="5" name="randwalls">
   <group id="142" name="group1">
    <properties>
-    <property name="max" type="int" value="4"/>
+    <property name="max" type="int" value="3"/>
     <property name="min" type="int" value="3"/>
    </properties>
    <group id="143" name="wall0">
@@ -440,7 +440,7 @@
   </group>
   <group id="70" name="group0" visible="0">
    <properties>
-    <property name="max" type="int" value="4"/>
+    <property name="max" type="int" value="3"/>
     <property name="min" type="int" value="3"/>
    </properties>
    <group id="74" name="wall0">

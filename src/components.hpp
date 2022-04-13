@@ -32,7 +32,9 @@
 enum class TEXTURE_ASSET_ID {
 	BG = 0,
 	PLAYER = BG + 1,
-	SLIME = PLAYER + 1,
+	PLAYER_SHEET = PLAYER + 1,
+	REFLEXION = PLAYER_SHEET + 1,
+	SLIME = REFLEXION + 1,
 	PLANT_SHOOTER = SLIME + 1,
 	PLANT_PROJECTILE = PLANT_SHOOTER + 1,
 	CAVELING = PLANT_PROJECTILE + 1,
@@ -168,7 +170,10 @@ enum class TEXTURE_ASSET_ID {
 	STUN_PARTICLE = SLIME_DROPLET + 1,
 	INVINCIBLE_PARTICLE = STUN_PARTICLE + 1,
 	HP_REGEN_PARTICLE = INVINCIBLE_PARTICLE + 1,
-	TEXTURE_COUNT = HP_REGEN_PARTICLE + 1,
+	FATE = HP_REGEN_PARTICLE + 1,
+	ORB = FATE + 1,
+	ENDLIGHT = ORB + 1,
+	TEXTURE_COUNT = ENDLIGHT + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -326,9 +331,11 @@ struct Player
 {
 	float s;
 	int gacha_pity = 0;
-	int floor = 1; // TODO: turn this back to 0 when tutorial is implemented
+	int floor = 1;
 	int room = 0;
 	int total_rooms = 0;
+	int chests = 0;
+	int potions = 0;
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
 
@@ -352,7 +359,9 @@ enum class Music {
 	BACKGROUND = NONE + 1,
 	MENU = BACKGROUND + 1,
 	CUTSCENE = MENU + 1,
-	BOSS0 = CUTSCENE + 1
+	BOSS0 = CUTSCENE + 1,
+	RUINS = BOSS0 + 1,
+	BOSS1 = RUINS + 1
 };
 
 // All data relevant to the shape and motion of entities
@@ -407,7 +416,7 @@ struct DeathTimer
 // Squishing effect timer
 struct SquishTimer
 {
-	float counter_ms = 3000;
+	float counter_ms = 2000;
 	vec2 orig_scale = { 0, 0 };
 };
 
@@ -549,7 +558,8 @@ enum class ENEMY_TYPE {
 	LIVING_PEBBLE = KING_SLIME + 1,
 	LIVING_ROCK = LIVING_PEBBLE + 1,
 	APPARITION = LIVING_ROCK + 1,
-	TYPE_COUNT = APPARITION + 1
+	REFLEXION = APPARITION + 1,
+	TYPE_COUNT = REFLEXION + 1
 };
 
 // simple component for all enemies
@@ -814,7 +824,8 @@ enum class TRANSITION_TYPE {
 	MAIN_TO_GAME = CREDITS_TO_MAIN + 1,
 	CUTSCENE_TO_MAIN = MAIN_TO_GAME + 1,
 	CUTSCENE_SWITCH = CUTSCENE_TO_MAIN + 1,
-	GAME_OVER = CUTSCENE_SWITCH + 1,
+	CONTINUE_TO_GAME = CUTSCENE_SWITCH + 1,
+	GAME_OVER = CONTINUE_TO_GAME + 1,
 };
 
 struct FadeTransitionTimer {
@@ -906,7 +917,8 @@ enum class RENDER_LAYER_ID {
 	FLOOR_DECO_INSTANCED = FLOOR + 1,
 	FLOOR_DECO = FLOOR_DECO_INSTANCED + 1,
 	SHADOW = FLOOR_DECO + 1,
-	SPRITE = SHADOW + 1,
+	TRAPS = SHADOW + 1,
+	SPRITE = TRAPS + 1,
 	PLAYER = SPRITE + 1,
 	WALLS_INSTANCED = PLAYER + 1,
 	WALLS = WALLS_INSTANCED + 1,
@@ -969,6 +981,22 @@ struct GuardButton {
 	BUTTON_ACTION_ID action = BUTTON_ACTION_ID::ACTIONS_GUARD;
 };
 
+// game over reasons
+enum class GAME_OVER_REASON {
+	PLAYER_DIED = 0,
+	BOSS_DEFEATED = PLAYER_DIED + 1,
+	GAME_OVER_COUNT = BOSS_DEFEATED + 1
+};
+
+// game over location
+enum class GAME_OVER_LOCATION {
+	FLOOR_ONE = 0,
+	BOSS_ONE = FLOOR_ONE + 1,
+	FLOOR_TWO = BOSS_ONE + 1,
+	BOSS_TWO = FLOOR_TWO + 1,
+	GAME_OVER_LOCATION_COUNT = FLOOR_TWO + 1
+};
+
 // hotkey icon
 struct KeyIcon {
 
@@ -1001,7 +1029,9 @@ enum class PARTICLE_TYPE {
 	ATK_DOWN = ATK_UP + 1,
 	RANGE_UP = ATK_DOWN + 1,
 	RANGE_DOWN = RANGE_UP + 1,
-	INVINCIBLE = RANGE_DOWN + 1,
+	DEF_UP = RANGE_DOWN + 1,
+	DEF_DOWN = DEF_UP + 1,
+	INVINCIBLE = DEF_DOWN + 1,
 	SLIMED = INVINCIBLE + 1,
 	HP_REGEN = SLIMED + 1,
 	STUN = HP_REGEN + 1,

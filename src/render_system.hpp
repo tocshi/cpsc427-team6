@@ -37,6 +37,8 @@ class RenderSystem {
 	const std::array<std::string, texture_count> texture_paths = {
 			textures_path("dungeonbg.png"),
 			textures_path("char/shou.png"),
+			textures_path("char/shou_sheet.png"),
+			textures_path("char/reflexion.png"),
 			textures_path("enemy/slime.png"),
 			textures_path("enemy/plant_shooter/plant_shooter.png"),
 			textures_path("enemy/plant_shooter/projectile.png"),
@@ -174,6 +176,9 @@ class RenderSystem {
 			textures_path("particles/stun.png"),
 			textures_path("particles/invincible.png"),
 			textures_path("particles/hp_regen.png"),
+			textures_path("attacks/fate.png"),
+			textures_path("enemy/orb.png"),
+			textures_path("endlight.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

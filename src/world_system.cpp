@@ -240,6 +240,10 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(kingslime_summon, 24);
 	pebble_move = Mix_LoadWAV(audio_path("sfx/pebble_move.wav").c_str());
 	Mix_VolumeChunk(pebble_move, 48);
+	fire_sound = Mix_LoadWAV(audio_path("sfx/fire.wav").c_str());
+	Mix_VolumeChunk(fire_sound, 48);
+	potion_sound = Mix_LoadWAV(audio_path("sfx/potion.wav").c_str());
+	Mix_VolumeChunk(potion_sound, 32);
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr
 		|| error_sound == nullptr || footstep_sound == nullptr
@@ -359,6 +363,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 						if (has_status(player_main, StatusType::ATK_BUFF)) { remove_status(player_main, StatusType::ATK_BUFF); }
 						apply_status(player_main, buff);
 					}
+
+					// play potion sound
+					Mix_PlayChannel(-1, potion_sound, 0);
 					break;
 				default:
 					break;
@@ -2693,6 +2700,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 										apply_status(player_main, buff);
 									}
 									interactable.interacted = true;
+									// play campfire sound
+									Mix_PlayChannel(-1, fire_sound, 0);
 									break;
 								}
 							}

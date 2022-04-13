@@ -136,6 +136,8 @@ public:
 	Mix_Chunk* kingslime_jump;
 	Mix_Chunk* kingslime_summon;
 	Mix_Chunk* pebble_move;
+	Mix_Chunk* fire_sound;
+	Mix_Chunk* potion_sound;
 
 	Mix_Music* background_music;
 	Mix_Music* menu_music;

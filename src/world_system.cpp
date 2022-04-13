@@ -3188,10 +3188,10 @@ Entity WorldSystem::loadEnemy(json enemyData) {
 	}
 	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::CAVELING) {
 		if (roomSystem.current_floor > Floors::BOSS1) {
-			e = createPlantShooter(renderer, { 0, 0 }, true);
+			e = createCaveling(renderer, { 0, 0 }, true);
 		}
 		else {
-			e = createPlantShooter(renderer, { 0, 0 });
+			e = createCaveling(renderer, { 0, 0 });
 		}
 	}
 	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::KING_SLIME) {

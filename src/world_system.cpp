@@ -1705,8 +1705,8 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 				if (roll < 1) {
 					Entity summon = createEnemy(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
 					Stats& summon_stats = registry.basestats.get(summon);
-					summon_stats.maxhp = 56;
-					summon_stats.atk = 20;
+					summon_stats.maxhp = 50;
+					summon_stats.atk = 17;
 					registry.stats.get(summon).hp = summon_stats.maxhp;
 					reset_stats(summon);
 					calc_stats(summon);
@@ -1714,8 +1714,8 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 				else if (roll < 2) {
 					Entity summon = createPlantShooter(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
 					Stats& summon_stats = registry.basestats.get(summon);
-					summon_stats.maxhp = 48;
-					summon_stats.atk = 16;
+					summon_stats.maxhp = 43;
+					summon_stats.atk = 13;
 					registry.stats.get(summon).hp = summon_stats.maxhp;
 					reset_stats(summon);
 					calc_stats(summon);
@@ -1723,8 +1723,8 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 				else if (roll < 3) {
 					Entity summon = createCaveling(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
 					Stats& summon_stats = registry.basestats.get(summon);
-					summon_stats.maxhp = 38;
-					summon_stats.atk = 12;
+					summon_stats.maxhp = 35;
+					summon_stats.atk = 10;
 					registry.stats.get(summon).hp = summon_stats.maxhp;
 					reset_stats(summon);
 					calc_stats(summon);
@@ -2854,8 +2854,8 @@ void WorldSystem::start_player_turn() {
 
 		// choose target
 		for (Entity& e : registry.enemies.entities) {
-			if (registry.hidden.has(e)) { continue; }
 			Motion& enemy_motion = registry.motions.get(e);
+			if (dist_to(player_motion.position, enemy_motion.position) > (registry.stats.get(player_main).range / 2)) { continue; }
 			Stats& enemy_stats = registry.stats.get(e);
 			if (enemy_stats.hp / enemy_stats.maxhp < frac) {
 				valid = true;
@@ -2921,6 +2921,10 @@ void WorldSystem::removeForNewRoom() {
 	// remove enemies
 	for (Entity enemy : registry.enemies.entities) {
 		registry.remove_all_components_of(enemy);
+	}
+
+	for (Entity trap : registry.traps.entities) {
+		registry.remove_all_components_of(trap);
 	}
 
 	// remove solids

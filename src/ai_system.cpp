@@ -956,22 +956,22 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 					if (roll < 1) { 
 						summon = createEnemy(world.renderer, spawnpoint);
 						Stats& summon_stats = registry.basestats.get(summon);
-						summon_stats.maxhp = 56;
-						summon_stats.atk = 20;
+						summon_stats.maxhp = 50;
+						summon_stats.atk = 17;
 						registry.stats.get(summon).hp = summon_stats.maxhp;
 					}
 					else if (roll < 2) { 
 						summon = createPlantShooter(world.renderer, spawnpoint);
 						Stats& summon_stats = registry.basestats.get(summon);
-						summon_stats.maxhp = 48;
-						summon_stats.atk = 16;
+						summon_stats.maxhp = 43;
+						summon_stats.atk = 13;
 						registry.stats.get(summon).hp = summon_stats.maxhp;
 					}
 					else if (roll < 3) {
 						summon = createCaveling(world.renderer, spawnpoint);
 						Stats& summon_stats = registry.basestats.get(summon);
-						summon_stats.maxhp = 38;
-						summon_stats.atk = 12;
+						summon_stats.maxhp = 35;
+						summon_stats.atk = 10;
 						registry.stats.get(summon).hp = summon_stats.maxhp;
 					}
 					else if (roll < 4) { 

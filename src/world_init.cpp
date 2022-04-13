@@ -453,7 +453,7 @@ Entity createLivingPebble(RenderSystem* renderer, vec2 pos)
 	stats.prefix = "the";
 	stats.maxhp = 1;
 	stats.hp = stats.maxhp;
-	stats.atk = 10;
+	stats.atk = 12;
 	stats.def = 999;
 	stats.speed = 11;
 	stats.range = 500;
@@ -571,7 +571,7 @@ Entity createApparition(RenderSystem* renderer, vec2 pos)
 	stats.prefix = "the";
 	stats.maxhp = 40;
 	stats.hp = stats.maxhp;
-	stats.atk = 13;
+	stats.atk = 14;
 	stats.def = 4;
 	stats.speed = 13;
 	stats.range = 700;

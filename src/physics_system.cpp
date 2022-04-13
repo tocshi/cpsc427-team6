@@ -191,8 +191,12 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 
 		// behaviour if currently moving
 		if (vel.x * step_seconds != 0 || vel.y * step_seconds != 0) {
-			// handle a star movement
+			bool using_astar = false;
 			if (registry.aStarMotions.has(entity)) {
+				using_astar = registry.aStarMotions.get(entity).using_astar;
+			}
+			// handle a star movement
+			if (using_astar) {
 				AstarMotion& aStarMotion = registry.aStarMotions.get(entity);
 				// printf("dist to: %f, vel_mag: %f\n", dist_to(pos_final, dest), vel_mag);
 				vec2 deltaStart = aStarMotion.currentDest - motion.position;

@@ -68,8 +68,8 @@ AstarNode* getLowestHCostNodeInList(std::vector<AstarNode*> list) {
 
 // returns true if the distance to the node is greater than the range
 bool nodeOutRange(vec2 enemyPos, vec2 nodePos, float range) {
-	// return sqrt(pow(enemyPos.x - nodePos.x, 2) + pow(enemyPos.y - nodePos.y, 2)) > range;
-	return  false;
+	return sqrt(pow(enemyPos.x - nodePos.x, 2) + pow(enemyPos.y - nodePos.y, 2)) > range;
+	//return  false;
 }
 
 // Astar returns a root AstarNode, then the ai step exectutes a move to each of those steps in sequence
@@ -572,8 +572,8 @@ void AISystem::step(Entity e)
 void AISystem::slime_logic(Entity slime, Entity& player) {
 	Motion& player_motion = registry.motions.get(player);
 	Stats& stats = registry.stats.get(slime);
-	// float chaseRange = stats.range;
-	float chaseRange = 1000.f;
+	float chaseRange = stats.range;
+	// float chaseRange = 1000.f;
 	float meleeRange = 100.f;
 
 	Motion& motion_struct = registry.motions.get(slime);
@@ -602,6 +602,10 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 	// perform action based on state
 	int dx = ichoose(irandRange(-75, -25), irandRange(25, 75));
 	int dy = ichoose(irandRange(-75, -25), irandRange(25, 75));
+
+	// set initial a star stat
+	AstarMotion& aStarMotion = registry.aStarMotions.get(slime);
+	aStarMotion.using_astar = false;
 
 	switch (state) {
 	case ENEMY_STATE::IDLE:
@@ -654,20 +658,18 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 				motion_struct.in_motion = false;
 			}
 			else {
-				// TODO: want to make a simple path to follow
-				std::vector<AstarNode*> starVector = AstarPathfinding(slime, 140.f);
-				// for now just print the node pos'
-				// TODO: actually make slime follow the path
+				std::vector<AstarNode*> starVector = AstarPathfinding(slime, chaseRange);
 
-				AstarMotion& aStarMotion = registry.aStarMotions.get(slime);
 				aStarMotion.scalar_vel = slime_velocity;
+				aStarMotion.using_astar = true;
 
 				for (int i = 0; i < starVector.size(); i++) {
 					aStarMotion.path.push(starVector[i]->position);
-					Entity test = createBigSlash(world.renderer, starVector[i]->position, 0, 0);
-					registry.renderRequests.get(test).used_texture = TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER;
-					registry.motions.get(test).scale = vec2(50.f, 50.f);
-					registry.expandTimers.get(test).counter_ms = 20000;
+					// Uncomment the below to see the generated path
+					// Entity test = createBigSlash(world.renderer, starVector[i]->position, 0, 0);
+					// registry.renderRequests.get(test).used_texture = TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER;
+					// registry.motions.get(test).scale = vec2(50.f, 50.f);
+					// registry.expandTimers.get(test).counter_ms = 20000;
 					if (i == 1) {
 						motion_struct.destination = starVector[i]->position;
 						aStarMotion.currentDest = starVector[i]->position;
@@ -779,6 +781,10 @@ void AISystem::caveling_logic(Entity enemy, Entity& player) {
 	// perform action based on state
 	float angle = atan2(player_motion.position.y - motion_struct.position.y, player_motion.position.x - motion_struct.position.x);
 
+	// set initial a star stat
+	AstarMotion& aStarMotion = registry.aStarMotions.get(enemy);
+	aStarMotion.using_astar = false;
+
 	switch (state) {
 	case ENEMY_STATE::RETREAT:
 
@@ -823,7 +829,26 @@ void AISystem::caveling_logic(Entity enemy, Entity& player) {
 			motion_struct.in_motion = false;
 		}
 		else {
-			motion_struct.velocity = 180.f * normalize(motion_struct.destination - motion_struct.position);
+			// move towards player
+			std::vector<AstarNode*> starVector = AstarPathfinding(enemy, chaseRange);
+
+			aStarMotion.scalar_vel = 180.f;
+			aStarMotion.using_astar = true;
+
+			for (int i = 0; i < starVector.size(); i++) {
+				aStarMotion.path.push(starVector[i]->position);
+				// Uncomment the below to see the generated path
+				// Entity test = createBigSlash(world.renderer, starVector[i]->position, 0, 0);
+				// registry.renderRequests.get(test).used_texture = TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER;
+				// registry.motions.get(test).scale = vec2(50.f, 50.f);
+				// registry.expandTimers.get(test).counter_ms = 20000;
+				if (i == 1) {
+					motion_struct.destination = starVector[i]->position;
+					aStarMotion.currentDest = starVector[i]->position;
+					motion_struct.velocity = 180.f * normalize(starVector[i]->position - motion_struct.position);
+				}
+				delete starVector[i];
+			}
 			motion_struct.in_motion = true;
 		}
 		break;

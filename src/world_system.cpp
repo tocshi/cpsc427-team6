@@ -827,17 +827,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			if (registry.bosses.has(enemy)) {
 				roomSystem.updateObjective(ObjectiveType::DEFEAT_BOSS, 1);
-				Entity bossdoor = createDoor(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f }, true);
+
+				// Final Boss Death
+				if (registry.enemies.get(enemy).type == ENEMY_TYPE::REFLEXION) {
+					createEndLight(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f });
+				}
+				else {
+					createDoor(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f }, true);
+				}
 				//roomSystem.setNextFloor(Floors((int)roomSystem.current_floor + 1));
 				registry.players.get(player_main).floor++;
 				createCampfire(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y + 64.f });
 				registry.enemies.get(enemy).state = ENEMY_STATE::DEATH;
 				aiSystem.step(enemy);
-
-				// Final Boss Death
-				if (registry.enemies.get(enemy).type == ENEMY_TYPE::REFLEXION) {
-					registry.renderRequests.get(bossdoor).used_texture == TEXTURE_ASSET_ID::ENDLIGHT;
-				}
 			}
 			if (registry.shadowContainers.has(enemy)) {
 				ShadowContainer& shadow_container = registry.shadowContainers.get(enemy);

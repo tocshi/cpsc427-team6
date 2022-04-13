@@ -247,3 +247,5 @@ Entity createBossIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture
 Entity createShadow(vec2 pos, Entity caster);
 // spawn particle
 Entity createParticle(vec2 pos, ParticleEmitter& emitter);
+// end light
+Entity createEndLight(RenderSystem* renderer, vec2 pos);

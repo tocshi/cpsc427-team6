@@ -6,7 +6,7 @@
 
 // strong type to prevent any errors
 enum class GameStates {
-	
+
 	SPLASH_SCREEN,  //TRUE GO TO MAIN MENU STATE
 	INTRO_SCENE, ////TRUE GO TO MAIN MENU STATE
 

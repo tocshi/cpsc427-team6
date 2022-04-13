@@ -290,6 +290,7 @@ Entity createTrap(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, fl
 	trap.triggers = triggers;
 	trap.multiplier = multiplier;
 	trap.owner = owner;
+	trap.type = texture;
 
 	registry.renderRequests.insert(
 		entity,
@@ -629,7 +630,7 @@ Entity createReflexion(RenderSystem* renderer, vec2 pos)
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "???";
 	stats.prefix = "";
-	stats.maxhp = 1000;
+	stats.maxhp = 600;
 	stats.hp = stats.maxhp;
 	stats.atk = 15;
 	stats.def = 6;
@@ -997,7 +998,7 @@ Entity createSign2(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std
 	return entity;
 }
 
-Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std::string>>& messages)
+Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<std::string>>& messages, bool isCutscene)
 {
 	auto entity = Entity();
 
@@ -1008,12 +1009,24 @@ Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<s
 	if (textbox.num_messages > 0) {
 		for (std::string line : messages[0]) {
 			textbox.num_lines++;
-			Entity text = createText(renderer, pos*2.f + vec2(-TEXTBOX_BB_WIDTH + 100.f, -TEXTBOX_BB_HEIGHT + 75.f * textbox.num_lines), line, 2.0f, vec3(1.f));
+			Entity text;
+			if (isCutscene) {
+				text = createText(renderer, pos * 2.f + vec2(-TEXTBOX_BB_WIDTH + 100.f, -TEXTBOX_BB_HEIGHT + 128.f + 75.f * textbox.num_lines), line, 2.0f, vec3(1.f));
+			}
+			else {
+				text = createText(renderer, pos * 2.f + vec2(-TEXTBOX_BB_WIDTH + 100.f, -TEXTBOX_BB_HEIGHT + 75.f * textbox.num_lines), line, 2.0f, vec3(1.f));
+			}
 			textbox.lines.push_back(text);
 		}
 	}
 	textbox.next_message = 1;
-	textbox.icon = createMouseAnimationUI(renderer, { pos[0] + TEXTBOX_BB_WIDTH/2.f - 64.f*ui_scale, pos[1] + TEXTBOX_BB_HEIGHT/2.f - 64.f*ui_scale });
+	if (isCutscene) {
+		textbox.icon = createMouseAnimationUI(renderer, { pos[0] + TEXTBOX_BB_WIDTH / 2.f - 64.f * ui_scale, pos[1] + TEXTBOX_BB_HEIGHT / 3.f - 64.f * ui_scale });
+	}
+	else {
+		textbox.icon = createMouseAnimationUI(renderer, { pos[0] + TEXTBOX_BB_WIDTH / 2.f - 64.f * ui_scale, pos[1] + TEXTBOX_BB_HEIGHT / 2.f - 64.f * ui_scale });
+	}
+	
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -1021,7 +1034,13 @@ Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<s
 	motion.velocity = { 0.f, 0.f };
 	motion.position = pos;
 
-	motion.scale = vec2({ TEXTBOX_BB_WIDTH, TEXTBOX_BB_HEIGHT });
+	if (isCutscene) {
+		motion.scale = vec2({ TEXTBOX_BB_WIDTH, TEXTBOX_BB_HEIGHT / 1.5 });
+	}
+	else {
+		motion.scale = vec2({ TEXTBOX_BB_WIDTH, TEXTBOX_BB_HEIGHT });
+	}
+	
 
 	registry.renderRequests.insert(
 		entity,
@@ -1145,10 +1164,11 @@ Entity createGameBackground(RenderSystem* renderer, vec2 position, TEXTURE_ASSET
 
 // create entity for cutScene
 Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID tID) {
+
 	auto entity = Entity();
 
-	Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
-	registry.meshPtrs.emplace(entity, &mesh);
+	//Mesh& mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	//registry.meshPtrs.emplace(entity, &mesh);
 
 	auto& motion = registry.motions.emplace(entity);
 	motion.angle = 0.f;
@@ -1157,15 +1177,13 @@ Entity createCutScene(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID tID) {
 
 	motion.scale = vec2({ window_width_px, window_height_px });
 
-	registry.colors.insert(entity, {0.5f, 0.5f, 0.5f, 1.f});
-
 	registry.renderRequests.insert(
 		entity,
 		{
 		 tID, // textureAssetID
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::CUTSCENE
+		 RENDER_LAYER_ID::BG
 
 		}
 	);
@@ -2972,6 +2990,8 @@ Entity createMouseAnimation(RenderSystem* renderer, vec2 pos) {
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.scale = { 64, 64 };
+
+	registry.hidables.emplace(entity);
 
 	registry.renderRequests.insert(
 		entity,

@@ -230,16 +230,17 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 						if (j != i && registry.solid.has(motion_registry.entities[j])) {
 							// differentiate between walls and non-walls
 							if (registry.enemies.has(motion_registry.entities[j]) || registry.players.has(motion_registry.entities[j])) {
-								if (collides_circle(motion, motion_registry.components[j])) {
+								Motion test = motion_registry.components[j];
+								if (registry.wobbleTimers.has(motion_registry.entities[j])) {
+									test.scale = registry.wobbleTimers.get(motion_registry.entities[j]).orig_scale;
+								}
+								if (collides_circle(motion, test)) {
 									target_valid = false;
 									break;
 								}
 							}
 							else if (collides_AABB(motion, motion_registry.components[j])) {
 								target_valid = false;
-								if (registry.enemies.has(entity)) {
-									target_valid = true;
-								}
 								break;
 							}
 						}

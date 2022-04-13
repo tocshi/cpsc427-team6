@@ -1071,6 +1071,18 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 			printf("Removed Attack Indicator!\n");
 			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
 		}
+		handle_traps();
+		for (Entity e : registry.enemies.entities) {
+			if (registry.bosses.has(e)) { continue; }
+			take_damage(e, 999999);
+		}
+		// I hate C++
+		if (true) {
+			Entity curse = createBigSlash(world.renderer, motion_struct.position, 0, 10000);
+			registry.renderRequests.get(curse).used_texture = TEXTURE_ASSET_ID::CURSE;
+			registry.expandTimers.get(curse).counter_ms = 500;
+			registry.colors.insert(curse, { 0.f, 0.f, 0.f, 1.f });
+		}
 		break;
 	default:
 		printf("Enemy State not supported!\n");

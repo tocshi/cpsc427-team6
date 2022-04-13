@@ -17,6 +17,7 @@
 #include "ai_system.hpp"
 #include "game_state.hpp"
 #include "room_system.hpp"
+#include "cutscene.hpp"
 
 #include <../ext/json/single_include/nlohmann/json.hpp>
 
@@ -71,7 +72,7 @@ public:
 	Entity player_main;
 
 	// Tutorial flags
-	bool tutorial = false;
+	bool tutorial = true;
 	unsigned short tutorial_flags = 0x0; // 16 bits
 	enum flags {
 		SIGN_1 = 1, // welcome -> movement
@@ -301,6 +302,8 @@ private:
 	// load attack indicators
 	void loadAttackIndicators(json indicatorList);
 
+	void loadTraps(json trapList);
+
 	// do turn order logic
 	void doTurnOrderLogic();
 
@@ -362,6 +365,7 @@ private:
 	SaveSystem saveSystem;
 	AISystem aiSystem;
 	RoomSystem roomSystem;
+	CutSceneSystem cutSceneSystem;
 
 	SpawnData spawnData;
 

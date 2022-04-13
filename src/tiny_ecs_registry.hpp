@@ -85,6 +85,7 @@ public:
 	ComponentContainer<HPDisplay> hpDisplays;
 	ComponentContainer<EnemyHPBar> enemyHPBars;
 	ComponentContainer<BossHPBar> bossHPBars;
+	ComponentContainer<AstarMotion> aStarMotions;
 	ComponentContainer<ShadowContainer> shadowContainers;
 	ComponentContainer<Shadow> shadows;
 	ComponentContainer<ParticleContainer> particleContainers;
@@ -141,6 +142,7 @@ public:
 		registry_list.push_back(&hidables);
 		registry_list.push_back(&pointers);
 		registry_list.push_back(&descriptionDialogs);
+		registry_list.push_back(&aStarMotions);
 		// door in registry list 
 		registry_list.push_back(&door);
 		// add artifact to list

@@ -35,3 +35,4 @@ bool collides_point_circle(vec2 position, const Motion& motion);
 bool testRectangleToPoint(float rectWidth, float rectHeight, float rectRotation, float rectCenterX, float rectCenterY, float pointX, float pointY);
 bool testCircleToSegment(float circleCenterX, float circleCenterY, float circleRadius, float lineAX, float lineAY, float lineBX, float lineBY);
 bool collides_rotrect_circle(const Motion& rectmotion, const Motion& circlemotion);
+bool oppositeSign(vec2 v1, vec2 v2);

@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <map>
 #include "../ext/stb_image/stb_image.h"
+#include <queue>
 
 /**
  * The following enumerators represent global identifiers refering to graphic
@@ -411,6 +412,14 @@ struct DebugComponent
 struct DeathTimer
 {
 	float counter_ms = 3000;
+};
+
+struct AstarMotion
+{
+	std::queue<vec2> path;
+	vec2 currentDest;
+	float scalar_vel;
+	bool using_astar = false;
 };
 
 // Squishing effect timer

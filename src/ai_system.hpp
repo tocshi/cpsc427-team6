@@ -10,6 +10,17 @@
 // Source: trust me bro
 //class WorldSystem;
 
+struct AstarNode {
+	AstarNode* parent = 0;
+	std::vector<AstarNode*> children;
+	vec2 position = vec2(0.f, 0.f);
+	float g_cost = 0.f;
+	float h_cost = 100000000;
+
+	// g_cost + h_cost
+	float f_cost= 0;
+};
+
 class AISystem
 {
 public:
@@ -24,4 +35,3 @@ public:
 	void reflexion_logic(Entity enemy, Entity& player);
 	bool player_in_range(vec2 position, float radius);
 };
-

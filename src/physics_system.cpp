@@ -14,7 +14,7 @@ vec2 get_bounding_box(const Motion& motion)
 bool collides(const Motion& motion1, const Motion& motion2)
 {
 	vec2 dp = motion1.position - motion2.position;
-	float dist_squared = dot(dp,dp);
+	float dist_squared = dot(dp, dp);
 	const vec2 other_bonding_box = get_bounding_box(motion1) / 2.f;
 	const float other_r_squared = dot(other_bonding_box, other_bonding_box);
 	const vec2 my_bonding_box = get_bounding_box(motion2) / 2.f;
@@ -28,10 +28,10 @@ bool collides(const Motion& motion1, const Motion& motion2)
 bool collides_AABB(const Motion& motion1, const Motion& motion2) {
 	vec2 bounding_box_a = get_bounding_box(motion1);
 	vec2 bounding_box_b = get_bounding_box(motion2);
-	return motion1.position.x - bounding_box_a.x/2 < motion2.position.x + bounding_box_b.x/2
-		&& motion1.position.x + bounding_box_a.x/2 > motion2.position.x - bounding_box_b.x/2
-		&& motion1.position.y - bounding_box_a.y/2 < motion2.position.y + bounding_box_b.y/2
-		&& motion1.position.y + bounding_box_a.y/2 > motion2.position.y - bounding_box_b.y/2;
+	return motion1.position.x - bounding_box_a.x / 2 < motion2.position.x + bounding_box_b.x / 2
+		&& motion1.position.x + bounding_box_a.x / 2 > motion2.position.x - bounding_box_b.x / 2
+		&& motion1.position.y - bounding_box_a.y / 2 < motion2.position.y + bounding_box_b.y / 2
+		&& motion1.position.y + bounding_box_a.y / 2 > motion2.position.y - bounding_box_b.y / 2;
 }
 
 bool collides_circle(const Motion& motion1, const Motion& motion2) {
@@ -44,7 +44,7 @@ bool collides_circle(const Motion& motion1, const Motion& motion2) {
 	if (dist_to(motion2.position, motion1_edge) < dist_to(motion2.position, motion2_edge)) {
 		return true;
 	}
-	
+
 	return false;
 }
 
@@ -102,7 +102,7 @@ bool collides_rotrect_circle(const Motion& rectmotion, const Motion& circlemotio
 	float rectCenterY = rectmotion.position.y;
 	float circleCenterX = circlemotion.position.x;
 	float circleCenterY = circlemotion.position.y;
-	float circleRadius = circlemotion.scale.x/2.f;
+	float circleRadius = circlemotion.scale.x / 2.f;
 	float tx, ty, cx, cy;
 
 	if (rectRotation == 0) { // Higher Efficiency for Rectangles with 0 rotation.
@@ -113,11 +113,11 @@ bool collides_rotrect_circle(const Motion& rectmotion, const Motion& circlemotio
 		cy = rectCenterY;
 	}
 	else {
-		tx = cos(rectRotation) * circleCenterX - sin(rectRotation-M_PI) * circleCenterY;
-		ty = cos(rectRotation) * circleCenterY + sin(rectRotation-M_PI) * circleCenterX;
+		tx = cos(rectRotation) * circleCenterX - sin(rectRotation - M_PI) * circleCenterY;
+		ty = cos(rectRotation) * circleCenterY + sin(rectRotation - M_PI) * circleCenterX;
 
-		cx = cos(rectRotation) * rectCenterX - sin(rectRotation-M_PI) * rectCenterY;
-		cy = cos(rectRotation) * rectCenterY + sin(rectRotation-M_PI) * rectCenterX;
+		cx = cos(rectRotation) * rectCenterX - sin(rectRotation - M_PI) * rectCenterY;
+		cy = cos(rectRotation) * rectCenterY + sin(rectRotation - M_PI) * rectCenterX;
 	}
 
 	return testRectangleToPoint(rectWidth, rectHeight, rectRotation, rectCenterX, rectCenterY, circleCenterX, circleCenterY) ||
@@ -135,11 +135,23 @@ float dist_to_edge(const Motion motion1, const Motion motion2) {
 	return dist_to(motion1.position, motion2.position) - motion1.scale.x / 2 - motion2.scale.x / 2;
 }
 
+bool oppositeSign(vec2 v1, vec2 v2) {
+	if ((v1.x < 0 && v2.x > 0) || (v1.x > 0 && v2.x < 0)) {
+		return true;
+	}
+
+	if ((v1.y < 0 && v2.y > 0) || (v1.y > 0 && v2.y < 0)) {
+		return true;
+	}
+
+	return false;
+}
+
 void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* renderer)
 {
 	// Resolve entity movement
 	auto& motion_registry = registry.motions;
-	for(uint i = 0; i< motion_registry.size(); i++)
+	for (uint i = 0; i < motion_registry.size(); i++)
 	{
 		Motion& motion = motion_registry.components[i];
 		Entity entity = motion_registry.entities[i];
@@ -151,7 +163,7 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 		float vel_mag = sqrt(pow(vel.x * step_seconds, 2) + pow(vel.y * step_seconds, 2));
 		vec2 dest = motion.destination;
 
-		vec2 pos_final = {pos.x + (vel.x * step_seconds), pos.y + (vel.y * step_seconds)};
+		vec2 pos_final = { pos.x + (vel.x * step_seconds), pos.y + (vel.y * step_seconds) };
 
 		if (registry.particles.has(entity)) {
 			motion.position = pos_final;
@@ -202,11 +214,45 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 
 		// behaviour if currently moving
 		if (vel.x * step_seconds != 0 || vel.y * step_seconds != 0) {
-			if (dist_to(pos_final, dest) <= vel_mag) {
-				motion.velocity = { 0, 0 };
-				motion.destination = motion.position;
-				motion.in_motion = false;
-				break;
+			bool using_astar = false;
+			if (registry.aStarMotions.has(entity)) {
+				using_astar = registry.aStarMotions.get(entity).using_astar;
+			}
+			// handle a star movement
+			if (using_astar) {
+				AstarMotion& aStarMotion = registry.aStarMotions.get(entity);
+				// printf("dist to: %f, vel_mag: %f\n", dist_to(pos_final, dest), vel_mag);
+				vec2 deltaStart = aStarMotion.currentDest - motion.position;
+				vec2 deltaEnd = aStarMotion.currentDest - pos_final;
+				if (dist_to(pos_final, aStarMotion.currentDest) <= vel_mag || oppositeSign(deltaStart, deltaEnd)) {
+					// if it is the final dest
+					if (aStarMotion.path.size() > 0) {
+						vec2 back = aStarMotion.path.back();
+						motion.position = aStarMotion.currentDest;
+						aStarMotion.path.pop();
+						aStarMotion.currentDest = back;
+						motion.destination = back;
+						motion.velocity = aStarMotion.scalar_vel * normalize(back - motion.position);
+					}
+					else {
+						motion.velocity = { 0, 0 };
+						motion.destination = motion.position;
+						motion.in_motion = false;
+						break;
+					}
+				}
+				//else {
+				//	motion.position = pos_final;
+				//	break;
+				//}
+			}
+			else {
+				if (dist_to(pos_final, dest) <= vel_mag) {
+					motion.velocity = { 0, 0 };
+					motion.destination = motion.position;
+					motion.in_motion = false;
+					break;
+				}
 			}
 			// perform angle sweep 
 			float original_angle = atan2(vel.y, vel.x) * 180 / M_PI;
@@ -214,7 +260,7 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 			for (int angle = 0; angle <= 80; angle += 10) {
 				for (int sign = -1; sign <= 1; sign += 2) {
 					float modified_angle = original_angle + angle * sign;
-					vec2 modified_velocity = { vel_mag * cos(modified_angle * M_PI/180), vel_mag * sin(modified_angle * M_PI / 180) };
+					vec2 modified_velocity = { vel_mag * cos(modified_angle * M_PI / 180), vel_mag * sin(modified_angle * M_PI / 180) };
 					vec2 target_position = pos + modified_velocity;
 					motion.position = target_position;
 					bool target_valid = true;
@@ -343,7 +389,7 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 		float vel_mag;
 		if (knockback_i.remaining_distance < knock_decel_threshold) {
 			float scaled_vel = knock_min_velocity + (knock_base_velocity - knock_min_velocity) * (1 - (knock_decel_threshold - knockback_i.remaining_distance) / knock_decel_threshold);
-			vel_mag = max(knock_min_velocity*step_seconds, scaled_vel * step_seconds);
+			vel_mag = max(knock_min_velocity * step_seconds, scaled_vel * step_seconds);
 		}
 		else {
 			vel_mag = knock_base_velocity * step_seconds;
@@ -353,7 +399,7 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 		vec2 velocity = vec2(vel_mag * cos(knockback_i.angle), vel_mag * sin(knockback_i.angle));
 
 		// perform angle sweep 
-		float original_angle = knockback_i.angle * 180/M_PI;
+		float original_angle = knockback_i.angle * 180 / M_PI;
 		bool move_success = false;
 		for (int angle = 0; angle <= 60; angle += 10) {
 			for (int sign = -1; sign <= 1; sign += 2) {
@@ -394,17 +440,17 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 	}
 
 	// Check for collisions between all moving entities
-    ComponentContainer<Motion> &motion_container = registry.motions;
-	for(uint i = 0; i<motion_container.components.size(); i++)
+	ComponentContainer<Motion>& motion_container = registry.motions;
+	for (uint i = 0; i < motion_container.components.size(); i++)
 	{
 		if (!registry.collidables.has(motion_container.entities[i])) {
 			continue;
 		}
 		Motion& motion_i = motion_container.components[i];
 		Entity entity_i = motion_container.entities[i];
-		
+
 		// note starting j at i+1 to compare all (i,j) pairs only once (and to not compare with itself)
-		for(uint j = i+1; j<motion_container.components.size(); j++)
+		for (uint j = i + 1; j < motion_container.components.size(); j++)
 		{
 			if (!registry.collidables.has(motion_container.entities[j])) {
 				continue;
@@ -439,9 +485,9 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 
 			// visualize the radius with two axis-aligned lines
 			const vec2 bonding_box = get_bounding_box(motion_i);
-			float radius = sqrt(dot(bonding_box/2.f, bonding_box/2.f));
-			vec2 line_scale1 = { motion_i.scale.x / 10, 2*radius };
-			vec2 line_scale2 = { 2*radius, motion_i.scale.x / 10};
+			float radius = sqrt(dot(bonding_box / 2.f, bonding_box / 2.f));
+			vec2 line_scale1 = { motion_i.scale.x / 10, 2 * radius };
+			vec2 line_scale2 = { 2 * radius, motion_i.scale.x / 10 };
 			vec2 position = motion_i.position;
 			Entity line1 = createLine(motion_i.position, line_scale1);
 			Entity line2 = createLine(motion_i.position, line_scale2);

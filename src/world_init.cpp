@@ -2619,7 +2619,7 @@ Entity createFog(vec2 pos, float resolution, float radius, vec2 screen_resolutio
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
 			EFFECT_ASSET_ID::FOG,
 			GEOMETRY_BUFFER_ID::FOG,
-			RENDER_LAYER_ID::EFFECT });
+			RENDER_LAYER_ID::FOG });
 
 	return entity;
 }
@@ -2644,7 +2644,7 @@ Entity createEpRange(vec2 pos, float resolution, float radius, vec2 screen_resol
 		{ TEXTURE_ASSET_ID::TEXTURE_COUNT, // TEXTURE_COUNT indicates that no txture is needed
 			EFFECT_ASSET_ID::EP,
 			GEOMETRY_BUFFER_ID::EP,
-			RENDER_LAYER_ID::EFFECT });
+			RENDER_LAYER_ID::RANGES });
 
 	return entity;
 }

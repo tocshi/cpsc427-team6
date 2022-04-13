@@ -104,7 +104,14 @@ Implemented Features:
 		 <li> shaders/attack_range.vs.glsl </li>
 		 <li> shaders/attack_range.fs.glsl </li>
 	</ul>
-    </ul>   
+    </ul>
+ - A* path finding
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		 <li> ai_system.cpp | line 76 </li>
+	</ul>
+    </ul>       
 Team 6 - User Feedback Report
 User Testing Performed:
 

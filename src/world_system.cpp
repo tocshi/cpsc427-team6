@@ -3592,22 +3592,24 @@ void WorldSystem::loadAttackIndicators(json indicatorList) {
 	}
 }
 
-void WorldSystem::logText(std::string msg) {
-	// (note: if we want to use createText in other applications, we can create a logged text entity)
-	// shift existing logged text upwards
+void WorldSystem::logText(std::string msg, vec3 textColor) {
+	const int NUM_LINES = 12;
+	vec2 defaultPos = vec2(50.f, (2.0f * window_height_px) * (7.5f/10.f));
+	// vec3 textColor = vec3(1.0f, 1.0f, 1.0f); // white
 
-	for (Entity e : registry.textTimers.entities) {
+	// shift existing logged text upwards
+	for (Entity e : registry.logTexts.entities) {
 		Text& text = registry.texts.get(e);
 		text.position[1] -= 50.f;
+		if (text.position[1] <= defaultPos[1] - 50.f*NUM_LINES) {
+			registry.remove_all_components_of(e);
+		}
 	}
 
-	// vec2 defaultPos = vec2((2.0f * window_width_px) * (1.f/20.f), (2.0f * window_height_px) * (7.f/10.f));
-	vec2 defaultPos = vec2(50.f, (2.0f * window_height_px) * (7.f/10.f));
-	vec3 textColor = vec3(1.0f, 1.0f, 1.0f); // white
-
 	Entity e = createText(renderer, defaultPos, msg, 1.5f, textColor);
-	TextTimer& timer = registry.textTimers.emplace(e);
-	timer.counter_ms = 8000;
+	registry.logTexts.emplace(e);
+	// TextTimer& timer = registry.textTimers.emplace(e);
+	// timer.counter_ms = 8000;
 }
 
 void WorldSystem::doTurnOrderLogic() {

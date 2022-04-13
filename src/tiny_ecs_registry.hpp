@@ -47,6 +47,7 @@ public:
 	ComponentContainer<Fog> fog;
 	ComponentContainer<Camera> cameras;
 	ComponentContainer<Text> texts;
+	ComponentContainer<Test> logTexts;
 	ComponentContainer<TextTimer> textTimers;
 	ComponentContainer<SquishTimer> squishTimers;
 	ComponentContainer<WobbleTimer> wobbleTimers;
@@ -128,6 +129,7 @@ public:
 		registry_list.push_back(&fog);
 		registry_list.push_back(&cameras);
 		registry_list.push_back(&texts);
+		registry_list.push_back(&logTexts);
 		registry_list.push_back(&textTimers);
 		registry_list.push_back(&squishTimers);
 		registry_list.push_back(&wobbleTimers);

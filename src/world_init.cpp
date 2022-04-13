@@ -2111,7 +2111,9 @@ Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player, GAM
 	Entity roomsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 275.f), roomsString, 1.8f, vec3(0.0f));
 	registry.equipmentDialogs.emplace(roomsEnt);
 
-	// TODO: chests opened
+	std::string chestsString = "Chests opened: " + std::to_string((int)player_comp.chests);
+	Entity chestsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 325.f), chestsString, 1.8f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(chestsEnt);
 
 	Inventory inv = registry.inventories.get(player);
 	int artifact_count = 0;
@@ -2121,10 +2123,13 @@ Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player, GAM
 		}
 	}
 	std::string artifactsString = "Unique Artifacts collected: " + std::to_string((int)artifact_count);
-	Entity artifactsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 325.f), artifactsString, 1.8f, vec3(0.0f));
+	Entity artifactsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 400.f), artifactsString, 1.8f, vec3(0.0f));
 	registry.equipmentDialogs.emplace(artifactsEnt);
 
-	// TODO: potions consumed
+	// potions consumed
+	std::string potionsString = "Potions consumed: " + std::to_string((int)player_comp.potions);
+	Entity potionsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 475.f), chestsString, 1.8f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(potionsEnt);
 
 	// create continue button (tiggers the black fade out and deletes the old save file)
 	auto close_entity = Entity();

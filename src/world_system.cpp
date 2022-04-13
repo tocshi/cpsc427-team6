@@ -3148,8 +3148,6 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 	printf("done QQ \n");
 	printf("number of total artifacts :%d\n", count_total_artifacts);
 	return inv;
-
-
 }
 
 int WorldSystem::calculate_abs_value(float v1, float v2) {

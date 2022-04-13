@@ -827,17 +827,19 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			if (registry.bosses.has(enemy)) {
 				roomSystem.updateObjective(ObjectiveType::DEFEAT_BOSS, 1);
-				Entity bossdoor = createDoor(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f }, true);
+
+				// Final Boss Death
+				if (registry.enemies.get(enemy).type == ENEMY_TYPE::REFLEXION) {
+					createEndLight(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f });
+				}
+				else {
+					createDoor(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f }, true);
+				}
 				//roomSystem.setNextFloor(Floors((int)roomSystem.current_floor + 1));
 				registry.players.get(player_main).floor++;
 				createCampfire(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y + 64.f });
 				registry.enemies.get(enemy).state = ENEMY_STATE::DEATH;
 				aiSystem.step(enemy);
-
-				// Final Boss Death
-				if (registry.enemies.get(enemy).type == ENEMY_TYPE::REFLEXION) {
-					registry.renderRequests.get(bossdoor).used_texture == TEXTURE_ASSET_ID::ENDLIGHT;
-				}
 			}
 			if (registry.shadowContainers.has(enemy)) {
 				ShadowContainer& shadow_container = registry.shadowContainers.get(enemy);
@@ -888,7 +890,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (counter.counter_ms < 0) {
 			registry.roomTransitions.remove(entity);
+
+			printf("clear count before: %d\n", roomSystem.rooms_cleared_current_floor);
+			roomSystem.updateClearCount();
+
+			if (tutorial) {
+				if (!registry.motions.has(objectiveCounter)) {
+					objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32 });
+					objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
+					objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
+				}
+				tutorial = false;
+			}
 			generateNewRoom(counter.floor, counter.repeat_allowed);
+			printf("clear count after: %d\n", roomSystem.rooms_cleared_current_floor);
 			return true;
 		}
 	}
@@ -1428,6 +1443,7 @@ void WorldSystem::restart_game() {
 		// width: window_width_px / 5, height = (600.f*ui_scale/2)
 		update_background_collection(window_width_px / 5, (600.f*ui_scale / 2));
 	}
+	roomSystem.reset();
 }
 
 void WorldSystem::handle_end_player_turn(Entity player) {
@@ -2121,14 +2137,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// simulating a new room
 	if (action == GLFW_RELEASE && key == GLFW_KEY_N && get_is_player_turn()) {
 		if (!registry.roomTransitions.has(player_main)) {
-			if (tutorial) {
-				if (!registry.motions.has(objectiveCounter)) {
-					objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32});
-					objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
-					objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
-				}
-				tutorial = false;
-			}
 			RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
 			transition.floor = roomSystem.current_floor;
 		}
@@ -4399,7 +4407,6 @@ void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
 	else {
 		roomSystem.setRandomObjective();
 	}
-	roomSystem.updateClearCount();
 
 	saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
 

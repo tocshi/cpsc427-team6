@@ -3305,3 +3305,31 @@ Entity createBossIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture
 
 	return entity;
 }
+
+
+// End light portal
+Entity createEndLight(RenderSystem* renderer, vec2 pos)
+{
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2(128 * ui_scale, 128 * ui_scale);
+
+	// Create and (empty) DOOR component to be able to refer to all doors
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::ENDLIGHT,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::EFFECT });
+
+	auto& interactable = registry.interactables.emplace(entity);
+	interactable.type = INTERACT_TYPE::END_LIGHT;
+
+	return entity;
+}

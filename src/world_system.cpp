@@ -828,6 +828,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 				// Final Boss Death
 				if (registry.enemies.get(enemy).type == ENEMY_TYPE::REFLEXION) {
+					createMouseAnimation(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f });
 					createEndLight(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f });
 				}
 				else {
@@ -890,7 +891,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			registry.roomTransitions.remove(entity);
 
 			printf("clear count before: %d\n", roomSystem.rooms_cleared_current_floor);
-			roomSystem.updateClearCount();
+			if (!counter.floor_change) {
+				roomSystem.updateClearCount();
+			}
 
 			if (tutorial) {
 				if (!registry.motions.has(objectiveCounter)) {
@@ -1257,6 +1260,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			anim.animation_time_ms -= anim.frametime_ms * anim.frame_indices.size() - 1;
 		}
 		anim.current_frame = std::min(anim.animation_time_ms / anim.frametime_ms, int(anim.frame_indices.size()) - 1);
+	}
+
+	// rotate end light effect
+	for (Entity e : registry.endLights.entities) {
+		Motion& motion = registry.motions.get(e);
+		float angle = motion.angle;
+		angle += elapsed_ms_since_last_update / 1000 * M_PI / 2;
+		while (angle > 2 * M_PI) {
+			angle -= 2 * M_PI;
+		}
+		motion.angle = angle;
 	}
 
 	// update timed log text from signs
@@ -2618,6 +2632,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								if (!registry.roomTransitions.has(player_main)) {
 									RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
 									transition.floor = Floors((int)roomSystem.current_floor + 1);
+									transition.floor_change = true;
 									if (transition.floor == Floors::FLOOR1 || transition.floor == Floors::BOSS1) {
 										playMusic(Music::BACKGROUND);
 									}

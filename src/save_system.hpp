@@ -17,6 +17,7 @@ class SaveSystem
 public:
 	void saveGameState(std::queue<Entity> entities, RoomSystem& roomSystem);
 	bool saveDataExists();
+	void deleteFile();
 	json getSaveData();
 	std::queue<Entity> getSolidTileInteract(std::queue<Entity> orignalqueue); // puts solid/ collidables obj + tileMAp into the entitylist
 	json jsonifyPlayer(Entity player);
@@ -45,3 +46,5 @@ private:
 	json jsonifyTraps();
 	//json jsonify
 };
+
+extern SaveSystem save_system;

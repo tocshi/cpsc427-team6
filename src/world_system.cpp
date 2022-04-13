@@ -110,6 +110,10 @@ float enemy_move_audio_time_ms = 200.f;
 // button toggles
 bool hideGuardButton = false;
 
+// game over state
+GAME_OVER_REASON game_over_reason;
+GAME_OVER_LOCATION game_over_location;
+
 // World initialization
 // Note, this has a lot of OpenGL specific things, could be moved to the renderer
 GLFWwindow* WorldSystem::create_window() {
@@ -328,6 +332,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				Consumable consumable = registry.consumables.get(entity);
 				Stats stats = registry.stats.get(player_main);
 				Stats basestats = registry.basestats.get(player_main);
+				registry.players.get(player_main).potions++;
 				StatusEffect regen = StatusEffect(stats.maxhp * 0.06, 5, StatusType::HP_REGEN, false, true);
 				switch (consumable.type) {
 				case CONSUMABLE::REDPOT:
@@ -630,8 +635,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 
 		// Check if player has died
-		if (hp <= 0 && !registry.deathTimers.has(player)) {
-			registry.deathTimers.emplace(player);
+		if (hp <= 0 && !registry.deathTimers.has(player) && current_game_state != GameStates::GAME_OVER_MENU) {
+			// render the game over dialog
+			if (roomSystem.current_floor == Floors::FLOOR1) {
+				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::FLOOR_ONE);
+			}
+			else if (roomSystem.current_floor == Floors::FLOOR2) {
+				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::FLOOR_TWO);
+			}
+			else if (roomSystem.current_floor == Floors::BOSS1) {
+				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::BOSS_ONE);
+			}
+			else if (roomSystem.current_floor == Floors::BOSS2) {
+				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::BOSS_TWO);
+			}
+			saveSystem.deleteFile();
+			set_gamestate(GameStates::GAME_OVER_MENU);
 			logText("You have died!");
 			player_move_click = false;
 			break;
@@ -1307,6 +1326,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (chest.isArtifact) {
 					if (chest.opened) {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_OPEN;
+						registry.players.get(player_main).chests++;
 
 						// Smoke Powder effect
 						if (registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER] > 0) {
@@ -1329,6 +1349,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				else {
 					if (chest.opened) {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_OPEN;
+						registry.players.get(player_main).chests++;
 
 						// Smoke Powder effect
 						if (registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER] > 0) {
@@ -2313,26 +2334,28 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					// TODO: pause enimies if it is their turn
 
 					// inMenu = true;
-					set_gamestate(GameStates::PAUSE_MENU);
-					// render save and quit button
-					createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale });
-
-					// render cancel button
-					createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale });
-
+					if (current_game_state != GameStates::GAME_OVER_MENU) {
+						set_gamestate(GameStates::PAUSE_MENU);
+						// render save and quit button
+						createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale });
+						// render cancel button
+						createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale });
+					}
 					return;
 				case BUTTON_ACTION_ID::ACTIONS_CANCEL:
 					cancelAction();
 					return;
 				case BUTTON_ACTION_ID::COLLECTION:
-					// if the button is pressed again while the menu is already open, close the menu
-					if (current_game_state == GameStates::COLLECTION_MENU) {
-						set_gamestate(GameStates::BATTLE_MENU);
-					}
-					else {
-						// render the collection menu
-						createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player_main);
-						set_gamestate(GameStates::COLLECTION_MENU);
+					if (current_game_state != GameStates::GAME_OVER_MENU) {
+						// if the button is pressed again while the menu is already open, close the menu
+						if (current_game_state == GameStates::COLLECTION_MENU) {
+							set_gamestate(GameStates::BATTLE_MENU);
+						}
+						else {
+							// render the collection menu
+							createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player_main);
+							set_gamestate(GameStates::COLLECTION_MENU);
+						}
 					}
 					return;
 				case BUTTON_ACTION_ID::ACTIONS_BACK:
@@ -3138,8 +3161,6 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 	printf("done QQ \n");
 	printf("number of total artifacts :%d\n", count_total_artifacts);
 	return inv;
-
-
 }
 
 int WorldSystem::calculate_abs_value(float v1, float v2) {
@@ -4339,7 +4360,14 @@ void WorldSystem::itemAction() {
 }
 
 void WorldSystem::cancelAction() {
-	backAction();
+	if (current_game_state == GameStates::GAME_OVER_MENU) {
+		for (Entity player : registry.players.entities) {
+			registry.deathTimers.emplace(player);
+		}
+	}
+	else {
+		backAction();
+	}
 }
 
 void WorldSystem::advanceTextbox() {

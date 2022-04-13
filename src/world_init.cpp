@@ -2037,6 +2037,135 @@ Entity createEquipmentDialog(RenderSystem* renderer, vec2 pos, Equipment item) {
 	return entity;
 }
 
+// game over dialog
+Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player, GAME_OVER_REASON reason, GAME_OVER_LOCATION location) {
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ COLLECTION_MENU_BB_WIDTH, COLLECTION_MENU_BB_HEIGHT });
+
+	registry.menuItems.emplace(entity);
+
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::COLLECTION_PANEL,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI_MID });
+
+	// render reason
+	Entity title;
+	Entity reasonEnt;
+	switch (reason) {
+	case GAME_OVER_REASON::PLAYER_DIED:
+		// render game over title
+		title = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 50.f, pos.y - (COLLECTION_MENU_BB_HEIGHT / 6.f - 90.f)), "Game Over", 8.5f, vec3(1.0f, 0.f, 0.0f));
+		registry.menuItems.emplace(title);
+
+		reasonEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 200.f), "You have fallen...", 3.f, vec3(0.0f));
+		registry.equipmentDialogs.emplace(reasonEnt);
+		break;
+	case GAME_OVER_REASON::BOSS_DEFEATED:
+		// render game over title
+		title = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 50.f, pos.y - (COLLECTION_MENU_BB_HEIGHT / 6.f - 90.f)), "Game Over?", 8.5f, vec3(0.0f, 1.f, 0.4f));
+		registry.menuItems.emplace(title);
+
+		reasonEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 200.f), "You have risen...", 3.f, vec3(0.0f, 1.f, 1.f));
+		registry.equipmentDialogs.emplace(reasonEnt);
+		break;
+	}
+
+	// render location
+	Entity locationEnt;
+	switch (location) {
+	case GAME_OVER_LOCATION::FLOOR_ONE:
+		locationEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 50.f), "With naive wanderlust, you crawl to safety.", 2.0f, vec3(0.0f));
+		registry.equipmentDialogs.emplace(locationEnt);
+		break;
+	case GAME_OVER_LOCATION::BOSS_ONE:
+		locationEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 50.f), "Overcome by adversity, you withdraw.", 2.0f, vec3(0.0f));
+		registry.equipmentDialogs.emplace(locationEnt);
+		break;
+	case GAME_OVER_LOCATION::FLOOR_TWO:
+		locationEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 50.f), "Grasping onto shreds of hope, you collapse.", 2.0f, vec3(0.0f));
+		registry.equipmentDialogs.emplace(locationEnt);
+		break;
+	case GAME_OVER_LOCATION::BOSS_TWO:
+		locationEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 50.f), "Struggling to face your reflection, you retreat.", 2.0f, vec3(0.0f));
+		registry.equipmentDialogs.emplace(locationEnt);
+		break;
+	}
+
+	// case where you beat the final boss
+	if (reason == GAME_OVER_REASON::BOSS_DEFEATED && location == GAME_OVER_LOCATION::BOSS_TWO) {
+		Entity finalEnt = createDialogText(renderer, vec2(pos.x - COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 50.f), "With newfound revelations, you break free.", 2.0f, vec3(0.0f));
+		registry.equipmentDialogs.emplace(finalEnt);
+	}
+
+	// render stats
+	Player player_comp = registry.players.get(player);
+
+	std::string floorString = "Floors cleared: " + std::to_string((int)player_comp.floor - 1);
+	Entity floorsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 100.f), floorString, 1.8f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(floorsEnt);
+
+	std::string roomsString = "Rooms cleared: " + std::to_string((int)player_comp.total_rooms);
+	Entity roomsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 165.f), roomsString, 1.8f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(roomsEnt);
+
+	std::string chestsString = "Chests opened: " + std::to_string((int)player_comp.chests);
+	Entity chestsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 230.f), chestsString, 1.8f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(chestsEnt);
+
+	Inventory inv = registry.inventories.get(player);
+	int artifact_count = 0;
+	for (int i = 0; i < (int)ARTIFACT::ARTIFACT_COUNT; i++) {
+		if (inv.artifact[i] > 0) {
+			artifact_count++;
+		}
+	}
+	std::string artifactsString = "Unique Artifacts collected: " + std::to_string((int)artifact_count);
+	Entity artifactsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 295.f), artifactsString, 1.8f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(artifactsEnt);
+
+	// potions consumed
+	std::string potionsString = "Potions consumed: " + std::to_string((int)player_comp.potions);
+	Entity potionsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 360.f), chestsString, 1.8f, vec3(0.0f));
+	registry.equipmentDialogs.emplace(potionsEnt);
+
+	// create continue button (tiggers the black fade out and deletes the old save file)
+	auto close_entity = Entity();
+
+	Mesh& close_mesh = renderer->getMesh(GEOMETRY_BUFFER_ID::SPRITE);
+	registry.meshPtrs.emplace(close_entity, &close_mesh);
+
+	registry.menuItems.emplace(close_entity);
+
+	Button& b = registry.buttons.emplace(close_entity);
+	b.action_taken = BUTTON_ACTION_ID::ACTIONS_CANCEL;
+
+	auto& close_motion = registry.motions.emplace(close_entity);
+	close_motion.angle = 0.f;
+	close_motion.velocity = { 0.f, 0.f };
+	close_motion.position = vec2(pos.x, pos.y + COLLECTION_MENU_BB_HEIGHT / 2.7f);
+
+	close_motion.scale = vec2({ QUIT_BB_WIDTH, QUIT_BB_HEIGHT });
+
+	registry.renderRequests.insert(
+		close_entity,
+		{ TEXTURE_ASSET_ID::CONTINUE,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI_TOP });
+
+	return entity;
+}
+
 // Collection menu
 Entity createCollectionMenu(RenderSystem* renderer, vec2 pos, Entity player) {
 	auto entity = Entity();

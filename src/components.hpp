@@ -335,6 +335,8 @@ struct Player
 	int floor = 1;
 	int room = 0;
 	int total_rooms = 0;
+	int chests = 0;
+	int potions = 0;
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
 
@@ -982,6 +984,22 @@ struct GuardButton {
 
 	// which button action to take
 	BUTTON_ACTION_ID action = BUTTON_ACTION_ID::ACTIONS_GUARD;
+};
+
+// game over reasons
+enum class GAME_OVER_REASON {
+	PLAYER_DIED = 0,
+	BOSS_DEFEATED = PLAYER_DIED + 1,
+	GAME_OVER_COUNT = BOSS_DEFEATED + 1
+};
+
+// game over location
+enum class GAME_OVER_LOCATION {
+	FLOOR_ONE = 0,
+	BOSS_ONE = FLOOR_ONE + 1,
+	FLOOR_TWO = BOSS_ONE + 1,
+	BOSS_TWO = FLOOR_TWO + 1,
+	GAME_OVER_LOCATION_COUNT = FLOOR_TWO + 1
 };
 
 // hotkey icon

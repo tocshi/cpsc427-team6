@@ -233,6 +233,9 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 						apply_status(defender, cd);
 					}
 				}
+				// play bag of wind sound
+				world.playBagOfWindSound();
+
 				world.logText("You are surrounded by a raging gust!", { 0.2, 1.0, 1.0 });
 			}
 		}
@@ -251,6 +254,9 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 			registry.renderRequests.get(curse).used_texture = TEXTURE_ASSET_ID::CURSE;
 			registry.expandTimers.get(curse).counter_ms = 1000;
 			world.logText("A dreadful curse befalls your enemies!", { 0.2, 1.0, 1.0 });
+
+			// play malediction sound
+			world.playMaledictionSound();
 		}
 	}
 
@@ -351,8 +357,12 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 	// Fungifier
 	if (attacker_inv.artifact[(int)ARTIFACT::FUNGIFIER] > 0 && final_damage >= defender_stats.hp) {
 		float multiplier = 130 * attacker_inv.artifact[(int)ARTIFACT::FUNGIFIER];
+		Mix_PlayChannel(-1, world.trap_sound, 0);
 		Entity mushroom = createTrap(world.renderer, attacker, {0, 0}, { 64, 64 }, multiplier, 2, 1, TEXTURE_ASSET_ID::MUSHROOM);
 		registry.motions.get(mushroom).destination = defender_motion.position;
+
+		// play fungifier sound
+		world.playFungifierSound();
 	}
 	return final_damage;
 }
@@ -585,6 +595,7 @@ void trigger_trap(Entity t, Entity trapped) {
 		registry.colors.insert(explosion, { 0.8f, 2.f, 2.f, 1.f });
 	}
 	if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::FATE) {
+		Mix_PlayChannel(-1, world.smokescreen_sound, 0);
 		Entity smoke = createBigSlash(world.renderer, trap_motion.position, 0, 200);
 		registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
 		registry.expandTimers.get(smoke).counter_ms = 1000;

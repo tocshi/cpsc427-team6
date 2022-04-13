@@ -69,6 +69,8 @@ void WorldSystem::destroyMusic() {
 		Mix_FreeChunk(special_sound);
 	if (ui_click != nullptr)
 		Mix_FreeChunk(ui_click);
+	if (plant_shoot != nullptr)
+		Mix_FreeChunk(plant_shoot);
 	Mix_CloseAudio();
 
 }
@@ -228,12 +230,35 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(caveling_death, 30);
 	ui_click = Mix_LoadWAV(audio_path("feedback/ui_click.wav").c_str());
 	Mix_VolumeChunk(ui_click, 32);
+	plant_shoot = Mix_LoadWAV(audio_path("sfx/pop.wav").c_str());
+	Mix_VolumeChunk(plant_shoot, 32);
 	kingslime_attack = Mix_LoadWAV(audio_path("sfx/slimeattack.wav").c_str());
 	Mix_VolumeChunk(kingslime_attack, 24);
 	kingslime_jump = Mix_LoadWAV(audio_path("sfx/slimejump.wav").c_str());
 	Mix_VolumeChunk(kingslime_jump, 24);
 	kingslime_summon = Mix_LoadWAV(audio_path("sfx/slimesummon.wav").c_str());
 	Mix_VolumeChunk(kingslime_summon, 24);
+	pebble_move = Mix_LoadWAV(audio_path("sfx/pebble_move.wav").c_str());
+	Mix_VolumeChunk(pebble_move, 48);
+	fire_sound = Mix_LoadWAV(audio_path("sfx/fire.wav").c_str());
+	Mix_VolumeChunk(fire_sound, 48);
+	potion_sound = Mix_LoadWAV(audio_path("sfx/potion.wav").c_str());
+	Mix_VolumeChunk(potion_sound, 32);
+	smokescreen_sound = Mix_LoadWAV(audio_path("sfx/smoke.wav").c_str());
+	Mix_VolumeChunk(smokescreen_sound, 32);
+	arcane_funnel_sound = Mix_LoadWAV(audio_path("sfx/arcane_funnel.wav").c_str());
+	Mix_VolumeChunk(arcane_funnel_sound, 32);
+	rock_summon = Mix_LoadWAV(audio_path("sfx/rock_summon.wav").c_str());
+	Mix_VolumeChunk(rock_summon, 32);
+	trap_sound = Mix_LoadWAV(audio_path("sfx/trap.wav").c_str());
+	Mix_VolumeChunk(trap_sound, 32);
+	malediction_sound = Mix_LoadWAV(audio_path("sfx/malediction.wav").c_str());
+	Mix_VolumeChunk(malediction_sound, 32);
+	fungifier_sound = Mix_LoadWAV(audio_path("sfx/fungifier.wav").c_str());
+	Mix_VolumeChunk(fungifier_sound, 24);
+	bag_of_wind_sound = Mix_LoadWAV(audio_path("sfx/hurricane.wav").c_str());
+	Mix_VolumeChunk(bag_of_wind_sound, 32);
+
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr
 		|| error_sound == nullptr || footstep_sound == nullptr
@@ -353,6 +378,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 						if (has_status(player_main, StatusType::ATK_BUFF)) { remove_status(player_main, StatusType::ATK_BUFF); }
 						apply_status(player_main, buff);
 					}
+
+					// play potion sound
+					Mix_PlayChannel(-1, potion_sound, 0);
 					break;
 				default:
 					break;
@@ -1309,7 +1337,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 								StatusEffect debuff = StatusEffect(-0.5, 1, StatusType::RANGE_BUFF, true, true);
 								apply_status(e, debuff);
 							}
-
+							
+							Mix_PlayChannel(-1, world.smokescreen_sound, 0);
 							Entity smoke = createBigSlash(world.renderer, registry.motions.get(player_main).position, 0, range);
 							registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
 							registry.expandTimers.get(smoke).counter_ms = 1000;
@@ -1332,7 +1361,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 								StatusEffect debuff = StatusEffect(-0.5, 1, StatusType::RANGE_BUFF, true, true);
 								apply_status(e, debuff);
 							}
-
+							
+							Mix_PlayChannel(-1, world.smokescreen_sound, 0);
 							Entity smoke = createBigSlash(world.renderer, registry.motions.get(player_main).position, 0, range);
 							registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
 							registry.expandTimers.get(smoke).counter_ms = 1000;
@@ -1907,7 +1937,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
-		int give = (int)ARTIFACT::FUNGIFIER;
+		int give = (int)ARTIFACT::SMOKE_POWDER;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
@@ -2687,6 +2717,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 										apply_status(player_main, buff);
 									}
 									interactable.interacted = true;
+									// play campfire sound
+									Mix_PlayChannel(-1, fire_sound, 0);
 									break;
 								}
 							}
@@ -2864,6 +2896,7 @@ void WorldSystem::start_player_turn() {
 	// Burrbag effect
 	if (inv.artifact[(int)ARTIFACT::BURRBAG] > 0) {
 		int triggers = inv.artifact[(int)ARTIFACT::BURRBAG];
+		Mix_PlayChannel(-1, world.trap_sound, 0);
 		createTrap(world.renderer, player_main, registry.motions.get(player_main).position, {64, 64}, 40, 4, triggers, TEXTURE_ASSET_ID::BURRS);
 	}
 
@@ -4138,8 +4171,37 @@ void WorldSystem::playEnemyMoveSound(ENEMY_TYPE enemy_type) {
 	case ENEMY_TYPE::CAVELING:
 		Mix_PlayChannel(-1, caveling_move, 0);
 		break;
+	case ENEMY_TYPE::LIVING_PEBBLE:
+		Mix_PlayChannel(-1, pebble_move, 0);
+		break;
 	}
 }
+
+// play plant shoot sound
+void WorldSystem::playPlantShootSound() {
+	Mix_PlayChannel(-1, plant_shoot, 0);
+}
+
+// play rock summon sound
+void WorldSystem::playRockSummonSound() {
+	Mix_PlayChannel(-1, rock_summon, 0);
+}
+
+// play malediction sound
+void WorldSystem::playMaledictionSound() {
+	Mix_PlayChannel(-1, malediction_sound, 0);
+}
+
+// play fungifier sound
+void WorldSystem::playFungifierSound() {
+	Mix_PlayChannel(-1, fungifier_sound, 0);
+}
+
+// play bag of wind sound
+void WorldSystem::playBagOfWindSound() {
+	Mix_PlayChannel(-1, bag_of_wind_sound, 0);
+}
+
 
 // Remove a number of a status effect type from entity
 void remove_status(Entity e, StatusType status, int number) {
@@ -4575,6 +4637,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 					// Arcane Funnel effect
 					if (has_status(player_main, StatusType::ARCANE_FUNNEL)) {
 						player_stats.mp = min(player_stats.maxmp, player_stats.mp + (player_stats.maxmp * 0.1f * player_stats.mpregen));
+						Mix_PlayChannel(-1, world.arcane_funnel_sound, 0);
 						Entity mana = createBigSlash(world.renderer, { m.position.x, m.position.y }, 0, 256);
 						registry.renderRequests.get(mana).used_texture = TEXTURE_ASSET_ID::MANACIRCLE;
 					}

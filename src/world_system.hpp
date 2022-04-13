@@ -146,6 +146,7 @@ public:
 	Mix_Chunk* smokescreen_sound;
 	Mix_Chunk* arcane_funnel_sound;
 	Mix_Chunk* rock_summon;
+	Mix_Chunk* trap_sound;
 	Mix_Chunk* malediction_sound;
 	Mix_Chunk* fungifier_sound;
 	Mix_Chunk* bag_of_wind_sound;

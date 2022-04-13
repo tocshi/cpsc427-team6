@@ -250,6 +250,8 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(arcane_funnel_sound, 32);
 	rock_summon = Mix_LoadWAV(audio_path("sfx/rock_summon.wav").c_str());
 	Mix_VolumeChunk(rock_summon, 32);
+	trap_sound = Mix_LoadWAV(audio_path("sfx/trap.wav").c_str());
+	Mix_VolumeChunk(trap_sound, 32);
 	malediction_sound = Mix_LoadWAV(audio_path("sfx/malediction.wav").c_str());
 	Mix_VolumeChunk(malediction_sound, 32);
 	fungifier_sound = Mix_LoadWAV(audio_path("sfx/fungifier.wav").c_str());
@@ -2894,6 +2896,7 @@ void WorldSystem::start_player_turn() {
 	// Burrbag effect
 	if (inv.artifact[(int)ARTIFACT::BURRBAG] > 0) {
 		int triggers = inv.artifact[(int)ARTIFACT::BURRBAG];
+		Mix_PlayChannel(-1, world.trap_sound, 0);
 		createTrap(world.renderer, player_main, registry.motions.get(player_main).position, {64, 64}, 40, 4, triggers, TEXTURE_ASSET_ID::BURRS);
 	}
 

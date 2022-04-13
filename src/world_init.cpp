@@ -3330,6 +3330,7 @@ Entity createEndLight(RenderSystem* renderer, vec2 pos)
 
 	auto& interactable = registry.interactables.emplace(entity);
 	interactable.type = INTERACT_TYPE::END_LIGHT;
+	registry.endLights.emplace(entity);
 
 	return entity;
 }

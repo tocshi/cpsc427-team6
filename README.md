@@ -65,7 +65,7 @@ Implemented Features:
     <ul>
 	<li> Entry point: </li>
 	 <ul>
-		<li> ai_system.cpp | line TO_BE_UPDATED </li>
+		<li> ai_system.cpp | line 1360 </li>
 	</ul>
     </ul>
  - Cutscene rework 

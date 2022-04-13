@@ -135,6 +135,18 @@ float dist_to_edge(const Motion motion1, const Motion motion2) {
 	return dist_to(motion1.position, motion2.position) - motion1.scale.x / 2 - motion2.scale.x / 2;
 }
 
+bool oppositeSign(vec2 v1, vec2 v2) {
+	if ((v1.x < 0 && v2.x > 0) || (v1.x > 0 && v2.x < 0)) {
+		return true;
+	}
+
+	if ((v1.y < 0 && v2.y > 0) || (v1.y > 0 && v2.y < 0)) {
+		return true;
+	}
+
+	return false;
+}
+
 void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* renderer)
 {
 	// Resolve entity movement
@@ -182,11 +194,14 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 			// handle a star movement
 			if (registry.aStarMotions.has(entity)) {
 				AstarMotion& aStarMotion = registry.aStarMotions.get(entity);
-				printf("dist to: %f, vel_mag: %f\n", dist_to(pos_final, dest), vel_mag);
-				if (dist_to(pos_final, aStarMotion.currentDest) <= 16.f) {
+				// printf("dist to: %f, vel_mag: %f\n", dist_to(pos_final, dest), vel_mag);
+				vec2 deltaStart = aStarMotion.currentDest - motion.position;
+				vec2 deltaEnd = aStarMotion.currentDest - pos_final;
+				if (dist_to(pos_final, aStarMotion.currentDest) <= vel_mag || oppositeSign(deltaStart, deltaEnd)) {
 					// if it is the final dest
 					if (aStarMotion.path.size() > 0) {
 						vec2 back = aStarMotion.path.back();
+						motion.position = aStarMotion.currentDest;
 						aStarMotion.path.pop();
 						aStarMotion.currentDest = back;
 						motion.destination = back;
@@ -199,9 +214,10 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 						break;
 					}
 				}
-				// handle movement
-				// pos_final = { pos.x + (vel.x * step_seconds), pos.y + (vel.y * step_seconds) };
-				// motion.position = pos_final;
+				else {
+					motion.position = pos_final;
+					break;
+				}
 			}
 			else {
 				if (dist_to(pos_final, dest) <= vel_mag) {

@@ -60,7 +60,65 @@ Implemented Features:
 		<li> ai_system.cpp | line TO_BE_UPDATED </li>
 	</ul>
     </ul>
-
+ - Cutscene rework 
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> cutscene.cpp | entire file </li>
+	</ul>
+    </ul>
+ - Title rework 
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_system.cpp | loadPlayerCollectionTitleScreen() & update_background_collection()| line tbd </li>
+	</ul>
+    </ul>   
+ - Escape button from Menus to Battle Mode 
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_system.cpp | line 1956 </li>
+	</ul>
+    </ul> 
+ - Global End Turn button
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_system.cpp | line 1972 </li>
+	</ul>
+    </ul>
+ - Game over screen
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_system.cpp | line 642 </li>
+		 <li> world_init.cpp | line 2016 </li> 
+	</ul>
+    </ul>
+  - Item stats dialog
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		 <li> world_init.cpp | line 1672 </li> 
+	</ul>
+    </ul>   
+ - Attack range indicator
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		 <li> world_init.cpp | line 2758 </li>
+		 <li> shaders/attack_range.vs.glsl </li>
+		 <li> shaders/attack_range.fs.glsl </li>
+	</ul>
+    </ul>
+ - A* path finding
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		 <li> ai_system.cpp | line 76 </li>
+	</ul>
+    </ul>       
 Team 6 - User Feedback Report
 User Testing Performed:
 
@@ -90,7 +148,7 @@ Most of our feedback for the attack system centred around the fact that users di
 
 Confusion with Doors
 
-Almost every user we saw play our game had confusion with handling doors in our game. Many thought that they could just move to the door and move through it, which is not the case. In almost all cases we had to explain that to go through the door the user had to click on the door. Understandably we want the doors to work more intuitively, so we added the ability to just move to the door and be able to go through it automatically.
+Almost every user we saw play our game had confusion with handling doors in our game. Many thought that they could just move to the door and move through it, which is not the case. In almost all cases we had to explain that to go through the door the user had to click on the door. To deal with this, we made it part of the tutorial to explain how to use doors by clicking on them.
 
 “How much health do enemies have?”
 

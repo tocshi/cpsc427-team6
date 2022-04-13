@@ -42,5 +42,6 @@ private:
 	json jsonifyRoomSystem(RoomSystem& r);
 	json jsonifyBoss(Boss& b);
 	json jsonifyAttackIndicators();
+	json jsonifyTraps();
 	//json jsonify
 };

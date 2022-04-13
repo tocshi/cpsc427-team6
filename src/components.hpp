@@ -91,9 +91,14 @@ enum class TEXTURE_ASSET_ID {
 	ARTIFACT_PLACEHOLDER = DESCRIPTION_DIALOG + 1,
 	COLLECTION_SCROLL_ARROW = ARTIFACT_PLACEHOLDER + 1,
 	CUTSCENE1 = COLLECTION_SCROLL_ARROW + 1,
-	CUTSCENE2 = CUTSCENE1 + 1,
-	CUTSCENE3 = CUTSCENE2 + 1,
-	TURN_UI = CUTSCENE3 + 1,
+	SHOU_ANGRY = CUTSCENE1 + 1,
+	SHOU_CONFUSED = SHOU_ANGRY + 1,
+	SHOU_HAPPY = SHOU_CONFUSED+1,
+	SHOU_NORMAL = SHOU_HAPPY + 1, // swap cutscene up 
+	SHOU_SURPRISED = SHOU_NORMAL+1,
+	BG_NOTEBOOK = SHOU_SURPRISED +1,
+	BG_CAVE = BG_NOTEBOOK +1,
+	TURN_UI = BG_CAVE+1,
 	SWITCH_DEFAULT = TURN_UI + 1,
 	SWITCH_ACTIVE = SWITCH_DEFAULT + 1,
 	ITEM_WEAPON_CARD = SWITCH_ACTIVE + 1,
@@ -431,6 +436,7 @@ struct Trap
 	int turns = 1;
 	int triggers = 1;
 	float multiplier = 100;
+	TEXTURE_ASSET_ID type;
 	Entity owner;
 };
 
@@ -807,6 +813,20 @@ struct RoomTransitionTimer {
 	float counter_ms = 750.f;
 	Floors floor;
 	bool repeat_allowed = false; // whether the next room is allowed to use the same map file as the current
+};
+
+enum class TRANSITION_TYPE {
+	MAIN_TO_CREDITS = 0,
+	CREDITS_TO_MAIN = MAIN_TO_CREDITS + 1,
+	MAIN_TO_GAME = CREDITS_TO_MAIN + 1,
+	CUTSCENE_TO_MAIN = MAIN_TO_GAME + 1,
+	CUTSCENE_SWITCH = CUTSCENE_TO_MAIN + 1,
+	GAME_OVER = CUTSCENE_SWITCH + 1,
+};
+
+struct FadeTransitionTimer {
+	float counter_ms = 500.f;
+	TRANSITION_TYPE type;
 };
 
 struct LoadingTimer {

@@ -17,6 +17,7 @@
 #include "ai_system.hpp"
 #include "game_state.hpp"
 #include "room_system.hpp"
+#include "cutscene.hpp"
 
 #include <../ext/json/single_include/nlohmann/json.hpp>
 
@@ -301,6 +302,8 @@ private:
 	// load attack indicators
 	void loadAttackIndicators(json indicatorList);
 
+	void loadTraps(json trapList);
+
 	// do turn order logic
 	void doTurnOrderLogic();
 
@@ -362,6 +365,7 @@ private:
 	SaveSystem saveSystem;
 	AISystem aiSystem;
 	RoomSystem roomSystem;
+	CutSceneSystem cutSceneSystem;
 
 	SpawnData spawnData;
 

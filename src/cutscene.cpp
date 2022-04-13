@@ -27,8 +27,6 @@ void CutSceneSystem::cut_scene_text_log(RenderSystem* renderer, std::string msg)
 
 
 void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number) {
-	//"Submit your dungeon - themed game here!Winner will be decided by a board of professional judges..."
-	//"..$1000 cash reward, and a chance to work with a development team to further expand your game idea!"
 	while (registry.textboxes.entities.size() > 0) {
 		registry.remove_all_components_of(registry.textboxes.entities.back());
 	}
@@ -214,6 +212,145 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 		};
 	}
 
+	if (cut_scene_number == 22) { //skip one just in case
+		messages = {
+			{
+				"This light...why do I want to touch it?",
+
+			},
+		};
+	}
+
+
+	if (cut_scene_number == 23) { 
+		messages = {
+			{
+				"Wait! This...!",
+
+			},
+		};
+	}
+
+	if (cut_scene_number == 24) { 
+		messages = {
+			{
+				"It's all-",
+
+			},
+		};
+	}
+
+	if (cut_scene_number == 25) { 
+		messages = {
+			{
+				"-coming back to me!",
+
+			},
+		};
+	}
+
+	if (cut_scene_number == 26) { 
+		messages = {
+			{
+				"I see now! I know what I must do!",
+
+			},
+		};
+	}
+
+	if (cut_scene_number == 27) { 
+		messages = {
+			{
+				"Come on...I need to get back!",
+
+			},
+		};
+	}
+
+	if (cut_scene_number == 28) { 
+		messages = {
+			{
+				"Come on...!",
+
+			},
+		};
+	}
+
+	if (cut_scene_number == 29) { 
+		messages = {
+			{
+				"\"Oh, it looks like you're finally awake.\"",
+
+			},
+		};
+	}
+
+	if (cut_scene_number == 30) { 
+		messages = {
+			{
+				"\"It's been two weeks since you passed out. Are you feeling alright?\"",
+
+			},
+		};
+	}
+
+	if (cut_scene_number == 31) { 
+		messages = {
+			{
+				"Yea, I actually feel...invigorated?",
+
+			},
+		};
+	}
+
+	if (cut_scene_number == 32) { 
+		messages = {
+			{
+				"\"You're lucky, you know? If your friends didn't come check up on you,",
+				"you'd likely have not woken up when you did.\"",
+
+			},
+		};
+	}
+
+	if (cut_scene_number == 33) { 
+		messages = {
+			{
+				"\"Regardless, we can't let you leave just yet. You may feel energized,",
+				"but we still need to monitor your condition for a while.\"",
+
+			},
+		};
+	}
+
+	if (cut_scene_number == 34) { 
+		messages = {
+			{
+				"\"Anyway, I need to let them know you've regained consciousness,",
+				"I'll be gone for just a moment. Is there anything you need?\"",
+
+			},
+		};
+	}
+
+	if (cut_scene_number == 35) { 
+		messages = {
+			{
+				"Just one thing...",
+
+			},
+		};
+	}
+
+	if (cut_scene_number == 36) { 
+		messages = {
+			{
+				"I need my laptop. I've got some work to do.",
+
+			},
+		};
+	}
+
 	activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages, true);
 	//updateTextBox(renderer, activeTextbox);
 }
@@ -253,45 +390,42 @@ void CutSceneSystem::updateTextBox(RenderSystem* renderer, Entity activeTextbox)
 
 
 void CutSceneSystem::scene_transition(RenderSystem* renderer, int cut_scene_number) {
-	cut_scene_text_log(renderer, "Press Esc to skip");
+	if (cut_scene_number <= 21) {
+		cut_scene_text_log(renderer, "Press Esc to skip");
+	}
 	
-	if (cut_scene_number == 0 || cut_scene_number ==1 || cut_scene_number== 2) {
-		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);
+	if (cut_scene_number == 0 || cut_scene_number == 1 || cut_scene_number == 2) {
+		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_ROOM);
 		updateDialogue(renderer, cut_scene_number);
-		//updateDialogue(renderer, cut_scene_number);
 	}
 	else if (cut_scene_number == 3) {
-		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);
+		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_ROOM);
 		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::SHOU_HAPPY);
 		updateDialogue(renderer, cut_scene_number);
-		//updateDialogue(renderer, cut_scene_number);
 
 	}
 	else if (cut_scene_number == 7) { // * signs 
-		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);
+		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_ROOM);
 		updateDialogue(renderer, cut_scene_number);
 	}
 	else if (cut_scene_number == 4 || cut_scene_number == 6 || cut_scene_number ==11||cut_scene_number == 12) {
-		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);
+		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_ROOM);
 		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::SHOU_NORMAL);
 		updateDialogue(renderer, cut_scene_number);
-		//cut_scene_dialogue(renderer, "Press Escape to skip and go to Main Menu");
 	}
-	else if (cut_scene_number == 5) {
-		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);
+	else if (cut_scene_number == 5 || cut_scene_number == 24) {
+		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_ROOM);
 		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::SHOU_SURPRISED);
 		updateDialogue(renderer, cut_scene_number);
-
 	} 
 	else if (cut_scene_number == 8 || cut_scene_number == 9) { // notebook
 		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_NOTEBOOK);
 		updateDialogue(renderer, cut_scene_number);
 	}
 	else if (cut_scene_number == 10 || cut_scene_number == 13 || cut_scene_number == 14 || cut_scene_number ==15 ) {
-		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::CUTSCENE1);
+		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_ROOM);
 		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::SHOU_ANGRY);
 		updateDialogue(renderer, cut_scene_number);
-
 	}
 	else if (cut_scene_number == 16){ // fade to black or main_menu
 		Entity temp = Entity();
@@ -303,9 +437,28 @@ void CutSceneSystem::scene_transition(RenderSystem* renderer, int cut_scene_numb
 		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::SHOU_CONFUSED);
 		updateDialogue(renderer, cut_scene_number);
 	}
-	else if (cut_scene_number == 19| cut_scene_number == 20 ){// cave normal
+	else if (cut_scene_number == 19 || cut_scene_number == 20 || cut_scene_number == 22){// cave normal
 		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_CAVE);
 		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::SHOU_NORMAL);
+		updateDialogue(renderer, cut_scene_number);
+	}
+	else if (cut_scene_number == 23 || cut_scene_number == 26) { // cave confused
+		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_CAVE);
+		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::SHOU_SURPRISED);
+		updateDialogue(renderer, cut_scene_number);
+	}
+	else if (cut_scene_number == 25) {
+		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_NOTEBOOK);
+		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::SHOU_SURPRISED);
+		updateDialogue(renderer, cut_scene_number);
+	}
+	else if (cut_scene_number == 27 || cut_scene_number == 28) { // cave angry
+		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_CAVE);
+		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::SHOU_ANGRY);
+		updateDialogue(renderer, cut_scene_number);
+	}
+	else if (cut_scene_number >= 29 && cut_scene_number < 36) { // * signs 
+		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_HOSPITAL);
 		updateDialogue(renderer, cut_scene_number);
 	}
 

@@ -55,8 +55,10 @@ std::string deal_damage(Entity& attacker, Entity& defender, float multiplier, bo
 		auto& enemy_struct = registry.enemies.get(defender);
 		enemy_struct.hit_by_player = true;
 		// apparition teleport
-		if (registry.enemies.get(defender).type == ENEMY_TYPE::APPARITION) {
+		if (registry.enemies.get(defender).type == ENEMY_TYPE::APPARITION && defender_stats.hp > 0) {
 			teleport(defender, attacker);
+			registry.motions.get(defender).destination = registry.motions.get(defender).position;
+			registry.motions.get(defender).in_motion = false;
 		}
 	}
 
@@ -233,6 +235,9 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 						apply_status(defender, cd);
 					}
 				}
+				// play bag of wind sound
+				world.playBagOfWindSound();
+
 				world.logText("You are surrounded by a raging gust!", { 0.2, 1.0, 1.0 });
 			}
 		}
@@ -251,6 +256,9 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 			registry.renderRequests.get(curse).used_texture = TEXTURE_ASSET_ID::CURSE;
 			registry.expandTimers.get(curse).counter_ms = 1000;
 			world.logText("A dreadful curse befalls your enemies!", { 0.2, 1.0, 1.0 });
+
+			// play malediction sound
+			world.playMaledictionSound();
 		}
 	}
 
@@ -330,7 +338,7 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 	}
 
 	// Rubber Mallet
-	if (attacker_inv.artifact[(int)ARTIFACT::KB_MALLET] > 0 && dist_to_edge(attacker_motion, defender_motion) <= 100.f && !registry.bosses.has(defender)) {
+	if (attacker_inv.artifact[(int)ARTIFACT::KB_MALLET] > 0 && dist_to_edge(attacker_motion, defender_motion) <= 100.f && !registry.bosses.has(defender) && doProcs) {
 		float kb_dist = 50 + 50 * attacker_inv.artifact[(int)ARTIFACT::KB_MALLET];
 
 		if (!registry.knockbacks.has(defender)) {
@@ -351,8 +359,12 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 	// Fungifier
 	if (attacker_inv.artifact[(int)ARTIFACT::FUNGIFIER] > 0 && final_damage >= defender_stats.hp) {
 		float multiplier = 130 * attacker_inv.artifact[(int)ARTIFACT::FUNGIFIER];
+		Mix_PlayChannel(-1, world.trap_sound, 0);
 		Entity mushroom = createTrap(world.renderer, attacker, {0, 0}, { 64, 64 }, multiplier, 2, 1, TEXTURE_ASSET_ID::MUSHROOM);
 		registry.motions.get(mushroom).destination = defender_motion.position;
+
+		// play fungifier sound
+		world.playFungifierSound();
 	}
 	return final_damage;
 }
@@ -573,7 +585,7 @@ void trigger_trap(Entity t, Entity trapped) {
 	Motion& trap_motion = registry.motions.get(t);
 
 	// pre-switch instantiations (this is why I hate C++)
-	StatusEffect burrs = StatusEffect(0, 1, StatusType::BURR_DEBUFF, false, true);
+	StatusEffect burrs = StatusEffect(0, 0, StatusType::BURR_DEBUFF, false, true);
 	StatusEffect boss_poison = StatusEffect(0.2 * trap.multiplier, 5, StatusType::POISON, false, false);
 	StatusEffect boss_atk_buff = StatusEffect(0.3, 3, StatusType::ATK_BUFF, true, true);
 	StatusEffect boss_regen_buff = StatusEffect(10, 3, StatusType::HP_REGEN, false, true);
@@ -585,6 +597,7 @@ void trigger_trap(Entity t, Entity trapped) {
 		registry.colors.insert(explosion, { 0.8f, 2.f, 2.f, 1.f });
 	}
 	if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::FATE) {
+		Mix_PlayChannel(-1, world.smokescreen_sound, 0);
 		Entity smoke = createBigSlash(world.renderer, trap_motion.position, 0, 200);
 		registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
 		registry.expandTimers.get(smoke).counter_ms = 1000;
@@ -598,7 +611,7 @@ void trigger_trap(Entity t, Entity trapped) {
 			if (!e) { continue; }
 			Motion enemy_motion = registry.motions.get(e);
 			if (dist_to_edge(enemy_motion, registry.motions.get(t)) <= 50.f) {
-				deal_damage(trap.owner, e, trap.multiplier);
+				deal_damage(trap.owner, e, trap.multiplier, false);
 			}
 		}
 		break;
@@ -606,7 +619,7 @@ void trigger_trap(Entity t, Entity trapped) {
 		// don't trigger if already triggered this turn
 		if (has_status(trapped, StatusType::BURR_DEBUFF)) { return; }
 		apply_status(trapped, burrs);
-		deal_damage(trap.owner, trapped, trap.multiplier);
+		deal_damage(trap.owner, trapped, trap.multiplier, false);
 		break;
 	case TEXTURE_ASSET_ID::FATE:
 		// switch based on colour

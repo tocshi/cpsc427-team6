@@ -11,8 +11,6 @@
 #include "combat_system.hpp"
 
 // Game configuration
-// decalre gamestates
-//GameStates game_state = GameStates::CUTSCENE;
 
 // Create the world
 WorldSystem::WorldSystem()
@@ -69,6 +67,8 @@ void WorldSystem::destroyMusic() {
 		Mix_FreeChunk(special_sound);
 	if (ui_click != nullptr)
 		Mix_FreeChunk(ui_click);
+	if (plant_shoot != nullptr)
+		Mix_FreeChunk(plant_shoot);
 	Mix_CloseAudio();
 
 }
@@ -160,19 +160,11 @@ GLFWwindow* WorldSystem::create_window() {
 
 	// Set the game to start on the menu screen
 	previous_game_state = current_game_state;
-	//printf("Previous Game State : Game state = MAIN_MENU");
-	//printf()
-	//current_game_state = GameStates::CUTSCENE;
 
 	current_game_state = GameStates::MAIN_MENU;
-	printf("previous state in Now %d \n", static_cast<int>(previous_game_state));
 
 	// set previous_game_state to current_game_state
 	previous_game_state = current_game_state;
-	printf("ACTION: SET THE GAME TO START : Game state = MAIN_MENU\n");
-	printf("Current current_game_state Game state %d \n", static_cast<int>(current_game_state));
-	printf("previous state in Now %d \n", static_cast<int>(previous_game_state));
-
 
 	//////////////////////////////////////
 	// Loading music and sounds with SDL
@@ -228,12 +220,35 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(caveling_death, 30);
 	ui_click = Mix_LoadWAV(audio_path("feedback/ui_click.wav").c_str());
 	Mix_VolumeChunk(ui_click, 32);
+	plant_shoot = Mix_LoadWAV(audio_path("sfx/pop.wav").c_str());
+	Mix_VolumeChunk(plant_shoot, 32);
 	kingslime_attack = Mix_LoadWAV(audio_path("sfx/slimeattack.wav").c_str());
 	Mix_VolumeChunk(kingslime_attack, 24);
 	kingslime_jump = Mix_LoadWAV(audio_path("sfx/slimejump.wav").c_str());
 	Mix_VolumeChunk(kingslime_jump, 24);
 	kingslime_summon = Mix_LoadWAV(audio_path("sfx/slimesummon.wav").c_str());
 	Mix_VolumeChunk(kingslime_summon, 24);
+	pebble_move = Mix_LoadWAV(audio_path("sfx/pebble_move.wav").c_str());
+	Mix_VolumeChunk(pebble_move, 48);
+	fire_sound = Mix_LoadWAV(audio_path("sfx/fire.wav").c_str());
+	Mix_VolumeChunk(fire_sound, 48);
+	potion_sound = Mix_LoadWAV(audio_path("sfx/potion.wav").c_str());
+	Mix_VolumeChunk(potion_sound, 32);
+	smokescreen_sound = Mix_LoadWAV(audio_path("sfx/smoke.wav").c_str());
+	Mix_VolumeChunk(smokescreen_sound, 32);
+	arcane_funnel_sound = Mix_LoadWAV(audio_path("sfx/arcane_funnel.wav").c_str());
+	Mix_VolumeChunk(arcane_funnel_sound, 32);
+	rock_summon = Mix_LoadWAV(audio_path("sfx/rock_summon.wav").c_str());
+	Mix_VolumeChunk(rock_summon, 32);
+	trap_sound = Mix_LoadWAV(audio_path("sfx/trap.wav").c_str());
+	Mix_VolumeChunk(trap_sound, 32);
+	malediction_sound = Mix_LoadWAV(audio_path("sfx/malediction.wav").c_str());
+	Mix_VolumeChunk(malediction_sound, 32);
+	fungifier_sound = Mix_LoadWAV(audio_path("sfx/fungifier.wav").c_str());
+	Mix_VolumeChunk(fungifier_sound, 24);
+	bag_of_wind_sound = Mix_LoadWAV(audio_path("sfx/hurricane.wav").c_str());
+	Mix_VolumeChunk(bag_of_wind_sound, 32);
+
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr
 		|| error_sound == nullptr || footstep_sound == nullptr
@@ -353,6 +368,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 						if (has_status(player_main, StatusType::ATK_BUFF)) { remove_status(player_main, StatusType::ATK_BUFF); }
 						apply_status(player_main, buff);
 					}
+
+					// play potion sound
+					Mix_PlayChannel(-1, potion_sound, 0);
 					break;
 				default:
 					break;
@@ -363,7 +381,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// if not in menu do turn order logic (!current_game_state)
-	if (current_game_state < GameStates::CUTSCENE && current_game_state >= GameStates::GAME_START) {
+	if (current_game_state < GameStates::CUTSCENE && current_game_state >= GameStates::GAME_START && current_game_state != GameStates::GAME_OVER_MENU) {
 		if (tutorial) {
 			updateTutorial();
 		}
@@ -619,6 +637,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Update HP/MP/EP bars and movement
 	// Check for player death / walking
 	for (Entity player : registry.players.entities) {
+		if (current_game_state == GameStates::CUTSCENE || current_game_state == GameStates::GAME_OVER_MENU) {
+			break;
+		}
 		Player& p = registry.players.get(player);
 		
 		// get player stats
@@ -718,9 +739,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		float statbarsX = window_width_px * 0.14;
 		float statbarsY = window_height_px * 1.7;
 
-		createStatsText(renderer, { statbarsX, statbarsY }, currHpString + " / " + maxHpString, 1.2f, vec3(1.0f));
-		createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 }, currMpString + " / " + maxMpString, 1.2f, vec3(1.0f));
-		createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 4 }, currEpString + " / " + maxEpString, 1.2f, vec3(1.0f));
+		if (current_game_state != GameStates::CUTSCENE && current_game_state != GameStates::GAME_OVER_MENU) {
+			createStatsText(renderer, { statbarsX, statbarsY }, currHpString + " / " + maxHpString, 1.2f, vec3(1.0f));
+			createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 }, currMpString + " / " + maxMpString, 1.2f, vec3(1.0f));
+			createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 4 }, currEpString + " / " + maxEpString, 1.2f, vec3(1.0f));
+		}
 		
 		// update Stat Bars and visibility
 		for (Entity entity : registry.motions.entities) {
@@ -846,17 +869,20 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			}
 			if (registry.bosses.has(enemy)) {
 				roomSystem.updateObjective(ObjectiveType::DEFEAT_BOSS, 1);
-				Entity bossdoor = createDoor(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f }, true);
+
+				// Final Boss Death
+				if (registry.enemies.get(enemy).type == ENEMY_TYPE::REFLEXION) {
+					createMouseAnimation(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 160 });
+					createEndLight(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f });
+				}
+				else {
+					createDoor(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f }, true);
+				}
 				//roomSystem.setNextFloor(Floors((int)roomSystem.current_floor + 1));
 				registry.players.get(player_main).floor++;
 				createCampfire(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y + 64.f });
 				registry.enemies.get(enemy).state = ENEMY_STATE::DEATH;
 				aiSystem.step(enemy);
-
-				// Final Boss Death
-				if (registry.enemies.get(enemy).type == ENEMY_TYPE::REFLEXION) {
-					registry.renderRequests.get(bossdoor).used_texture == TEXTURE_ASSET_ID::ENDLIGHT;
-				}
 			}
 			if (registry.shadowContainers.has(enemy)) {
 				ShadowContainer& shadow_container = registry.shadowContainers.get(enemy);
@@ -907,7 +933,22 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 		if (counter.counter_ms < 0) {
 			registry.roomTransitions.remove(entity);
+
+			printf("clear count before: %d\n", roomSystem.rooms_cleared_current_floor);
+			if (!counter.floor_change) {
+				roomSystem.updateClearCount();
+			}
+
+			if (tutorial) {
+				if (!registry.motions.has(objectiveCounter)) {
+					objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32 });
+					objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
+					objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
+				}
+				tutorial = false;
+			}
 			generateNewRoom(counter.floor, counter.repeat_allowed);
+			printf("clear count after: %d\n", roomSystem.rooms_cleared_current_floor);
 			return true;
 		}
 	}
@@ -934,7 +975,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				}
 				else {
 					start_game();
-					roomSystem.current_floor = Floors::FLOOR1;
+					roomSystem.current_floor = Floors::FLOOR2;
 					spawn_game_entities();
 					roomSystem.setRandomObjective();
 				}
@@ -968,6 +1009,38 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					remove_fog_of_war();
 					create_fog_of_war();
 				}
+				break;
+			case (TRANSITION_TYPE::GAME_TO_FINAL_CUTSCENE):
+				if (true) {
+					Player temp = registry.players.get(player_main);
+					temp_player_data = temp;
+					Inventory temp_inv = registry.inventories.get(player_main);
+					temp_inv_data = temp_inv;
+					set_gamestate(GameStates::CUTSCENE);
+					playMusic(Music::CUTSCENE);
+					countCutScene = 22;
+					cut_scene_start();
+				}
+				break;
+			case (TRANSITION_TYPE::CUTSCENE_TO_GAMEOVER):
+				if (true) {
+					Entity line_ent = createLine(vec2(0, 0), vec2(window_width_px, window_height_px));
+					RenderRequest& rr = registry.renderRequests.get(line_ent);
+					rr.used_layer = RENDER_LAYER_ID::UI;
+					Entity player_temp = createPlayer(renderer, vec2(0, 0));
+					player_main = player_temp;
+					Player& player_data = registry.players.get(player_temp);
+					player_data = temp_player_data;
+					Inventory& temp_inv = registry.inventories.get(player_main);
+					temp_inv = temp_inv_data;
+					
+					createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player_temp, GAME_OVER_REASON::BOSS_DEFEATED, GAME_OVER_LOCATION::BOSS_TWO);
+					saveSystem.deleteFile();
+					set_gamestate(GameStates::GAME_OVER_MENU);
+					player_move_click = false;
+				}
+				break;
+			case (TRANSITION_TYPE::GAMEOVER_TO_MAIN):
 				break;
 			default:
 				break;
@@ -1265,6 +1338,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		anim.current_frame = std::min(anim.animation_time_ms / anim.frametime_ms, int(anim.frame_indices.size()) - 1);
 	}
 
+	// rotate end light effect
+	for (Entity e : registry.endLights.entities) {
+		Motion& motion = registry.motions.get(e);
+		float angle = motion.angle;
+		angle += elapsed_ms_since_last_update / 1000 * M_PI / 2;
+		while (angle > 2 * M_PI) {
+			angle -= 2 * M_PI;
+		}
+		motion.angle = angle;
+	}
+
 	// update timed log text from signs
 	for (Entity e : registry.signs.entities) {
 		Sign& sign = registry.signs.get(e);
@@ -1287,7 +1371,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// update game background (only on player turn)
-	if (current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE) {
+	if (current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE && current_game_state != GameStates::GAME_OVER_MENU) {
 		updateGameBackground();
 	}
 	// update chest textures if flagged
@@ -1309,7 +1393,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 								StatusEffect debuff = StatusEffect(-0.5, 1, StatusType::RANGE_BUFF, true, true);
 								apply_status(e, debuff);
 							}
-
+							
+							Mix_PlayChannel(-1, world.smokescreen_sound, 0);
 							Entity smoke = createBigSlash(world.renderer, registry.motions.get(player_main).position, 0, range);
 							registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
 							registry.expandTimers.get(smoke).counter_ms = 1000;
@@ -1332,7 +1417,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 								StatusEffect debuff = StatusEffect(-0.5, 1, StatusType::RANGE_BUFF, true, true);
 								apply_status(e, debuff);
 							}
-
+							
+							Mix_PlayChannel(-1, world.smokescreen_sound, 0);
 							Entity smoke = createBigSlash(world.renderer, registry.motions.get(player_main).position, 0, range);
 							registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
 							registry.expandTimers.get(smoke).counter_ms = 1000;
@@ -1449,6 +1535,7 @@ void WorldSystem::restart_game() {
 		// width: window_width_px / 5, height = (600.f*ui_scale/2)
 		update_background_collection(window_width_px / 5, (600.f*ui_scale / 2));
 	}
+	roomSystem.reset();
 }
 
 void WorldSystem::handle_end_player_turn(Entity player) {
@@ -1724,31 +1811,13 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 			case Floors::FLOOR2:
 				roll = irand(9);
 				if (roll < 1) {
-					Entity summon = createEnemy(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
-					Stats& summon_stats = registry.basestats.get(summon);
-					summon_stats.maxhp = 56;
-					summon_stats.atk = 20;
-					registry.stats.get(summon).hp = summon_stats.maxhp;
-					reset_stats(summon);
-					calc_stats(summon);
+					createEnemy(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
 				}
 				else if (roll < 2) {
-					Entity summon = createPlantShooter(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
-					Stats& summon_stats = registry.basestats.get(summon);
-					summon_stats.maxhp = 48;
-					summon_stats.atk = 16;
-					registry.stats.get(summon).hp = summon_stats.maxhp;
-					reset_stats(summon);
-					calc_stats(summon);
+					createPlantShooter(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
 				}
 				else if (roll < 3) {
-					Entity summon = createCaveling(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
-					Stats& summon_stats = registry.basestats.get(summon);
-					summon_stats.maxhp = 38;
-					summon_stats.atk = 12;
-					registry.stats.get(summon).hp = summon_stats.maxhp;
-					reset_stats(summon);
-					calc_stats(summon);
+					createCaveling(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
 				}
 				else if (roll < 6) {
 					createLivingRock(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
@@ -1877,67 +1946,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// no interactions when being knocked back
 	if (registry.knockbacks.has(player_main)) { return; }
 
-	// DEBUG: TRAP
-	if (action == GLFW_RELEASE && key == GLFW_KEY_Q) {
-		createTrap(world.renderer, player_main, registry.motions.get(player_main).position, {64, 64}, 400, 4, 5, TEXTURE_ASSET_ID::BURRS);
-	}
-
-	// DEBUG: HEAL PLAYER
-	if (action == GLFW_RELEASE && key == GLFW_KEY_EQUAL) {
-		Stats& stat = registry.stats.get(player_main);
-		stat.hp = stat.maxhp;
-		stat.mp = stat.maxmp;
-		stat.ep = stat.maxep;
-		registry.players.get(player_main).attacked = false;
-	}
-
-	// DEBUG: Testing artifact/stacking
-	if (action == GLFW_RELEASE && key == GLFW_KEY_9) {
-		int give = (int)ARTIFACT::BURRBAG;
-		for (Entity& p : registry.players.entities) {
-			Inventory& inv = registry.inventories.get(p);
-			inv.artifact[give]++;
-
-			std::string name = artifact_names.at((ARTIFACT)give);
-			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
-			reset_stats(p);
-			calc_stats(p);
-		}
-	}
-
-	// DEBUG: Testing artifact/stacking
-	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
-		int give = (int)ARTIFACT::FUNGIFIER;
-		for (Entity& p : registry.players.entities) {
-			Inventory& inv = registry.inventories.get(p);
-			inv.artifact[give]++;
-
-			std::string name = artifact_names.at((ARTIFACT)give);
-			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
-			reset_stats(p);
-			calc_stats(p);
-		}
-	}
-
-	if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
-		auto& stats = registry.stats.get(player_main);
-		auto& player = registry.players.get(player_main);
-		//StatusEffect test = StatusEffect(10, 2, StatusType::INVINCIBLE, false, true);
-		//apply_status(player_main, test);
-		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\nrange: %f\nepmove: %f\nepatk: %f\nfloor: %i\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp, stats.range, stats.epratemove, stats.eprateatk, player.floor);
-	}
-
-	if (action == GLFW_RELEASE && key == GLFW_KEY_O) {
-		roomSystem.updateObjective(roomSystem.current_objective.type, 100);
-	}
-
-	// SAVING THE GAME
-	if (action == GLFW_RELEASE && key == GLFW_KEY_S) {
-		if (!tutorial) {
-			saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
-			logText("Game state saved!");
-		}
-	}
 
 	///////////////////////////
 	// menu hotkeys
@@ -2049,9 +2057,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				int w, h;
 				glfwGetWindowSize(window, &w, &h);
 				if (registry.fadeTransitionTimers.size() == 0) {
-					Entity temp = Entity();
-					FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
-					timer.type = TRANSITION_TYPE::CUTSCENE_TO_MAIN;
+					if (countCutScene <= 21) {
+						Entity temp = Entity();
+						FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+						timer.type = TRANSITION_TYPE::CUTSCENE_TO_MAIN;
+					}
+					/*
+					else {
+						Entity temp = Entity();
+						FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+						timer.type = TRANSITION_TYPE::CUTSCENE_TO_GAMEOVER;
+					}
+					*/
 				}
 			}
 			else if (current_game_state == GameStates::PAUSE_MENU) {
@@ -2065,7 +2082,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			else {
 				set_gamestate(GameStates::PAUSE_MENU);
 				// render save and quit button
-				createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale});
+				if (current_music == Music::BOSS0 || current_music == Music::BOSS1) {
+					createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale }, false);
+				}
+				else {
+					createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale });
+				}
 
 				// render cancel button
 				createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale});
@@ -2111,85 +2133,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 	}
-
-	if (action == GLFW_RELEASE && key == GLFW_KEY_Q) {
-		for (Entity& p : registry.players.entities) {
-			StatusEffect test = StatusEffect(20, 5, StatusType::ATK_BUFF, false, true);
-			apply_status(p, test);
-		}
-	}
-
-	// LOADING THE GAME
-	if (action == GLFW_RELEASE && key == GLFW_KEY_L && get_is_player_turn() ) {
-		// if save data exists reset the game
-		if (saveSystem.saveDataExists()) {
-			// remove entities to load in entities
-			removeForLoad();
-			//printf("Removed for load\n");
-			// get saved game data
-			json gameData = saveSystem.getSaveData();
-			//printf("getting gameData\n");
-			// load the entities in
-			loadFromData(gameData);
-			//printf("load game data?\n");
-		}
-
-		logText("Game state loaded!");
-		remove_fog_of_war();
-		create_fog_of_war();
-	}
-
-	// simulating a new room
-	if (action == GLFW_RELEASE && key == GLFW_KEY_N && get_is_player_turn()) {
-		if (!registry.roomTransitions.has(player_main)) {
-			if (tutorial) {
-				if (!registry.motions.has(objectiveCounter)) {
-					objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32});
-					objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
-					objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
-				}
-				tutorial = false;
-			}
-			RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
-			transition.floor = roomSystem.current_floor;
-		}
-	}
-
-	// Resetting game
-	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
-
-        restart_game();
-	}
-
-	// Resetting game // LOGGING TEXT TEST
-	if (action == GLFW_RELEASE && key == GLFW_KEY_T) {
-		printf("GAME STATE LOG START ============\n");
-		printf("Previous game state is: %i\n", static_cast<int>(previous_game_state));
-		printf("Current game state is: %i\n", static_cast<int>(current_game_state));
-		printf("GAME STATE LOG END ============\n\n\n");
-		turnOrderSystem.getTurnOrder();
-	}
-
-	// Debugging
-	if (key == GLFW_KEY_D) {
-		if (action == GLFW_RELEASE)
-			debugging.in_debug_mode = false;
-		else
-			debugging.in_debug_mode = true;
-	}
-
-	// Control the current speed with `<` `>`
-	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_COMMA) {
-		current_speed -= 0.1f;
-		printf("Current speed = %f\n", current_speed);
-	}
-	if (action == GLFW_RELEASE && (mod & GLFW_MOD_SHIFT) && key == GLFW_KEY_PERIOD) {
-		current_speed += 0.1f;
-		printf("Current speed = %f\n", current_speed);
-	}
-	current_speed = fmax(0.f, current_speed);
 
 	if (action == GLFW_RELEASE) {
 		// button sound
@@ -2239,6 +2182,15 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				Entity temp = Entity();
 				FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
 				timer.type = TRANSITION_TYPE::CUTSCENE_TO_MAIN;
+				// logic is handled in step() when the timer expires
+			}
+
+			if (current_game_state == GameStates::CUTSCENE && countCutScene >= 36) {
+				// fade to main_menu screen 
+				//screen.darken_screen_factor = 0;
+				Entity temp = Entity();
+				FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+				timer.type = TRANSITION_TYPE::CUTSCENE_TO_GAMEOVER;
 				// logic is handled in step() when the timer expires
 			}
 			return;
@@ -2307,7 +2259,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					break;
 				case BUTTON_ACTION_ID::SAVE_QUIT:
-					if (!tutorial) {
+					if (!tutorial && !(roomSystem.current_floor == Floors::BOSS1 || roomSystem.current_floor == Floors::BOSS2)) {
 						saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
 						logText("Game state saved!");
 					}
@@ -2335,7 +2287,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					if (current_game_state != GameStates::GAME_OVER_MENU) {
 						set_gamestate(GameStates::PAUSE_MENU);
 						// render save and quit button
-						createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale });
+						if (current_music == Music::BOSS0 || current_music == Music::BOSS1) {
+							createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale }, false);
+						}
+						else {
+							createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale });
+						}
 						// render cancel button
 						createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale });
 					}
@@ -2641,18 +2598,20 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								break;
 							}
 							// Door Behaviour
-							else if (interactable.type == INTERACT_TYPE::DOOR && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+							else if (interactable.type == INTERACT_TYPE::DOOR && dist_to(registry.motions.get(player_main).position, motion.position) <= 150) {
 								interactable.interacted = true;
 								if (!registry.roomTransitions.has(player_main)) {
 									RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
 									transition.floor = roomSystem.current_floor;
 								}
+								player.total_rooms++;
 							}
 							// Boss Door Behaviour
-							else if (interactable.type == INTERACT_TYPE::BOSS_DOOR && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+							else if (interactable.type == INTERACT_TYPE::BOSS_DOOR && dist_to(registry.motions.get(player_main).position, motion.position) <= 150) {
 								if (!registry.roomTransitions.has(player_main)) {
 									RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
 									transition.floor = Floors((int)roomSystem.current_floor + 1);
+									transition.floor_change = true;
 									if (transition.floor == Floors::FLOOR1 || transition.floor == Floors::BOSS1) {
 										playMusic(Music::BACKGROUND);
 									}
@@ -2661,6 +2620,14 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									}
 									roomSystem.setNextFloor(transition.floor);
 								}
+								player.total_rooms++;
+							}
+							// End_Light Behaviour
+							else if (interactable.type == INTERACT_TYPE::END_LIGHT && dist_to(registry.motions.get(player_main).position, motion.position) <= 200) {
+								Entity temp = Entity();
+								FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+								timer.type = TRANSITION_TYPE::GAME_TO_FINAL_CUTSCENE;
+								player.total_rooms++;
 							}
 							// Switch Behaviour
 							else if (interactable.type == INTERACT_TYPE::SWITCH && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
@@ -2687,6 +2654,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 										apply_status(player_main, buff);
 									}
 									interactable.interacted = true;
+									// play campfire sound
+									Mix_PlayChannel(-1, fire_sound, 0);
 									break;
 								}
 							}
@@ -2864,6 +2833,7 @@ void WorldSystem::start_player_turn() {
 	// Burrbag effect
 	if (inv.artifact[(int)ARTIFACT::BURRBAG] > 0) {
 		int triggers = inv.artifact[(int)ARTIFACT::BURRBAG];
+		Mix_PlayChannel(-1, world.trap_sound, 0);
 		createTrap(world.renderer, player_main, registry.motions.get(player_main).position, {64, 64}, 40, 4, triggers, TEXTURE_ASSET_ID::BURRS);
 	}
 
@@ -2877,8 +2847,8 @@ void WorldSystem::start_player_turn() {
 
 		// choose target
 		for (Entity& e : registry.enemies.entities) {
-			if (registry.hidden.has(e)) { continue; }
 			Motion& enemy_motion = registry.motions.get(e);
+			if (dist_to(player_motion.position, enemy_motion.position) > (registry.stats.get(player_main).range / 2)) { continue; }
 			Stats& enemy_stats = registry.stats.get(e);
 			if (enemy_stats.hp / enemy_stats.maxhp < frac) {
 				valid = true;
@@ -2946,6 +2916,10 @@ void WorldSystem::removeForNewRoom() {
 		registry.remove_all_components_of(enemy);
 	}
 
+	for (Entity trap : registry.traps.entities) {
+		registry.remove_all_components_of(trap);
+	}
+
 	// remove solids
 	for (Entity solids : registry.solid.entities) {
 		registry.remove_all_components_of(solids);
@@ -2997,6 +2971,8 @@ void WorldSystem::loadFromData(json data) {
 	json attackIndicatorList = data["attack_indicators"];
 	json traplist = data["trapEntities"];
 
+	// load room system
+	loadRoomSystem(roomSystemJson);
 	// load enemies
 	std::queue<Entity> entities;
 	for (auto& entity : entityList) {
@@ -3021,8 +2997,6 @@ void WorldSystem::loadFromData(json data) {
 	loadInteractables(interactablesList);
 	// load tiles
 	loadTiles(tilesList);
-	// load room system
-	loadRoomSystem(roomSystemJson);
 	// load attack indicators
 	loadAttackIndicators(attackIndicatorList);
 	// load traps in game 
@@ -3158,17 +3132,44 @@ int WorldSystem::calculate_abs_value(float v1, float v2) {
 Entity WorldSystem::loadEnemy(json enemyData) {
 	Entity e;
 	if (enemyData["enemy"]["type"] == ENEMY_TYPE::SLIME) {
-		e = createEnemy(renderer, { 0, 0 });
+		if (roomSystem.current_floor > Floors::BOSS1) {
+			e = createEnemy(renderer, { 0, 0 }, true);
+		}
+		else {
+			e = createEnemy(renderer, { 0, 0 });
+		}
 	}
 	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::PLANT_SHOOTER) {
-		e = createPlantShooter(renderer, { 0, 0 });
+		if (roomSystem.current_floor > Floors::BOSS1) {
+			e = createPlantShooter(renderer, { 0, 0 }, true);
+		}
+		else {
+			e = createPlantShooter(renderer, { 0, 0 });
+		}
 	}
 	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::CAVELING) {
-		e = createCaveling(renderer, { 0, 0 });
+		if (roomSystem.current_floor > Floors::BOSS1) {
+			e = createCaveling(renderer, { 0, 0 }, true);
+		}
+		else {
+			e = createCaveling(renderer, { 0, 0 });
+		}
 	}
 	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::KING_SLIME) {
 		e = createKingSlime(renderer, { 0, 0 });
 		loadBoss(e, enemyData["boss"]);
+	}
+	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::APPARITION) {
+		e = createApparition(renderer, { 0, 0 });
+	}
+	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::LIVING_PEBBLE) {
+		e = createLivingPebble(renderer, { 0, 0 });
+	}
+	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::LIVING_ROCK) {
+		e = createLivingRock(renderer, { 0, 0 });
+	}
+	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::REFLEXION) {
+		e = createReflexion(renderer, { 0, 0 });
 	}
 	// load motion
 	loadMotion(e, enemyData["motion"]);
@@ -3235,6 +3236,8 @@ void WorldSystem::loadPlayerComponent(Entity e, json playerCompData, Inventory i
 	registry.players.get(e).floor = playerCompData["floor"];
 	registry.players.get(e).room = playerCompData["room"];
 	registry.players.get(e).total_rooms = playerCompData["total_rooms"];
+	registry.players.get(e).chests = playerCompData["chests"];
+	registry.players.get(e).potions = playerCompData["potions"];
 }
 
 Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {
@@ -4138,8 +4141,37 @@ void WorldSystem::playEnemyMoveSound(ENEMY_TYPE enemy_type) {
 	case ENEMY_TYPE::CAVELING:
 		Mix_PlayChannel(-1, caveling_move, 0);
 		break;
+	case ENEMY_TYPE::LIVING_PEBBLE:
+		Mix_PlayChannel(-1, pebble_move, 0);
+		break;
 	}
 }
+
+// play plant shoot sound
+void WorldSystem::playPlantShootSound() {
+	Mix_PlayChannel(-1, plant_shoot, 0);
+}
+
+// play rock summon sound
+void WorldSystem::playRockSummonSound() {
+	Mix_PlayChannel(-1, rock_summon, 0);
+}
+
+// play malediction sound
+void WorldSystem::playMaledictionSound() {
+	Mix_PlayChannel(-1, malediction_sound, 0);
+}
+
+// play fungifier sound
+void WorldSystem::playFungifierSound() {
+	Mix_PlayChannel(-1, fungifier_sound, 0);
+}
+
+// play bag of wind sound
+void WorldSystem::playBagOfWindSound() {
+	Mix_PlayChannel(-1, bag_of_wind_sound, 0);
+}
+
 
 // Remove a number of a status effect type from entity
 void remove_status(Entity e, StatusType status, int number) {
@@ -4423,7 +4455,6 @@ void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
 	else {
 		roomSystem.setRandomObjective();
 	}
-	roomSystem.updateClearCount();
 
 	saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
 
@@ -4575,6 +4606,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 					// Arcane Funnel effect
 					if (has_status(player_main, StatusType::ARCANE_FUNNEL)) {
 						player_stats.mp = min(player_stats.maxmp, player_stats.mp + (player_stats.maxmp * 0.1f * player_stats.mpregen));
+						Mix_PlayChannel(-1, world.arcane_funnel_sound, 0);
 						Entity mana = createBigSlash(world.renderer, { m.position.x, m.position.y }, 0, 256);
 						registry.renderRequests.get(mana).used_texture = TEXTURE_ASSET_ID::MANACIRCLE;
 					}

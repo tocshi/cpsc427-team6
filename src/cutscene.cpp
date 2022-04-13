@@ -279,7 +279,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 	if (cut_scene_number == 29) { 
 		messages = {
 			{
-				"\"Oh, it looks like you’re finally awake.\"",
+				"\"Oh, it looks like you're finally awake.\"",
 
 			},
 		};
@@ -345,7 +345,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 	if (cut_scene_number == 36) { 
 		messages = {
 			{
-				"I need my laptop. I’ve got some work to do.",
+				"I need my laptop. I've got some work to do.",
 
 			},
 		};

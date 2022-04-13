@@ -361,7 +361,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// if not in menu do turn order logic (!current_game_state)
-	if (current_game_state < GameStates::CUTSCENE && current_game_state >= GameStates::GAME_START) {
+	if (current_game_state < GameStates::CUTSCENE && current_game_state >= GameStates::GAME_START && current_game_state != GameStates::GAME_OVER_MENU) {
 		if (tutorial) {
 			updateTutorial();
 		}
@@ -617,6 +617,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	// Update HP/MP/EP bars and movement
 	// Check for player death / walking
 	for (Entity player : registry.players.entities) {
+		if (current_game_state == GameStates::CUTSCENE || current_game_state == GameStates::GAME_OVER_MENU) {
+			break;
+		}
 		Player& p = registry.players.get(player);
 		
 		// get player stats
@@ -716,9 +719,11 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		float statbarsX = window_width_px * 0.14;
 		float statbarsY = window_height_px * 1.7;
 
-		createStatsText(renderer, { statbarsX, statbarsY }, currHpString + " / " + maxHpString, 1.2f, vec3(1.0f));
-		createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 }, currMpString + " / " + maxMpString, 1.2f, vec3(1.0f));
-		createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 4 }, currEpString + " / " + maxEpString, 1.2f, vec3(1.0f));
+		if (current_game_state != GameStates::CUTSCENE && current_game_state != GameStates::GAME_OVER_MENU) {
+			createStatsText(renderer, { statbarsX, statbarsY }, currHpString + " / " + maxHpString, 1.2f, vec3(1.0f));
+			createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 }, currMpString + " / " + maxMpString, 1.2f, vec3(1.0f));
+			createStatsText(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 4 }, currEpString + " / " + maxEpString, 1.2f, vec3(1.0f));
+		}
 		
 		// update Stat Bars and visibility
 		for (Entity entity : registry.motions.entities) {
@@ -847,7 +852,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 				// Final Boss Death
 				if (registry.enemies.get(enemy).type == ENEMY_TYPE::REFLEXION) {
-					createMouseAnimation(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f });
+					createMouseAnimation(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 160 });
 					createEndLight(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f });
 				}
 				else {
@@ -984,6 +989,34 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					remove_fog_of_war();
 					create_fog_of_war();
 				}
+				break;
+			case (TRANSITION_TYPE::GAME_TO_FINAL_CUTSCENE):
+				if (true) {
+					Player temp = registry.players.get(player_main);
+					temp_player_data = temp;
+					set_gamestate(GameStates::CUTSCENE);
+					playMusic(Music::CUTSCENE);
+					countCutScene = 22;
+					cut_scene_start();
+				}
+				break;
+			case (TRANSITION_TYPE::CUTSCENE_TO_GAMEOVER):
+				if (true) {
+					Entity line_ent = createLine(vec2(0, 0), vec2(window_width_px, window_height_px));
+					RenderRequest& rr = registry.renderRequests.get(line_ent);
+					rr.used_layer = RENDER_LAYER_ID::UI;
+					Entity player_temp = createPlayer(renderer, vec2(0, 0));
+					player_main = player_temp;
+					Player& player_data = registry.players.get(player_temp);
+					player_data = temp_player_data;
+					
+					createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player_temp, GAME_OVER_REASON::BOSS_DEFEATED, GAME_OVER_LOCATION::BOSS_TWO);
+					saveSystem.deleteFile();
+					set_gamestate(GameStates::GAME_OVER_MENU);
+					player_move_click = false;
+				}
+				break;
+			case (TRANSITION_TYPE::GAMEOVER_TO_MAIN):
 				break;
 			default:
 				break;
@@ -1314,7 +1347,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	}
 
 	// update game background (only on player turn)
-	if (current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE) {
+	if (current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE && current_game_state != GameStates::GAME_OVER_MENU) {
 		updateGameBackground();
 	}
 	// update chest textures if flagged
@@ -2059,9 +2092,16 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				int w, h;
 				glfwGetWindowSize(window, &w, &h);
 				if (registry.fadeTransitionTimers.size() == 0) {
-					Entity temp = Entity();
-					FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
-					timer.type = TRANSITION_TYPE::CUTSCENE_TO_MAIN;
+					if (countCutScene <= 21) {
+						Entity temp = Entity();
+						FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+						timer.type = TRANSITION_TYPE::CUTSCENE_TO_MAIN;
+					}
+					else {
+						Entity temp = Entity();
+						FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+						timer.type = TRANSITION_TYPE::CUTSCENE_TO_GAMEOVER;
+					}
 				}
 			}
 			else if (current_game_state == GameStates::PAUSE_MENU) {
@@ -2246,6 +2286,15 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				Entity temp = Entity();
 				FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
 				timer.type = TRANSITION_TYPE::CUTSCENE_TO_MAIN;
+				// logic is handled in step() when the timer expires
+			}
+
+			if (current_game_state == GameStates::CUTSCENE && countCutScene >= 36) {
+				// fade to main_menu screen 
+				//screen.darken_screen_factor = 0;
+				Entity temp = Entity();
+				FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+				timer.type = TRANSITION_TYPE::CUTSCENE_TO_GAMEOVER;
 				// logic is handled in step() when the timer expires
 			}
 			return;
@@ -2653,7 +2702,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								break;
 							}
 							// Door Behaviour
-							else if (interactable.type == INTERACT_TYPE::DOOR && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+							else if (interactable.type == INTERACT_TYPE::DOOR && dist_to(registry.motions.get(player_main).position, motion.position) <= 150) {
 								interactable.interacted = true;
 								if (!registry.roomTransitions.has(player_main)) {
 									RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
@@ -2661,7 +2710,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								}
 							}
 							// Boss Door Behaviour
-							else if (interactable.type == INTERACT_TYPE::BOSS_DOOR && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+							else if (interactable.type == INTERACT_TYPE::BOSS_DOOR && dist_to(registry.motions.get(player_main).position, motion.position) <= 150) {
 								if (!registry.roomTransitions.has(player_main)) {
 									RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
 									transition.floor = Floors((int)roomSystem.current_floor + 1);
@@ -2676,10 +2725,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								}
 							}
 							// End_Light Behaviour
-							else if (interactable.type == INTERACT_TYPE::END_LIGHT && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
-								set_gamestate(GameStates::CUTSCENE);
-								playMusic(Music::CUTSCENE);
-								cutSceneSystem.scene_transition(renderer, 22);
+							else if (interactable.type == INTERACT_TYPE::END_LIGHT && dist_to(registry.motions.get(player_main).position, motion.position) <= 200) {
+								Entity temp = Entity();
+								FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+								timer.type = TRANSITION_TYPE::GAME_TO_FINAL_CUTSCENE;
 							}
 							// Switch Behaviour
 							else if (interactable.type == INTERACT_TYPE::SWITCH && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {

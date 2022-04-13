@@ -371,6 +371,8 @@ private:
 
 	int countCutScene = 0;
 
+	Player temp_player_data;
+
 	// calcualte abs value
 	int calculate_abs_value(float v1, float v2);
 };

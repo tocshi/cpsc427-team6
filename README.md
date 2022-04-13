@@ -79,7 +79,7 @@ Implemented Features:
     <ul>
 	<li> Entry point: </li>
 	 <ul>
-		<li> world_system.cpp | loadPlayerCollectionTitleScreen() & update_background_collection()| line 3033 </li>
+		<li> world_system.cpp | loadPlayerCollectionTitleScreen() & update_background_collection()| line 3033, 4500</li>
 	</ul>
     </ul>   
  - Escape button from Menus to Battle Mode 

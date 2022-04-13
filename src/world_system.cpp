@@ -3721,9 +3721,6 @@ void WorldSystem::loadAttackIndicators(json indicatorList) {
 
 void WorldSystem::logText(std::string msg, vec3 textColor) {
 	int NUM_LINES = 12;
-	if (tutorial) {
-		NUM_LINES = 4;
-	}
 	
 	vec2 defaultPos = vec2(50.f, (2.0f * window_height_px) * (7.5f/10.f));
 	// vec3 textColor = vec3(1.0f, 1.0f, 1.0f); // white

@@ -233,6 +233,9 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 						apply_status(defender, cd);
 					}
 				}
+				// play bag of wind sound
+				world.playBagOfWindSound();
+
 				world.logText("You are surrounded by a raging gust!", { 0.2, 1.0, 1.0 });
 			}
 		}

@@ -254,6 +254,8 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(malediction_sound, 32);
 	fungifier_sound = Mix_LoadWAV(audio_path("sfx/fungifier.wav").c_str());
 	Mix_VolumeChunk(fungifier_sound, 24);
+	bag_of_wind_sound = Mix_LoadWAV(audio_path("sfx/hurricane.wav").c_str());
+	Mix_VolumeChunk(bag_of_wind_sound, 32);
 
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr
@@ -4190,6 +4192,11 @@ void WorldSystem::playMaledictionSound() {
 // play fungifier sound
 void WorldSystem::playFungifierSound() {
 	Mix_PlayChannel(-1, fungifier_sound, 0);
+}
+
+// play bag of wind sound
+void WorldSystem::playBagOfWindSound() {
+	Mix_PlayChannel(-1, bag_of_wind_sound, 0);
 }
 
 

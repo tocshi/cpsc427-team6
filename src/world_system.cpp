@@ -248,6 +248,8 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(smokescreen_sound, 32);
 	arcane_funnel_sound = Mix_LoadWAV(audio_path("sfx/arcane_funnel.wav").c_str());
 	Mix_VolumeChunk(arcane_funnel_sound, 32);
+	rock_summon = Mix_LoadWAV(audio_path("sfx/rock_summon.wav").c_str());
+	Mix_VolumeChunk(rock_summon, 32);
 
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr
@@ -4169,6 +4171,11 @@ void WorldSystem::playEnemyMoveSound(ENEMY_TYPE enemy_type) {
 // play plant shoot sound
 void WorldSystem::playPlantShootSound() {
 	Mix_PlayChannel(-1, plant_shoot, 0);
+}
+
+// play rock summon sound
+void WorldSystem::playRockSummonSound() {
+	Mix_PlayChannel(-1, rock_summon, 0);
 }
 
 // Remove a number of a status effect type from entity

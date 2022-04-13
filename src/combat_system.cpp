@@ -251,6 +251,9 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 			registry.renderRequests.get(curse).used_texture = TEXTURE_ASSET_ID::CURSE;
 			registry.expandTimers.get(curse).counter_ms = 1000;
 			world.logText("A dreadful curse befalls your enemies!", { 0.2, 1.0, 1.0 });
+
+			// play malediction sound
+			world.playMaledictionSound();
 		}
 	}
 

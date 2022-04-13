@@ -65,6 +65,7 @@ public:
 	void playPlantShootSound();
 
 	void playRockSummonSound();
+	void playMaledictionSound();
 
 	// create fog of war
 	void create_fog_of_war();
@@ -142,6 +143,7 @@ public:
 	Mix_Chunk* potion_sound;
 	Mix_Chunk* smokescreen_sound;
 	Mix_Chunk* rock_summon;
+	Mix_Chunk* malediction_sound;
 
 	Mix_Music* background_music;
 	Mix_Music* menu_music;

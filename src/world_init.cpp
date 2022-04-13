@@ -2047,7 +2047,7 @@ Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player, GAM
 		break;
 	case GAME_OVER_REASON::BOSS_DEFEATED:
 		// render game over title
-		title = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 50.f, pos.y - (COLLECTION_MENU_BB_HEIGHT / 6.f - 90.f)), "Game Over", 8.5f, vec3(0.0f, 1.f, 0.4f));
+		title = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 50.f, pos.y - (COLLECTION_MENU_BB_HEIGHT / 6.f - 90.f)), "Game Over?", 8.5f, vec3(0.0f, 1.f, 0.4f));
 		registry.menuItems.emplace(title);
 
 		reasonEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 200.f), "You have risen...", 3.f, vec3(0.0f, 1.f, 1.f));

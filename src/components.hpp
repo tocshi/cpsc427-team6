@@ -328,6 +328,8 @@ struct Player
 	int floor = 1;
 	int room = 0;
 	int total_rooms = 0;
+	int chests = 0;
+	int potions = 0;
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
 

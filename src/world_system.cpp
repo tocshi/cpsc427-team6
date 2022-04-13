@@ -334,6 +334,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				Consumable consumable = registry.consumables.get(entity);
 				Stats stats = registry.stats.get(player_main);
 				Stats basestats = registry.basestats.get(player_main);
+				registry.players.get(player_main).potions++;
 				StatusEffect regen = StatusEffect(stats.maxhp * 0.06, 5, StatusType::HP_REGEN, false, true);
 				switch (consumable.type) {
 				case CONSUMABLE::REDPOT:
@@ -1230,6 +1231,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (chest.isArtifact) {
 					if (chest.opened) {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ARTIFACT_OPEN;
+						registry.players.get(player_main).chests++;
 
 						// Smoke Powder effect
 						if (registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER] > 0) {
@@ -1252,6 +1254,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				else {
 					if (chest.opened) {
 						rr.used_texture = TEXTURE_ASSET_ID::CHEST_ITEM_OPEN;
+						registry.players.get(player_main).chests++;
 
 						// Smoke Powder effect
 						if (registry.inventories.get(player_main).artifact[(int)ARTIFACT::SMOKE_POWDER] > 0) {

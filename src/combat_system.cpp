@@ -513,6 +513,7 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 							stats.ep += status.value;
 						}
 					}
+					break;
 				case (StatusType::HP_REGEN):
 					if (!stats_only) {
 						if (status.percentage && registry.stats.has(entity)) {

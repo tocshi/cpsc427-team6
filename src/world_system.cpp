@@ -1415,17 +1415,18 @@ void WorldSystem::restart_game() {
 void WorldSystem::handle_end_player_turn(Entity player) {
 	Motion& player_motion = registry.motions.get(player);
 	Player& p = registry.players.get(player);
+
+	// Need to have this outside of handle_status_ticks or else it'll erase the wrong status
+	if (has_status(player_main, StatusType::DISENGAGE_TRIGGER) && !p.attacked) {
+		StatusEffect regen = StatusEffect(30, 0, StatusType::EP_REGEN, false, true);
+		apply_status(player_main, regen);
+	}
+
 	player_motion.velocity = { 0.f, 0.f };
 	player_motion.in_motion = false;
 	p.attacked = false;
 	p.moved = false;
 	enemy_move_audio_time_ms = 0.f;
-
-	// Need to have this outside of handle_status_ticks or else it'll erase the wrong status
-	if (has_status(player_main, StatusType::DISENGAGE_TRIGGER) && !p.attacked) {
-		StatusEffect regen = StatusEffect(30, 1, StatusType::EP_REGEN, false, true);
-		apply_status(player_main, regen);
-	}
 
 	set_is_player_turn(false);
 	player_move_click = false;
@@ -4746,7 +4747,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				knockback.angle = atan2(target_pos.y - player_motion.position.y, target_pos.x - player_motion.position.x);
 			}
 
-			StatusEffect trigger = StatusEffect(0, 1, StatusType::DISENGAGE_TRIGGER, false, false);
+			StatusEffect trigger = StatusEffect(0, 0, StatusType::DISENGAGE_TRIGGER, false, false);
 			apply_status(player_main, trigger);
 			Mix_PlayChannel(-1, whoosh, 0);
 

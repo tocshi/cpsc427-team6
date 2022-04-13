@@ -106,7 +106,7 @@ Implemented Features:
     <ul>
 	<li> Entry point: </li>
 	 <ul>
-		 <li> world_init.cpp | line 1672 </li> 
+		 <li> world_init.cpp | line 1959 </li> 
 	</ul>
     </ul>   
  - Attack range indicator

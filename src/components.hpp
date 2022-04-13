@@ -408,7 +408,7 @@ struct DeathTimer
 // Squishing effect timer
 struct SquishTimer
 {
-	float counter_ms = 3000;
+	float counter_ms = 2000;
 	vec2 orig_scale = { 0, 0 };
 };
 

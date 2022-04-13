@@ -76,7 +76,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	Equipment weapon = {};
 	weapon.type = EQUIPMENT::BLUNT;
 	weapon.sprite = 0;
-	weapon.atk = 10;
+	weapon.atk = 100;
 
 	// DEBUG
 	/*
@@ -2848,6 +2848,8 @@ Entity createMouseAnimation(RenderSystem* renderer, vec2 pos) {
 	Motion& motion = registry.motions.emplace(entity);
 	motion.position = pos;
 	motion.scale = { 64, 64 };
+
+	registry.hidables.emplace(entity);
 
 	registry.renderRequests.insert(
 		entity,

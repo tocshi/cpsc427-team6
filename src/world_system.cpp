@@ -828,7 +828,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (registry.bosses.has(enemy)) {
 				roomSystem.updateObjective(ObjectiveType::DEFEAT_BOSS, 1);
 				createDoor(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f }, true);
-				roomSystem.setNextFloor(Floors((int)roomSystem.current_floor + 1));
+				//roomSystem.setNextFloor(Floors((int)roomSystem.current_floor + 1));
 				registry.players.get(player_main).floor++;
 				createCampfire(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y + 64.f });
 				registry.enemies.get(enemy).state = ENEMY_STATE::DEATH;
@@ -2561,6 +2561,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								if (!registry.roomTransitions.has(player_main)) {
 									RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
 									transition.floor = Floors((int)roomSystem.current_floor + 1);
+									if (transition.floor == Floors::FLOOR1 || transition.floor == Floors::BOSS1) {
+										playMusic(Music::BACKGROUND);
+									}
+									if (transition.floor == Floors::FLOOR2 || transition.floor == Floors::BOSS2) {
+										playMusic(Music::RUINS);
+									}
 									roomSystem.setNextFloor(transition.floor);
 								}
 							}

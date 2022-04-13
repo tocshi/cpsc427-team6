@@ -76,7 +76,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 	Equipment weapon = {};
 	weapon.type = EQUIPMENT::BLUNT;
 	weapon.sprite = 0;
-	weapon.atk = 100;
+	weapon.atk = 10;
 
 	// DEBUG
 	/*
@@ -629,7 +629,7 @@ Entity createReflexion(RenderSystem* renderer, vec2 pos)
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "???";
 	stats.prefix = "";
-	stats.maxhp = 1000;
+	stats.maxhp = 600;
 	stats.hp = stats.maxhp;
 	stats.atk = 15;
 	stats.def = 6;

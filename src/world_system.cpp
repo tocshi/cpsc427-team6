@@ -3632,6 +3632,7 @@ void WorldSystem::logText(std::string msg, vec3 textColor) {
 
 	Entity e = createText(renderer, defaultPos, msg, 1.5f, textColor);
 	registry.logTexts.emplace(e);
+	registry.renderRequests.get(e).used_layer = RENDER_LAYER_ID::LOG_TEXT;
 	// TextTimer& timer = registry.textTimers.emplace(e);
 	// timer.counter_ms = 8000;
 }

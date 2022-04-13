@@ -90,10 +90,16 @@ enum class TEXTURE_ASSET_ID {
 	DESCRIPTION_DIALOG = COLLECTION_PANEL + 1,
 	ARTIFACT_PLACEHOLDER = DESCRIPTION_DIALOG + 1,
 	COLLECTION_SCROLL_ARROW = ARTIFACT_PLACEHOLDER + 1,
-	CUTSCENE1 = COLLECTION_SCROLL_ARROW + 1,
-	CUTSCENE2 = CUTSCENE1 + 1,
-	CUTSCENE3 = CUTSCENE2 + 1,
-	TURN_UI = CUTSCENE3 + 1,
+	BG_ROOM = COLLECTION_SCROLL_ARROW + 1,
+	SHOU_ANGRY = BG_ROOM + 1,
+	SHOU_CONFUSED = SHOU_ANGRY + 1,
+	SHOU_HAPPY = SHOU_CONFUSED+1,
+	SHOU_NORMAL = SHOU_HAPPY + 1, // swap cutscene up 
+	SHOU_SURPRISED = SHOU_NORMAL + 1,
+	BG_NOTEBOOK = SHOU_SURPRISED + 1,
+	BG_CAVE = BG_NOTEBOOK + 1,
+	BG_HOSPITAL = BG_CAVE + 1,
+	TURN_UI = BG_HOSPITAL + 1,
 	SWITCH_DEFAULT = TURN_UI + 1,
 	SWITCH_ACTIVE = SWITCH_DEFAULT + 1,
 	ITEM_WEAPON_CARD = SWITCH_ACTIVE + 1,
@@ -167,7 +173,8 @@ enum class TEXTURE_ASSET_ID {
 	HP_REGEN_PARTICLE = INVINCIBLE_PARTICLE + 1,
 	FATE = HP_REGEN_PARTICLE + 1,
 	ORB = FATE + 1,
-	TEXTURE_COUNT = ORB + 1,
+	ENDLIGHT = ORB + 1,
+	TEXTURE_COUNT = ENDLIGHT + 1,
 };
 const int texture_count = (int)TEXTURE_ASSET_ID::TEXTURE_COUNT;
 
@@ -328,6 +335,8 @@ struct Player
 	int floor = 1;
 	int room = 0;
 	int total_rooms = 0;
+	int chests = 0;
+	int potions = 0;
 	// current action taking (count acts as no current action being taken)
 	PLAYER_ACTION action = PLAYER_ACTION::ACTION_COUNT;
 
@@ -408,7 +417,7 @@ struct DeathTimer
 // Squishing effect timer
 struct SquishTimer
 {
-	float counter_ms = 3000;
+	float counter_ms = 2000;
 	vec2 orig_scale = { 0, 0 };
 };
 
@@ -431,6 +440,7 @@ struct Trap
 	int turns = 1;
 	int triggers = 1;
 	float multiplier = 100;
+	TEXTURE_ASSET_ID type;
 	Entity owner;
 };
 
@@ -480,6 +490,7 @@ enum class INTERACT_TYPE {
 	PICKUP = SIGN_2 + 1,
 	SWITCH = PICKUP + 1,
 	CAMPFIRE = SWITCH + 1,
+	END_LIGHT = CAMPFIRE + 1,
 	TYPE_COUNT = CAMPFIRE + 1
 };
 
@@ -806,7 +817,23 @@ const int floor_count = (int)Floors::FLOOR_COUNT;
 struct RoomTransitionTimer {
 	float counter_ms = 750.f;
 	Floors floor;
+	bool floor_change = false;
 	bool repeat_allowed = false; // whether the next room is allowed to use the same map file as the current
+};
+
+enum class TRANSITION_TYPE {
+	MAIN_TO_CREDITS = 0,
+	CREDITS_TO_MAIN = MAIN_TO_CREDITS + 1,
+	MAIN_TO_GAME = CREDITS_TO_MAIN + 1,
+	CUTSCENE_TO_MAIN = MAIN_TO_GAME + 1,
+	CUTSCENE_SWITCH = CUTSCENE_TO_MAIN + 1,
+	CONTINUE_TO_GAME = CUTSCENE_SWITCH + 1,
+	GAME_OVER = CONTINUE_TO_GAME + 1,
+};
+
+struct FadeTransitionTimer {
+	float counter_ms = 500.f;
+	TRANSITION_TYPE type;
 };
 
 struct LoadingTimer {
@@ -902,10 +929,13 @@ enum class RENDER_LAYER_ID {
 	RANDOM_WALLS = RANDOM_WALLS_INSTANCED + 1,
 	APPARITION = RANDOM_WALLS + 1,
 	EFFECT = APPARITION + 1,
-	HP_BACKING = EFFECT + 1,
+	FOG = EFFECT + 1,
+	RANGES = FOG + 1,
+	HP_BACKING = RANGES + 1,
 	HP_FILL = HP_BACKING + 1,
 	DAMAGE_TEXT = HP_FILL + 1,
-	UI = HP_FILL + 1,
+	LOG_TEXT = DAMAGE_TEXT + 1,
+	UI = LOG_TEXT + 1,
 	UI_ICONS = UI + 1,
 	UI_MID = UI_ICONS + 1,
 	ARTIFACT_ICONS = UI_MID + 1,
@@ -954,6 +984,22 @@ struct GuardButton {
 
 	// which button action to take
 	BUTTON_ACTION_ID action = BUTTON_ACTION_ID::ACTIONS_GUARD;
+};
+
+// game over reasons
+enum class GAME_OVER_REASON {
+	PLAYER_DIED = 0,
+	BOSS_DEFEATED = PLAYER_DIED + 1,
+	GAME_OVER_COUNT = BOSS_DEFEATED + 1
+};
+
+// game over location
+enum class GAME_OVER_LOCATION {
+	FLOOR_ONE = 0,
+	BOSS_ONE = FLOOR_ONE + 1,
+	FLOOR_TWO = BOSS_ONE + 1,
+	BOSS_TWO = FLOOR_TWO + 1,
+	GAME_OVER_LOCATION_COUNT = FLOOR_TWO + 1
 };
 
 // hotkey icon
@@ -1140,7 +1186,7 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::FUNGIFIER, "Upon defeating an enemy, an explosive mushroom grows at their location on your next turn. When an enemy steps on the mushroom, or after 3 turns, the mushroom explodes, dealing 130% (+130% per stack) ATK in damage in a small AoE."},
 	{ARTIFACT::BURRBAG, "At the start of each turn, leave a patch of burrs on the ground that last for 5 turns or until activated 1 (+1 per stack) times. Enemies that step over the burrs will take 40% ATK in damage."},
 	{ARTIFACT::SMOKE_POWDER, "When opening a chest, release a cloud of smoke that halves the aggro range of enemies within 200 (+75 per stack) units for 1 turn."},
-	{ARTIFACT::LIVELY_BULB, "At the start of each turn, fire a seed projectile that deals 80% (+80% per stack) ATK damage towards the lowest HP enemy within your sight range."},
+	{ARTIFACT::LIVELY_BULB, "At the start of each turn, fire a seed projectile that deals 80% (+80% per stack) ATK damage towards the lowest HP enemy within half of your sight range."},
 	{ARTIFACT::MALEDICTION, "When you are attacked, all visible enemies will be affected with a curse that reduces their ATK by 40% for 3 turns. Has a 10 (-1 per stack) turn cooldown."},
 	//{ARTIFACT::CHIMERARM, "Your current weapon, and newly generated weapons will have +4 ATK (+4 ATK per stack), and its 2nd Attack Skill will become a random attack skill from any weapon type."}
 };

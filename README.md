@@ -60,7 +60,20 @@ Implemented Features:
 		<li> ai_system.cpp | line TO_BE_UPDATED </li>
 	</ul>
     </ul>
-
+ - Cutscene rework 
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> cutscene.cpp | entire file </li>
+	</ul>
+    </ul>
+ - Title rework 
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_system.cpp | loadPlayerCollectionTitleScreen() & update_background_collection()| line tbd </li>
+	</ul>
+    </ul>    
 Team 6 - User Feedback Report
 User Testing Performed:
 

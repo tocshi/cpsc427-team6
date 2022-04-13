@@ -69,6 +69,8 @@ void WorldSystem::destroyMusic() {
 		Mix_FreeChunk(special_sound);
 	if (ui_click != nullptr)
 		Mix_FreeChunk(ui_click);
+	if (plant_shoot != nullptr)
+		Mix_FreeChunk(plant_shoot);
 	Mix_CloseAudio();
 
 }
@@ -228,12 +230,16 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(caveling_death, 30);
 	ui_click = Mix_LoadWAV(audio_path("feedback/ui_click.wav").c_str());
 	Mix_VolumeChunk(ui_click, 32);
+	plant_shoot = Mix_LoadWAV(audio_path("sfx/pop.wav").c_str());
+	Mix_VolumeChunk(plant_shoot, 32);
 	kingslime_attack = Mix_LoadWAV(audio_path("sfx/slimeattack.wav").c_str());
 	Mix_VolumeChunk(kingslime_attack, 24);
 	kingslime_jump = Mix_LoadWAV(audio_path("sfx/slimejump.wav").c_str());
 	Mix_VolumeChunk(kingslime_jump, 24);
 	kingslime_summon = Mix_LoadWAV(audio_path("sfx/slimesummon.wav").c_str());
 	Mix_VolumeChunk(kingslime_summon, 24);
+	pebble_move = Mix_LoadWAV(audio_path("sfx/pebble_move.wav").c_str());
+	Mix_VolumeChunk(pebble_move, 48);
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr
 		|| error_sound == nullptr || footstep_sound == nullptr
@@ -4138,7 +4144,15 @@ void WorldSystem::playEnemyMoveSound(ENEMY_TYPE enemy_type) {
 	case ENEMY_TYPE::CAVELING:
 		Mix_PlayChannel(-1, caveling_move, 0);
 		break;
+	case ENEMY_TYPE::LIVING_PEBBLE:
+		Mix_PlayChannel(-1, pebble_move, 0);
+		break;
 	}
+}
+
+// play plant shoot sound
+void WorldSystem::playPlantShootSound() {
+	Mix_PlayChannel(-1, plant_shoot, 0);
 }
 
 // Remove a number of a status effect type from entity

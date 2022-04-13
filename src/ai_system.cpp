@@ -207,6 +207,9 @@ void AISystem::plant_shooter_logic(Entity plant_shooter, Entity& player) {
 				createProjectile(world.renderer, plant_shooter, motion_struct.position, {PLANT_PROJECTILE_BB_WIDTH, PLANT_PROJECTILE_BB_HEIGHT}, dir, 100, TEXTURE_ASSET_ID::PLANT_PROJECTILE);
 				registry.solid.remove(plant_shooter);
 				registry.motions.get(plant_shooter).in_motion = true;
+
+				// play shoot sound
+				world.playPlantShootSound();
 			}
 			break;
 		case ENEMY_STATE::DEATH:

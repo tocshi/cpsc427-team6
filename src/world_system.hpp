@@ -62,6 +62,8 @@ public:
 
 	void start_player_turn();
 
+	void playPlantShootSound();
+
 	// create fog of war
 	void create_fog_of_war();
 
@@ -129,9 +131,11 @@ public:
 	Mix_Chunk* caveling_death;
 	Mix_Chunk* caveling_move;
 	Mix_Chunk* ui_click;
+	Mix_Chunk* plant_shoot;
 	Mix_Chunk* kingslime_attack;
 	Mix_Chunk* kingslime_jump;
 	Mix_Chunk* kingslime_summon;
+	Mix_Chunk* pebble_move;
 
 	Mix_Music* background_music;
 	Mix_Music* menu_music;

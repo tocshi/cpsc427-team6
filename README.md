@@ -73,7 +73,21 @@ Implemented Features:
 	 <ul>
 		<li> world_system.cpp | loadPlayerCollectionTitleScreen() & update_background_collection()| line tbd </li>
 	</ul>
-    </ul>    
+    </ul>   
+ - Escape button from Menus to Battle Mode 
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_system.cpp | line 1956 </li>
+	</ul>
+    </ul> 
+ - Global End Turn button
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_system.cpp | line 1972 </li>
+	</ul>
+    </ul>   
 Team 6 - User Feedback Report
 User Testing Performed:
 

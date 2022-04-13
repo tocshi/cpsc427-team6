@@ -96,6 +96,13 @@ Implemented Features:
 		 <li> world_init.cpp | line 2016 </li> 
 	</ul>
     </ul>
+  - Item stats dialog
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		 <li> world_init.cpp | line 1672 </li> 
+	</ul>
+    </ul>   
  - Attack range indicator
     <ul>
 	<li> Entry point: </li>

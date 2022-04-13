@@ -2892,7 +2892,7 @@ void WorldSystem::loadFromData(json data) {
 	// load attack indicators
 	loadAttackIndicators(attackIndicatorList);
 	// load traps in game 
-	//loadTraps(traplist);
+	loadTraps(traplist);
 }
 
 Entity WorldSystem::loadPlayer(json playerData) {

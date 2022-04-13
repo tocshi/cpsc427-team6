@@ -35,7 +35,7 @@ void SaveSystem::saveGameState(std::queue<Entity> entities, RoomSystem& roomSyst
 	saveState["room"] = jsonifyRoomSystem(roomSystem);
 	saveState["music"] = world.current_music;
 	// get traps in the game
-	//saveState["trapEntities"] = jsonifyTraps();
+	saveState["trapEntities"] = jsonifyTraps();
 	saveToFile(saveState);
 }
 

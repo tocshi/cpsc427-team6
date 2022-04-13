@@ -411,7 +411,7 @@ struct DebugComponent
 // A timer that will be associated to dying player
 struct DeathTimer
 {
-	float counter_ms = 3000;
+	float counter_ms = 2000;
 };
 
 // Squishing effect timer

@@ -3285,6 +3285,8 @@ void WorldSystem::loadPlayerComponent(Entity e, json playerCompData, Inventory i
 	registry.players.get(e).floor = playerCompData["floor"];
 	registry.players.get(e).room = playerCompData["room"];
 	registry.players.get(e).total_rooms = playerCompData["total_rooms"];
+	registry.players.get(e).chests = playerCompData["chests"];
+	registry.players.get(e).potions = playerCompData["potions"];
 }
 
 Inventory WorldSystem::loadInventory(Entity e, json inventoryData) {

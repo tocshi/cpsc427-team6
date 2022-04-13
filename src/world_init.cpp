@@ -2139,7 +2139,7 @@ Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player, GAM
 
 	// potions consumed
 	std::string potionsString = "Potions consumed: " + std::to_string((int)player_comp.potions);
-	Entity potionsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 360.f), chestsString, 1.8f, vec3(0.0f));
+	Entity potionsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 360.f), potionsString, 1.8f, vec3(0.0f));
 	registry.equipmentDialogs.emplace(potionsEnt);
 
 	// create continue button (tiggers the black fade out and deletes the old save file)

@@ -814,6 +814,7 @@ const int floor_count = (int)Floors::FLOOR_COUNT;
 struct RoomTransitionTimer {
 	float counter_ms = 750.f;
 	Floors floor;
+	bool floor_change = false;
 	bool repeat_allowed = false; // whether the next room is allowed to use the same map file as the current
 };
 

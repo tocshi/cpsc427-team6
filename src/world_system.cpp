@@ -893,7 +893,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			registry.roomTransitions.remove(entity);
 
 			printf("clear count before: %d\n", roomSystem.rooms_cleared_current_floor);
-			roomSystem.updateClearCount();
+			if (!counter.floor_change) {
+				roomSystem.updateClearCount();
+			}
 
 			if (tutorial) {
 				if (!registry.motions.has(objectiveCounter)) {
@@ -2650,6 +2652,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								if (!registry.roomTransitions.has(player_main)) {
 									RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
 									transition.floor = Floors((int)roomSystem.current_floor + 1);
+									transition.floor_change = true;
 									if (transition.floor == Floors::FLOOR1 || transition.floor == Floors::BOSS1) {
 										playMusic(Music::BACKGROUND);
 									}

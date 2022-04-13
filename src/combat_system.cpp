@@ -251,6 +251,9 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 			registry.renderRequests.get(curse).used_texture = TEXTURE_ASSET_ID::CURSE;
 			registry.expandTimers.get(curse).counter_ms = 1000;
 			world.logText("A dreadful curse befalls your enemies!", { 0.2, 1.0, 1.0 });
+
+			// play malediction sound
+			world.playMaledictionSound();
 		}
 	}
 
@@ -354,6 +357,9 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 		Mix_PlayChannel(-1, world.trap_sound, 0);
 		Entity mushroom = createTrap(world.renderer, attacker, {0, 0}, { 64, 64 }, multiplier, 2, 1, TEXTURE_ASSET_ID::MUSHROOM);
 		registry.motions.get(mushroom).destination = defender_motion.position;
+
+		// play fungifier sound
+		world.playFungifierSound();
 	}
 	return final_damage;
 }

@@ -252,6 +252,10 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(rock_summon, 32);
 	trap_sound = Mix_LoadWAV(audio_path("sfx/trap.wav").c_str());
 	Mix_VolumeChunk(trap_sound, 32);
+	malediction_sound = Mix_LoadWAV(audio_path("sfx/malediction.wav").c_str());
+	Mix_VolumeChunk(malediction_sound, 32);
+	fungifier_sound = Mix_LoadWAV(audio_path("sfx/fungifier.wav").c_str());
+	Mix_VolumeChunk(fungifier_sound, 24);
 
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr
@@ -4180,6 +4184,17 @@ void WorldSystem::playPlantShootSound() {
 void WorldSystem::playRockSummonSound() {
 	Mix_PlayChannel(-1, rock_summon, 0);
 }
+
+// play malediction sound
+void WorldSystem::playMaledictionSound() {
+	Mix_PlayChannel(-1, malediction_sound, 0);
+}
+
+// play fungifier sound
+void WorldSystem::playFungifierSound() {
+	Mix_PlayChannel(-1, fungifier_sound, 0);
+}
+
 
 // Remove a number of a status effect type from entity
 void remove_status(Entity e, StatusType status, int number) {

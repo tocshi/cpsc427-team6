@@ -673,6 +673,9 @@ void AISystem::living_rock_logic(Entity enemy, Entity& player) {
 				ExpandTimer iframe = registry.iFrameTimers.emplace(summon);
 				iframe.counter_ms = 50;
 				summoned = true;
+
+				// play rock summon sound
+				world.playRockSummonSound();
 			}
 		}
 		if (summoned) {

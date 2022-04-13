@@ -103,7 +103,7 @@ class RenderSystem {
 			textures_path("cg/shou_surprised.png"),
 			textures_path("cg/bg_notebook.png"),
 			textures_path("cg/bg_cave.png"),
-
+			textures_path("cg/bg_hospital.png"),
 			textures_path("turn_ui.png"),
 			textures_path("switch_default.png"),
 			textures_path("switch_active.png"),

@@ -113,7 +113,7 @@ Entity createPlayer(RenderSystem* renderer, vec2 pos)
 }
 
 // Enemy slime (split into different enemies for future)
-Entity createEnemy(RenderSystem* renderer, vec2 pos)
+Entity createEnemy(RenderSystem* renderer, vec2 pos, bool enhanced)
 {
 	auto entity = Entity();
 
@@ -139,21 +139,17 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	stats.name = "Slime";
 	stats.prefix = "the";
 	stats.maxhp = 28;
-	stats.hp = stats.maxhp;
 	stats.atk = 10;
 	stats.def = 3;
 	stats.speed = 8;
 	stats.range = 250;
 
-	// For Artifact Testing
-	/*
-	stats.maxhp = 1000;
-	stats.hp = stats.maxhp;
-	stats.atk = 100;
-	stats.def = 0;
-	stats.speed = 8;
-	stats.range = 250;*/
+	if (enhanced) {
+		stats.maxhp = 50;
+		stats.atk = 17;
+	}
 
+	stats.hp = stats.maxhp;
 	registry.basestats.insert(entity, stats);
 
 	registry.renderRequests.insert(
@@ -180,7 +176,7 @@ Entity createEnemy(RenderSystem* renderer, vec2 pos)
 	return entity;
 }
 
-Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
+Entity createPlantShooter(RenderSystem* renderer, vec2 pos, bool enhanced)
 {
 	auto entity = Entity();
 
@@ -200,12 +196,18 @@ Entity createPlantShooter(RenderSystem* renderer, vec2 pos)
 	stats.name = "Plant Shooter";
 	stats.prefix = "the";
 	stats.maxhp = 24.f;
-	stats.hp = stats.maxhp;
 	stats.atk = 8.f;
 	stats.def = 2.f;
 	stats.speed = 7.f;
 	stats.range = 400.f;
 	stats.chase = 0.f;
+
+	if (enhanced) {
+		stats.maxhp = 43;
+		stats.atk = 13;
+	}
+
+	stats.hp = stats.maxhp;
 
 	registry.basestats.insert(entity, stats);
 
@@ -303,7 +305,7 @@ Entity createTrap(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, fl
 }
 
 // Enemy slime (split into different enemies for future)
-Entity createCaveling(RenderSystem* renderer, vec2 pos)
+Entity createCaveling(RenderSystem* renderer, vec2 pos, bool enhanced)
 {
 	auto entity = Entity();
 
@@ -329,12 +331,17 @@ Entity createCaveling(RenderSystem* renderer, vec2 pos)
 	stats.name = "Caveling";
 	stats.prefix = "the";
 	stats.maxhp = 19;
-	stats.hp = stats.maxhp;
 	stats.atk = 6;
 	stats.def = 0;
 	stats.speed = 15;
 	stats.range = 300;
 
+	if (enhanced) {
+		stats.maxhp = 35;
+		stats.atk = 10;
+	}
+
+	stats.hp = stats.maxhp;
 	registry.basestats.insert(entity, stats);
 
 	registry.renderRequests.insert(

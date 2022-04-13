@@ -11,8 +11,6 @@
 #include "combat_system.hpp"
 
 // Game configuration
-// decalre gamestates
-//GameStates game_state = GameStates::CUTSCENE;
 
 // Create the world
 WorldSystem::WorldSystem()
@@ -1719,31 +1717,13 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 			case Floors::FLOOR2:
 				roll = irand(9);
 				if (roll < 1) {
-					Entity summon = createEnemy(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
-					Stats& summon_stats = registry.basestats.get(summon);
-					summon_stats.maxhp = 50;
-					summon_stats.atk = 17;
-					registry.stats.get(summon).hp = summon_stats.maxhp;
-					reset_stats(summon);
-					calc_stats(summon);
+					createEnemy(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
 				}
 				else if (roll < 2) {
-					Entity summon = createPlantShooter(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
-					Stats& summon_stats = registry.basestats.get(summon);
-					summon_stats.maxhp = 43;
-					summon_stats.atk = 13;
-					registry.stats.get(summon).hp = summon_stats.maxhp;
-					reset_stats(summon);
-					calc_stats(summon);
+					createPlantShooter(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
 				}
 				else if (roll < 3) {
-					Entity summon = createCaveling(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
-					Stats& summon_stats = registry.basestats.get(summon);
-					summon_stats.maxhp = 35;
-					summon_stats.atk = 10;
-					registry.stats.get(summon).hp = summon_stats.maxhp;
-					reset_stats(summon);
-					calc_stats(summon);
+					createCaveling(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
 				}
 				else if (roll < 6) {
 					createLivingRock(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
@@ -2647,6 +2627,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									roomSystem.setNextFloor(transition.floor);
 								}
 							}
+							// End_Light Behaviour
+							else if (interactable.type == INTERACT_TYPE::END_LIGHT && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
+								set_gamestate(GameStates::CUTSCENE);
+								playMusic(Music::CUTSCENE);
+								cutSceneSystem.scene_transition(renderer, 22);
+							}
 							// Switch Behaviour
 							else if (interactable.type == INTERACT_TYPE::SWITCH && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
 								interactable.interacted = true;
@@ -2986,6 +2972,8 @@ void WorldSystem::loadFromData(json data) {
 	json attackIndicatorList = data["attack_indicators"];
 	json traplist = data["trapEntities"];
 
+	// load room system
+	loadRoomSystem(roomSystemJson);
 	// load enemies
 	std::queue<Entity> entities;
 	for (auto& entity : entityList) {
@@ -3010,8 +2998,6 @@ void WorldSystem::loadFromData(json data) {
 	loadInteractables(interactablesList);
 	// load tiles
 	loadTiles(tilesList);
-	// load room system
-	loadRoomSystem(roomSystemJson);
 	// load attack indicators
 	loadAttackIndicators(attackIndicatorList);
 	// load traps in game 
@@ -3149,13 +3135,28 @@ int WorldSystem::calculate_abs_value(float v1, float v2) {
 Entity WorldSystem::loadEnemy(json enemyData) {
 	Entity e;
 	if (enemyData["enemy"]["type"] == ENEMY_TYPE::SLIME) {
-		e = createEnemy(renderer, { 0, 0 });
+		if (roomSystem.current_floor > Floors::BOSS1) {
+			e = createEnemy(renderer, { 0, 0 }, true);
+		}
+		else {
+			e = createEnemy(renderer, { 0, 0 });
+		}
 	}
 	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::PLANT_SHOOTER) {
-		e = createPlantShooter(renderer, { 0, 0 });
+		if (roomSystem.current_floor > Floors::BOSS1) {
+			e = createPlantShooter(renderer, { 0, 0 }, true);
+		}
+		else {
+			e = createPlantShooter(renderer, { 0, 0 });
+		}
 	}
 	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::CAVELING) {
-		e = createCaveling(renderer, { 0, 0 });
+		if (roomSystem.current_floor > Floors::BOSS1) {
+			e = createPlantShooter(renderer, { 0, 0 }, true);
+		}
+		else {
+			e = createPlantShooter(renderer, { 0, 0 });
+		}
 	}
 	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::KING_SLIME) {
 		e = createKingSlime(renderer, { 0, 0 });

@@ -1490,7 +1490,7 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 				float dir = i * (M_PI / 2);
 				roll = irand(4);
 				vec2 pos = dirdist_extrapolate(player_motion.position, dir, 120);
-				Entity trap = createTrap(world.renderer, enemy, pos, { 150, 150 }, stats.atk, 1, 2, TEXTURE_ASSET_ID::FATE);
+				Entity trap = createTrap(world.renderer, enemy, pos, { 150, 150 }, stats.atk, 2, 1, TEXTURE_ASSET_ID::FATE);
 
 				if (roll < 1) { registry.colors.insert(trap, { 1.f, 0.f, 0.f, 0.9f }); }
 				else if (roll < 2) { registry.colors.insert(trap, { 0.f, 1.f, 0.f, 0.9f }); }

@@ -49,14 +49,16 @@ Implemented Features:
     <ul>
 	<li> Entry point: </li>
 	 <ul>
-		<li> world_system.cpp | updateTutorial() | 3824 </li>
+		<li> world_system.cpp | updateTutorial() | line 3824 </li>
 	</ul>
     </ul>
  - New enemies (Living Rock, Living Pebble, Apparition)
     <ul>
 	<li> Entry point: </li>
 	 <ul>
-		<li> ai_system.cpp | line TO_BE_UPDATED </li>
+		<li> ai_system.cpp | line 1110 </li>
+		<li> ai_system.cpp | line 1197 </li>
+		<li> ai_system.cpp | line 1258 </li>
 	</ul>
     </ul>
 - Complex Boss Encounter AIs (King Slime, Reflexion)

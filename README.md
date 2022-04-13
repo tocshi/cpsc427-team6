@@ -87,6 +87,14 @@ Implemented Features:
 	 <ul>
 		<li> world_system.cpp | line 1972 </li>
 	</ul>
+    </ul>
+ - Game over screen
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		<li> world_system.cpp | line 642 </li>
+		 <li> world_init.cpp | line 2016 </li> 
+	</ul>
     </ul>   
 Team 6 - User Feedback Report
 User Testing Performed:

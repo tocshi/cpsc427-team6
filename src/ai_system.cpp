@@ -1490,7 +1490,7 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 				float dir = i * (M_PI / 2);
 				roll = irand(4);
 				vec2 pos = dirdist_extrapolate(player_motion.position, dir, 120);
-				Entity trap = createTrap(world.renderer, enemy, pos, { 150, 150 }, stats.atk, 1, 1, TEXTURE_ASSET_ID::FATE);
+				Entity trap = createTrap(world.renderer, enemy, pos, { 150, 150 }, stats.atk, 1, 2, TEXTURE_ASSET_ID::FATE);
 
 				if (roll < 1) { registry.colors.insert(trap, { 1.f, 0.f, 0.f, 0.9f }); }
 				else if (roll < 2) { registry.colors.insert(trap, { 0.f, 1.f, 0.f, 0.9f }); }
@@ -1530,25 +1530,13 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 					roll = irand(6);
 					Entity summon;
 					if (roll < 1) { 
-						summon = createEnemy(world.renderer, spawnpoint);
-						Stats& summon_stats = registry.basestats.get(summon);
-						summon_stats.maxhp = 56;
-						summon_stats.atk = 20;
-						registry.stats.get(summon).hp = summon_stats.maxhp;
+						summon = createEnemy(world.renderer, spawnpoint, true);
 					}
 					else if (roll < 2) { 
-						summon = createPlantShooter(world.renderer, spawnpoint);
-						Stats& summon_stats = registry.basestats.get(summon);
-						summon_stats.maxhp = 48;
-						summon_stats.atk = 16;
-						registry.stats.get(summon).hp = summon_stats.maxhp;
+						summon = createPlantShooter(world.renderer, spawnpoint, true);
 					}
 					else if (roll < 3) {
-						summon = createCaveling(world.renderer, spawnpoint);
-						Stats& summon_stats = registry.basestats.get(summon);
-						summon_stats.maxhp = 38;
-						summon_stats.atk = 12;
-						registry.stats.get(summon).hp = summon_stats.maxhp;
+						summon = createCaveling(world.renderer, spawnpoint, true);
 					}
 					else if (roll < 4) { 
 						summon = createLivingRock(world.renderer, spawnpoint);
@@ -1621,13 +1609,17 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
 			if (player_in_range(registry.motions.get(registry.attackIndicators.entities[i]).position, registry.motions.get(registry.attackIndicators.entities[i]).scale.x / 2)) {
 				world.logText(deal_damage(enemy, player, 200));
-
 			}
 			Entity explosion = createExplosion(world.renderer, registry.motions.get(registry.attackIndicators.entities[i]).position);
 			registry.motions.get(explosion).scale = { 400, 400 };
 			registry.colors.insert(explosion, { 0.2f, 0.2f, 0.2f, 0.5f });
 			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
 			Mix_PlayChannel(-1, world.fire_explosion_sound, 0);
+		}
+		for (Entity t : registry.traps.entities) {
+			if (registry.traps.get(t).owner != player) {
+				registry.remove_all_components_of(t);
+			}
 		}
 		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
 		break;

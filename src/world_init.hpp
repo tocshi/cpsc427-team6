@@ -75,15 +75,15 @@ Entity createGameBackground(RenderSystem* renderer, vec2 position, TEXTURE_ASSET
 // Player
 Entity createPlayer(RenderSystem* renderer, vec2 pos);
 // Enemy (split into different enemies for future)
-Entity createEnemy(RenderSystem* renderer, vec2 pos);
+Entity createEnemy(RenderSystem* renderer, vec2 pos, bool enhanced = false);
 // Plant Shooter
-Entity createPlantShooter(RenderSystem* renderer, vec2 pos);
+Entity createPlantShooter(RenderSystem* renderer, vec2 pos, bool enhanced = false);
 // Projectiles
 Entity createProjectile(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, float dir, float multiplier, TEXTURE_ASSET_ID texture);
 // Traps
 Entity createTrap(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, float multiplier, int turns, int triggers, TEXTURE_ASSET_ID texture);
 // Caveling
-Entity createCaveling(RenderSystem* renderer, vec2 pos);
+Entity createCaveling(RenderSystem* renderer, vec2 pos, bool enhanced = false);
 // King Slime
 Entity createKingSlime(RenderSystem* renderer, vec2 pos);
 // Living Pebble
@@ -232,7 +232,7 @@ Entity createBigSlash(RenderSystem* renderer, vec2 pos, float angle, float scale
 // menu continue
 Entity createMenuContinue(RenderSystem* renderer, vec2 pos);
 // Save and Quit Button
-Entity createSaveQuit(RenderSystem* renderer, vec2 pos);
+Entity createSaveQuit(RenderSystem* renderer, vec2 pos, bool canSave = true);
 // Enemy HP bar's backing (black line)
 Entity createEnemyHPBacking(vec2 position, Entity parent);
 // Enemy HP bar's fill (red line)
@@ -249,3 +249,5 @@ Entity createBossIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture
 Entity createShadow(vec2 pos, Entity caster);
 // spawn particle
 Entity createParticle(vec2 pos, ParticleEmitter& emitter);
+// end light
+Entity createEndLight(RenderSystem* renderer, vec2 pos);

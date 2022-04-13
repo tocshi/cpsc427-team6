@@ -155,6 +155,8 @@ json SaveSystem::jsonifyPlayer(Entity player) {
 	pl["floor"] = p.floor;
 	pl["room"] = p.room;
 	pl["total_rooms"] = p.total_rooms;
+	pl["chests"] = p.chests;
+	pl["potions"] = p.potions;
 	playerData["player"] = pl;
 
 	// jsonify queueable

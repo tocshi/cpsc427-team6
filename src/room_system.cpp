@@ -94,7 +94,7 @@ void RoomSystem::updateObjective(ObjectiveType type, int quantity) {
 	if (current_objective.remaining_count == 0) {
 		if (!current_objective.completed) {
 			current_objective.completed = true;
-			if (rooms_cleared_current_floor >= 2) {
+			if (rooms_cleared_current_floor >= 1) {
 				world.logText("You feel a strong presence coming from a red door...");
 				world.spawn_doors_random_location(3, true);
 				Mix_PlayChannel(-1, world.door_sound, 0); // TODO: use different sound
@@ -116,5 +116,11 @@ void RoomSystem::updateClearCount() {
 
 void RoomSystem::setNextFloor(Floors floor) {
 	current_floor = floor;
+	rooms_cleared_current_floor = 0;
+}
+
+void RoomSystem::reset() {
+	current_floor = Floors::FLOOR1;
+	current_room_idx = 0;
 	rooms_cleared_current_floor = 0;
 }

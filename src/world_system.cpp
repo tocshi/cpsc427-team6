@@ -932,6 +932,24 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				countCutScene++;
 				cutSceneSystem.updateDialogue(renderer, countCutScene);
 				break;
+			case (TRANSITION_TYPE::CONTINUE_TO_GAME):
+				if (true) {
+					start_game();
+					// remove entities to load in entities
+					removeForLoad();
+					//printf("Removed for load\n");
+					// get saved game data
+					json gameData = saveSystem.getSaveData();
+					//printf("getting gameData\n");
+					// load the entities in
+					loadFromData(gameData);
+					Inventory test = registry.inventories.get(player_main);
+					//printf("load game data?\n");
+					logText("Game state loaded!");
+					remove_fog_of_war();
+					create_fog_of_war();
+				}
+				break;
 			default:
 				break;
 			}
@@ -2260,20 +2278,11 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				case BUTTON_ACTION_ID::CONTINUE:
 					// if save data exists reset the game
 					if (saveSystem.saveDataExists()) {
-						start_game();
-						// remove entities to load in entities
-						removeForLoad();
-						//printf("Removed for load\n");
-						// get saved game data
-						json gameData = saveSystem.getSaveData();
-						//printf("getting gameData\n");
-						// load the entities in
-						loadFromData(gameData);
-						Inventory test = registry.inventories.get(player_main);
-						//printf("load game data?\n");
-						logText("Game state loaded!");
-						remove_fog_of_war();
-						create_fog_of_war();
+						if (registry.fadeTransitionTimers.size() == 0) {
+							Entity temp = Entity();
+							FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+							timer.type = TRANSITION_TYPE::CONTINUE_TO_GAME;
+						}
 					}
 					break;
 				case BUTTON_ACTION_ID::SAVE_QUIT:

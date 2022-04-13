@@ -2077,26 +2077,26 @@ Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player, GAM
 	Entity locationEnt;
 	switch (location) {
 	case GAME_OVER_LOCATION::FLOOR_ONE:
-		locationEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2), "With naive wanderlust, you crawl to safety.", 2.0f, vec3(0.0f));
+		locationEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 50.f), "With naive wanderlust, you crawl to safety.", 2.0f, vec3(0.0f));
 		registry.equipmentDialogs.emplace(locationEnt);
 		break;
 	case GAME_OVER_LOCATION::BOSS_ONE:
-		locationEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2), "Overcome by adversity, you withdraw.", 2.0f, vec3(0.0f));
+		locationEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 50.f), "Overcome by adversity, you withdraw.", 2.0f, vec3(0.0f));
 		registry.equipmentDialogs.emplace(locationEnt);
 		break;
 	case GAME_OVER_LOCATION::FLOOR_TWO:
-		locationEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2), "Grasping onto shreds of hope, you collapse.", 2.0f, vec3(0.0f));
+		locationEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 50.f), "Grasping onto shreds of hope, you collapse.", 2.0f, vec3(0.0f));
 		registry.equipmentDialogs.emplace(locationEnt);
 		break;
 	case GAME_OVER_LOCATION::BOSS_TWO:
-		locationEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2), "Struggling to face your reflection, you retreat.", 2.0f, vec3(0.0f));
+		locationEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 50.f), "Struggling to face your reflection, you retreat.", 2.0f, vec3(0.0f));
 		registry.equipmentDialogs.emplace(locationEnt);
 		break;
 	}
 
 	// case where you beat the final boss
 	if (reason == GAME_OVER_REASON::BOSS_DEFEATED && location == GAME_OVER_LOCATION::BOSS_TWO) {
-		Entity finalEnt = createDialogText(renderer, vec2(pos.x - COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2), "With newfound revelations, you break free.", 2.0f, vec3(0.0f));
+		Entity finalEnt = createDialogText(renderer, vec2(pos.x - COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 - 50.f), "With newfound revelations, you break free.", 2.0f, vec3(0.0f));
 		registry.equipmentDialogs.emplace(finalEnt);
 	}
 
@@ -2104,15 +2104,15 @@ Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player, GAM
 	Player player_comp = registry.players.get(player);
 
 	std::string floorString = "Floors cleared: " + std::to_string((int)player_comp.floor - 1);
-	Entity floorsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 200.f), floorString, 1.8f, vec3(0.0f));
+	Entity floorsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 100.f), floorString, 1.8f, vec3(0.0f));
 	registry.equipmentDialogs.emplace(floorsEnt);
 
 	std::string roomsString = "Rooms cleared: " + std::to_string((int)player_comp.total_rooms);
-	Entity roomsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 275.f), roomsString, 1.8f, vec3(0.0f));
+	Entity roomsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 165.f), roomsString, 1.8f, vec3(0.0f));
 	registry.equipmentDialogs.emplace(roomsEnt);
 
 	std::string chestsString = "Chests opened: " + std::to_string((int)player_comp.chests);
-	Entity chestsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 325.f), chestsString, 1.8f, vec3(0.0f));
+	Entity chestsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 230.f), chestsString, 1.8f, vec3(0.0f));
 	registry.equipmentDialogs.emplace(chestsEnt);
 
 	Inventory inv = registry.inventories.get(player);
@@ -2123,12 +2123,12 @@ Entity createGameOverDialog(RenderSystem* renderer, vec2 pos, Entity player, GAM
 		}
 	}
 	std::string artifactsString = "Unique Artifacts collected: " + std::to_string((int)artifact_count);
-	Entity artifactsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 400.f), artifactsString, 1.8f, vec3(0.0f));
+	Entity artifactsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 295.f), artifactsString, 1.8f, vec3(0.0f));
 	registry.equipmentDialogs.emplace(artifactsEnt);
 
 	// potions consumed
 	std::string potionsString = "Potions consumed: " + std::to_string((int)player_comp.potions);
-	Entity potionsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 475.f), chestsString, 1.8f, vec3(0.0f));
+	Entity potionsEnt = createDialogText(renderer, vec2(pos.x + COLLECTION_MENU_BB_WIDTH / 4.f - 125.f, pos.y + COLLECTION_MENU_BB_HEIGHT / 2 + 360.f), chestsString, 1.8f, vec3(0.0f));
 	registry.equipmentDialogs.emplace(potionsEnt);
 
 	// create continue button (tiggers the black fade out and deletes the old save file)

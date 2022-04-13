@@ -95,6 +95,15 @@ Implemented Features:
 		<li> world_system.cpp | line 642 </li>
 		 <li> world_init.cpp | line 2016 </li> 
 	</ul>
+    </ul>
+ - Attack range indicator
+    <ul>
+	<li> Entry point: </li>
+	 <ul>
+		 <li> world_init.cpp | line 2758 </li>
+		 <li> shaders/attack_range.vs.glsl </li>
+		 <li> shaders/attack_range.fs.glsl </li>
+	</ul>
     </ul>   
 Team 6 - User Feedback Report
 User Testing Performed:

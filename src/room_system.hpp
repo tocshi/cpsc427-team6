@@ -13,6 +13,7 @@ public:
 	void setRandomObjective();
 	void updateClearCount();
 	void setNextFloor(Floors floor);
+	void reset();
 
 	Floors current_floor = Floors::FLOOR1;
 	int current_room_idx = 0;

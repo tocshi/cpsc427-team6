@@ -35,7 +35,7 @@ void SaveSystem::saveGameState(std::queue<Entity> entities, RoomSystem& roomSyst
 	saveState["room"] = jsonifyRoomSystem(roomSystem);
 	saveState["music"] = world.current_music;
 	// get traps in the game
-	//saveState["trapEntities"] = jsonifyTraps();
+	saveState["trapEntities"] = jsonifyTraps();
 	saveToFile(saveState);
 }
 
@@ -366,6 +366,22 @@ json SaveSystem::jsonifyTraps() {
 		if (registry.players.has(t.owner)) {
 			trapEntity["owner"] = "player";
 		}
+		else if (registry.enemies.has(t.owner)){ // enemy
+			trapEntity["owner"] = "enemy";
+		}
+
+		if (registry.colors.has(trap)) {
+			
+			float x = registry.colors.get(trap).x;
+			float y = registry.colors.get(trap).y;
+			float z = registry.colors.get(trap).z;
+			float w = registry.colors.get(trap).w;
+			trapEntity["colors"]["x"] = x;
+			trapEntity["colors"]["y"] = y;
+			trapEntity["colors"]["z"] = z;
+			trapEntity["colors"]["w"] = w;
+		}
+
 		trapEntity["motions"] = jsonifyMotion(t_m);
 		trapList.push_back(trapEntity);
 	}

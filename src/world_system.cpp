@@ -2892,7 +2892,7 @@ void WorldSystem::loadFromData(json data) {
 	// load attack indicators
 	loadAttackIndicators(attackIndicatorList);
 	// load traps in game 
-	//loadTraps(traplist);
+	loadTraps(traplist);
 }
 
 Entity WorldSystem::loadPlayer(json playerData) {
@@ -3360,28 +3360,52 @@ void WorldSystem::loadSign(Entity e, json signData) {
 void WorldSystem::loadTraps(json trapList) {
 	//Entity createTrap(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, float multiplier, int turns, int triggers, TEXTURE_ASSET_ID texture);
 	// remove all traps 
+	printf("we are loading traps\n");
 	while (registry.traps.entities.size() > 0)
 		registry.remove_all_components_of(registry.traps.entities.back());
 
 	json trap = trapList["traps"];
 	if (trap.size() > 0) {
 		printf("there is smt store there in the json\n");
-		for (auto& traps : trapList) {
+		for (auto& traps : trap) {
 			Entity entity = Entity();
 			Entity p;
 			json mData = traps["motions"];
 			Motion& m = registry.motions.emplace(entity);
+			printf("we got the motions for traps\n");
 			m.scale = { mData["scale"]["x"], mData["scale"]["y"] };
 			m.position = { mData["position_x"], mData["position_y"] };
-			float multipler = trap["multiplier"];
-			int turns = trap["trap_turns"];
-			int triggers = trap["triggers"];
-			TEXTURE_ASSET_ID texture = trap["type"];
-			if (trap["owner"] == "player") {
+			printf("we set the motions for scale & position\n");
+			float multipler = traps["multiplier"];
+			printf("we got the multiplier:%fl \n", multipler);
+			int turns = traps["trap_turns"];
+			printf("we got the trap turns :%d \n", turns);
+			int triggers = traps["triggers"];
+			printf("we got the trigger:%d \n", triggers);
+			TEXTURE_ASSET_ID texture = traps["type"];
+			printf("the artifact type is:%d", int(texture));
+			
+			printf("got the data to create traps again\n");
+			if (traps["owner"] == "player") {
 				printf("loading the traps back to page \n");
 				p = player_main;
-				createTrap(renderer, player_main, m.position, m.scale, multipler, turns, triggers, texture);
+				createTrap(renderer, p, m.position, m.scale, multipler, turns, triggers, texture);
 			}
+			else if (traps["owner"] == "enemy") {
+				for (Entity e : registry.enemies.entities) {
+					if (registry.enemies.has(e)) {
+						p = e;
+						break;
+					}
+				}
+				createTrap(renderer, p, m.position, m.scale, multipler, turns, triggers, texture);
+				printf("loading trap back to page enemy owned\n");
+			}
+			if (traps["colors"] != nullptr) { // if has color insert it 
+				printf("it has colors");
+				registry.colors.insert(p, vec4(traps["colors"]["x"], traps["colors"]["y"], traps["colors"]["z"], traps["colors"]["w"]));
+			}
+
 		}
 	}
 

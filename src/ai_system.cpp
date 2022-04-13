@@ -476,14 +476,12 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 	}
 
-	if (endNode == 0) {
+	if (endNode == 0 || endNode->parent == 0) {
 		// if player hasn't been reached, pick the closest node visited
 		endNode = getLowestHCostNodeInList(closedSet);
 	}
-	
-	if (endNode->parent != 0) {
-		endNode = endNode->parent;
-	}
+
+	endNode = endNode->parent;
 	AstarNode* childNode = endNode;
 	// need to reverse the endNode
 	AstarNode* reverseNode = endNode;
@@ -503,6 +501,9 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 
 	std::vector<AstarNode*> pathVector;
+	if (endNode->position == enemyPos) {
+		return pathVector;
+	}
 	pathVector.push_back(reverseNode);
 	while (reverseNode->children.size() > 0) {
 		pathVector.push_back(reverseNode->children[0]);
@@ -672,28 +673,32 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 			else {
 				std::vector<AstarNode*> starVector = AstarPathfinding(slime, chaseRange);
 
-				aStarMotion.scalar_vel = slime_velocity;
-				aStarMotion.using_astar = true;
-
-				for (int i = 0; i < starVector.size(); i++) {
-					aStarMotion.path.push(starVector[i]->position);
-					// Uncomment the below to see the generated path
-					// Entity test = createBigSlash(world.renderer, starVector[i]->position, 0, 0);
-					// registry.renderRequests.get(test).used_texture = TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER;
-					// registry.motions.get(test).scale = vec2(50.f, 50.f);
-					// registry.expandTimers.get(test).counter_ms = 20000;
-					if (i == 1) {
-						motion_struct.destination = starVector[i]->position;
-						aStarMotion.currentDest = starVector[i]->position;
-						motion_struct.velocity = slime_velocity * normalize(starVector[i]->position - motion_struct.position);
-					}
-					delete starVector[i];
+				if (starVector.size() == 0) {
+					vec2 direction = simple_path_find(motion_struct.position, player_motion.position, slime);
+					motion_struct.velocity = slime_velocity * direction;
+					motion_struct.in_motion = true;
 				}
-				motion_struct.in_motion = true;
+				else {
 
-				//vec2 direction = simple_path_find(motion_struct.position, player_motion.position, slime);
-				//motion_struct.velocity = slime_velocity * direction;
-				//motion_struct.in_motion = true;
+					aStarMotion.scalar_vel = slime_velocity;
+					aStarMotion.using_astar = true;
+
+					for (int i = 0; i < starVector.size(); i++) {
+						aStarMotion.path.push(starVector[i]->position);
+						// Uncomment the below to see the generated path
+						// Entity test = createBigSlash(world.renderer, starVector[i]->position, 0, 0);
+						// registry.renderRequests.get(test).used_texture = TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER;
+						// registry.motions.get(test).scale = vec2(50.f, 50.f);
+						// registry.expandTimers.get(test).counter_ms = 20000;
+						if (i == 1) {
+							motion_struct.destination = starVector[i]->position;
+							aStarMotion.currentDest = starVector[i]->position;
+							motion_struct.velocity = slime_velocity * normalize(starVector[i]->position - motion_struct.position);
+						}
+						delete starVector[i];
+					}
+					motion_struct.in_motion = true;
+				}
 			}
 		}
 		break;
@@ -843,25 +848,35 @@ void AISystem::caveling_logic(Entity enemy, Entity& player) {
 		else {
 			// move towards player
 			std::vector<AstarNode*> starVector = AstarPathfinding(enemy, chaseRange);
-
-			aStarMotion.scalar_vel = 180.f;
-			aStarMotion.using_astar = true;
-
-			for (int i = 0; i < starVector.size(); i++) {
-				aStarMotion.path.push(starVector[i]->position);
-				// Uncomment the below to see the generated path
-				// Entity test = createBigSlash(world.renderer, starVector[i]->position, 0, 0);
-				// registry.renderRequests.get(test).used_texture = TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER;
-				// registry.motions.get(test).scale = vec2(50.f, 50.f);
-				// registry.expandTimers.get(test).counter_ms = 20000;
-				if (i == 1) {
-					motion_struct.destination = starVector[i]->position;
-					aStarMotion.currentDest = starVector[i]->position;
-					motion_struct.velocity = 180.f * normalize(starVector[i]->position - motion_struct.position);
-				}
-				delete starVector[i];
+			if (starVector.size() == 0) {
+				motion_struct.destination = { dirdist_extrapolate(motion_struct.position,
+				angle + degtorad(irandRange(-10, 10)), max(20.f , dist_to(motion_struct.position,
+				player_motion.position)) + irandRange(-90, -50)) 
+				};
+				motion_struct.velocity = 180.f * normalize(motion_struct.destination - motion_struct.position);
+				motion_struct.in_motion = true;
 			}
-			motion_struct.in_motion = true;
+			else {
+
+				aStarMotion.scalar_vel = 180.f;
+				aStarMotion.using_astar = true;
+
+				for (int i = 0; i < starVector.size(); i++) {
+					aStarMotion.path.push(starVector[i]->position);
+					// Uncomment the below to see the generated path
+					// Entity test = createBigSlash(world.renderer, starVector[i]->position, 0, 0);
+					// registry.renderRequests.get(test).used_texture = TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER;
+					// registry.motions.get(test).scale = vec2(50.f, 50.f);
+					// registry.expandTimers.get(test).counter_ms = 20000;
+					if (i == 1) {
+						motion_struct.destination = starVector[i]->position;
+						aStarMotion.currentDest = starVector[i]->position;
+						motion_struct.velocity = 180.f * normalize(starVector[i]->position - motion_struct.position);
+					}
+					delete starVector[i];
+				}
+				motion_struct.in_motion = true;
+			}
 		}
 		break;
 	}

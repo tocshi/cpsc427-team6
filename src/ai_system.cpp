@@ -480,7 +480,10 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		// if player hasn't been reached, pick the closest node visited
 		endNode = getLowestHCostNodeInList(closedSet);
 	}
-
+	
+	if (endNode->parent != 0) {
+		endNode = endNode->parent;
+	}
 	AstarNode* childNode = endNode;
 	// need to reverse the endNode
 	AstarNode* reverseNode = endNode;

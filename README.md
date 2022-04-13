@@ -33,7 +33,7 @@ Implemented Features:
     <ul>
 	<li> Entry point: </li>
 	 <ul>
-		<li> world_system.cpp | setupParticleEmitter() | line TO_BE_UPDATED </li>
+		<li> world_system.cpp | setupParticleEmitter() | line 4956 </li>
 	</ul>
     </ul>
  

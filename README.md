@@ -49,7 +49,7 @@ Implemented Features:
     <ul>
 	<li> Entry point: </li>
 	 <ul>
-		<li> world_system.cpp | line TO_BE_UPDATED </li>
+		<li> world_system.cpp | updateTutorial() | 3824 </li>
 	</ul>
     </ul>
  - New enemies (Living Rock, Living Pebble, Apparition)

@@ -1614,8 +1614,8 @@ void WorldSystem::spawn_game_entities() {
 	create_fog_of_war();
 
 	// spawn chests beside player
-	createChest(renderer, player_motion.position + vec2(-64, 64), false);
-	createChest(renderer, player_motion.position + vec2(64, 64), true);
+	createChest(renderer, player_motion.position + vec2(-64, 32), false);
+	createChest(renderer, player_motion.position + vec2(64, 32), true);
 }
 
 // render ep range around the given position

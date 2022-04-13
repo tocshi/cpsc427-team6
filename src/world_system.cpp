@@ -246,6 +246,8 @@ GLFWwindow* WorldSystem::create_window() {
 	Mix_VolumeChunk(potion_sound, 32);
 	smokescreen_sound = Mix_LoadWAV(audio_path("sfx/smoke.wav").c_str());
 	Mix_VolumeChunk(smokescreen_sound, 32);
+	arcane_funnel_sound = Mix_LoadWAV(audio_path("sfx/arcane_funnel.wav").c_str());
+	Mix_VolumeChunk(arcane_funnel_sound, 32);
 	rock_summon = Mix_LoadWAV(audio_path("sfx/rock_summon.wav").c_str());
 	Mix_VolumeChunk(rock_summon, 32);
 	malediction_sound = Mix_LoadWAV(audio_path("sfx/malediction.wav").c_str());
@@ -4617,6 +4619,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 					// Arcane Funnel effect
 					if (has_status(player_main, StatusType::ARCANE_FUNNEL)) {
 						player_stats.mp = min(player_stats.maxmp, player_stats.mp + (player_stats.maxmp * 0.1f * player_stats.mpregen));
+						Mix_PlayChannel(-1, world.arcane_funnel_sound, 0);
 						Entity mana = createBigSlash(world.renderer, { m.position.x, m.position.y }, 0, 256);
 						registry.renderRequests.get(mana).used_texture = TEXTURE_ASSET_ID::MANACIRCLE;
 					}

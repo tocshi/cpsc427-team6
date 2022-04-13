@@ -1255,9 +1255,13 @@ Entity createMenuContinue(RenderSystem * renderer, vec2 pos)
 }
 
 // Save and Quit Button
-Entity createSaveQuit(RenderSystem* renderer, vec2 pos)
+Entity createSaveQuit(RenderSystem* renderer, vec2 pos, bool canSave)
 {
 	auto entity = Entity();
+	TEXTURE_ASSET_ID texture = TEXTURE_ASSET_ID::SAVE_QUIT;
+	if (!canSave) {
+		texture = TEXTURE_ASSET_ID::QUIT;
+	}
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
 	auto& motion = registry.motions.emplace(entity);
@@ -1275,7 +1279,7 @@ Entity createSaveQuit(RenderSystem* renderer, vec2 pos)
 		});
 	registry.renderRequests.insert(
 		entity,
-		{ TEXTURE_ASSET_ID::SAVE_QUIT,
+		{ texture,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI_TOP });

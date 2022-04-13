@@ -2075,7 +2075,12 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			else {
 				set_gamestate(GameStates::PAUSE_MENU);
 				// render save and quit button
-				createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale});
+				if (current_music == Music::BOSS0 || current_music == Music::BOSS1) {
+					createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale }, false);
+				}
+				else {
+					createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale });
+				}
 
 				// render cancel button
 				createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale});
@@ -2309,7 +2314,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					break;
 				case BUTTON_ACTION_ID::SAVE_QUIT:
-					if (!tutorial) {
+					if (!tutorial && !(roomSystem.current_floor == Floors::BOSS1 || roomSystem.current_floor == Floors::BOSS2)) {
 						saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
 						logText("Game state saved!");
 					}
@@ -2337,7 +2342,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					if (current_game_state != GameStates::GAME_OVER_MENU) {
 						set_gamestate(GameStates::PAUSE_MENU);
 						// render save and quit button
-						createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale });
+						if (current_music == Music::BOSS0 || current_music == Music::BOSS1) {
+							createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale }, false);
+						}
+						else {
+							createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale });
+						}
 						// render cancel button
 						createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale });
 					}
@@ -3206,6 +3216,9 @@ Entity WorldSystem::loadEnemy(json enemyData) {
 	}
 	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::LIVING_ROCK) {
 		e = createLivingRock(renderer, { 0, 0 });
+	}
+	else if (enemyData["enemy"]["type"] == ENEMY_TYPE::REFLEXION) {
+		e = createReflexion(renderer, { 0, 0 });
 	}
 	// load motion
 	loadMotion(e, enemyData["motion"]);

@@ -54,8 +54,9 @@ std::string deal_damage(Entity& attacker, Entity& defender, float multiplier, bo
 	if (registry.players.has(attacker) && registry.enemies.has(defender)) {
 		auto& enemy_struct = registry.enemies.get(defender);
 		enemy_struct.hit_by_player = true;
+
 		// apparition teleport
-		if (registry.enemies.get(defender).type == ENEMY_TYPE::APPARITION && defender_stats.hp > 0) {
+		if (registry.enemies.get(defender).type == ENEMY_TYPE::APPARITION && registry.stats.get(defender).hp > 0) {
 			teleport(defender, attacker);
 			registry.motions.get(defender).destination = registry.motions.get(defender).position;
 			registry.motions.get(defender).in_motion = false;
@@ -559,6 +560,9 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 // Call at the beginning of every player turn to manage traps
 void handle_traps() {
 	for (Entity t : registry.traps.entities) {
+		// this looks stupid, but trust me, it isn't
+		if (!registry.traps.has(t)) { registry.remove_all_components_of(t); }
+
 		Trap& trap = registry.traps.get(t);
 
 		if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {

@@ -79,7 +79,7 @@ public:
 	Entity player_main;
 
 	// Tutorial flags
-	bool tutorial = true;
+	bool tutorial = false;
 	unsigned short tutorial_flags = 0x0; // 16 bits
 	enum flags {
 		SIGN_1 = 1, // welcome -> movement

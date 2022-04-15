@@ -1064,8 +1064,7 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 			for (int j = (int)registry.enemies.components.size() - 1; j >= 0; --j) {
 				if (registry.enemies.entities[j] != enemy
 					&& collides_circle(registry.motions.get(registry.attackIndicators.entities[i]), registry.motions.get(registry.enemies.entities[j]))) {
-					deal_damage(enemy, registry.enemies.entities[j], 1000);
-					registry.solid.remove(registry.enemies.entities[j]);
+					take_damage(registry.enemies.entities[j], 999);
 					num_summons++;
 				}
 			}

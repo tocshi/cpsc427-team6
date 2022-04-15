@@ -850,7 +850,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			int roll = irand(3);
 
 			registry.queueables.get(enemy).doing_turn = false;
-			if (current_game_state == GameStates::ENEMY_TURN) {
+			if (current_game_state == GameStates::ENEMY_TURN && turnOrderSystem.getCurrentTurnEntity() == enemy) {
 				registry.motions.get(enemy).in_motion = false;
 				registry.motions.get(enemy).velocity = { 0, 0 };
 				doTurnOrderLogic();
@@ -1686,8 +1686,8 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	//std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 
 	spawnData = createTiles(renderer, next_map);
 
@@ -1791,45 +1791,46 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 	if (enemySpawns.size() > 0) {
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
-			int roll = irand(4);
-			switch (roomSystem.current_floor) {
-			case Floors::FLOOR1:
-				// Spawn either a slime or PlantShooter or caveling
-				if (roll < 1) {
-					createCaveling(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-				}
-				else if (roll < 2) {
-					createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-				}
-				else {
-					createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-				}
-				break;
-			case Floors::BOSS1:
-				createKingSlime(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-				break;
-			case Floors::FLOOR2:
-				roll = irand(9);
-				if (roll < 1) {
-					createEnemy(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
-				}
-				else if (roll < 2) {
-					createPlantShooter(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
-				}
-				else if (roll < 3) {
-					createCaveling(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
-				}
-				else if (roll < 6) {
-					createLivingRock(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
-				}
-				else {
-					createApparition(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
-				}
-				break;
-			case Floors::BOSS2:
-				createReflexion(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-				break;
-			}
+			createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			//int roll = irand(4);
+			//switch (roomSystem.current_floor) {
+			//case Floors::FLOOR1:
+			//	// Spawn either a slime or PlantShooter or caveling
+			//	if (roll < 1) {
+			//		createCaveling(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			//	}
+			//	else if (roll < 2) {
+			//		createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			//	}
+			//	else {
+			//		createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			//	}
+			//	break;
+			//case Floors::BOSS1:
+			//	createKingSlime(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			//	break;
+			//case Floors::FLOOR2:
+			//	roll = irand(9);
+			//	if (roll < 1) {
+			//		createEnemy(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
+			//	}
+			//	else if (roll < 2) {
+			//		createPlantShooter(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
+			//	}
+			//	else if (roll < 3) {
+			//		createCaveling(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
+			//	}
+			//	else if (roll < 6) {
+			//		createLivingRock(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			//	}
+			//	else {
+			//		createApparition(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			//	}
+			//	break;
+			//case Floors::BOSS2:
+			//	createReflexion(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			//	break;
+			//}
 		}
 	}
 }
@@ -1946,6 +1947,77 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// no interactions when being knocked back
 	if (registry.knockbacks.has(player_main)) { return; }
 
+	// DEBUG: HEAL PLAYER
+	if (action == GLFW_RELEASE && key == GLFW_KEY_EQUAL) {
+		Stats& stat = registry.stats.get(player_main);
+		stat.hp = stat.maxhp;
+		stat.mp = stat.maxmp;
+		stat.ep = stat.maxep;
+		registry.players.get(player_main).attacked = false;
+	}
+
+	// DEBUG: Testing artifact/stacking
+	if (action == GLFW_RELEASE && key == GLFW_KEY_9) {
+		int give = (int)ARTIFACT::BURRBAG;
+		for (Entity& p : registry.players.entities) {
+			Inventory& inv = registry.inventories.get(p);
+			inv.artifact[give]++;
+
+			std::string name = artifact_names.at((ARTIFACT)give);
+			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
+			reset_stats(p);
+			calc_stats(p);
+		}
+	}
+
+	// DEBUG: Testing artifact/stacking
+	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
+		int give = (int)ARTIFACT::FUNGIFIER;
+		for (Entity& p : registry.players.entities) {
+			Inventory& inv = registry.inventories.get(p);
+			inv.artifact[give]++;
+
+			std::string name = artifact_names.at((ARTIFACT)give);
+			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
+			reset_stats(p);
+			calc_stats(p);
+		}
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
+		auto& stats = registry.stats.get(player_main);
+		auto& player = registry.players.get(player_main);
+		//StatusEffect test = StatusEffect(10, 2, StatusType::INVINCIBLE, false, true);
+		//apply_status(player_main, test);
+		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\nrange: %f\nepmove: %f\nepatk: %f\nfloor: %i\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp, stats.range, stats.epratemove, stats.eprateatk, player.floor);
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_O) {
+		roomSystem.updateObjective(roomSystem.current_objective.type, 100);
+	}
+
+	if (action == GLFW_RELEASE && key == GLFW_KEY_Q) {
+		for (Entity& p : registry.players.entities) {
+			StatusEffect test = StatusEffect(20, 5, StatusType::ATK_BUFF, false, true);
+			apply_status(p, test);
+		}
+	}
+
+	// simulating a new room
+	if (action == GLFW_RELEASE && key == GLFW_KEY_N && get_is_player_turn()) {
+		if (!registry.roomTransitions.has(player_main)) {
+			RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
+			transition.floor = roomSystem.current_floor;
+		}
+	}
+
+	// Resetting game
+	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
+		int w, h;
+		glfwGetWindowSize(window, &w, &h);
+
+		restart_game();
+	}
 
 	///////////////////////////
 	// menu hotkeys

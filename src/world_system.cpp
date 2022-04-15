@@ -241,11 +241,11 @@ GLFWwindow* WorldSystem::create_window() {
 	rock_summon = Mix_LoadWAV(audio_path("sfx/rock_summon.wav").c_str());
 	Mix_VolumeChunk(rock_summon, 32);
 	trap_sound = Mix_LoadWAV(audio_path("sfx/trap.wav").c_str());
-	Mix_VolumeChunk(trap_sound, 32);
+	Mix_VolumeChunk(trap_sound, 24);
 	malediction_sound = Mix_LoadWAV(audio_path("sfx/malediction.wav").c_str());
 	Mix_VolumeChunk(malediction_sound, 32);
-	fungifier_sound = Mix_LoadWAV(audio_path("sfx/fungifier.wav").c_str());
-	Mix_VolumeChunk(fungifier_sound, 24);
+	thunder_sound = Mix_LoadWAV(audio_path("sfx/thunder.wav").c_str());
+	Mix_VolumeChunk(thunder_sound, 16);
 	bag_of_wind_sound = Mix_LoadWAV(audio_path("sfx/hurricane.wav").c_str());
 	Mix_VolumeChunk(bag_of_wind_sound, 32);
 
@@ -4160,11 +4160,6 @@ void WorldSystem::playRockSummonSound() {
 // play malediction sound
 void WorldSystem::playMaledictionSound() {
 	Mix_PlayChannel(-1, malediction_sound, 0);
-}
-
-// play fungifier sound
-void WorldSystem::playFungifierSound() {
-	Mix_PlayChannel(-1, fungifier_sound, 0);
 }
 
 // play bag of wind sound

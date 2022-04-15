@@ -296,6 +296,7 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 			Entity explosion = createExplosion(world.renderer, defender_motion.position);
 			registry.motions.get(explosion).scale *= 2.f;
 			registry.colors.insert(explosion, { 2.f, 0.8f, 2.f, 1.f });
+			Mix_PlayChannel(-1, world.thunder_sound, 0);
 
 			for (Entity e : registry.enemies.entities) {
 				Motion enemy_motion = registry.motions.get(e);
@@ -362,9 +363,6 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 		Mix_PlayChannel(-1, world.trap_sound, 0);
 		Entity mushroom = createTrap(world.renderer, attacker, {0, 0}, { 64, 64 }, multiplier, 2, 1, TEXTURE_ASSET_ID::MUSHROOM);
 		registry.motions.get(mushroom).destination = defender_motion.position;
-
-		// play fungifier sound
-		world.playFungifierSound();
 	}
 	return final_damage;
 }
@@ -563,11 +561,13 @@ void handle_traps() {
 
 		if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
 			registry.motions.get(t).position = registry.motions.get(t).destination;
+			Mix_PlayChannel(-1, world.trap_sound, 0);
 		}
 
 		if (trap.turns <= 0 || trap.triggers <= 0) {
 			if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
 				trigger_trap(t, t);
+				Mix_PlayChannel(-1, world.fire_explosion_sound, 0);
 			}
 			registry.remove_all_components_of(t);
 		}

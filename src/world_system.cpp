@@ -2142,13 +2142,13 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 						FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
 						timer.type = TRANSITION_TYPE::CUTSCENE_TO_MAIN;
 					}
-					/*
 					else {
+						countCutScene = 37;
+						cut_scene_start();
 						Entity temp = Entity();
 						FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
 						timer.type = TRANSITION_TYPE::CUTSCENE_TO_GAMEOVER;
 					}
-					*/
 				}
 			}
 			else if (current_game_state == GameStates::PAUSE_MENU) {

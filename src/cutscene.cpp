@@ -399,7 +399,7 @@ void CutSceneSystem::updateTextBox(RenderSystem* renderer, Entity activeTextbox)
 
 
 void CutSceneSystem::scene_transition(RenderSystem* renderer, int cut_scene_number) {
-	if (cut_scene_number <= 21) {
+	if (cut_scene_number <= 36) {
 		cut_scene_text_log(renderer, "Press Esc to skip");
 	}
 	

@@ -1022,6 +1022,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					cut_scene_start();
 				}
 				break;
+			case (TRANSITION_TYPE::CUTSCENE_TO_HOSPITAL):
+				createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_HOSPITAL);
+				cutSceneSystem.updateDialogue(renderer, countCutScene);
+				break;
 			case (TRANSITION_TYPE::CUTSCENE_TO_GAMEOVER):
 				if (true) {
 					Entity line_ent = createLine(vec2(0, 0), vec2(window_width_px, window_height_px));
@@ -2256,7 +2260,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				// logic is handled in step() when the timer expires
 			}
 
-			if (current_game_state == GameStates::CUTSCENE && countCutScene >= 36) {
+			if (current_game_state == GameStates::CUTSCENE && countCutScene > 36) {
 				// fade to main_menu screen 
 				//screen.darken_screen_factor = 0;
 				Entity temp = Entity();

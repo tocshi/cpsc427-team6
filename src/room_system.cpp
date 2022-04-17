@@ -51,7 +51,7 @@ void RoomSystem::setRandomObjective() {
 	int quantity = 0;
 	switch (objective_type) {
 	case ObjectiveType::KILL_ENEMIES:
-		quantity = irandRange((int)(registry.enemies.size()*0.5), (int)(registry.enemies.size() * 0.75));
+		quantity = irandRange((int)(registry.enemies.size()*0.4), (int)(registry.enemies.size() * 0.5));
 		break;
 	case ObjectiveType::ACTIVATE_SWITCHES:
 		quantity = irandRange(3, 6);

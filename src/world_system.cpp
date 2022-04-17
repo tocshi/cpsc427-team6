@@ -245,7 +245,7 @@ GLFWwindow* WorldSystem::create_window() {
 	malediction_sound = Mix_LoadWAV(audio_path("sfx/malediction.wav").c_str());
 	Mix_VolumeChunk(malediction_sound, 32);
 	thunder_sound = Mix_LoadWAV(audio_path("sfx/thunder.wav").c_str());
-	Mix_VolumeChunk(thunder_sound, 16);
+	Mix_VolumeChunk(thunder_sound, 12);
 	bag_of_wind_sound = Mix_LoadWAV(audio_path("sfx/hurricane.wav").c_str());
 	Mix_VolumeChunk(bag_of_wind_sound, 32);
 
@@ -792,41 +792,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Update the camera to follow the player
 		Camera& camera = registry.cameras.get(active_camera_entity);
 		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
-
-		// Check traps for collisions/activations
-		for (Entity t : registry.traps.entities) {
-			if (!registry.traps.has(t)) { continue; }
-			Trap& trap = registry.traps.get(t);
-			if (trap.triggers <= 0) { continue; }
-			Motion& trap_motion = registry.motions.get(t);
-
-			if (registry.players.has(trap.owner)) {
-				for (Entity e : registry.enemies.entities) {
-					// hacky way of having enemies not die when spawning on top of a trap
-					if (registry.iFrameTimers.has(e)) { continue; }
-					Motion& enemy_motion = registry.motions.get(e);
-					Stats& enemy_stats = registry.stats.get(e);
-					if (enemy_stats.hp <= 0 || trap.triggers <= 0) { continue; }
-					else if (collides_circle(trap_motion, enemy_motion)) {
-						trigger_trap(t, e);
-						break;
-					}
-				}
-			}
-			else {
-				// internal trap cooldown
-				if (registry.iFrameTimers.has(player)) { continue; }
-				Motion& player_motion = registry.motions.get(player);
-				Stats& player_stats = registry.stats.get(player);
-				if (player_stats.hp <= 0 || trap.triggers <= 0) { continue; }
-				else if (collides_circle(trap_motion, player_motion)) {
-					ExpandTimer iframe = registry.iFrameTimers.emplace(player);
-					iframe.counter_ms = 50;
-					trigger_trap(t, player);
-					break;
-				}
-			}
-		}
 	}
 
 	// Check for enemy death
@@ -1686,8 +1651,8 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	//std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 
 	spawnData = createTiles(renderer, next_map);
 
@@ -1791,46 +1756,47 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 	if (enemySpawns.size() > 0) {
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
-			createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-			//int roll = irand(4);
-			//switch (roomSystem.current_floor) {
-			//case Floors::FLOOR1:
-			//	// Spawn either a slime or PlantShooter or caveling
-			//	if (roll < 1) {
-			//		createCaveling(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-			//	}
-			//	else if (roll < 2) {
-			//		createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-			//	}
-			//	else {
-			//		createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-			//	}
-			//	break;
-			//case Floors::BOSS1:
-			//	createKingSlime(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-			//	break;
-			//case Floors::FLOOR2:
-			//	roll = irand(9);
-			//	if (roll < 1) {
-			//		createEnemy(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
-			//	}
-			//	else if (roll < 2) {
-			//		createPlantShooter(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
-			//	}
-			//	else if (roll < 3) {
-			//		createCaveling(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
-			//	}
-			//	else if (roll < 6) {
-			//		createLivingRock(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
-			//	}
-			//	else {
-			//		createApparition(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
-			//	}
-			//	break;
-			//case Floors::BOSS2:
-			//	createReflexion(renderer, { enemySpawns[i].x, enemySpawns[i].y });
-			//	break;
-			//}
+			// rock benchmark test comment
+			//createLivingRock(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			int roll = irand(4);
+			switch (roomSystem.current_floor) {
+			case Floors::FLOOR1:
+				// Spawn either a slime or PlantShooter or caveling
+				if (roll < 1) {
+					createCaveling(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				}
+				else if (roll < 2) {
+					createPlantShooter(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				}
+				else {
+					createEnemy(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				}
+				break;
+			case Floors::BOSS1:
+				createKingSlime(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				break;
+			case Floors::FLOOR2:
+				roll = irand(9);
+				if (roll < 1) {
+					createEnemy(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
+				}
+				else if (roll < 2) {
+					createPlantShooter(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
+				}
+				else if (roll < 3) {
+					createCaveling(world.renderer, { enemySpawns[i].x, enemySpawns[i].y }, true);
+				}
+				else if (roll < 6) {
+					createLivingRock(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				}
+				else {
+					createApparition(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				}
+				break;
+			case Floors::BOSS2:
+				createReflexion(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+				break;
+			}
 		}
 	}
 }
@@ -2905,7 +2871,7 @@ void WorldSystem::start_player_turn() {
 	// Burrbag effect
 	if (inv.artifact[(int)ARTIFACT::BURRBAG] > 0) {
 		int triggers = inv.artifact[(int)ARTIFACT::BURRBAG];
-		Mix_PlayChannel(-1, world.trap_sound, 0);
+		Mix_PlayChannel(3, world.trap_sound, 0);
 		createTrap(world.renderer, player_main, registry.motions.get(player_main).position, {64, 64}, 40, 4, triggers, TEXTURE_ASSET_ID::BURRS);
 	}
 

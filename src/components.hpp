@@ -844,6 +844,7 @@ enum class TRANSITION_TYPE {
 };
 
 struct FadeTransitionTimer {
+	bool initialized = false;
 	float counter_ms = 500.f;
 	TRANSITION_TYPE type;
 };

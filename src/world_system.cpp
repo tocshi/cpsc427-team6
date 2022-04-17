@@ -960,6 +960,10 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	for (Entity entity : registry.fadeTransitionTimers.entities) {
 		// progress timer
 		FadeTransitionTimer& counter = registry.fadeTransitionTimers.get(entity);
+		if (!counter.initialized) {
+			counter.initialized = true;
+			continue;
+		}
 		counter.counter_ms -= elapsed_ms_since_last_update;
 		if (counter.counter_ms < min_fadeout_counter_ms) {
 			min_fadeout_counter_ms = counter.counter_ms;
@@ -1043,7 +1047,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					temp_inv = temp_inv_data;
 					
 					createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player_temp, GAME_OVER_REASON::BOSS_DEFEATED, GAME_OVER_LOCATION::BOSS_TWO);
-					saveSystem.deleteFile();
+					saveSystem.setGameCompleted();
 					set_gamestate(GameStates::GAME_OVER_MENU);
 					player_move_click = false;
 				}
@@ -1077,6 +1081,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (registry.loadingTimers.size() > 0) {
 		screen.darken_screen_factor = 1;
 	}
+
+	if (screen.darken_screen_factor > 0 || registry.fadeTransitionTimers.size() > 0)
+		printf("darken_screen_factor = %f\n", screen.darken_screen_factor);
 
 	for (Entity entity : registry.loadingTimers.entities) {
 		LoadingTimer& counter = registry.loadingTimers.get(entity);
@@ -1533,7 +1540,7 @@ void WorldSystem::restart_game() {
 	
 
 	createMenuStart(renderer, { window_width_px / 6, 500.f * ui_scale });
-	createMenuContinue(renderer, { window_width_px / 6, 650.f * ui_scale });
+	Entity continue_button = createMenuContinue(renderer, { window_width_px / 6, 650.f * ui_scale });
 	createMenuQuit(renderer, { window_width_px / 6, 800.f * ui_scale });
 	createMenuCredits(renderer, { window_width_px - 150.f, 850.f * ui_scale });
 	createMenuTitle(renderer, { window_width_px / 2, window_height_px / 2 });
@@ -1542,6 +1549,13 @@ void WorldSystem::restart_game() {
 		printf("%d size of inventory\n", registry.inventories.size());
 		// width: window_width_px / 5, height = (600.f*ui_scale/2)
 		update_background_collection(window_width_px / 5, (600.f*ui_scale / 2));
+
+	}
+	// grey out button if game was completed or save file doesn't exist
+	canContinue = saveSystem.canSaveContinue();
+	if (!canContinue) {
+		vec4& continue_color = registry.colors.has(continue_button) ? registry.colors.get(continue_button) : registry.colors.emplace(continue_button);
+		continue_color = vec4(0.5f, 0.5f, 0.5f, 1.f);
 	}
 	roomSystem.reset();
 }
@@ -2329,7 +2343,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
 				case BUTTON_ACTION_ID::CONTINUE:
 					// if save data exists reset the game
-					if (saveSystem.saveDataExists()) {
+					if (canContinue) {
 						if (registry.fadeTransitionTimers.size() == 0) {
 							Entity temp = Entity();
 							FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);

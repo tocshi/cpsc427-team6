@@ -391,6 +391,7 @@ private:
 
 	Player temp_player_data;
 	Inventory temp_inv_data;
+	bool canContinue;
 
 	// calcualte abs value
 	int calculate_abs_value(float v1, float v2);

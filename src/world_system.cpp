@@ -229,7 +229,7 @@ GLFWwindow* WorldSystem::create_window() {
 	kingslime_summon = Mix_LoadWAV(audio_path("sfx/slimesummon.wav").c_str());
 	Mix_VolumeChunk(kingslime_summon, 24);
 	pebble_move = Mix_LoadWAV(audio_path("sfx/pebble_move.wav").c_str());
-	Mix_VolumeChunk(pebble_move, 48);
+	Mix_VolumeChunk(pebble_move, 36);
 	fire_sound = Mix_LoadWAV(audio_path("sfx/fire.wav").c_str());
 	Mix_VolumeChunk(fire_sound, 48);
 	potion_sound = Mix_LoadWAV(audio_path("sfx/potion.wav").c_str());
@@ -239,9 +239,9 @@ GLFWwindow* WorldSystem::create_window() {
 	arcane_funnel_sound = Mix_LoadWAV(audio_path("sfx/arcane_funnel.wav").c_str());
 	Mix_VolumeChunk(arcane_funnel_sound, 32);
 	rock_summon = Mix_LoadWAV(audio_path("sfx/rock_summon.wav").c_str());
-	Mix_VolumeChunk(rock_summon, 32);
+	Mix_VolumeChunk(rock_summon, 24);
 	trap_sound = Mix_LoadWAV(audio_path("sfx/trap.wav").c_str());
-	Mix_VolumeChunk(trap_sound, 24);
+	Mix_VolumeChunk(trap_sound, 18);
 	malediction_sound = Mix_LoadWAV(audio_path("sfx/malediction.wav").c_str());
 	Mix_VolumeChunk(malediction_sound, 32);
 	thunder_sound = Mix_LoadWAV(audio_path("sfx/thunder.wav").c_str());

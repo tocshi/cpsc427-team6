@@ -975,7 +975,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				}
 				else {
 					start_game();
-					roomSystem.current_floor = Floors::FLOOR2;
 					spawn_game_entities();
 					roomSystem.setRandomObjective();
 				}

@@ -237,7 +237,7 @@ GLFWwindow* WorldSystem::create_window() {
 	smokescreen_sound = Mix_LoadWAV(audio_path("sfx/smoke.wav").c_str());
 	Mix_VolumeChunk(smokescreen_sound, 32);
 	arcane_funnel_sound = Mix_LoadWAV(audio_path("sfx/arcane_funnel.wav").c_str());
-	Mix_VolumeChunk(arcane_funnel_sound, 32);
+	Mix_VolumeChunk(arcane_funnel_sound, 24);
 	rock_summon = Mix_LoadWAV(audio_path("sfx/rock_summon.wav").c_str());
 	Mix_VolumeChunk(rock_summon, 32);
 	trap_sound = Mix_LoadWAV(audio_path("sfx/trap.wav").c_str());
@@ -332,11 +332,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				calc_stats(player_main);
 				remove_fog_of_war();
 				create_fog_of_war();
+				Mix_PlayChannel(-1, plant_shoot, 0);
 			}
 			if (registry.equipment.has(entity)) {
 				Equipment equipment = registry.equipment.get(entity);
 				Equipment prev = equip_item(player_main, equipment);
 				createEquipmentEntity(renderer, player_motion.position, prev);
+				remove_fog_of_war();
+				create_fog_of_war();
+				Mix_PlayChannel(-1, plant_shoot, 0);
 			}
 			if (current_game_state == GameStates::ITEM_MENU) {
 				// re-render the itemCards
@@ -876,7 +880,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					createEndLight(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f });
 				}
 				else {
-					createDoor(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f }, true);
+					Entity door = createDoor(renderer, { registry.motions.get(enemy).position.x, registry.motions.get(enemy).position.y - 64.f }, true);
+					registry.colors.remove(door);
+					registry.colors.insert(door, {0.7f, 0.7f, 1.f, 1.f});
 				}
 				//roomSystem.setNextFloor(Floors((int)roomSystem.current_floor + 1));
 				registry.players.get(player_main).floor++;

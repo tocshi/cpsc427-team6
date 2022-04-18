@@ -1037,10 +1037,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				break;
 			case (TRANSITION_TYPE::CUTSCENE_TO_GAMEOVER):
 				if (true) {
-					Entity line_ent = createLine(vec2(0, 0), vec2(window_width_px, window_height_px));
-					RenderRequest& rr = registry.renderRequests.get(line_ent);
-					rr.used_layer = RENDER_LAYER_ID::UI;
-
 					Entity player_temp = createPlayer(renderer, vec2(0, 0));
 					player_main = player_temp;
 					// make this temporary player invisible

@@ -345,7 +345,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 	if (cut_scene_number == 36) { 
 		messages = {
 			{
-				"I need my laptop. I've got some work to do.",
+				"",
 
 			},
 		};
@@ -354,7 +354,7 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 	if (cut_scene_number == 37) {
 		messages = {
 			{
-				"",
+				"I need my laptop. I've got some work to do.",
 
 			},
 		};
@@ -436,7 +436,7 @@ void CutSceneSystem::scene_transition(RenderSystem* renderer, int cut_scene_numb
 		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::SHOU_ANGRY);
 		updateDialogue(renderer, cut_scene_number);
 	}
-	else if (cut_scene_number == 16){ // fade to black or main_menu
+	else if (cut_scene_number == 16 || cut_scene_number == 36){ // fade to black or main_menu
 		Entity temp = Entity();
 		FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
 		timer.type = TRANSITION_TYPE::CUTSCENE_SWITCH;
@@ -471,9 +471,14 @@ void CutSceneSystem::scene_transition(RenderSystem* renderer, int cut_scene_numb
 		FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
 		timer.type = TRANSITION_TYPE::CUTSCENE_TO_HOSPITAL;
 	}
-	else if (cut_scene_number >= 29 && cut_scene_number <= 36) { // * signs 
+	else if (cut_scene_number >= 29 && cut_scene_number <= 35) { // hospital 
 		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_HOSPITAL);
 		updateDialogue(renderer, cut_scene_number);
+	}
+	if (cut_scene_number == 36) {
+		Entity line_ent = createLine(vec2(0, 0), vec2(window_width_px, window_height_px));
+		RenderRequest& rr = registry.renderRequests.get(line_ent);
+		rr.used_layer = RENDER_LAYER_ID::BG;
 	}
 
 	printf("Scene Transition function \n");

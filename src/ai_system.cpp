@@ -8,7 +8,7 @@
 #include "physics_system.hpp"
 
 // returns true if there is a (non-player) entity at the current location
-bool entityAtLocation(Motion& enemyMotion) {
+bool entityAtLocation(Entity& main, Motion& enemyMotion) {
 	// walls
 	for (Entity w : registry.collidables.entities) {
 		Motion& wallMotion = registry.motions.get(w);
@@ -19,7 +19,18 @@ bool entityAtLocation(Motion& enemyMotion) {
 		}
 	}
 
-	// todo: implement for other enemies
+	// other enemies (slimes)
+	for (Entity e : registry.enemies.entities) {
+		// only check for collisions with other entities
+		if (main != e) {
+			Motion& enemy2Motion = registry.motions.get(e);
+
+			// if colliding with enemy, return true;
+			if (collides_circle(enemyMotion, enemy2Motion)) {
+				return true;
+			}
+		}
+	}
 
 	return false;
 }
@@ -123,7 +134,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		nodeMotion.position = enemyMotion.scale;
 		
 		// right side
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(step_range, 0.f), range) && !entityAtLocation(nodeMotion)) {
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(step_range, 0.f), range) && !entityAtLocation(enemy, nodeMotion)) {
 			AstarNode* node = new AstarNode;
 			node->position = currNode->position + vec2(step_range, 0.f);
 			node->parent = currNode;
@@ -167,7 +178,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 		// left side
 		nodeMotion.position = currNode->position - vec2(step_range, 0.f);
-		if (!nodeOutRange(enemyPos, currNode->position - vec2(step_range, 0.f), range) && !entityAtLocation(nodeMotion)) {
+		if (!nodeOutRange(enemyPos, currNode->position - vec2(step_range, 0.f), range) && !entityAtLocation(enemy, nodeMotion)) {
 			AstarNode* node = new AstarNode;
 			node->position = currNode->position - vec2(step_range, 0.f);
 			node->parent = currNode;
@@ -211,7 +222,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 		// top
 		nodeMotion.position = currNode->position - vec2(0.f, step_range);
-		if (!nodeOutRange(enemyPos, currNode->position - vec2(0.f, step_range), range) && !entityAtLocation(nodeMotion)) {
+		if (!nodeOutRange(enemyPos, currNode->position - vec2(0.f, step_range), range) && !entityAtLocation(enemy, nodeMotion)) {
 			AstarNode* node = new AstarNode;
 			node->position = currNode->position - vec2(0.f, step_range);
 			node->parent = currNode;
@@ -255,7 +266,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 		// bottom
 		nodeMotion.position = currNode->position + vec2(0.f, step_range);
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(0.f, step_range), range) && !entityAtLocation(nodeMotion)) {
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(0.f, step_range), range) && !entityAtLocation(enemy, nodeMotion)) {
 			AstarNode* node = new AstarNode;
 			node->position = currNode->position + vec2(0.f, step_range);
 			node->parent = currNode;
@@ -301,7 +312,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 		// top right
 		nodeMotion.position = currNode->position + vec2(step_range, -step_range);
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(step_range, -step_range), range) && !entityAtLocation(nodeMotion)) {
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(step_range, -step_range), range) && !entityAtLocation(enemy, nodeMotion)) {
 			AstarNode* node = new AstarNode;
 			node->position = currNode->position + vec2(step_range, -step_range);
 			node->parent = currNode;
@@ -345,7 +356,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 		// top left
 		nodeMotion.position = currNode->position - vec2(step_range, step_range);
-		if (!nodeOutRange(enemyPos, currNode->position - vec2(step_range, step_range), range) && !entityAtLocation(nodeMotion)) {
+		if (!nodeOutRange(enemyPos, currNode->position - vec2(step_range, step_range), range) && !entityAtLocation(enemy, nodeMotion)) {
 			AstarNode* node = new AstarNode;
 			node->position = currNode->position - vec2(step_range, step_range);
 			node->parent = currNode;
@@ -389,7 +400,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 		// bottom right
 		nodeMotion.position = currNode->position + vec2(step_range, step_range);
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(step_range, step_range), range) && !entityAtLocation(nodeMotion)) {
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(step_range, step_range), range) && !entityAtLocation(enemy, nodeMotion)) {
 			AstarNode* node = new AstarNode;
 			node->position = currNode->position + vec2(step_range, step_range);
 			node->parent = currNode;
@@ -433,7 +444,7 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 		// bottom left
 		nodeMotion.position = currNode->position + vec2(-step_range, step_range);
-		if (!nodeOutRange(enemyPos, currNode->position + vec2(-step_range, step_range), range) && !entityAtLocation(nodeMotion)) {
+		if (!nodeOutRange(enemyPos, currNode->position + vec2(-step_range, step_range), range) && !entityAtLocation(enemy, nodeMotion)) {
 			AstarNode* node = new AstarNode;
 			node->position = currNode->position + vec2(-step_range, step_range);
 			node->parent = currNode;

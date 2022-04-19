@@ -2970,6 +2970,7 @@ void WorldSystem::loadFromData(json data) {
 	json roomSystemJson = data["room"];
 	json attackIndicatorList = data["attack_indicators"];
 	json traplist = data["trapEntities"];
+	json spawnDataJson = data["spawnData"];
 
 	// load room system
 	loadRoomSystem(roomSystemJson);
@@ -3001,6 +3002,8 @@ void WorldSystem::loadFromData(json data) {
 	loadAttackIndicators(attackIndicatorList);
 	// load traps in game 
 	loadTraps(traplist);
+	// load spawn data into world.spawnData
+	loadSpawnData(spawnDataJson);
 }
 
 Entity WorldSystem::loadPlayer(json playerData) {
@@ -3749,6 +3752,27 @@ void WorldSystem::loadAttackIndicators(json indicatorList) {
 		registry.attackIndicators.emplace(e);
 		registry.renderRequests.insert(e, renderRequest);
 	}
+}
+
+
+void WorldSystem::loadSpawnData(json spawnDataJson) {
+	spawnData.playerSpawns.clear();
+	spawnData.enemySpawns.clear();
+	spawnData.itemSpawns.clear();
+
+	for (auto& point : spawnDataJson["playerSpawns"]) {
+		spawnData.playerSpawns.push_back(vec2(point["x"], point["y"]));
+	}
+	for (auto& point : spawnDataJson["enemySpawns"]) {
+		spawnData.enemySpawns.push_back(vec2(point["x"], point["y"]));
+	}
+	for (auto& point : spawnDataJson["itemSpawns"]) {
+		spawnData.itemSpawns.push_back(vec2(point["x"], point["y"]));
+	}
+	spawnData.minEnemies = spawnDataJson["minEnemies"];
+	spawnData.maxEnemies = spawnDataJson["maxEnemies"];
+	spawnData.minItems = spawnDataJson["minItems"];
+	spawnData.maxItems = spawnDataJson["maxItems"];
 }
 
 

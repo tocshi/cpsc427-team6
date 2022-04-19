@@ -44,6 +44,7 @@ private:
 	json jsonifyBoss(Boss& b);
 	json jsonifyAttackIndicators();
 	json jsonifyTraps();
+	json jsonifySpawnData();
 	//json jsonify
 };
 

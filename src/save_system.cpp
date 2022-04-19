@@ -53,6 +53,7 @@ void SaveSystem::saveGameState(std::queue<Entity> entities, RoomSystem& roomSyst
 	saveState["attack_indicators"] = jsonifyAttackIndicators();
 
 	saveState["room"] = jsonifyRoomSystem(roomSystem);
+	saveState["spawnData"] = jsonifySpawnData();
 	saveState["music"] = world.current_music;
 	// get traps in the game
 	saveState["trapEntities"] = jsonifyTraps();
@@ -511,4 +512,41 @@ json SaveSystem::jsonifyAttackIndicators() {
 		indicatorList.push_back(indicatorJson);
 	}
 	return indicatorList;
+}
+
+json SaveSystem::jsonifySpawnData() {
+	json spawnJson;
+
+	json playerSpawnsJson = json::array();
+	for (vec2 point : world.spawnData.playerSpawns) {
+		json pointJson;
+		pointJson["x"] = point.x;
+		pointJson["y"] = point.y;
+		playerSpawnsJson.push_back(pointJson);
+	}
+	spawnJson["playerSpawns"] = playerSpawnsJson;
+
+	json enemySpawnsJson = json::array();
+	for (vec2 point : world.spawnData.enemySpawns) {
+		json pointJson;
+		pointJson["x"] = point.x;
+		pointJson["y"] = point.y;
+		enemySpawnsJson.push_back(pointJson);
+	}
+	spawnJson["enemySpawns"] = enemySpawnsJson;
+
+	json itemSpawnsJson = json::array();
+	for (vec2 point : world.spawnData.itemSpawns) {
+		json pointJson;
+		pointJson["x"] = point.x;
+		pointJson["y"] = point.y;
+		itemSpawnsJson.push_back(pointJson);
+	}
+	spawnJson["itemSpawns"] = itemSpawnsJson;
+
+	spawnJson["minEnemies"] = world.spawnData.minEnemies;
+	spawnJson["maxEnemies"] = world.spawnData.maxEnemies;
+	spawnJson["minItems"] = world.spawnData.minItems;
+	spawnJson["maxItems"] = world.spawnData.maxItems;
+	return spawnJson;
 }

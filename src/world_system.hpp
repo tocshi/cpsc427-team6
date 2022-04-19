@@ -136,6 +136,9 @@ public:
 	Mix_Chunk* caveling_death;
 	Mix_Chunk* caveling_move;
 	Mix_Chunk* ui_click;
+	Mix_Chunk* ui_open;
+	Mix_Chunk* ui_close;
+	Mix_Chunk* ui_alert;
 	Mix_Chunk* plant_shoot;
 	Mix_Chunk* kingslime_attack;
 	Mix_Chunk* kingslime_jump;
@@ -393,6 +396,7 @@ private:
 
 	Player temp_player_data;
 	Inventory temp_inv_data;
+	bool canContinue;
 
 	// calcualte abs value
 	int calculate_abs_value(float v1, float v2);

@@ -21,6 +21,8 @@ public:
 	json getSaveData();
 	std::queue<Entity> getSolidTileInteract(std::queue<Entity> orignalqueue); // puts solid/ collidables obj + tileMAp into the entitylist
 	json jsonifyPlayer(Entity player);
+	void setGameCompleted();
+	bool canSaveContinue();
 private:
 	json jsonifyEntities(std::queue<Entity> entities);
 	json jsonifyEnemy(Entity enemy);

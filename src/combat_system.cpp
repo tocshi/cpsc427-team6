@@ -335,7 +335,7 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 	}
 
 	// High-Quality Fletching
-	if (attacker_inv.artifact[(int)ARTIFACT::HQ_FLETCHING] > 0 && dist_to_edge(attacker_motion, defender_motion) <= 100.f) {
+	if (attacker_inv.artifact[(int)ARTIFACT::HQ_FLETCHING] > 0 && dist_to_edge(attacker_motion, defender_motion) >= 100.f) {
 		final_damage *= 1 + 0.2 * attacker_inv.artifact[(int)ARTIFACT::HQ_FLETCHING];
 	}
 

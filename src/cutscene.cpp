@@ -351,6 +351,15 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 		};
 	}
 
+	if (cut_scene_number == 37) {
+		messages = {
+			{
+				"",
+
+			},
+		};
+	}
+
 	activeTextbox = createTextbox(renderer, vec2(window_width_px / 2, window_height_px / 1.2), messages, true);
 	//updateTextBox(renderer, activeTextbox);
 }
@@ -390,7 +399,7 @@ void CutSceneSystem::updateTextBox(RenderSystem* renderer, Entity activeTextbox)
 
 
 void CutSceneSystem::scene_transition(RenderSystem* renderer, int cut_scene_number) {
-	if (cut_scene_number <= 21) {
+	if (cut_scene_number <= 36) {
 		cut_scene_text_log(renderer, "Press Esc to skip");
 	}
 	
@@ -457,9 +466,20 @@ void CutSceneSystem::scene_transition(RenderSystem* renderer, int cut_scene_numb
 		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::SHOU_ANGRY);
 		updateDialogue(renderer, cut_scene_number);
 	}
-	else if (cut_scene_number >= 29 && cut_scene_number < 36) { // * signs 
+	else if (cut_scene_number == 29) { // fade into hospital scene
+		Entity temp = Entity();
+		FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+		timer.type = TRANSITION_TYPE::CUTSCENE_TO_HOSPITAL;
+	}
+	else if (cut_scene_number >= 29 && cut_scene_number <= 35) { // hospital 
 		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_HOSPITAL);
 		updateDialogue(renderer, cut_scene_number);
+	}
+	else if (cut_scene_number == 36) {
+		createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_HOSPITAL);
+		Entity temp = Entity();
+		FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+		timer.type = TRANSITION_TYPE::CUTSCENE_TO_BLACK;
 	}
 
 	printf("Scene Transition function \n");

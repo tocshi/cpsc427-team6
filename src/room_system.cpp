@@ -99,6 +99,14 @@ void RoomSystem::updateObjective(ObjectiveType type, int quantity) {
 				world.spawn_doors_random_location(3, true);
 				Mix_PlayChannel(-1, world.door_sound, 0); // TODO: use different sound
 			}
+			else if (current_floor == Floors::BOSS2) {
+				world.logText("A radiant light glimmers before you...");
+				Mix_PlayChannel(-1, world.arcane_funnel_sound, 0);
+			}
+			else if (current_floor == Floors::BOSS1) {
+				world.logText("A magicked door appears from the felled enemy...");
+				Mix_PlayChannel(-1, world.door_sound, 0);
+			}
 			else {
 				world.logText("You hear the sounds of several doors opening in the distance...");
 				world.spawn_doors_random_location(3, false);

@@ -23,6 +23,22 @@ json SaveSystem::getSaveData() {
 	return j;
 }
 
+void SaveSystem::setGameCompleted() {
+	if (saveDataExists()) {
+		json saveData = getSaveData();
+		saveData["game_completed"] = true;
+		saveToFile(saveData);
+	}
+}
+
+bool SaveSystem::canSaveContinue() {
+	if (!saveDataExists()) {
+		return false;
+	}
+	json saveData = getSaveData();
+	return saveData["game_completed"] == nullptr || saveData["game_completed"] == false;
+}
+
 void SaveSystem::saveGameState(std::queue<Entity> entities, RoomSystem& roomSystem) {
 	json saveState;
 	std::queue<Entity> resultList;

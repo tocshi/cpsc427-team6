@@ -48,19 +48,19 @@ void WorldSystem::destroyMusic() {
 	if (ui_close != nullptr) Mix_FreeChunk(ui_close);
 	if (ui_alert != nullptr) Mix_FreeChunk(ui_alert);
 	if (plant_shoot != nullptr) Mix_FreeChunk(plant_shoot);
-	if (kingslime_attack != nullptr) Mix_FreeChunk(slime_death);
-	if (kingslime_jump != nullptr) Mix_FreeChunk(caveling_move);
-	if (kingslime_summon != nullptr) Mix_FreeChunk(caveling_death);
-	if (pebble_move != nullptr) Mix_FreeChunk(whoosh);
-	if (fire_sound != nullptr) Mix_FreeChunk(sword_end);
-	if (potion_sound != nullptr) Mix_FreeChunk(sword_parry);
-	if (smokescreen_sound != nullptr) Mix_FreeChunk(sword_pierce);
-	if (arcane_funnel_sound != nullptr) Mix_FreeChunk(sword_slash);
-	if (rock_summon != nullptr) Mix_FreeChunk(special_sound);
-	if (trap_sound != nullptr) Mix_FreeChunk(ui_click);
-	if (malediction_sound != nullptr) Mix_FreeChunk(ui_open);
-	if (thunder_sound != nullptr) Mix_FreeChunk(ui_close);
-	if (bag_of_wind_sound != nullptr) Mix_FreeChunk(ui_alert);
+	if (kingslime_attack != nullptr) Mix_FreeChunk(kingslime_attack);
+	if (kingslime_jump != nullptr) Mix_FreeChunk(kingslime_jump);
+	if (kingslime_summon != nullptr) Mix_FreeChunk(kingslime_summon);
+	if (pebble_move != nullptr) Mix_FreeChunk(pebble_move);
+	if (fire_sound != nullptr) Mix_FreeChunk(fire_sound);
+	if (potion_sound != nullptr) Mix_FreeChunk(potion_sound);
+	if (smokescreen_sound != nullptr) Mix_FreeChunk(smokescreen_sound);
+	if (arcane_funnel_sound != nullptr) Mix_FreeChunk(arcane_funnel_sound);
+	if (rock_summon != nullptr) Mix_FreeChunk(rock_summon);
+	if (trap_sound != nullptr) Mix_FreeChunk(trap_sound);
+	if (malediction_sound != nullptr) Mix_FreeChunk(malediction_sound);
+	if (thunder_sound != nullptr) Mix_FreeChunk(thunder_sound);
+	if (bag_of_wind_sound != nullptr) Mix_FreeChunk(bag_of_wind_sound);
 	Mix_CloseAudio();
 }
 
@@ -254,7 +254,7 @@ GLFWwindow* WorldSystem::create_window() {
 		|| chest_sound == nullptr || slime_move == nullptr 
 		|| slime_death == nullptr || caveling_death == nullptr
 		|| caveling_move == nullptr) {
-		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n make sure the data directory is present",
+		fprintf(stderr, "Failed to load sounds! make sure the data directory is present",
 			audio_path("bgm/caves0.wav").c_str(),
 			audio_path("bgm/menu0.wav").c_str(),
 			audio_path("bgm/dream0.wav").c_str(),
@@ -435,68 +435,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// update per-enemy hp bar positions
-	for (int i = 0; i < registry.enemyHPBars.size(); i++) {
-		Entity enemy = registry.enemyHPBars.entities[i];
-		EnemyHPBar& hpbar = registry.enemyHPBars.components[i];
-		if (!registry.motions.has(hpbar.hpBacking) || !registry.motions.has(hpbar.hpFill)) {
-			continue;
-		}
-		Stats& stats = registry.stats.get(enemy);
-
-		Motion& enemy_motion = registry.motions.get(enemy);
-		Motion& hpbacking_motion = registry.motions.get(hpbar.hpBacking);
-		Motion& hpfill_motion = registry.motions.get(hpbar.hpFill);
-
-		hpbacking_motion.position = enemy_motion.position + vec2(0, ENEMY_HP_BAR_OFFSET);
-		hpfill_motion.scale.x = hpbacking_motion.scale.x * max(0.f, (stats.hp / stats.maxhp));
-		hpfill_motion.position = hpbacking_motion.position - vec2((hpbacking_motion.scale.x - hpfill_motion.scale.x) / 2, 0);
-	}
-
-	// update the boss hp bar
-	for (int i = 0; i < registry.bossHPBars.size(); i++) {
-		Entity boss = registry.bossHPBars.entities[i];
-		BossHPBar& hpbar = registry.bossHPBars.components[i];
-		if (!registry.motions.has(hpbar.hpBacking) || !registry.motions.has(hpbar.hpFill)) {
-			continue;
-		}
-		Stats& stats = registry.stats.get(boss);
-
-		Motion& hpbacking_motion = registry.motions.get(hpbar.hpBacking);
-		Motion& hpfill_motion = registry.motions.get(hpbar.hpFill);
-
-		hpfill_motion.scale.x = hpbacking_motion.scale.x * max(0.f, (stats.hp / stats.maxhp));
-		hpfill_motion.position = hpbacking_motion.position - vec2((hpbacking_motion.scale.x - hpfill_motion.scale.x) / 2, 0);
-	}
-
-	// update per-enemy shadows
-	for (int i = 0; i < registry.shadowContainers.size(); i++) {
-		Entity enemy = registry.shadowContainers.entities[i];
-		ShadowContainer& shadow_container = registry.shadowContainers.components[i];
-		if (!registry.motions.has(shadow_container.shadow_entity)) {
-			continue;
-		}
-		Motion& shadow_motion = registry.motions.get(shadow_container.shadow_entity);
-		Motion& player_motion = registry.motions.get(player_main);
-		Motion& enemy_motion = registry.motions.get(enemy);
-
-		float angle = atan2(enemy_motion.position.y - player_motion.position.y, enemy_motion.position.x - player_motion.position.x);
-		float distance = dist_to(enemy_motion.position, player_motion.position);
-		float length_scale = 1;
-		if (distance < 64) {
-			length_scale = distance / 64.f;
-		}
-		else {
-			length_scale = 1 + min(distance, 300.f) / 300.f;
-		}
-		shadow_motion.scale = vec2(enemy_motion.scale.x * length_scale, enemy_motion.scale.y);
-		shadow_motion.angle = angle;
-		shadow_motion.position = dirdist_extrapolate(enemy_motion.position, angle, shadow_motion.scale.x/2 - enemy_motion.scale.x/4);
-		// shift the shadow a little if enemy is a plantshooter
-		if (registry.enemies.has(enemy) && registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER) {
-			shadow_motion.position += vec2(0, 0.25 * enemy_motion.scale.y);
-		}
-	}
+	// update enemy HP bars and shadows
+	update_bar_and_shadow();
 
 	for (Entity p : registry.players.entities) {
 		Player player = registry.players.get(p);
@@ -5032,6 +4972,71 @@ void WorldSystem::playMusic(Music music) {
 		break;
 	default:
 		printf("unsupported Music enum value %d\n", music);
+	}
+}
+
+void WorldSystem::update_bar_and_shadow() {
+	// update per-enemy hp bar positions
+	for (int i = 0; i < registry.enemyHPBars.size(); i++) {
+		Entity enemy = registry.enemyHPBars.entities[i];
+		EnemyHPBar& hpbar = registry.enemyHPBars.components[i];
+		if (!registry.motions.has(hpbar.hpBacking) || !registry.motions.has(hpbar.hpFill)) {
+			continue;
+		}
+		Stats& stats = registry.stats.get(enemy);
+
+		Motion& enemy_motion = registry.motions.get(enemy);
+		Motion& hpbacking_motion = registry.motions.get(hpbar.hpBacking);
+		Motion& hpfill_motion = registry.motions.get(hpbar.hpFill);
+
+		hpbacking_motion.position = enemy_motion.position + vec2(0, ENEMY_HP_BAR_OFFSET);
+		hpfill_motion.scale.x = hpbacking_motion.scale.x * max(0.f, (stats.hp / stats.maxhp));
+		hpfill_motion.position = hpbacking_motion.position - vec2((hpbacking_motion.scale.x - hpfill_motion.scale.x) / 2, 0);
+	}
+
+	// update the boss hp bar
+	for (int i = 0; i < registry.bossHPBars.size(); i++) {
+		Entity boss = registry.bossHPBars.entities[i];
+		BossHPBar& hpbar = registry.bossHPBars.components[i];
+		if (!registry.motions.has(hpbar.hpBacking) || !registry.motions.has(hpbar.hpFill)) {
+			continue;
+		}
+		Stats& stats = registry.stats.get(boss);
+
+		Motion& hpbacking_motion = registry.motions.get(hpbar.hpBacking);
+		Motion& hpfill_motion = registry.motions.get(hpbar.hpFill);
+
+		hpfill_motion.scale.x = hpbacking_motion.scale.x * max(0.f, (stats.hp / stats.maxhp));
+		hpfill_motion.position = hpbacking_motion.position - vec2((hpbacking_motion.scale.x - hpfill_motion.scale.x) / 2, 0);
+	}
+
+	// update per-enemy shadows
+	for (int i = 0; i < registry.shadowContainers.size(); i++) {
+		Entity enemy = registry.shadowContainers.entities[i];
+		ShadowContainer& shadow_container = registry.shadowContainers.components[i];
+		if (!registry.motions.has(shadow_container.shadow_entity)) {
+			continue;
+		}
+		Motion& shadow_motion = registry.motions.get(shadow_container.shadow_entity);
+		Motion& player_motion = registry.motions.get(player_main);
+		Motion& enemy_motion = registry.motions.get(enemy);
+
+		float angle = atan2(enemy_motion.position.y - player_motion.position.y, enemy_motion.position.x - player_motion.position.x);
+		float distance = dist_to(enemy_motion.position, player_motion.position);
+		float length_scale = 1;
+		if (distance < 64) {
+			length_scale = distance / 64.f;
+		}
+		else {
+			length_scale = 1 + min(distance, 300.f) / 300.f;
+		}
+		shadow_motion.scale = vec2(enemy_motion.scale.x * length_scale, enemy_motion.scale.y);
+		shadow_motion.angle = angle;
+		shadow_motion.position = dirdist_extrapolate(enemy_motion.position, angle, shadow_motion.scale.x / 2 - enemy_motion.scale.x / 4);
+		// shift the shadow a little if enemy is a plantshooter
+		if (registry.enemies.has(enemy) && registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER) {
+			shadow_motion.position += vec2(0, 0.25 * enemy_motion.scale.y);
+		}
 	}
 }
 

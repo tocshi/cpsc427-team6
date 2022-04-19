@@ -87,6 +87,7 @@ void teleport(Entity& enemy, Entity& player)
 		}
 	} while (!valid);
 	enemy_motion.position = new_pos;
+	world.update_bar_and_shadow();
 }
 
 // Entity directly takes damage

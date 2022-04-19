@@ -196,6 +196,7 @@ public:
 	void spawn_switches_random_location(int quantity);
 
 	void playMusic(Music music);
+	void update_bar_and_shadow();
 
 private:
 	// Input callback functions

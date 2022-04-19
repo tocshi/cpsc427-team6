@@ -592,7 +592,7 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 	// float chaseRange = 1000.f;
 	float meleeRange = 100.f;
 	float dir = irand(360) * M_PI / 180;
-	float dist = irandRange(25, 75);
+	float dist = irandRange(70, 140);
 
 	Motion& motion_struct = registry.motions.get(slime);
 

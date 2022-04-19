@@ -468,7 +468,7 @@ Entity createLivingPebble(RenderSystem* renderer, vec2 pos)
 	stats.hp = stats.maxhp;
 	stats.atk = 12;
 	stats.def = 999;
-	stats.speed = 11;
+	stats.speed = 12;
 	stats.range = 500;
 
 	registry.basestats.insert(entity, stats);

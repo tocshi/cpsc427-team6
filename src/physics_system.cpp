@@ -178,7 +178,7 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 					continue;
 				}
 				Trap& trap = registry.traps.get(t);
-				if (trap.triggers <= 0 || trap.turns <= 0) {
+				if (trap.triggers <= 0) {
 					if (registry.motions.has(t)) {
 						registry.remove_all_components_of(t);
 					}

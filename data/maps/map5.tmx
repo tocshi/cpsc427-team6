@@ -191,14 +191,15 @@
   <object id="350" x="720" y="64" width="16" height="16"/>
   <object id="351" x="64" y="64" width="16" height="16"/>
  </objectgroup>
- <group id="142" name="group1">
-  <properties>
-   <property name="max" type="int" value="3"/>
-   <property name="min" type="int" value="3"/>
-  </properties>
-  <group id="143" name="wall0">
-   <layer id="144" name="wall" width="50" height="50">
-    <data encoding="csv">
+ <group id="5" name="randwalls">
+  <group id="142" name="group1">
+   <properties>
+    <property name="max" type="int" value="3"/>
+    <property name="min" type="int" value="3"/>
+   </properties>
+   <group id="143" name="wall0">
+    <layer id="144" name="wall" width="50" height="50">
+     <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -250,15 +251,15 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
-   </layer>
-   <objectgroup id="145" name="wall">
-    <object id="273" x="480" y="160" width="160" height="16"/>
-    <object id="274" x="624" y="160" width="16" height="160"/>
-   </objectgroup>
-  </group>
-  <group id="146" name="wall1">
-   <layer id="147" name="wall" width="50" height="50">
-    <data encoding="csv">
+    </layer>
+    <objectgroup id="145" name="wall">
+     <object id="273" x="480" y="160" width="160" height="16"/>
+     <object id="274" x="624" y="160" width="16" height="160"/>
+    </objectgroup>
+   </group>
+   <group id="146" name="wall1">
+    <layer id="147" name="wall" width="50" height="50">
+     <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -310,15 +311,15 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
-   </layer>
-   <objectgroup id="148" name="wall">
-    <object id="282" x="624" y="480" width="16" height="160"/>
-    <object id="283" x="480" y="624" width="160" height="16"/>
-   </objectgroup>
-  </group>
-  <group id="149" name="wall2">
-   <layer id="150" name="wall" width="50" height="50">
-    <data encoding="csv">
+    </layer>
+    <objectgroup id="148" name="wall">
+     <object id="282" x="624" y="480" width="16" height="160"/>
+     <object id="283" x="480" y="624" width="160" height="16"/>
+    </objectgroup>
+   </group>
+   <group id="149" name="wall2">
+    <layer id="150" name="wall" width="50" height="50">
+     <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -370,15 +371,15 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
-   </layer>
-   <objectgroup id="151" name="wall">
-    <object id="284" x="160" y="624" width="160" height="16"/>
-    <object id="285" x="160" y="480" width="16" height="160"/>
-   </objectgroup>
-  </group>
-  <group id="152" name="wall3">
-   <layer id="153" name="wall" width="50" height="50">
-    <data encoding="csv">
+    </layer>
+    <objectgroup id="151" name="wall">
+     <object id="284" x="160" y="624" width="160" height="16"/>
+     <object id="285" x="160" y="480" width="16" height="160"/>
+    </objectgroup>
+   </group>
+   <group id="152" name="wall3">
+    <layer id="153" name="wall" width="50" height="50">
+     <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -430,14 +431,13 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
-   </layer>
-   <objectgroup id="154" name="wall">
-    <object id="286" x="160" y="160" width="16" height="160"/>
-    <object id="287" x="160" y="160" width="160" height="16"/>
-   </objectgroup>
+    </layer>
+    <objectgroup id="154" name="wall">
+     <object id="286" x="160" y="160" width="16" height="160"/>
+     <object id="287" x="160" y="160" width="160" height="16"/>
+    </objectgroup>
+   </group>
   </group>
- </group>
- <group id="5" name="randwalls">
   <group id="70" name="group0">
    <properties>
     <property name="max" type="int" value="3"/>

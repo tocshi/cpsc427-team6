@@ -519,11 +519,11 @@ Entity createLivingRock(RenderSystem* renderer, vec2 pos)
 	enemy.type = ENEMY_TYPE::LIVING_ROCK;
 	registry.inventories.emplace(entity);
 
-	// Create living pebble stats
+	// Create living rock stats
 	auto& stats = registry.stats.emplace(entity);
 	stats.name = "Living Rock";
 	stats.prefix = "the";
-	stats.maxhp = 10;
+	stats.maxhp = 8;
 	stats.hp = stats.maxhp;
 	stats.atk = 0;
 	stats.def = 999;
@@ -646,7 +646,7 @@ Entity createReflexion(RenderSystem* renderer, vec2 pos)
 	stats.maxhp = 600;
 	stats.hp = stats.maxhp;
 	stats.atk = 15;
-	stats.def = 6;
+	stats.def = 7;
 	stats.speed = 10;
 	stats.range = 3000;
 
@@ -2228,7 +2228,11 @@ Entity createCollectionMenu(RenderSystem* renderer, vec2 pos, Entity player) {
 	// render the artifact icons
 	float x_offset = 0.f;
 	float y_offset = 0.f;
+	Inventory inv = registry.inventories.get(player);
+
 	for (int artifact = 0; artifact < (int)ARTIFACT::ARTIFACT_COUNT; artifact++) {
+		int size = inv.artifact[(int)artifact];
+
 		float next_x = pos.x - ((COLLECTION_MENU_BB_WIDTH / 2) - 124.f) + x_offset;
 		float next_y = pos.y - ((COLLECTION_MENU_BB_HEIGHT / 2) - 100) + y_offset;
 		if (next_x >= pos.x + (COLLECTION_MENU_BB_WIDTH / 2) - 200) {
@@ -2238,13 +2242,14 @@ Entity createCollectionMenu(RenderSystem* renderer, vec2 pos, Entity player) {
 		else {
 			x_offset += (ARTIFACT_IMAGE_BB_WIDTH + 20.f);
 		}
-		createArtifactIcon(renderer, vec2(next_x, next_y),
-			static_cast<ARTIFACT>(artifact));
+		if (size <= 0) {
+			createArtifactIcon(renderer, vec2(next_x, next_y), ARTIFACT::ARTIFACT_COUNT);
+		}
+		else {
+			createArtifactIcon(renderer, vec2(next_x, next_y), static_cast<ARTIFACT>(artifact));
+		}
 
 		// need to render the current count beside it
-		Inventory inv = registry.inventories.get(player);
-
-		int size = inv.artifact[(int)artifact];
 		std::string sizeStr = std::to_string(size);
 
 		std::vector<Entity> textVect;

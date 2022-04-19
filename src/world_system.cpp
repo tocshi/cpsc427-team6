@@ -238,13 +238,21 @@ GLFWwindow* WorldSystem::create_window() {
 	rock_summon = Mix_LoadWAV(audio_path("sfx/rock_summon.wav").c_str());
 	Mix_VolumeChunk(rock_summon, 24);
 	trap_sound = Mix_LoadWAV(audio_path("sfx/trap.wav").c_str());
-	Mix_VolumeChunk(trap_sound, 18);
+	Mix_VolumeChunk(trap_sound, 8);
 	malediction_sound = Mix_LoadWAV(audio_path("sfx/malediction.wav").c_str());
-	Mix_VolumeChunk(malediction_sound, 32);
+	Mix_VolumeChunk(malediction_sound, 24);
 	thunder_sound = Mix_LoadWAV(audio_path("sfx/thunder.wav").c_str());
 	Mix_VolumeChunk(thunder_sound, 10);
 	bag_of_wind_sound = Mix_LoadWAV(audio_path("sfx/hurricane.wav").c_str());
-	Mix_VolumeChunk(bag_of_wind_sound, 32);
+	Mix_VolumeChunk(bag_of_wind_sound, 24);
+	ghost_sound = Mix_LoadWAV(audio_path("sfx/ghost.wav").c_str());
+	Mix_VolumeChunk(ghost_sound, 8);
+	ghost_move = Mix_LoadWAV(audio_path("sfx/rustle.wav").c_str());
+	Mix_VolumeChunk(ghost_move, 16);
+	plant_death = Mix_LoadWAV(audio_path("sfx/plant_death.wav").c_str());
+	Mix_VolumeChunk(plant_death, 24);
+	walking = Mix_LoadWAV(audio_path("sfx/cave_footsteps.wav").c_str());
+	Mix_VolumeChunk(walking, 64);
 
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr
@@ -254,21 +262,7 @@ GLFWwindow* WorldSystem::create_window() {
 		|| chest_sound == nullptr || slime_move == nullptr 
 		|| slime_death == nullptr || caveling_death == nullptr
 		|| caveling_move == nullptr) {
-		fprintf(stderr, "Failed to load sounds! make sure the data directory is present",
-			audio_path("bgm/caves0.wav").c_str(),
-			audio_path("bgm/menu0.wav").c_str(),
-			audio_path("bgm/dream0.wav").c_str(),
-			audio_path("feedback/fire_explosion.wav").c_str(),
-			audio_path("feedback/error.wav").c_str(),
-			audio_path("feedback/footstep.wav").c_str(),
-			audio_path("feedback/door_open.wav").c_str(),
-			audio_path("feedback/switch_click.wav").c_str(),
-			audio_path("feedback/chest_open.wav").c_str(),
-			audio_path("feedback/slime_move.wav").c_str(),
-			audio_path("feedback/slime_death.wav").c_str(),
-			audio_path("feedback/caveling_death.wav").c_str(),
-			audio_path("feedback/caveling_move.wav").c_str()
-		);
+		fprintf(stderr, "Failed to load sounds! make sure the data directory is present");
 		return nullptr;
 	}
 
@@ -1170,6 +1164,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// particle effects
 	for (Entity entity : registry.particleContainers.entities) {
+		if (registry.hidden.has(entity)) { continue; }
 		ParticleContainer& container = registry.particleContainers.get(entity);
 		for (ParticleEmitter& emitter : container.emitters) {
 			emitter.counter_ms -= elapsed_ms_since_last_update;
@@ -1725,7 +1720,7 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
 			// rock benchmark test comment
-			//createLivingRock(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			//createApparition(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
 			int roll = irand(4);
 			switch (roomSystem.current_floor) {
 			case Floors::FLOOR1:
@@ -1788,6 +1783,7 @@ void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int
 			case Floors::BOSS1:
 			case Floors::BOSS2:
 				createCampfire(renderer, { itemSpawns[i].x, itemSpawns[i].y });
+				break;
 			default:
 				// temporary, later we can also randomize the item types
 				if (range > 0) {
@@ -1803,6 +1799,7 @@ void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int
 				else {
 					createChest(renderer, { itemSpawns[i].x, itemSpawns[i].y }, true);
 				}
+				break;
 			}
 			spawned++;
 			i++;
@@ -1892,7 +1889,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_9) {
-		int give = (int)ARTIFACT::BURRBAG;
+		int give = (int)ARTIFACT::WINDBAG;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
@@ -2265,7 +2262,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					break;
 				case BUTTON_ACTION_ID::SAVE_QUIT:
-					if (!tutorial && !(roomSystem.current_floor == Floors::BOSS1 || roomSystem.current_floor == Floors::BOSS2)) {
+					if (!tutorial && current_music != Music::BOSS0 && current_music != Music::BOSS1) {
 						saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
 						logText("Game state saved!");
 					}
@@ -2619,6 +2616,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									transition.floor = roomSystem.current_floor;
 								}
 								player.total_rooms++;
+								Mix_PlayChannel(-1, walking, 0);
 							}
 							// Boss Door Behaviour
 							else if (interactable.type == INTERACT_TYPE::BOSS_DOOR && dist_to(registry.motions.get(player_main).position, motion.position) <= 150) {
@@ -2635,6 +2633,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									roomSystem.setNextFloor(transition.floor);
 								}
 								player.total_rooms++;
+								Mix_PlayChannel(-1, walking, 0);
 							}
 							// End_Light Behaviour
 							else if (interactable.type == INTERACT_TYPE::END_LIGHT && dist_to(registry.motions.get(player_main).position, motion.position) <= 200) {
@@ -2849,7 +2848,7 @@ void WorldSystem::start_player_turn() {
 		// choose target
 		for (Entity& e : registry.enemies.entities) {
 			Motion& enemy_motion = registry.motions.get(e);
-			if (dist_to(player_motion.position, enemy_motion.position) > (registry.stats.get(player_main).range / 2)) { continue; }
+			if (dist_to_edge(player_motion, enemy_motion) > 200) { continue; }
 			Stats& enemy_stats = registry.stats.get(e);
 			if (enemy_stats.hp / enemy_stats.maxhp < frac) {
 				valid = true;
@@ -4169,6 +4168,12 @@ void WorldSystem::playEnemyDeathSound(ENEMY_TYPE enemy_type) {
 		case ENEMY_TYPE::CAVELING:
 			Mix_PlayChannel(-1, caveling_death, 0);
 			break;
+		case ENEMY_TYPE::PLANT_SHOOTER:
+			Mix_PlayChannel(-1, plant_death, 0);
+			break;
+		case ENEMY_TYPE::APPARITION:
+			Mix_PlayChannel(-1, ghost_sound, 0);
+			break;
 	}
 }
 
@@ -4182,6 +4187,9 @@ void WorldSystem::playEnemyMoveSound(ENEMY_TYPE enemy_type) {
 		break;
 	case ENEMY_TYPE::LIVING_PEBBLE:
 		Mix_PlayChannel(-1, pebble_move, 0);
+		break;
+	case ENEMY_TYPE::APPARITION:
+		Mix_PlayChannel(-1, ghost_move, 0);
 		break;
 	}
 }

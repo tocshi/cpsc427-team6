@@ -153,6 +153,10 @@ public:
 	Mix_Chunk* malediction_sound;
 	Mix_Chunk* thunder_sound;
 	Mix_Chunk* bag_of_wind_sound;
+	Mix_Chunk* ghost_sound;
+	Mix_Chunk* ghost_move;
+	Mix_Chunk* plant_death;
+	Mix_Chunk* walking;
 
 	Mix_Music* background_music;
 	Mix_Music* menu_music;

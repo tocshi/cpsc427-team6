@@ -54,8 +54,9 @@ std::string deal_damage(Entity& attacker, Entity& defender, float multiplier, bo
 	if (registry.players.has(attacker) && registry.enemies.has(defender)) {
 		auto& enemy_struct = registry.enemies.get(defender);
 		enemy_struct.hit_by_player = true;
+
 		// apparition teleport
-		if (registry.enemies.get(defender).type == ENEMY_TYPE::APPARITION && defender_stats.hp > 0) {
+		if (registry.enemies.get(defender).type == ENEMY_TYPE::APPARITION && registry.stats.get(defender).hp > 0) {
 			teleport(defender, attacker);
 			registry.motions.get(defender).destination = registry.motions.get(defender).position;
 			registry.motions.get(defender).in_motion = false;
@@ -296,8 +297,9 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 			Entity explosion = createExplosion(world.renderer, defender_motion.position);
 			registry.motions.get(explosion).scale *= 2.f;
 			registry.colors.insert(explosion, { 2.f, 0.8f, 2.f, 1.f });
+			Mix_PlayChannel(-1, world.thunder_sound, 0);
 
-			for (Entity e : registry.enemies.entities) {
+			for (Entity& e : registry.enemies.entities) {
 				Motion enemy_motion = registry.motions.get(e);
 				if (dist_to_edge(enemy_motion, defender_motion) <= 10.f || e == defender) {
 					deal_damage(attacker, e, 60, false);
@@ -359,12 +361,8 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 	// Fungifier
 	if (attacker_inv.artifact[(int)ARTIFACT::FUNGIFIER] > 0 && final_damage >= defender_stats.hp) {
 		float multiplier = 130 * attacker_inv.artifact[(int)ARTIFACT::FUNGIFIER];
-		Mix_PlayChannel(-1, world.trap_sound, 0);
 		Entity mushroom = createTrap(world.renderer, attacker, {0, 0}, { 64, 64 }, multiplier, 2, 1, TEXTURE_ASSET_ID::MUSHROOM);
 		registry.motions.get(mushroom).destination = defender_motion.position;
-
-		// play fungifier sound
-		world.playFungifierSound();
 	}
 	return final_damage;
 }
@@ -558,18 +556,26 @@ void handle_status_ticks(Entity& entity, bool applied_from_turn_start, bool stat
 
 // Call at the beginning of every player turn to manage traps
 void handle_traps() {
-	for (Entity t : registry.traps.entities) {
+	for (Entity& t : registry.traps.entities) {
+		// this looks stupid, but trust me, it isn't
+		if (!registry.traps.has(t) || !registry.renderRequests.has(t)) {
+			continue;
+		}
+
 		Trap& trap = registry.traps.get(t);
 
-		if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
+		if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM && registry.motions.get(t).position != registry.motions.get(t).destination) {
 			registry.motions.get(t).position = registry.motions.get(t).destination;
+			Mix_PlayChannel(3, world.trap_sound, 0);
 		}
 
 		if (trap.turns <= 0 || trap.triggers <= 0) {
 			if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
 				trigger_trap(t, t);
 			}
-			registry.remove_all_components_of(t);
+			if (registry.motions.has(t)) {
+				registry.remove_all_components_of(t);
+			}
 		}
 		trap.turns--;
 	}
@@ -579,79 +585,99 @@ void handle_traps() {
 // t is trap
 // trapped is the unfortunate victim
 void trigger_trap(Entity t, Entity trapped) {
-	if (!registry.stats.has(t)) { return; }
-	Trap& trap = registry.traps.get(t);
-	if (trap.triggers <= 0) { return; }
+	// this looks stupid, but trust me, it isn't
+	if (!registry.stats.has(t) || !registry.renderRequests.has(t) || !registry.traps.has(t)) {
+		return; }
+	// Look, C++ has a tendency to screw around with copy-by-reference, and the trap system is ESPECIALLY
+	// prone to it not copying correctly. I don't know why this even happens, but it seems that as long as
+	// I replace every call to trap with registry.traps.get(t), C++ plays nice and doesn't mess with the 
+	// values in the trap component. Thanks for coming to my TED Talk.
+	//Trap& trap = registry.traps.get(t);
+	if (registry.traps.get(t).triggers <= 0) { 
+		if (registry.motions.has(t)) {
+			registry.remove_all_components_of(t);
+		}
+		return; 
+	}
 	Motion& trap_motion = registry.motions.get(t);
-
-	// pre-switch instantiations (this is why I hate C++)
-	StatusEffect burrs = StatusEffect(0, 0, StatusType::BURR_DEBUFF, false, true);
-	StatusEffect boss_poison = StatusEffect(0.2 * trap.multiplier, 5, StatusType::POISON, false, false);
-	StatusEffect boss_atk_buff = StatusEffect(0.3, 3, StatusType::ATK_BUFF, true, true);
-	StatusEffect boss_regen_buff = StatusEffect(10, 3, StatusType::HP_REGEN, false, true);
-	vec4 color = vec4(1.f);
-	if (registry.colors.has(t)) { color = registry.colors.get(t); }
-	if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::MUSHROOM) {
-		Entity explosion = createExplosion(world.renderer, trap_motion.position);
-		registry.motions.get(explosion).scale *= 2.f;
-		registry.colors.insert(explosion, { 0.8f, 2.f, 2.f, 1.f });
-	}
-	if (registry.renderRequests.get(t).used_texture == TEXTURE_ASSET_ID::FATE) {
-		Mix_PlayChannel(-1, world.smokescreen_sound, 0);
-		Entity smoke = createBigSlash(world.renderer, trap_motion.position, 0, 200);
-		registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
-		registry.expandTimers.get(smoke).counter_ms = 1000;
-		registry.colors.insert(smoke, color);
-	}
 
 	// do trap effect based on texture
 	switch (registry.renderRequests.get(t).used_texture) {
 	case TEXTURE_ASSET_ID::MUSHROOM:
-		for (Entity e : registry.enemies.entities) {
-			if (!e) { continue; }
-			Motion enemy_motion = registry.motions.get(e);
-			if (dist_to_edge(enemy_motion, registry.motions.get(t)) <= 50.f) {
-				deal_damage(trap.owner, e, trap.multiplier, false);
+		if (true) {
+			Mix_PlayChannel(-1, world.fire_explosion_sound, 0);
+			Entity explosion = createExplosion(world.renderer, trap_motion.position);
+			registry.motions.get(explosion).scale *= 2.f;
+			registry.colors.insert(explosion, { 0.8f, 2.f, 2.f, 1.f });
+
+			for (Entity& e : registry.enemies.entities) {
+				if (!e) { continue; }
+				Motion enemy_motion = registry.motions.get(e);
+				if (dist_to_edge(enemy_motion, registry.motions.get(t)) <= 50.f) {
+					deal_damage(registry.traps.get(t).owner, e, registry.traps.get(t).multiplier, false);
+				}
 			}
 		}
 		break;
 	case TEXTURE_ASSET_ID::BURRS:
-		// don't trigger if already triggered this turn
-		if (has_status(trapped, StatusType::BURR_DEBUFF)) { return; }
-		apply_status(trapped, burrs);
-		deal_damage(trap.owner, trapped, trap.multiplier, false);
+		if (true) {
+			StatusEffect burrs = StatusEffect(0, 0, StatusType::BURR_DEBUFF, false, true);
+
+			// don't trigger if already triggered this turn
+			if (has_status(trapped, StatusType::BURR_DEBUFF)) { return; }
+			apply_status(trapped, burrs);
+			deal_damage(registry.traps.get(t).owner, trapped, registry.traps.get(t).multiplier, false);
+		}
 		break;
 	case TEXTURE_ASSET_ID::FATE:
-		// switch based on colour
-		if (color == vec4(1.f, 0.f, 0.f, 0.9f)) {
-			for (Entity e : registry.enemies.entities) {
-				apply_status(e, boss_atk_buff);
+		if (true) {
+			StatusEffect boss_poison = StatusEffect(0.2 * registry.traps.get(t).multiplier, 5, StatusType::POISON, false, false);
+			StatusEffect boss_atk_buff = StatusEffect(0.3, 3, StatusType::ATK_BUFF, true, true);
+			StatusEffect boss_regen_buff = StatusEffect(10, 3, StatusType::HP_REGEN, false, true);
+			vec4 color = vec4(1.f);
+			if (registry.colors.has(t)) { color = registry.colors.get(t); }
+
+			Mix_PlayChannel(-1, world.smokescreen_sound, 0);
+			Entity smoke = createBigSlash(world.renderer, trap_motion.position, 0, 200);
+			registry.renderRequests.get(smoke).used_texture = TEXTURE_ASSET_ID::SMOKE;
+			registry.expandTimers.get(smoke).counter_ms = 1000;
+			registry.colors.insert(smoke, color);
+
+			// switch based on colour
+			if (color == vec4(1.f, 0.f, 0.f, 0.9f)) {
+				for (Entity e : registry.enemies.entities) {
+					apply_status(e, boss_atk_buff);
+				}
+				world.logText("A magical mist empowers the enemies!");
 			}
-			world.logText("A magical mist empowers the enemies!");
-		}
-		else if (color == vec4(0.f, 1.f, 0.f, 0.9f)) {
-			for (Entity e : registry.enemies.entities) {
-				apply_status(e, boss_regen_buff);
+			else if (color == vec4(0.f, 1.f, 0.f, 0.9f)) {
+				for (Entity e : registry.enemies.entities) {
+					apply_status(e, boss_regen_buff);
+				}
+				world.logText("A magical mist mends the enemies' wounds!");
 			}
-			world.logText("A magical mist mends the enemies' wounds!");
-		}
-		else if (color == vec4(0.f, 0.f, 1.f, 0.9f)) {
-			world.logText("An apparition materializes from the mist!");
-			Entity summon = createApparition(world.renderer, trap_motion.position);
-			world.turnOrderSystem.turnQueue.addNewEntity(summon);
-			ExpandTimer iframe = registry.iFrameTimers.emplace(summon);
-			iframe.counter_ms = 50;
-		}
-		else {
-			world.logText("You inhale a poisonous mist!");
-			apply_status(trapped, boss_poison);
+			else if (color == vec4(0.f, 0.f, 1.f, 0.9f)) {
+				world.logText("An apparition materializes from the mist!");
+				Entity summon = createApparition(world.renderer, trap_motion.position);
+				world.turnOrderSystem.turnQueue.addNewEntity(summon);
+				ExpandTimer iframe = registry.iFrameTimers.emplace(summon);
+				iframe.counter_ms = 50;
+			}
+			else {
+				world.logText("You inhale a poisonous mist!");
+				apply_status(trapped, boss_poison);
+			}
 		}
 		break;
 	default:
 		break;
 	}
-	trap.triggers--;
-	if (trap.triggers <= 0) { registry.remove_all_components_of(t); }
+	registry.traps.get(t).triggers--;
+	if (registry.traps.get(t).triggers <= 0) {
+		if (registry.motions.has(t)) {
+			registry.remove_all_components_of(t);
+		}
+	}
 }
 
 // Reset entity stats to base stats

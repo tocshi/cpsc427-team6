@@ -170,6 +170,43 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 			continue;
 		}
 
+		// trap collision/activation
+		if (!registry.iFrameTimers.has(entity) && (registry.players.has(entity) || registry.enemies.has(entity))) {
+			for (Entity t : registry.traps.entities) {
+				// this looks stupid, but trust me, it isn't
+				if (!registry.traps.has(t) || !registry.motions.has(t)) {
+					continue;
+				}
+				Trap& trap = registry.traps.get(t);
+				if (trap.triggers <= 0 || trap.turns <= 0) {
+					if (registry.motions.has(t)) {
+						registry.remove_all_components_of(t);
+					}
+					continue;
+				}
+				Motion& trap_motion = registry.motions.get(t);
+
+				if (registry.players.has(entity) && registry.enemies.has(trap.owner)) {
+					if (registry.stats.get(entity).hp <= 0 || trap.triggers <= 0) { continue; }
+					else if (collides_circle(trap_motion, motion)) {
+						ExpandTimer iframe = registry.iFrameTimers.emplace(entity);
+						iframe.counter_ms = 50;
+						trigger_trap(t, entity);
+						break;
+					}
+				}
+				else if (registry.enemies.has(entity) && registry.players.has(trap.owner)) {
+					if (registry.stats.get(entity).hp <= 0 || trap.triggers <= 0) { continue; }
+					else if (collides_circle(trap_motion, motion)) {
+						ExpandTimer iframe = registry.iFrameTimers.emplace(entity);
+						iframe.counter_ms = 50;
+						trigger_trap(t, entity);
+						break;
+					}
+				}
+			}
+		}
+
 		// projectile collision
 		if (registry.projectileTimers.has(entity)) {
 			Entity& player = registry.players.entities[0];

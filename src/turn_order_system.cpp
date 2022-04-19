@@ -20,7 +20,7 @@ Entity TurnOrderSystem::getNextTurn() {
 	Entity next;
 
 	// push current Entity into queue just in case queue is empty
-	if (!firstTurn) {
+	if (!firstTurn && registry.queueables.has(currentEntity)) {
 		turnQueue.putBackEntity(currentEntity);
 	}
 

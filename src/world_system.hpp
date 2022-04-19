@@ -151,7 +151,7 @@ public:
 	Mix_Chunk* rock_summon;
 	Mix_Chunk* trap_sound;
 	Mix_Chunk* malediction_sound;
-	Mix_Chunk* fungifier_sound;
+	Mix_Chunk* thunder_sound;
 	Mix_Chunk* bag_of_wind_sound;
 
 	Mix_Music* background_music;

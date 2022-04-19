@@ -591,6 +591,8 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 	float chaseRange = stats.range;
 	// float chaseRange = 1000.f;
 	float meleeRange = 100.f;
+	float dir = irand(360) * M_PI / 180;
+	float dist = irandRange(25, 75);
 
 	Motion& motion_struct = registry.motions.get(slime);
 
@@ -616,8 +618,6 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 
 	ENEMY_STATE state = registry.enemies.get(slime).state;
 	// perform action based on state
-	int dx = ichoose(irandRange(-75, -25), irandRange(25, 75));
-	int dy = ichoose(irandRange(-75, -25), irandRange(25, 75));
 
 	// set initial a star stat
 	AstarMotion& aStarMotion = registry.aStarMotions.get(slime);
@@ -625,13 +625,12 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 
 	switch (state) {
 	case ENEMY_STATE::IDLE:
-		motion_struct.destination = { motion_struct.position.x + dx, motion_struct.position.y + dy };
-
+		motion_struct.destination = dirdist_extrapolate(motion_struct.position, dir, dist);
 		// Teleport if out of player sight range
 		if (!player_in_range(motion_struct.position, registry.stats.get(player).range) && !player_in_range(motion_struct.destination, registry.stats.get(player).range)) {
 			// temp check
 			motion_struct.destination = motion_struct.position;
-			motion_struct.position = { motion_struct.position.x + dx, motion_struct.position.y + dy };
+			motion_struct.position = dirdist_extrapolate(motion_struct.position, dir, dist);
 			for (Entity solid : registry.solid.entities) {
 				if (collides_AABB(motion_struct, registry.motions.get(solid))) {
 					motion_struct.position = motion_struct.destination;
@@ -1064,8 +1063,7 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 			for (int j = (int)registry.enemies.components.size() - 1; j >= 0; --j) {
 				if (registry.enemies.entities[j] != enemy
 					&& collides_circle(registry.motions.get(registry.attackIndicators.entities[i]), registry.motions.get(registry.enemies.entities[j]))) {
-					deal_damage(enemy, registry.enemies.entities[j], 1000);
-					registry.solid.remove(registry.enemies.entities[j]);
+					take_damage(registry.enemies.entities[j], 999);
 					num_summons++;
 				}
 			}
@@ -1618,7 +1616,7 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 		}
 		for (Entity t : registry.traps.entities) {
 			if (registry.traps.get(t).owner != player) {
-				registry.remove_all_components_of(t);
+				registry.traps.get(t).turns -= 999;
 			}
 		}
 		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
@@ -1639,7 +1637,11 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 			printf("Removed Attack Indicator!\n");
 			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
 		}
-		handle_traps();
+		for (Entity t : registry.traps.entities) {
+			if (registry.traps.get(t).owner != player) {
+				registry.traps.get(t).turns -= 999;
+			}
+		}
 		for (Entity e : registry.enemies.entities) {
 			if (registry.bosses.has(e)) { continue; }
 			take_damage(e, 999999);

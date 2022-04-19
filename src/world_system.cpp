@@ -21,62 +21,47 @@ WorldSystem::WorldSystem()
 
 void WorldSystem::destroyMusic() {
 
-	if (background_music != nullptr)
-		Mix_FreeMusic(background_music);
-	if (fire_explosion_sound != nullptr)
-		Mix_FreeChunk(fire_explosion_sound);
-	if (error_sound != nullptr)
-		Mix_FreeChunk(error_sound);
-	if (footstep_sound != nullptr)
-		Mix_FreeChunk(footstep_sound);
-	if (menu_music != nullptr)
-		Mix_FreeMusic(menu_music);
-	if (cutscene_music != nullptr)
-		Mix_FreeMusic(cutscene_music);
-	if (boss0_music != nullptr)
-		Mix_FreeMusic(boss0_music);
-	if (ruins_music != nullptr)
-		Mix_FreeMusic(ruins_music);
-	if (boss1_music != nullptr)
-		Mix_FreeMusic(boss1_music);
-	if (door_sound != nullptr)
-		Mix_FreeChunk(door_sound);
-	if (switch_sound != nullptr)
-		Mix_FreeChunk(switch_sound);
-	if (chest_sound != nullptr)
-		Mix_FreeChunk(chest_sound);
-	if (slime_move != nullptr)
-		Mix_FreeChunk(slime_move);
-	if (slime_death != nullptr)
-		Mix_FreeChunk(slime_death);
-	if (caveling_move != nullptr)
-		Mix_FreeChunk(caveling_move);
-	if (caveling_death != nullptr)
-		Mix_FreeChunk(caveling_death);
-	if (whoosh != nullptr)
-		Mix_FreeChunk(whoosh);
-	if (sword_end != nullptr)
-		Mix_FreeChunk(sword_end);
-	if (sword_parry != nullptr)
-		Mix_FreeChunk(sword_parry);
-	if (sword_pierce != nullptr)
-		Mix_FreeChunk(sword_pierce);
-	if (sword_slash != nullptr)
-		Mix_FreeChunk(sword_slash);
-	if (special_sound != nullptr)
-		Mix_FreeChunk(special_sound);
-	if (ui_click != nullptr)
-		Mix_FreeChunk(ui_click);
-	if (ui_open != nullptr)
-		Mix_FreeChunk(ui_open);
-	if (ui_close != nullptr)
-		Mix_FreeChunk(ui_close);
-	if (ui_alert != nullptr)
-		Mix_FreeChunk(ui_alert);
-	if (plant_shoot != nullptr)
-		Mix_FreeChunk(plant_shoot);
+	if (background_music != nullptr) Mix_FreeMusic(background_music);
+	if (fire_explosion_sound != nullptr) Mix_FreeChunk(fire_explosion_sound);
+	if (error_sound != nullptr) Mix_FreeChunk(error_sound);
+	if (footstep_sound != nullptr) Mix_FreeChunk(footstep_sound);
+	if (menu_music != nullptr) Mix_FreeMusic(menu_music);
+	if (cutscene_music != nullptr) Mix_FreeMusic(cutscene_music);
+	if (boss0_music != nullptr) Mix_FreeMusic(boss0_music);
+	if (ruins_music != nullptr) Mix_FreeMusic(ruins_music);
+	if (boss1_music != nullptr) Mix_FreeMusic(boss1_music);
+	if (door_sound != nullptr) Mix_FreeChunk(door_sound);
+	if (switch_sound != nullptr) Mix_FreeChunk(switch_sound);
+	if (chest_sound != nullptr) Mix_FreeChunk(chest_sound);
+	if (slime_move != nullptr) Mix_FreeChunk(slime_move);
+	if (slime_death != nullptr) Mix_FreeChunk(slime_death);
+	if (caveling_move != nullptr) Mix_FreeChunk(caveling_move);
+	if (caveling_death != nullptr) Mix_FreeChunk(caveling_death);
+	if (whoosh != nullptr) Mix_FreeChunk(whoosh);
+	if (sword_end != nullptr) Mix_FreeChunk(sword_end);
+	if (sword_parry != nullptr) Mix_FreeChunk(sword_parry);
+	if (sword_pierce != nullptr) Mix_FreeChunk(sword_pierce);
+	if (sword_slash != nullptr) Mix_FreeChunk(sword_slash);
+	if (special_sound != nullptr) Mix_FreeChunk(special_sound);
+	if (ui_click != nullptr) Mix_FreeChunk(ui_click);
+	if (ui_open != nullptr) Mix_FreeChunk(ui_open);
+	if (ui_close != nullptr) Mix_FreeChunk(ui_close);
+	if (ui_alert != nullptr) Mix_FreeChunk(ui_alert);
+	if (plant_shoot != nullptr) Mix_FreeChunk(plant_shoot);
+	if (kingslime_attack != nullptr) Mix_FreeChunk(slime_death);
+	if (kingslime_jump != nullptr) Mix_FreeChunk(caveling_move);
+	if (kingslime_summon != nullptr) Mix_FreeChunk(caveling_death);
+	if (pebble_move != nullptr) Mix_FreeChunk(whoosh);
+	if (fire_sound != nullptr) Mix_FreeChunk(sword_end);
+	if (potion_sound != nullptr) Mix_FreeChunk(sword_parry);
+	if (smokescreen_sound != nullptr) Mix_FreeChunk(sword_pierce);
+	if (arcane_funnel_sound != nullptr) Mix_FreeChunk(sword_slash);
+	if (rock_summon != nullptr) Mix_FreeChunk(special_sound);
+	if (trap_sound != nullptr) Mix_FreeChunk(ui_click);
+	if (malediction_sound != nullptr) Mix_FreeChunk(ui_open);
+	if (thunder_sound != nullptr) Mix_FreeChunk(ui_close);
+	if (bag_of_wind_sound != nullptr) Mix_FreeChunk(ui_alert);
 	Mix_CloseAudio();
-
 }
 
 WorldSystem::~WorldSystem() {
@@ -225,11 +210,11 @@ GLFWwindow* WorldSystem::create_window() {
 	caveling_death = Mix_LoadWAV(audio_path("feedback/caveling_death.wav").c_str());
 	Mix_VolumeChunk(caveling_death, 30);
 	ui_click = Mix_LoadWAV(audio_path("feedback/ui_click.wav").c_str());
-	Mix_VolumeChunk(ui_click, 24);
+	Mix_VolumeChunk(ui_click, 28);
 	ui_open = Mix_LoadWAV(audio_path("feedback/ui_open.wav").c_str());
-	Mix_VolumeChunk(ui_open, 24);
+	Mix_VolumeChunk(ui_open, 28);
 	ui_close = Mix_LoadWAV(audio_path("feedback/ui_close.wav").c_str());
-	Mix_VolumeChunk(ui_close, 24);
+	Mix_VolumeChunk(ui_close, 28);
 	ui_alert = Mix_LoadWAV(audio_path("feedback/ui_alert.wav").c_str());
 	Mix_VolumeChunk(ui_alert, 32);
 	plant_shoot = Mix_LoadWAV(audio_path("sfx/pop.wav").c_str());
@@ -241,23 +226,23 @@ GLFWwindow* WorldSystem::create_window() {
 	kingslime_summon = Mix_LoadWAV(audio_path("sfx/slimesummon.wav").c_str());
 	Mix_VolumeChunk(kingslime_summon, 24);
 	pebble_move = Mix_LoadWAV(audio_path("sfx/pebble_move.wav").c_str());
-	Mix_VolumeChunk(pebble_move, 48);
+	Mix_VolumeChunk(pebble_move, 24);
 	fire_sound = Mix_LoadWAV(audio_path("sfx/fire.wav").c_str());
 	Mix_VolumeChunk(fire_sound, 48);
 	potion_sound = Mix_LoadWAV(audio_path("sfx/potion.wav").c_str());
 	Mix_VolumeChunk(potion_sound, 32);
 	smokescreen_sound = Mix_LoadWAV(audio_path("sfx/smoke.wav").c_str());
-	Mix_VolumeChunk(smokescreen_sound, 32);
+	Mix_VolumeChunk(smokescreen_sound, 28);
 	arcane_funnel_sound = Mix_LoadWAV(audio_path("sfx/arcane_funnel.wav").c_str());
-	Mix_VolumeChunk(arcane_funnel_sound, 18);
+	Mix_VolumeChunk(arcane_funnel_sound, 16);
 	rock_summon = Mix_LoadWAV(audio_path("sfx/rock_summon.wav").c_str());
-	Mix_VolumeChunk(rock_summon, 32);
+	Mix_VolumeChunk(rock_summon, 24);
 	trap_sound = Mix_LoadWAV(audio_path("sfx/trap.wav").c_str());
-	Mix_VolumeChunk(trap_sound, 32);
+	Mix_VolumeChunk(trap_sound, 18);
 	malediction_sound = Mix_LoadWAV(audio_path("sfx/malediction.wav").c_str());
 	Mix_VolumeChunk(malediction_sound, 32);
-	fungifier_sound = Mix_LoadWAV(audio_path("sfx/fungifier.wav").c_str());
-	Mix_VolumeChunk(fungifier_sound, 24);
+	thunder_sound = Mix_LoadWAV(audio_path("sfx/thunder.wav").c_str());
+	Mix_VolumeChunk(thunder_sound, 10);
 	bag_of_wind_sound = Mix_LoadWAV(audio_path("sfx/hurricane.wav").c_str());
 	Mix_VolumeChunk(bag_of_wind_sound, 32);
 
@@ -808,41 +793,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		// Update the camera to follow the player
 		Camera& camera = registry.cameras.get(active_camera_entity);
 		camera.position = player_motion.position - vec2(window_width_px/2, window_height_px/2);
-
-		// Check traps for collisions/activations
-		for (Entity t : registry.traps.entities) {
-			if (!registry.traps.has(t)) { continue; }
-			Trap& trap = registry.traps.get(t);
-			if (trap.triggers <= 0) { continue; }
-			Motion& trap_motion = registry.motions.get(t);
-
-			if (registry.players.has(trap.owner)) {
-				for (Entity e : registry.enemies.entities) {
-					// hacky way of having enemies not die when spawning on top of a trap
-					if (registry.iFrameTimers.has(e)) { continue; }
-					Motion& enemy_motion = registry.motions.get(e);
-					Stats& enemy_stats = registry.stats.get(e);
-					if (enemy_stats.hp <= 0 || trap.triggers <= 0) { continue; }
-					else if (collides_circle(trap_motion, enemy_motion)) {
-						trigger_trap(t, e);
-						break;
-					}
-				}
-			}
-			else {
-				// internal trap cooldown
-				if (registry.iFrameTimers.has(player)) { continue; }
-				Motion& player_motion = registry.motions.get(player);
-				Stats& player_stats = registry.stats.get(player);
-				if (player_stats.hp <= 0 || trap.triggers <= 0) { continue; }
-				else if (collides_circle(trap_motion, player_motion)) {
-					ExpandTimer iframe = registry.iFrameTimers.emplace(player);
-					iframe.counter_ms = 50;
-					trigger_trap(t, player);
-					break;
-				}
-			}
-		}
 	}
 
 	// Check for enemy death
@@ -866,7 +816,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			int roll = irand(3);
 
 			registry.queueables.get(enemy).doing_turn = false;
-			if (current_game_state == GameStates::ENEMY_TURN) {
+			if (current_game_state == GameStates::ENEMY_TURN && turnOrderSystem.getCurrentTurnEntity() == enemy) {
 				registry.motions.get(enemy).in_motion = false;
 				registry.motions.get(enemy).velocity = { 0, 0 };
 				doTurnOrderLogic();
@@ -1834,6 +1784,8 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 	if (enemySpawns.size() > 0) {
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
+			// rock benchmark test comment
+			//createLivingRock(renderer, { enemySpawns[i].x, enemySpawns[i].y });
 			int roll = irand(4);
 			switch (roomSystem.current_floor) {
 			case Floors::FLOOR1:
@@ -2942,7 +2894,7 @@ void WorldSystem::start_player_turn() {
 	// Burrbag effect
 	if (inv.artifact[(int)ARTIFACT::BURRBAG] > 0) {
 		int triggers = inv.artifact[(int)ARTIFACT::BURRBAG];
-		Mix_PlayChannel(-1, world.trap_sound, 0);
+		Mix_PlayChannel(3, world.trap_sound, 0);
 		createTrap(world.renderer, player_main, registry.motions.get(player_main).position, {64, 64}, 40, 4, triggers, TEXTURE_ASSET_ID::BURRS);
 	}
 
@@ -4192,7 +4144,6 @@ void WorldSystem::updateTutorial() {
 				// spawn exit staircase
 				tutorial_door = createDoor(renderer, { 4*64*ui_scale, 4*64*ui_scale }, false );
 				createMouseAnimation(renderer, { 4 * 64 * ui_scale, 3 * 64 * ui_scale });
-				Mix_PlayChannel(-1, ui_alert, 0);
 			}
 		}
 	}
@@ -4284,11 +4235,6 @@ void WorldSystem::playRockSummonSound() {
 // play malediction sound
 void WorldSystem::playMaledictionSound() {
 	Mix_PlayChannel(-1, malediction_sound, 0);
-}
-
-// play fungifier sound
-void WorldSystem::playFungifierSound() {
-	Mix_PlayChannel(-1, fungifier_sound, 0);
 }
 
 // play bag of wind sound

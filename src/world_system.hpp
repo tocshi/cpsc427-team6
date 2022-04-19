@@ -189,6 +189,8 @@ public:
 
 	Entity activeTextbox;
 
+	SpawnData spawnData;
+
 	// log text
 	void logText(std::string msg, vec3 textColor = vec3(1.0f));
 
@@ -325,6 +327,8 @@ private:
 
 	void loadTraps(json trapList);
 
+	void loadSpawnData(json spawnDataJson);
+
 	// do turn order logic
 	void doTurnOrderLogic();
 
@@ -387,8 +391,6 @@ private:
 	AISystem aiSystem;
 	RoomSystem roomSystem;
 	CutSceneSystem cutSceneSystem;
-
-	SpawnData spawnData;
 
 	int countCutScene = 0;
 

@@ -67,6 +67,12 @@ void WorldSystem::destroyMusic() {
 		Mix_FreeChunk(special_sound);
 	if (ui_click != nullptr)
 		Mix_FreeChunk(ui_click);
+	if (ui_open != nullptr)
+		Mix_FreeChunk(ui_open);
+	if (ui_close != nullptr)
+		Mix_FreeChunk(ui_close);
+	if (ui_alert != nullptr)
+		Mix_FreeChunk(ui_alert);
 	if (plant_shoot != nullptr)
 		Mix_FreeChunk(plant_shoot);
 	Mix_CloseAudio();
@@ -219,7 +225,13 @@ GLFWwindow* WorldSystem::create_window() {
 	caveling_death = Mix_LoadWAV(audio_path("feedback/caveling_death.wav").c_str());
 	Mix_VolumeChunk(caveling_death, 30);
 	ui_click = Mix_LoadWAV(audio_path("feedback/ui_click.wav").c_str());
-	Mix_VolumeChunk(ui_click, 32);
+	Mix_VolumeChunk(ui_click, 24);
+	ui_open = Mix_LoadWAV(audio_path("feedback/ui_open.wav").c_str());
+	Mix_VolumeChunk(ui_open, 24);
+	ui_close = Mix_LoadWAV(audio_path("feedback/ui_close.wav").c_str());
+	Mix_VolumeChunk(ui_close, 24);
+	ui_alert = Mix_LoadWAV(audio_path("feedback/ui_alert.wav").c_str());
+	Mix_VolumeChunk(ui_alert, 32);
 	plant_shoot = Mix_LoadWAV(audio_path("sfx/pop.wav").c_str());
 	Mix_VolumeChunk(plant_shoot, 32);
 	kingslime_attack = Mix_LoadWAV(audio_path("sfx/slimeattack.wav").c_str());
@@ -237,7 +249,7 @@ GLFWwindow* WorldSystem::create_window() {
 	smokescreen_sound = Mix_LoadWAV(audio_path("sfx/smoke.wav").c_str());
 	Mix_VolumeChunk(smokescreen_sound, 32);
 	arcane_funnel_sound = Mix_LoadWAV(audio_path("sfx/arcane_funnel.wav").c_str());
-	Mix_VolumeChunk(arcane_funnel_sound, 24);
+	Mix_VolumeChunk(arcane_funnel_sound, 18);
 	rock_summon = Mix_LoadWAV(audio_path("sfx/rock_summon.wav").c_str());
 	Mix_VolumeChunk(rock_summon, 32);
 	trap_sound = Mix_LoadWAV(audio_path("sfx/trap.wav").c_str());
@@ -661,28 +673,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			registry.renderRequests.get(player_main).used_geometry = GEOMETRY_BUFFER_ID::SPRITE;
 		}
 
-		// Check if player has died
-		if (hp <= 0 && !registry.deathTimers.has(player) && current_game_state != GameStates::GAME_OVER_MENU) {
-			// render the game over dialog
-			if (roomSystem.current_floor == Floors::FLOOR1) {
-				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::FLOOR_ONE);
-			}
-			else if (roomSystem.current_floor == Floors::FLOOR2) {
-				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::FLOOR_TWO);
-			}
-			else if (roomSystem.current_floor == Floors::BOSS1) {
-				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::BOSS_ONE);
-			}
-			else if (roomSystem.current_floor == Floors::BOSS2) {
-				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::BOSS_TWO);
-			}
-			saveSystem.deleteFile();
-			set_gamestate(GameStates::GAME_OVER_MENU);
-			logText("You have died!");
-			player_move_click = false;
-			break;
-		}
-
 		// change guard button to end turn if ep is not full
 		if ((p.attacked || p.moved || ep <= 50) && !hideGuardButton) {
 			// remove guard button
@@ -791,6 +781,28 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					registry.hidden.remove(entity);
 				}
 			}
+		}
+
+		// Check if player has died
+		if (hp <= 0 && !registry.deathTimers.has(player) && current_game_state != GameStates::GAME_OVER_MENU) {
+			// render the game over dialog
+			if (roomSystem.current_floor == Floors::FLOOR1) {
+				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::FLOOR_ONE);
+			}
+			else if (roomSystem.current_floor == Floors::FLOOR2) {
+				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::FLOOR_TWO);
+			}
+			else if (roomSystem.current_floor == Floors::BOSS1) {
+				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::BOSS_ONE);
+			}
+			else if (roomSystem.current_floor == Floors::BOSS2) {
+				createGameOverDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player, GAME_OVER_REASON::PLAYER_DIED, GAME_OVER_LOCATION::BOSS_TWO);
+			}
+			saveSystem.deleteFile();
+			set_gamestate(GameStates::GAME_OVER_MENU);
+			logText("You have died!");
+			player_move_click = false;
+			break;
 		}
 
 		// Update the camera to follow the player
@@ -2127,6 +2139,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 					}
 				}
 			}
+			Mix_PlayChannel(-1, ui_click, 0);
 		}
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_4) {
@@ -2165,6 +2178,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 						timer.type = TRANSITION_TYPE::CUTSCENE_TO_GAMEOVER;
 					}
 				}
+				Mix_PlayChannel(-1, ui_close, 0);
 			}
 			else if (current_game_state == GameStates::PAUSE_MENU) {
 				backAction();
@@ -2172,12 +2186,11 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			else if (current_game_state == GameStates::ATTACK_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ITEM_MENU|| current_game_state == GameStates::COLLECTION_MENU) {
 				printf("In Attack Menu or Item or Movement and escape to go back to main menu\n");
 				backAction();
-
 			}
 			else {
 				set_gamestate(GameStates::PAUSE_MENU);
 				// render save and quit button
-				if (current_music == Music::BOSS0 || current_music == Music::BOSS1) {
+				if (current_music == Music::BOSS0 || current_music == Music::BOSS1 || tutorial) {
 					createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale }, false);
 				}
 				else {
@@ -2186,12 +2199,14 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 				// render cancel button
 				createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale});
+				Mix_PlayChannel(-1, ui_click, 0);
 			}
 		}
 	}
 
 	// global end turn
 	if (action == GLFW_RELEASE && key == GLFW_KEY_ENTER) {
+		if (current_game_state < GameStates::PAUSE_MENU || current_game_state > GameStates::COLLECTION_MENU) { return; }
 		if (current_game_state == GameStates::ATTACK_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ITEM_MENU) {
 			backAction();
 		}
@@ -2216,21 +2231,15 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 		else {
-			for (Entity e : registry.guardButtons.entities) {
-				Player p = registry.players.get(player_main);
-				Stats s = registry.stats.get(player_main);
+			Player p = registry.players.get(player_main);
+			Stats s = registry.stats.get(player_main);
 
-				if (!p.attacked && !p.moved && s.ep > 50) {
-					logText("You brace yourself...");
-					registry.stats.get(player_main).guard = true;
-				}
-				handle_end_player_turn(player_main);
+			if (!p.attacked && !p.moved && s.ep > 50) {
+				logText("You brace yourself...");
+				registry.stats.get(player_main).guard = true;
 			}
+			handle_end_player_turn(player_main);
 		}
-	}
-
-	if (action == GLFW_RELEASE) {
-		// button sound
 		Mix_PlayChannel(-1, ui_click, 0);
 	}
 }
@@ -2262,13 +2271,6 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			printf("set to cut scene dialogue\n");
 			printf(":%d\n", countCutScene);
 			countCutScene++;
-			/*if (current_game_state != GameStates::CUTSCENE_DIALOGUE) {
-
-				printf("true not in cut_scene dialoge\n");
-
-			}*/
-
-
 
 			cut_scene_start();
 			if (current_game_state == GameStates::CUTSCENE && countCutScene == 21){
@@ -2288,6 +2290,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				timer.type = TRANSITION_TYPE::CUTSCENE_TO_GAMEOVER;
 				// logic is handled in step() when the timer expires
 			}
+			Mix_PlayChannel(-1, ui_click, 0);
 			return;
 		}
 
@@ -2295,11 +2298,13 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			Entity temp = Entity();
 			FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
 			timer.type = TRANSITION_TYPE::CREDITS_TO_MAIN;
+			Mix_PlayChannel(-1, ui_close, 0);
 			return;
 		}
 
 		if (current_game_state == GameStates::DIALOGUE) {
 			advanceTextbox();
+			Mix_PlayChannel(-1, ui_click, 0);
 			return;
 		}
 
@@ -2320,8 +2325,6 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				if (!registry.buttons.has(e)) {
 					continue;
 				}
-				// button sound
-				Mix_PlayChannel(-1, ui_click, 0);
 
 				// perform action based on button ENUM
 				BUTTON_ACTION_ID action_taken = registry.buttons.get(e).action_taken;
@@ -2333,6 +2336,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
 						timer.type = TRANSITION_TYPE::MAIN_TO_GAME;
 					}
+					Mix_PlayChannel(-1, ui_click, 0);
 					// logic has been moved to when the timer expires in step()
 					break;
 				case BUTTON_ACTION_ID::CREDITS:
@@ -2341,8 +2345,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
 						timer.type = TRANSITION_TYPE::MAIN_TO_CREDITS;
 					}
+					Mix_PlayChannel(-1, ui_open, 0);
 					return;
-				case BUTTON_ACTION_ID::MENU_QUIT: glfwSetWindowShouldClose(window, true); break;
+				case BUTTON_ACTION_ID::MENU_QUIT: 
+					Mix_PlayChannel(-1, ui_click, 0);
+					glfwSetWindowShouldClose(window, true); 
+					break;
 				case BUTTON_ACTION_ID::CONTINUE:
 					// if save data exists reset the game
 					if (canContinue) {
@@ -2351,6 +2359,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
 							timer.type = TRANSITION_TYPE::CONTINUE_TO_GAME;
 						}
+						Mix_PlayChannel(-1, ui_click, 0);
+					}
+					else {
+						Mix_PlayChannel(-1, error_sound, 0);
 					}
 					break;
 				case BUTTON_ACTION_ID::SAVE_QUIT:
@@ -2358,7 +2370,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
 						logText("Game state saved!");
 					}
-					glfwSetWindowShouldClose(window, true); break;
+					Mix_PlayChannel(-1, ui_click, 0);
+					glfwSetWindowShouldClose(window, true); 
 					break;
 				case BUTTON_ACTION_ID::ACTIONS_ATTACK:
 					if (current_game_state == GameStates::BATTLE_MENU) {
@@ -2376,13 +2389,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					break;
 				case BUTTON_ACTION_ID::PAUSE:
-					// TODO: pause enimies if it is their turn
-
-					// inMenu = true;
 					if (current_game_state != GameStates::GAME_OVER_MENU) {
 						set_gamestate(GameStates::PAUSE_MENU);
 						// render save and quit button
-						if (current_music == Music::BOSS0 || current_music == Music::BOSS1) {
+						if (current_music == Music::BOSS0 || current_music == Music::BOSS1 || tutorial) {
 							createSaveQuit(renderer, { window_width_px / 2, window_height_px / 2 + 90 * ui_scale }, false);
 						}
 						else {
@@ -2390,6 +2400,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						}
 						// render cancel button
 						createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale });
+						Mix_PlayChannel(-1, ui_click, 0);
 					}
 					return;
 				case BUTTON_ACTION_ID::ACTIONS_CANCEL:
@@ -2400,11 +2411,13 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						// if the button is pressed again while the menu is already open, close the menu
 						if (current_game_state == GameStates::COLLECTION_MENU) {
 							set_gamestate(GameStates::BATTLE_MENU);
+							Mix_PlayChannel(-1, ui_close, 0);
 						}
 						else {
 							// render the collection menu
 							createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player_main);
 							set_gamestate(GameStates::COLLECTION_MENU);
+							Mix_PlayChannel(-1, ui_open, 0);
 						}
 					}
 					return;
@@ -2429,12 +2442,14 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						ARTIFACT artifact = registry.artifactIcons.get(e).artifact;
 						createDescriptionDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f * ui_scale), artifact);
 					}
+					Mix_PlayChannel(-1, ui_open, 0);
 					return;
 				case BUTTON_ACTION_ID::CLOSE_DIALOG:
 					// remove all description dialog components
 					for (Entity dd : registry.descriptionDialogs.entities) {
 						registry.remove_all_components_of(dd);
 					}
+					Mix_PlayChannel(-1, ui_close, 0);
 					return;
 				case BUTTON_ACTION_ID::OPEN_ATTACK_DIALOG:
 					// remove all other attack dialog components
@@ -2448,12 +2463,14 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						registry.players.get(player_main).selected_attack = attack;
 						createAttackDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f * ui_scale), attack, registry.players.get(player_main).prepared);
 					}
+					Mix_PlayChannel(-1, ui_open, 0);
 					return;
 				case BUTTON_ACTION_ID::CLOSE_ATTACK_DIALOG:
 					// remove all attack dialog components
 					for (Entity ad : registry.attackDialogs.entities) {
 						registry.remove_all_components_of(ad);
 					}
+					Mix_PlayChannel(-1, ui_close, 0);
 					return;
 				case BUTTON_ACTION_ID::OPEN_EQUIPMENT_DIALOG:
 					// remove all other eqiupment dialog components
@@ -2466,18 +2483,21 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						Equipment equipment = registry.itemCards.get(e).item;
 						createEquipmentDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f * ui_scale), equipment);
 					}
+					Mix_PlayChannel(-1, ui_open, 0);
 					break;
 				case BUTTON_ACTION_ID::CLOSE_EQUIPMENT_DIALOG:
 					// remove all equipment dialog components
 					for (Entity ed : registry.equipmentDialogs.entities) {
 						registry.remove_all_components_of(ed);
 					}
+					Mix_PlayChannel(-1, ui_close, 0);
 					break;
 				case BUTTON_ACTION_ID::USE_ATTACK:
 					registry.players.get(player_main).using_attack = registry.players.get(player_main).selected_attack;
 					for (Entity ad : registry.attackDialogs.entities) {
 						registry.remove_all_components_of(ad);
 					}
+					Mix_PlayChannel(-1, ui_click, 0);
 					return;
 				case BUTTON_ACTION_ID::PREPARE_ATTACK:
 					Player& p = registry.players.get(player_main);
@@ -2774,21 +2794,8 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		if (current_game_state == GameStates::DIALOGUE) {
 			return;
 		}
-		if (current_game_state == GameStates::ATTACK_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ITEM_MENU) {
-			backAction();
-		}
-		// close all dialogs and menus
-		// remove all description dialog components
-		for (Entity dd : registry.descriptionDialogs.entities) {
-			registry.remove_all_components_of(dd);
-		}
-		// remove all attack dialog components
-		for (Entity ad : registry.attackDialogs.entities) {
-			registry.remove_all_components_of(ad);
-		}
 		cancelAction();
 	}
-
 }
 
 void WorldSystem::start_game() {
@@ -3921,6 +3928,7 @@ void WorldSystem::updateTutorial() {
 		if (registry.interactables.has(tutorial_sign_1) && registry.interactables.get(tutorial_sign_1).interacted) {
 			printf("flag 1 triggered\n");
 			tutorial_flags = tutorial_flags | SIGN_1;
+			Mix_PlayChannel(-1, ui_alert, 0);
 		}
 	}
 	else if (!(tutorial_flags & MOVEMENT_SELECTED)) {
@@ -3945,6 +3953,7 @@ void WorldSystem::updateTutorial() {
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
+			Mix_PlayChannel(-1, ui_alert, 0);
 		}
 	}
 	else if (!(tutorial_flags & EP_DEPLETED)) {
@@ -3960,11 +3969,13 @@ void WorldSystem::updateTutorial() {
 				},
 				{
 					"Your actions are limited with 0 EP.",
-					"To refill your EP, end your turn."
+					"To refill your EP, end your turn with the 3 key.",
+					"You can also end your turn immediately at any time with Enter."
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
 			registry.remove_all_components_of(tutorial_wall_1);
+			Mix_PlayChannel(-1, ui_alert, 0);
 		}
 	}
 	else if (!(tutorial_flags & SIGN_2)) {
@@ -3977,6 +3988,7 @@ void WorldSystem::updateTutorial() {
 			tutorial_slime = createEnemy(renderer, { sign_motion.position.x, sign_motion.position.y + 256.f*ui_scale });
 			registry.stats.get(tutorial_slime).hp = 14;
 			turnOrderSystem.addNewEntity(tutorial_slime);
+			Mix_PlayChannel(-1, ui_alert, 0);
 		}
 	}
 	else if (!(tutorial_flags & ATTACK_SELECTED)) {
@@ -4006,6 +4018,7 @@ void WorldSystem::updateTutorial() {
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
+			Mix_PlayChannel(-1, ui_alert, 0);
 		}
 	}
 	else if (!(tutorial_flags & SLIME1_DEFEATED)) {
@@ -4030,6 +4043,7 @@ void WorldSystem::updateTutorial() {
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
+			Mix_PlayChannel(-1, ui_alert, 0);
 		}
 	}
 	else if (!(tutorial_flags & CAMPFIRE_INTERACTED)) {
@@ -4047,6 +4061,7 @@ void WorldSystem::updateTutorial() {
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
 			registry.remove_all_components_of(tutorial_wall_2);
+			Mix_PlayChannel(-1, ui_alert, 0);
 		}
 	}
 	else if (!(tutorial_flags & SIGN_3)) {
@@ -4054,6 +4069,7 @@ void WorldSystem::updateTutorial() {
 			printf("flag 8 triggered\n");
 			tutorial_flags = tutorial_flags | SIGN_3;
 			registry.remove_all_components_of(tutorial_wall_3);
+			Mix_PlayChannel(-1, ui_alert, 0);
 		}
 	}
 	else if (!(tutorial_flags & CHEST_1)) {
@@ -4093,6 +4109,7 @@ void WorldSystem::updateTutorial() {
 			Motion& sign_motion = registry.motions.get(tutorial_sign_3);
 			tutorial_slime = createEnemy(renderer, { sign_motion.position.x + 64.f*ui_scale, sign_motion.position.y + 64.f*ui_scale });
 			turnOrderSystem.addNewEntity(tutorial_slime);
+			Mix_PlayChannel(-1, ui_alert, 0);
 		}
 	}
 	else if (!(tutorial_flags & SLIME2_DEFEATED)) {
@@ -4108,6 +4125,7 @@ void WorldSystem::updateTutorial() {
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
 			registry.remove_all_components_of(tutorial_wall_4);
+			Mix_PlayChannel(-1, ui_alert, 0);
 		}
 	}
 	else if (!(tutorial_flags & CHEST_2)) {
@@ -4128,6 +4146,7 @@ void WorldSystem::updateTutorial() {
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
 			registry.remove_all_components_of(tutorial_wall_5);
+			Mix_PlayChannel(-1, ui_alert, 0);
 		}
 	}
 	else if (!(tutorial_flags & SIGN_4)) {
@@ -4137,6 +4156,7 @@ void WorldSystem::updateTutorial() {
 			Motion& sign_motion = registry.motions.get(tutorial_sign_4);
 			createConsumable(renderer, {sign_motion.position.x, sign_motion.position.y + 64.f*ui_scale}, CONSUMABLE::INSTANT);
 			registry.remove_all_components_of(tutorial_wall_6);
+			Mix_PlayChannel(-1, ui_alert, 0);
 		}
 	}
 	else if (!(tutorial_flags & SIGN_5)) {
@@ -4147,6 +4167,7 @@ void WorldSystem::updateTutorial() {
 			objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
 			objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
 			roomSystem.setObjective(ObjectiveType::ACTIVATE_SWITCHES, 2);
+			Mix_PlayChannel(-1, ui_alert, 0);
 		}
 	}
 	else if (!(tutorial_flags & EXIT)) {
@@ -4164,6 +4185,7 @@ void WorldSystem::updateTutorial() {
 				// spawn exit staircase
 				tutorial_door = createDoor(renderer, { 4*64*ui_scale, 4*64*ui_scale }, false );
 				createMouseAnimation(renderer, { 4 * 64 * ui_scale, 3 * 64 * ui_scale });
+				Mix_PlayChannel(-1, ui_alert, 0);
 			}
 		}
 	}
@@ -4360,6 +4382,7 @@ void WorldSystem::handleActionButtonPress() {
 
 	// create back button and move mode text
 	createBackButton(renderer, { window_width_px - 125.f , window_height_px - 100.f * ui_scale });
+	Mix_PlayChannel(-1, ui_click, 0);
 }
 
 void WorldSystem::moveAction() {
@@ -4412,6 +4435,18 @@ void WorldSystem::attackAction() {
 }
 
 void WorldSystem::backAction() {
+
+	// play different sound depending on state
+	if (current_game_state == GameStates::COLLECTION_MENU
+		|| registry.attackDialogs.size() > 0
+		|| registry.descriptionDialogs.size() > 0
+		|| registry.equipmentDialogs.size() > 0) {
+		Mix_PlayChannel(-1, ui_close, 0);
+	}
+	else if (current_game_state != GameStates::BATTLE_MENU) {
+		Mix_PlayChannel(-1, ui_click, 0);
+	}
+
 	// hide all item cards
 	for (Entity ic : registry.itemCards.entities) {
 		registry.remove_all_components_of(ic);
@@ -4444,7 +4479,6 @@ void WorldSystem::backAction() {
 
 	// set gamestate back to normal
 	set_gamestate(GameStates::BATTLE_MENU);
-
 }
 
 void WorldSystem::itemAction() {
@@ -4475,32 +4509,32 @@ void WorldSystem::advanceTextbox() {
 			set_gamestate(GameStates::BATTLE_MENU);
 		}
 	}
-		Textbox& textbox = registry.textboxes.get(activeTextbox);
-		// clear lines
-		for (Entity text : textbox.lines) {
-			registry.remove_all_components_of(text);
+	Textbox& textbox = registry.textboxes.get(activeTextbox);
+	// clear lines
+	for (Entity text : textbox.lines) {
+		registry.remove_all_components_of(text);
+	}
+	textbox.lines.clear();
+	textbox.num_lines = 0;
+	if (textbox.next_message >= textbox.num_messages) {
+		// clear textbox (no more messages)
+		if (registry.animations.has(textbox.icon)) {
+			registry.remove_all_components_of(textbox.icon);
 		}
-		textbox.lines.clear();
-		textbox.num_lines = 0;
-		if (textbox.next_message >= textbox.num_messages) {
-			// clear textbox (no more messages)
-			if (registry.animations.has(textbox.icon)) {
-				registry.remove_all_components_of(textbox.icon);
-			}
-			for (Entity textbox : registry.textboxes.entities) {
-				registry.remove_all_components_of(textbox);
-			}
-			set_gamestate(previous_game_state);
-			return;
+		for (Entity textbox : registry.textboxes.entities) {
+			registry.remove_all_components_of(textbox);
 		}
-		vec2 pos = registry.motions.get(activeTextbox).position;
-		std::vector<std::string> message = textbox.messages[textbox.next_message];
-		for (std::string line : message) {
-			textbox.num_lines++;
-			Entity text = createText(renderer, pos*2.f + vec2(-TEXTBOX_BB_WIDTH + 100.f, -TEXTBOX_BB_HEIGHT + 75.f * textbox.num_lines), line, 2.0f, vec3(1.f));
-			textbox.lines.push_back(text);
-		}
-		textbox.next_message++;
+		set_gamestate(previous_game_state);
+		return;
+	}
+	vec2 pos = registry.motions.get(activeTextbox).position;
+	std::vector<std::string> message = textbox.messages[textbox.next_message];
+	for (std::string line : message) {
+		textbox.num_lines++;
+		Entity text = createText(renderer, pos*2.f + vec2(-TEXTBOX_BB_WIDTH + 100.f, -TEXTBOX_BB_HEIGHT + 75.f * textbox.num_lines), line, 2.0f, vec3(1.f));
+		textbox.lines.push_back(text);
+	}
+	textbox.next_message++;
 }
 
 void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {

@@ -136,6 +136,9 @@ public:
 	Mix_Chunk* caveling_death;
 	Mix_Chunk* caveling_move;
 	Mix_Chunk* ui_click;
+	Mix_Chunk* ui_open;
+	Mix_Chunk* ui_close;
+	Mix_Chunk* ui_alert;
 	Mix_Chunk* plant_shoot;
 	Mix_Chunk* kingslime_attack;
 	Mix_Chunk* kingslime_jump;

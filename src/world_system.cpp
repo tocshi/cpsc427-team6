@@ -1047,6 +1047,16 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				createCutScene(renderer, vec2(window_width_px / 2, window_height_px / 2), TEXTURE_ASSET_ID::BG_HOSPITAL);
 				cutSceneSystem.updateDialogue(renderer, countCutScene);
 				break;
+			case (TRANSITION_TYPE::CUTSCENE_TO_BLACK):
+				if (true) {
+					while (registry.motions.entities.size() > 0)
+						registry.remove_all_components_of(registry.motions.entities.back());
+					Entity line_ent = createLine(vec2(0, 0), vec2(window_width_px, window_height_px));
+					RenderRequest& rr = registry.renderRequests.get(line_ent);
+					rr.used_layer = RENDER_LAYER_ID::BG_1;
+					cutSceneSystem.updateDialogue(renderer, countCutScene);
+				}
+				break;
 			case (TRANSITION_TYPE::CUTSCENE_TO_GAMEOVER):
 				if (true) {
 					Entity player_temp = createPlayer(renderer, vec2(0, 0));
@@ -1095,9 +1105,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	if (registry.loadingTimers.size() > 0) {
 		screen.darken_screen_factor = 1;
 	}
-
-	if (screen.darken_screen_factor > 0 || registry.fadeTransitionTimers.size() > 0)
-		printf("darken_screen_factor = %f\n", screen.darken_screen_factor);
 
 	for (Entity entity : registry.loadingTimers.entities) {
 		LoadingTimer& counter = registry.loadingTimers.get(entity);

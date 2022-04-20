@@ -4206,12 +4206,12 @@ void WorldSystem::playRockSummonSound() {
 
 // play malediction sound
 void WorldSystem::playMaledictionSound() {
-	Mix_PlayChannel(-1, malediction_sound, 0);
+	Mix_PlayChannel(5, malediction_sound, 0);
 }
 
 // play bag of wind sound
 void WorldSystem::playBagOfWindSound() {
-	Mix_PlayChannel(-1, bag_of_wind_sound, 0);
+	Mix_PlayChannel(6, bag_of_wind_sound, 0);
 }
 
 

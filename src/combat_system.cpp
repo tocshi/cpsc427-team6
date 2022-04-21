@@ -371,7 +371,7 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 	// Fungifier
 	if (attacker_inv.artifact[(int)ARTIFACT::FUNGIFIER] > 0 && final_damage >= defender_stats.hp) {
 		float multiplier = 130 * attacker_inv.artifact[(int)ARTIFACT::FUNGIFIER];
-		Entity mushroom = createTrap(world.renderer, attacker, {0, 0}, { 64, 64 }, multiplier, 2, 1, TEXTURE_ASSET_ID::MUSHROOM);
+		Entity mushroom = createTrap(world.renderer, attacker, {0, -500}, { 64, 64 }, multiplier, 2, 1, TEXTURE_ASSET_ID::MUSHROOM);
 		registry.motions.get(mushroom).destination = defender_motion.position;
 	}
 	return final_damage;

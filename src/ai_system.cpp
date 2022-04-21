@@ -1670,7 +1670,9 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 		}
 		for (Entity t : registry.traps.entities) {
 			if (registry.traps.get(t).owner != player) {
-				registry.traps.get(t).turns -= 999;
+				if (registry.motions.has(t)) {
+					registry.remove_all_components_of(t);
+				}
 			}
 		}
 		for (Entity e : registry.enemies.entities) {

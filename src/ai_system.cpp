@@ -619,7 +619,7 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 	// float chaseRange = 1000.f;
 	float meleeRange = 100.f;
 	float dir = irand(360) * M_PI / 180;
-	float dist = irandRange(25, 75);
+	float dist = irandRange(70, 140);
 
 	Motion& motion_struct = registry.motions.get(slime);
 
@@ -1505,6 +1505,7 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 		// Choose Your Fate
 		if (roll < 1) { 
 			printf("Turn Number %i: Choose Your Fate!\n", boss.num_turns);
+			Mix_PlayChannel(-1, world.whoosh, 0);
 			// Random Dialogue
 			roll = irand(3);
 			if (roll < 1) { world.logText("???: Come. Take your pick.", { 1.0, 0.2, 0.2 }); }
@@ -1530,6 +1531,7 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 		// Be Not Alone
 		else if (roll < 2) { 
 			printf("Turn Number %i: Be Not Alone!\n", boss.num_turns);
+			Mix_PlayChannel(-1, world.malediction_sound, 0);
 			// Random Dialogue
 			roll = irand(3);
 			if (roll < 1) { world.logText("???: Let me introduce you to my friends...", { 1.0, 0.2, 0.2 }); }
@@ -1584,6 +1586,7 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 		// Be Not Afraid
 		else { 
 			printf("Turn Number %i: Be Not Afraid!\n", boss.num_turns);
+			Mix_PlayChannel(-1, world.bag_of_wind_sound, 0);
 			// Random Dialogue
 			roll = irand(3);
 			if (roll < 1) { world.logText("???: Your fear will be your downfall!", { 1.0, 0.2, 0.2 }); }
@@ -1650,6 +1653,7 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 		break;
 	case ENEMY_STATE::CHARGING_RANGED:
 		printf("Turn Number %i: Triggering Global ATK Buff!\n", boss.num_turns);
+		Mix_PlayChannel(-1, world.special_sound, 0);
 		for (Entity e : registry.enemies.entities) {
 			StatusEffect buff = StatusEffect(0.5, 3, StatusType::ATK_BUFF, true, true);
 			apply_status(e, buff);

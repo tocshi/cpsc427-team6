@@ -1101,7 +1101,7 @@ const std::map <ARTIFACT, std::string>artifact_names = {
 	{ARTIFACT::HQ_FLETCHING, "High-Quality Fletching"},
 	{ARTIFACT::MESSENGER_CAP, "Messenger's Cap"},
 	{ARTIFACT::WARM_CLOAK, "Warm Cloak"},
-	{ARTIFACT::THUNDER_TWIG, "Thundering Twig"},
+	{ARTIFACT::THUNDER_TWIG, "Thunderstruck Twig"},
 	{ARTIFACT::LUCKY_CHIP, "Lucky Chip"},
 	{ARTIFACT::GUIDE_HEALBUFF, "Guide to Healthy Eating"},
 	{ARTIFACT::THICK_TOME, "Unnecessarily Thick Tome"},
@@ -1119,6 +1119,7 @@ const std::map <ARTIFACT, std::string>artifact_names = {
 	{ARTIFACT::LIVELY_BULB, "Lively Bulb"},
 	{ARTIFACT::MALEDICTION, "Malediction"},
 	//{ARTIFACT::CHIMERARM, "Chimera's Arm"}
+	{ARTIFACT::ARTIFACT_COUNT, "???"},
 };
 
 // Artifact description map
@@ -1147,6 +1148,7 @@ const std::map <ARTIFACT, std::string>artifact_descriptions = {
 	{ARTIFACT::LIVELY_BULB, "You may have unintentionally allowed this plant to think you\'re its parent. You also may have named it \"Bobby\"."},
 	{ARTIFACT::MALEDICTION, "\"Your suffering...I want to savour it!\""},
 	//{ARTIFACT::CHIMERARM, "A disfigured limb belonging to a monster of unknown origin. It seems to be wrapped in a strange aura that warps nearby weapons in an inexplicable way. You hear a strange voice from the back of your head saying that you can use it to create an armament of unparalleled power."}
+	{ARTIFACT::ARTIFACT_COUNT, "You have yet to discover this artifact."},
 };
 
 // Artifact texture map
@@ -1175,34 +1177,36 @@ const std::map <ARTIFACT, TEXTURE_ASSET_ID>artifact_textures = {
 	{ARTIFACT::LIVELY_BULB, TEXTURE_ASSET_ID::LIVELY_BULB},
 	{ARTIFACT::MALEDICTION, TEXTURE_ASSET_ID::MALEDICTION},
 	//{ARTIFACT::CHIMERARM, TEXTURE_ASSET_ID::CHIMERARM}
+	{ARTIFACT::ARTIFACT_COUNT, TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER},
 };
 
 // Artifact effect map
 const std::map <ARTIFACT, std::string>artifact_effects = {
-	{ARTIFACT::POISON_FANG, "Attacks have a 30% chance to inflict 15% (+10% per stack) ATK Poison DoT for 5 turns."},
-	{ARTIFACT::GLAD_HOPLON, "Take 15% (+10% multiplicative per stack) reduced damage from enemies that you attacked directly until your next turn."},
+	{ARTIFACT::POISON_FANG, "Attacks have a 30% chance to inflict 15% (+15% per stack) ATK Poison DoT for 5 turns."},
+	{ARTIFACT::GLAD_HOPLON, "Take 15% (x10% per stack) reduced damage from enemies that you attacked directly until your next turn."},
 	{ARTIFACT::BLADE_POLISH, "Melee attacks deal 20% (+20% per stack) additional damage."},
 	{ARTIFACT::HQ_FLETCHING, "Ranged attacks deal 20% (+20% per stack) additional damage."},
 	{ARTIFACT::MESSENGER_CAP, "10% (+5% per stack) of your base ATK stat is added onto your Speed stat."},
 	{ARTIFACT::WARM_CLOAK, "10% (+5% per stack) of your base ATK stat is added onto your DEF stat."},
-	{ARTIFACT::THUNDER_TWIG, "Attacks have a 15% (+15% per stack) chance to summon a lightning bolt that deals 60% ATK damage in a small AoE."},
-	{ARTIFACT::LUCKY_CHIP, "7% (+7% per stack) chance for your attack to deal 777% damage. 7% (+7% per stack) chance to reduce incoming damage by 777. Lowest damage taken per attack is 1."},
+	{ARTIFACT::THUNDER_TWIG, "Attacks have a 20% (+20% per stack) chance to summon a lightning bolt that deals 70% ATK damage in a small AoE."},
+	{ARTIFACT::LUCKY_CHIP, "7% (+7% per stack) chance for your attack to deal 700% damage. 7% (+7% per stack) chance to reduce incoming damage by 777. Lowest damage taken per attack is 1."},
 	{ARTIFACT::GUIDE_HEALBUFF, "Health-restoring items and interactables grant a 20% (+20% per stack) ATK buff for 5 turns."},
 	{ARTIFACT::THICK_TOME, "Upon taking lethal damage, survive with 1 HP and gain 3 turns of invincibility. This artifact is consumed when this effect activates."},
-	{ARTIFACT::GOLIATH_BELT, "When HP is above 80%, increases ATK by 20% (+20% per stack)."},
-	{ARTIFACT::BLOOD_RUBY, "When HP is below 40%, increases ATK by 20% (+20% per stack)."},
+	{ARTIFACT::GOLIATH_BELT, "When HP is above 80%, your attacks deal 20% (+20% per stack) additional damage."},
+	{ARTIFACT::BLOOD_RUBY, "When HP is below 40%, your attacks deal 20% (+20% per stack) additional damage."},
 	{ARTIFACT::WINDBAG, "Upon taking damage that puts you below 25% (+5% per stack) HP, release an AoE that knocks back nearby enemies by 300 units, and stuns them for 3 (+1 per stack) turns. Has a 15 turn cooldown."},
-	{ARTIFACT::KB_MALLET, "When attacking an enemy within melee range, knock back struck enemies by 100 units (+ 50 units per stack)."},
+	{ARTIFACT::KB_MALLET, "When attacking an enemy within melee range, knock back struck enemies by 100 units (+50 units per stack)."},
 	{ARTIFACT::ARCANE_SPECS, "Gain 50 (+50 per stack) units of sight range."},
-	{ARTIFACT::SCOUT_STRIDE, "Consume 12% (*12% per stack) less EP when moving."},
-	{ARTIFACT::ART_CONSERVE, "Consume 8% (*8% per stack) less EP when attacking."},
+	{ARTIFACT::SCOUT_STRIDE, "Consume 12% (x12% per stack) less EP when moving."},
+	{ARTIFACT::ART_CONSERVE, "Consume 8% (x8% per stack) less EP when attacking."},
 	{ARTIFACT::ARCANE_FUNNEL, "Upon defeating an enemy, gain a buff that doubles your MP regeneration for 1 (+1 per stack) turns."},
 	{ARTIFACT::FUNGIFIER, "Upon defeating an enemy, an explosive mushroom grows at their location on your next turn. When an enemy steps on the mushroom, or after 3 turns, the mushroom explodes, dealing 130% (+130% per stack) ATK in damage in a small AoE."},
 	{ARTIFACT::BURRBAG, "At the start of each turn, leave a patch of burrs on the ground that last for 5 turns or until activated 1 (+1 per stack) times. Enemies that step over the burrs will take 40% ATK in damage."},
 	{ARTIFACT::SMOKE_POWDER, "When opening a chest, release a cloud of smoke that halves the aggro range of enemies within 200 (+75 per stack) units for 1 turn."},
-	{ARTIFACT::LIVELY_BULB, "At the start of each turn, fire a seed projectile that deals 80% (+80% per stack) ATK damage towards the lowest HP enemy within half of your sight range."},
+	{ARTIFACT::LIVELY_BULB, "At the start of each turn, fire a seed projectile that deals 80% (+80% per stack) ATK damage towards the lowest HP enemy within 250 units."},
 	{ARTIFACT::MALEDICTION, "When you are attacked, all visible enemies will be affected with a curse that reduces their ATK by 40% for 3 turns. Has a 10 (-1 per stack) turn cooldown."},
 	//{ARTIFACT::CHIMERARM, "Your current weapon, and newly generated weapons will have +4 ATK (+4 ATK per stack), and its 2nd Attack Skill will become a random attack skill from any weapon type."}
+	{ARTIFACT::ARTIFACT_COUNT, "???"},
 };
 
 // Attack texture map TODO: finish this

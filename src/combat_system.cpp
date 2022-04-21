@@ -56,7 +56,8 @@ std::string deal_damage(Entity& attacker, Entity& defender, float multiplier, bo
 		enemy_struct.hit_by_player = true;
 
 		// apparition teleport
-		if (registry.enemies.get(defender).type == ENEMY_TYPE::APPARITION && registry.stats.get(defender).hp > 0) {
+		if (registry.enemies.get(defender).type == ENEMY_TYPE::APPARITION && registry.stats.get(defender).hp > 0 && !registry.motions.get(defender).in_motion) {
+			Mix_PlayChannel(-1, world.ghost_sound, 0);
 			teleport(defender, attacker);
 			registry.motions.get(defender).destination = registry.motions.get(defender).position;
 			registry.motions.get(defender).in_motion = false;
@@ -87,6 +88,7 @@ void teleport(Entity& enemy, Entity& player)
 		}
 	} while (!valid);
 	enemy_motion.position = new_pos;
+	world.update_bar_and_shadow();
 }
 
 // Entity directly takes damage
@@ -109,7 +111,7 @@ void take_damage(Entity& entity, float damage)
 	
 	Motion motion = registry.motions.get(entity);
 	int rounded_damage = round(damage);
-	createDamageText(world.renderer, motion.position + vec2(0, -32), std::to_string(rounded_damage), false);
+	createDamageText(world.renderer, motion.position + vec2(irandRange(-24, 24), irandRange(-64, -0)), std::to_string(rounded_damage), false);
 
 	// Effects:
 	// Unnecessarily Thick Tome
@@ -132,7 +134,7 @@ void heal(Entity& entity, float amount) {
 
 	Motion motion = registry.motions.get(entity);
 	int rounded_heal = round(amount);
-	createDamageText(world.renderer, motion.position + vec2(0, -32), std::to_string(rounded_heal), true);
+	createDamageText(world.renderer, motion.position + vec2(irandRange(-24, 24), irandRange(-64, -0)), std::to_string(rounded_heal), true);
 }
 
 void take_damage_mp(Entity& entity, float damage)
@@ -229,6 +231,7 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 							KnockBack& knockback = registry.knockbacks.emplace(e);
 							knockback.remaining_distance = 300;
 							knockback.angle = atan2(enemy_motion.position.y - defender_motion.position.y, enemy_motion.position.x - defender_motion.position.x);
+							enemy_motion.in_motion = false;
 						}
 						StatusEffect stun = StatusEffect(0, stun_duration, StatusType::STUN, false, true);
 						apply_status(e, stun);
@@ -238,6 +241,13 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 				}
 				// play bag of wind sound
 				world.playBagOfWindSound();
+
+				// oh man please don't look jank
+				Entity wind0 = createAttackAnimation(world.renderer, defender_motion.position, ATTACK::ROUNDSLASH);
+				Entity wind1 = createAttackAnimation(world.renderer, defender_motion.position, ATTACK::ROUNDSLASH);
+				registry.motions.get(wind1).angle = M_PI;
+				registry.expandTimers.insert(wind0, { 500, 5000 });
+				registry.expandTimers.insert(wind1, { 500, 5000 });
 
 				world.logText("You are surrounded by a raging gust!", { 0.2, 1.0, 1.0 });
 			}
@@ -275,7 +285,7 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 		int roll = irand(100);
 		if (roll < 30 && valid) {
 			world.logText("The Discarded Fang unleashes its poison!", { 0.2, 1.0, 1.0 });
-			float damage = (attacker_stats.atk * 0.15) + (attacker_stats.atk * 0.1 * attacker_inv.artifact[(int)ARTIFACT::POISON_FANG] - 1);
+			float damage = (attacker_stats.atk * 0.15) + (attacker_stats.atk * 0.15 * attacker_inv.artifact[(int)ARTIFACT::POISON_FANG] - 1);
 			std::cout << damage << std::endl;
 
 			StatusEffect poison = StatusEffect(damage, 5, StatusType::FANG_POISON, false, false);
@@ -287,9 +297,8 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 	// Thunderstruck Twig
 	if (attacker_inv.artifact[(int)ARTIFACT::THUNDER_TWIG] > 0 && doProcs) {
 		int roll = irand(100);
-		int chance = 15 * attacker_inv.artifact[(int)ARTIFACT::THUNDER_TWIG];
+		int chance = 20 * attacker_inv.artifact[(int)ARTIFACT::THUNDER_TWIG];
 		if (roll < chance) {
-			float damage = attacker_stats.atk * 0.60;
 			// using bigslash as a template entity LOL
 			Entity lightning = createBigSlash(world.renderer, { defender_motion.position.x, defender_motion.position.y - 512.f }, 0, 0);
 			registry.renderRequests.get(lightning).used_texture = TEXTURE_ASSET_ID::LIGHTNING;
@@ -302,7 +311,7 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 			for (Entity& e : registry.enemies.entities) {
 				Motion enemy_motion = registry.motions.get(e);
 				if (dist_to_edge(enemy_motion, defender_motion) <= 10.f || e == defender) {
-					deal_damage(attacker, e, 60, false);
+					deal_damage(attacker, e, 70, false);
 				}
 			}
 		}
@@ -313,7 +322,7 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 		int roll = irand(100);
 		if (roll < 7 * attacker_inv.artifact[(int)ARTIFACT::LUCKY_CHIP]) {
 			world.logText("You feel extremely lucky!", { 0.2, 1.0, 1.0 });
-			final_damage *= 7.77f;
+			final_damage *= 7.f;
 		}
 	}
 	if (defender_inv.artifact[(int)ARTIFACT::LUCKY_CHIP] > 0) {
@@ -347,6 +356,7 @@ float handle_postcalc_effects(Entity& attacker, Entity& defender, float damage, 
 			KnockBack& knockback = registry.knockbacks.emplace(defender);
 			knockback.remaining_distance = kb_dist;
 			knockback.angle = atan2(defender_motion.position.y - attacker_motion.position.y, defender_motion.position.x - attacker_motion.position.x);
+			defender_motion.in_motion = false;
 		}
 	}
 

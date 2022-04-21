@@ -48,19 +48,19 @@ void WorldSystem::destroyMusic() {
 	if (ui_close != nullptr) Mix_FreeChunk(ui_close);
 	if (ui_alert != nullptr) Mix_FreeChunk(ui_alert);
 	if (plant_shoot != nullptr) Mix_FreeChunk(plant_shoot);
-	if (kingslime_attack != nullptr) Mix_FreeChunk(slime_death);
-	if (kingslime_jump != nullptr) Mix_FreeChunk(caveling_move);
-	if (kingslime_summon != nullptr) Mix_FreeChunk(caveling_death);
-	if (pebble_move != nullptr) Mix_FreeChunk(whoosh);
-	if (fire_sound != nullptr) Mix_FreeChunk(sword_end);
-	if (potion_sound != nullptr) Mix_FreeChunk(sword_parry);
-	if (smokescreen_sound != nullptr) Mix_FreeChunk(sword_pierce);
-	if (arcane_funnel_sound != nullptr) Mix_FreeChunk(sword_slash);
-	if (rock_summon != nullptr) Mix_FreeChunk(special_sound);
-	if (trap_sound != nullptr) Mix_FreeChunk(ui_click);
-	if (malediction_sound != nullptr) Mix_FreeChunk(ui_open);
-	if (thunder_sound != nullptr) Mix_FreeChunk(ui_close);
-	if (bag_of_wind_sound != nullptr) Mix_FreeChunk(ui_alert);
+	if (kingslime_attack != nullptr) Mix_FreeChunk(kingslime_attack);
+	if (kingslime_jump != nullptr) Mix_FreeChunk(kingslime_jump);
+	if (kingslime_summon != nullptr) Mix_FreeChunk(kingslime_summon);
+	if (pebble_move != nullptr) Mix_FreeChunk(pebble_move);
+	if (fire_sound != nullptr) Mix_FreeChunk(fire_sound);
+	if (potion_sound != nullptr) Mix_FreeChunk(potion_sound);
+	if (smokescreen_sound != nullptr) Mix_FreeChunk(smokescreen_sound);
+	if (arcane_funnel_sound != nullptr) Mix_FreeChunk(arcane_funnel_sound);
+	if (rock_summon != nullptr) Mix_FreeChunk(rock_summon);
+	if (trap_sound != nullptr) Mix_FreeChunk(trap_sound);
+	if (malediction_sound != nullptr) Mix_FreeChunk(malediction_sound);
+	if (thunder_sound != nullptr) Mix_FreeChunk(thunder_sound);
+	if (bag_of_wind_sound != nullptr) Mix_FreeChunk(bag_of_wind_sound);
 	Mix_CloseAudio();
 }
 
@@ -238,13 +238,21 @@ GLFWwindow* WorldSystem::create_window() {
 	rock_summon = Mix_LoadWAV(audio_path("sfx/rock_summon.wav").c_str());
 	Mix_VolumeChunk(rock_summon, 24);
 	trap_sound = Mix_LoadWAV(audio_path("sfx/trap.wav").c_str());
-	Mix_VolumeChunk(trap_sound, 18);
+	Mix_VolumeChunk(trap_sound, 8);
 	malediction_sound = Mix_LoadWAV(audio_path("sfx/malediction.wav").c_str());
-	Mix_VolumeChunk(malediction_sound, 32);
+	Mix_VolumeChunk(malediction_sound, 24);
 	thunder_sound = Mix_LoadWAV(audio_path("sfx/thunder.wav").c_str());
 	Mix_VolumeChunk(thunder_sound, 10);
 	bag_of_wind_sound = Mix_LoadWAV(audio_path("sfx/hurricane.wav").c_str());
-	Mix_VolumeChunk(bag_of_wind_sound, 32);
+	Mix_VolumeChunk(bag_of_wind_sound, 24);
+	ghost_sound = Mix_LoadWAV(audio_path("sfx/ghost.wav").c_str());
+	Mix_VolumeChunk(ghost_sound, 8);
+	ghost_move = Mix_LoadWAV(audio_path("sfx/rustle.wav").c_str());
+	Mix_VolumeChunk(ghost_move, 16);
+	plant_death = Mix_LoadWAV(audio_path("sfx/plant_death.wav").c_str());
+	Mix_VolumeChunk(plant_death, 24);
+	walking = Mix_LoadWAV(audio_path("sfx/cave_footsteps.wav").c_str());
+	Mix_VolumeChunk(walking, 64);
 
 
 	if (background_music == nullptr || fire_explosion_sound == nullptr
@@ -254,21 +262,7 @@ GLFWwindow* WorldSystem::create_window() {
 		|| chest_sound == nullptr || slime_move == nullptr 
 		|| slime_death == nullptr || caveling_death == nullptr
 		|| caveling_move == nullptr) {
-		fprintf(stderr, "Failed to load sounds\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n %s\n make sure the data directory is present",
-			audio_path("bgm/caves0.wav").c_str(),
-			audio_path("bgm/menu0.wav").c_str(),
-			audio_path("bgm/dream0.wav").c_str(),
-			audio_path("feedback/fire_explosion.wav").c_str(),
-			audio_path("feedback/error.wav").c_str(),
-			audio_path("feedback/footstep.wav").c_str(),
-			audio_path("feedback/door_open.wav").c_str(),
-			audio_path("feedback/switch_click.wav").c_str(),
-			audio_path("feedback/chest_open.wav").c_str(),
-			audio_path("feedback/slime_move.wav").c_str(),
-			audio_path("feedback/slime_death.wav").c_str(),
-			audio_path("feedback/caveling_death.wav").c_str(),
-			audio_path("feedback/caveling_move.wav").c_str()
-		);
+		fprintf(stderr, "Failed to load sounds! make sure the data directory is present");
 		return nullptr;
 	}
 
@@ -435,68 +429,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		}
 	}
 
-	// update per-enemy hp bar positions
-	for (int i = 0; i < registry.enemyHPBars.size(); i++) {
-		Entity enemy = registry.enemyHPBars.entities[i];
-		EnemyHPBar& hpbar = registry.enemyHPBars.components[i];
-		if (!registry.motions.has(hpbar.hpBacking) || !registry.motions.has(hpbar.hpFill)) {
-			continue;
-		}
-		Stats& stats = registry.stats.get(enemy);
-
-		Motion& enemy_motion = registry.motions.get(enemy);
-		Motion& hpbacking_motion = registry.motions.get(hpbar.hpBacking);
-		Motion& hpfill_motion = registry.motions.get(hpbar.hpFill);
-
-		hpbacking_motion.position = enemy_motion.position + vec2(0, ENEMY_HP_BAR_OFFSET);
-		hpfill_motion.scale.x = hpbacking_motion.scale.x * max(0.f, (stats.hp / stats.maxhp));
-		hpfill_motion.position = hpbacking_motion.position - vec2((hpbacking_motion.scale.x - hpfill_motion.scale.x) / 2, 0);
-	}
-
-	// update the boss hp bar
-	for (int i = 0; i < registry.bossHPBars.size(); i++) {
-		Entity boss = registry.bossHPBars.entities[i];
-		BossHPBar& hpbar = registry.bossHPBars.components[i];
-		if (!registry.motions.has(hpbar.hpBacking) || !registry.motions.has(hpbar.hpFill)) {
-			continue;
-		}
-		Stats& stats = registry.stats.get(boss);
-
-		Motion& hpbacking_motion = registry.motions.get(hpbar.hpBacking);
-		Motion& hpfill_motion = registry.motions.get(hpbar.hpFill);
-
-		hpfill_motion.scale.x = hpbacking_motion.scale.x * max(0.f, (stats.hp / stats.maxhp));
-		hpfill_motion.position = hpbacking_motion.position - vec2((hpbacking_motion.scale.x - hpfill_motion.scale.x) / 2, 0);
-	}
-
-	// update per-enemy shadows
-	for (int i = 0; i < registry.shadowContainers.size(); i++) {
-		Entity enemy = registry.shadowContainers.entities[i];
-		ShadowContainer& shadow_container = registry.shadowContainers.components[i];
-		if (!registry.motions.has(shadow_container.shadow_entity)) {
-			continue;
-		}
-		Motion& shadow_motion = registry.motions.get(shadow_container.shadow_entity);
-		Motion& player_motion = registry.motions.get(player_main);
-		Motion& enemy_motion = registry.motions.get(enemy);
-
-		float angle = atan2(enemy_motion.position.y - player_motion.position.y, enemy_motion.position.x - player_motion.position.x);
-		float distance = dist_to(enemy_motion.position, player_motion.position);
-		float length_scale = 1;
-		if (distance < 64) {
-			length_scale = distance / 64.f;
-		}
-		else {
-			length_scale = 1 + min(distance, 300.f) / 300.f;
-		}
-		shadow_motion.scale = vec2(enemy_motion.scale.x * length_scale, enemy_motion.scale.y);
-		shadow_motion.angle = angle;
-		shadow_motion.position = dirdist_extrapolate(enemy_motion.position, angle, shadow_motion.scale.x/2 - enemy_motion.scale.x/4);
-		// shift the shadow a little if enemy is a plantshooter
-		if (registry.enemies.has(enemy) && registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER) {
-			shadow_motion.position += vec2(0, 0.25 * enemy_motion.scale.y);
-		}
-	}
+	// update enemy HP bars and shadows
+	update_bar_and_shadow();
 
 	for (Entity p : registry.players.entities) {
 		Player player = registry.players.get(p);
@@ -1230,6 +1164,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 
 	// particle effects
 	for (Entity entity : registry.particleContainers.entities) {
+		if (registry.hidden.has(entity)) { continue; }
 		ParticleContainer& container = registry.particleContainers.get(entity);
 		for (ParticleEmitter& emitter : container.emitters) {
 			emitter.counter_ms -= elapsed_ms_since_last_update;
@@ -1785,7 +1720,7 @@ void WorldSystem::spawn_enemies_random_location(std::vector<vec2>& enemySpawns, 
 		int numberToSpawn = std::min(irandRange(min, max + 1), int(enemySpawns.size()));
 		for (int i = 0; i < numberToSpawn; i++) {
 			// rock benchmark test comment
-			//createLivingRock(renderer, { enemySpawns[i].x, enemySpawns[i].y });
+			//createApparition(world.renderer, { enemySpawns[i].x, enemySpawns[i].y });
 			int roll = irand(4);
 			switch (roomSystem.current_floor) {
 			case Floors::FLOOR1:
@@ -1848,6 +1783,7 @@ void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int
 			case Floors::BOSS1:
 			case Floors::BOSS2:
 				createCampfire(renderer, { itemSpawns[i].x, itemSpawns[i].y });
+				break;
 			default:
 				// temporary, later we can also randomize the item types
 				if (range > 0) {
@@ -1863,6 +1799,7 @@ void WorldSystem::spawn_items_random_location(std::vector<vec2>& itemSpawns, int
 				else {
 					createChest(renderer, { itemSpawns[i].x, itemSpawns[i].y }, true);
 				}
+				break;
 			}
 			spawned++;
 			i++;
@@ -1952,7 +1889,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 
 	// DEBUG: Testing artifact/stacking
 	if (action == GLFW_RELEASE && key == GLFW_KEY_9) {
-		int give = (int)ARTIFACT::BURRBAG;
+		int give = (int)ARTIFACT::WINDBAG;
 		for (Entity& p : registry.players.entities) {
 			Inventory& inv = registry.inventories.get(p);
 			inv.artifact[give]++;
@@ -2325,7 +2262,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					break;
 				case BUTTON_ACTION_ID::SAVE_QUIT:
-					if (!tutorial && !(roomSystem.current_floor == Floors::BOSS1 || roomSystem.current_floor == Floors::BOSS2)) {
+					if (!tutorial && current_music != Music::BOSS0 && current_music != Music::BOSS1) {
 						saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
 						logText("Game state saved!");
 					}
@@ -2679,6 +2616,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									transition.floor = roomSystem.current_floor;
 								}
 								player.total_rooms++;
+								Mix_PlayChannel(-1, walking, 0);
 							}
 							// Boss Door Behaviour
 							else if (interactable.type == INTERACT_TYPE::BOSS_DOOR && dist_to(registry.motions.get(player_main).position, motion.position) <= 150) {
@@ -2695,6 +2633,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 									roomSystem.setNextFloor(transition.floor);
 								}
 								player.total_rooms++;
+								Mix_PlayChannel(-1, walking, 0);
 							}
 							// End_Light Behaviour
 							else if (interactable.type == INTERACT_TYPE::END_LIGHT && dist_to(registry.motions.get(player_main).position, motion.position) <= 200) {
@@ -2909,7 +2848,7 @@ void WorldSystem::start_player_turn() {
 		// choose target
 		for (Entity& e : registry.enemies.entities) {
 			Motion& enemy_motion = registry.motions.get(e);
-			if (dist_to(player_motion.position, enemy_motion.position) > (registry.stats.get(player_main).range / 2)) { continue; }
+			if (dist_to_edge(player_motion, enemy_motion) > 200) { continue; }
 			Stats& enemy_stats = registry.stats.get(e);
 			if (enemy_stats.hp / enemy_stats.maxhp < frac) {
 				valid = true;
@@ -4229,6 +4168,12 @@ void WorldSystem::playEnemyDeathSound(ENEMY_TYPE enemy_type) {
 		case ENEMY_TYPE::CAVELING:
 			Mix_PlayChannel(-1, caveling_death, 0);
 			break;
+		case ENEMY_TYPE::PLANT_SHOOTER:
+			Mix_PlayChannel(-1, plant_death, 0);
+			break;
+		case ENEMY_TYPE::APPARITION:
+			Mix_PlayChannel(-1, ghost_sound, 0);
+			break;
 	}
 }
 
@@ -4242,6 +4187,9 @@ void WorldSystem::playEnemyMoveSound(ENEMY_TYPE enemy_type) {
 		break;
 	case ENEMY_TYPE::LIVING_PEBBLE:
 		Mix_PlayChannel(-1, pebble_move, 0);
+		break;
+	case ENEMY_TYPE::APPARITION:
+		Mix_PlayChannel(-1, ghost_move, 0);
 		break;
 	}
 }
@@ -4258,12 +4206,12 @@ void WorldSystem::playRockSummonSound() {
 
 // play malediction sound
 void WorldSystem::playMaledictionSound() {
-	Mix_PlayChannel(-1, malediction_sound, 0);
+	Mix_PlayChannel(5, malediction_sound, 0);
 }
 
 // play bag of wind sound
 void WorldSystem::playBagOfWindSound() {
-	Mix_PlayChannel(-1, bag_of_wind_sound, 0);
+	Mix_PlayChannel(6, bag_of_wind_sound, 0);
 }
 
 
@@ -5056,6 +5004,71 @@ void WorldSystem::playMusic(Music music) {
 		break;
 	default:
 		printf("unsupported Music enum value %d\n", music);
+	}
+}
+
+void WorldSystem::update_bar_and_shadow() {
+	// update per-enemy hp bar positions
+	for (int i = 0; i < registry.enemyHPBars.size(); i++) {
+		Entity enemy = registry.enemyHPBars.entities[i];
+		EnemyHPBar& hpbar = registry.enemyHPBars.components[i];
+		if (!registry.motions.has(hpbar.hpBacking) || !registry.motions.has(hpbar.hpFill)) {
+			continue;
+		}
+		Stats& stats = registry.stats.get(enemy);
+
+		Motion& enemy_motion = registry.motions.get(enemy);
+		Motion& hpbacking_motion = registry.motions.get(hpbar.hpBacking);
+		Motion& hpfill_motion = registry.motions.get(hpbar.hpFill);
+
+		hpbacking_motion.position = enemy_motion.position + vec2(0, ENEMY_HP_BAR_OFFSET);
+		hpfill_motion.scale.x = hpbacking_motion.scale.x * max(0.f, (stats.hp / stats.maxhp));
+		hpfill_motion.position = hpbacking_motion.position - vec2((hpbacking_motion.scale.x - hpfill_motion.scale.x) / 2, 0);
+	}
+
+	// update the boss hp bar
+	for (int i = 0; i < registry.bossHPBars.size(); i++) {
+		Entity boss = registry.bossHPBars.entities[i];
+		BossHPBar& hpbar = registry.bossHPBars.components[i];
+		if (!registry.motions.has(hpbar.hpBacking) || !registry.motions.has(hpbar.hpFill)) {
+			continue;
+		}
+		Stats& stats = registry.stats.get(boss);
+
+		Motion& hpbacking_motion = registry.motions.get(hpbar.hpBacking);
+		Motion& hpfill_motion = registry.motions.get(hpbar.hpFill);
+
+		hpfill_motion.scale.x = hpbacking_motion.scale.x * max(0.f, (stats.hp / stats.maxhp));
+		hpfill_motion.position = hpbacking_motion.position - vec2((hpbacking_motion.scale.x - hpfill_motion.scale.x) / 2, 0);
+	}
+
+	// update per-enemy shadows
+	for (int i = 0; i < registry.shadowContainers.size(); i++) {
+		Entity enemy = registry.shadowContainers.entities[i];
+		ShadowContainer& shadow_container = registry.shadowContainers.components[i];
+		if (!registry.motions.has(shadow_container.shadow_entity)) {
+			continue;
+		}
+		Motion& shadow_motion = registry.motions.get(shadow_container.shadow_entity);
+		Motion& player_motion = registry.motions.get(player_main);
+		Motion& enemy_motion = registry.motions.get(enemy);
+
+		float angle = atan2(enemy_motion.position.y - player_motion.position.y, enemy_motion.position.x - player_motion.position.x);
+		float distance = dist_to(enemy_motion.position, player_motion.position);
+		float length_scale = 1;
+		if (distance < 64) {
+			length_scale = distance / 64.f;
+		}
+		else {
+			length_scale = 1 + min(distance, 300.f) / 300.f;
+		}
+		shadow_motion.scale = vec2(enemy_motion.scale.x * length_scale, enemy_motion.scale.y);
+		shadow_motion.angle = angle;
+		shadow_motion.position = dirdist_extrapolate(enemy_motion.position, angle, shadow_motion.scale.x / 2 - enemy_motion.scale.x / 4);
+		// shift the shadow a little if enemy is a plantshooter
+		if (registry.enemies.has(enemy) && registry.enemies.get(enemy).type == ENEMY_TYPE::PLANT_SHOOTER) {
+			shadow_motion.position += vec2(0, 0.25 * enemy_motion.scale.y);
+		}
 	}
 }
 

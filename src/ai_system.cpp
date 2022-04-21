@@ -487,9 +487,13 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		}
 	}
 
+	std::vector<AstarNode*> pathVector;
 	if (endNode == 0 || endNode->parent == 0) {
 		// if player hasn't been reached, pick the closest node visited
 		endNode = getLowestHCostNodeInList(closedSet);
+		if (endNode->position == enemyPos) {
+			return pathVector;
+		}
 	}
 
 	endNode = endNode->parent;
@@ -511,7 +515,6 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 	}
 
 
-	std::vector<AstarNode*> pathVector;
 	if (endNode->position == enemyPos) {
 		return pathVector;
 	}
@@ -699,10 +702,10 @@ void AISystem::slime_logic(Entity slime, Entity& player) {
 					for (int i = 0; i < starVector.size(); i++) {
 						aStarMotion.path.push(starVector[i]->position);
 						// Uncomment the below to see the generated path
-						// Entity test = createBigSlash(world.renderer, starVector[i]->position, 0, 0);
-						// registry.renderRequests.get(test).used_texture = TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER;
-						// registry.motions.get(test).scale = vec2(50.f, 50.f);
-						// registry.expandTimers.get(test).counter_ms = 20000;
+						Entity test = createBigSlash(world.renderer, starVector[i]->position, 0, 0);
+						registry.renderRequests.get(test).used_texture = TEXTURE_ASSET_ID::ARTIFACT_PLACEHOLDER;
+						registry.motions.get(test).scale = vec2(50.f, 50.f);
+						registry.expandTimers.get(test).counter_ms = 20000;
 						if (i == 1) {
 							motion_struct.destination = starVector[i]->position;
 							aStarMotion.currentDest = starVector[i]->position;

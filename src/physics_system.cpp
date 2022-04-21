@@ -229,7 +229,6 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 					if (registry.enemies.get(owner).type == ENEMY_TYPE::REFLEXION) {
 						StatusEffect debuff = StatusEffect(-0.5, 1, StatusType::DEF_BUFF, true, true);
 						apply_status(player, debuff);
-						printf("%i\n", has_status(player, StatusType::DEF_BUFF));
 					}
 					timer.counter_ms = 0;
 					motion_registry.get(owner).in_motion = false;
@@ -258,7 +257,6 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 			// handle a star movement
 			if (using_astar) {
 				AstarMotion& aStarMotion = registry.aStarMotions.get(entity);
-				// printf("dist to: %f, vel_mag: %f\n", dist_to(pos_final, dest), vel_mag);
 				vec2 deltaStart = aStarMotion.currentDest - motion.position;
 				vec2 deltaEnd = aStarMotion.currentDest - pos_final;
 				if (dist_to(pos_final, aStarMotion.currentDest) <= vel_mag || oppositeSign(deltaStart, deltaEnd)) {
@@ -365,7 +363,6 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 									if (registry.enemies.get(owner).type == ENEMY_TYPE::REFLEXION) {
 										StatusEffect debuff = StatusEffect(-0.5, 1, StatusType::DEF_BUFF, true, true);
 										apply_status(player, debuff);
-										printf("%i\n", has_status(player, StatusType::DEF_BUFF));
 									}
 								}
 								motion_registry.get(owner).in_motion = false;

@@ -21,8 +21,6 @@ void CutSceneSystem::cut_scene_text_log(RenderSystem* renderer, std::string msg)
 	TextTimer& timer = registry.textTimers.emplace(e);
 	timer.counter_ms = 8000;
 
-	printf("cut scen dialogue\n");
-
 }
 
 
@@ -35,7 +33,6 @@ void CutSceneSystem::updateDialogue(RenderSystem* renderer, int cut_scene_number
 
 	std::vector<std::vector<std::string>> messages;
 
-	printf("cut scene number :%d\n", cut_scene_number);
 	if (cut_scene_number == 0) {
 		messages = {
 			{
@@ -481,7 +478,4 @@ void CutSceneSystem::scene_transition(RenderSystem* renderer, int cut_scene_numb
 		FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
 		timer.type = TRANSITION_TYPE::CUTSCENE_TO_BLACK;
 	}
-
-	printf("Scene Transition function \n");
-
 }

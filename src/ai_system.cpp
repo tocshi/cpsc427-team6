@@ -137,7 +137,6 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 		
 		// if the node is at the player break
 		if (currNode->h_cost <= step_range) {
-			printf("here top level");
 			endNode = currNode;
 			break;
 		}
@@ -158,7 +157,6 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 			// if the node is at the player break
 			if (node->h_cost <= step_range) {
-				printf("here right");
 				endNode = new AstarNode;
 				endNode->position = node->position;
 				endNode->parent = node->parent;
@@ -202,7 +200,6 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 			// if the node is at the player break
 			if (node->h_cost <= step_range) {
-				printf("here left");
 				endNode = new AstarNode;
 				endNode->position = node->position;
 				endNode->parent = node->parent;
@@ -246,7 +243,6 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 			// if the node is at the player break
 			if (node->h_cost <= step_range) {
-				printf("here top");
 				endNode = new AstarNode;
 				endNode->position = node->position;
 				endNode->parent = node->parent;
@@ -290,7 +286,6 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 			// if the node is at the player break
 			if (node->h_cost <= step_range) {
-				printf("here bottom");
 				endNode = new AstarNode;
 				endNode->position = node->position;
 				endNode->parent = node->parent;
@@ -336,7 +331,6 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 			// if the node is at the player break
 			if (node->h_cost <= step_range) {
-				printf("here top right");
 				endNode = new AstarNode;
 				endNode->position = node->position;
 				endNode->parent = node->parent;
@@ -380,7 +374,6 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 			// if the node is at the player break
 			if (node->h_cost <= step_range) {
-				printf("here top left");
 				endNode = new AstarNode;
 				endNode->position = node->position;
 				endNode->parent = node->parent;
@@ -424,7 +417,6 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 			// if the node is at the player break
 			if (node->h_cost <= step_range) {
-				printf("here bottom right");
 				endNode = new AstarNode;
 				endNode->position = node->position;
 				endNode->parent = node->parent;
@@ -468,7 +460,6 @@ std::vector<AstarNode*> AstarPathfinding(Entity enemy, float range) {
 
 			// if the node is at the player break
 			if (node->h_cost <= step_range) {
-				printf("here bottom left");
 				endNode = new AstarNode;
 				endNode->position = node->position;
 				endNode->parent = node->parent;
@@ -939,14 +930,12 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 	// perform action (trust me, I'm not YandereDev, this is just a sequential state machine)
 	switch (state) {
 	case ENEMY_STATE::IDLE:
-		printf("Turn Number %i: Doing Nothing!\n", boss.num_turns);
 		return;
 	case ENEMY_STATE::AGGRO:
 		if (rotation_turns == 0 || boss.num_turns < 3) {
-			printf("Turn Number %i: Doing Nothing!\n", boss.num_turns);
+			break;
 		}
 		else if (rotation_turns == 6) {
-			printf("Turn Number %i: Charging Projectile!\n", boss.num_turns);
 			world.logText("The King Slime is charging up an attack!");
 			Entity indicator = createAttackIndicator(world.renderer, motion_struct.position, 1000, 8, false);
 			registry.renderRequests.get(indicator).used_layer = RENDER_LAYER_ID::PLAYER;
@@ -956,7 +945,6 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 			state = ENEMY_STATE::CHARGING_RANGED;
 		}
 		else if (rotation_turns == 8) {
-			printf("Turn Number %i: Jumping!\n", boss.num_turns);
 			world.logText("The King Slime leaps into the air!");
 			Entity indicator = createAttackIndicator(world.renderer, player_motion.position, motion_struct.scale.x + meleeRange * 2, motion_struct.scale.y + meleeRange * 2, true);
 			Motion& indicator_motion = registry.motions.get(indicator);
@@ -983,13 +971,11 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 			state = ENEMY_STATE::LEAP;
 		}
 		else if (dist_to_edge(motion_struct, player_motion) <= meleeRange) {
-			printf("Turn Number %i: Charging Normal Attack!\n", boss.num_turns);
 			world.logText("The King Slime is charging up an attack!");
 			createAttackIndicator(world.renderer, motion_struct.position, motion_struct.scale.x + meleeRange * 2, motion_struct.scale.y + meleeRange * 2, true);
 			state = ENEMY_STATE::CHARGING_MELEE;
 		}
 		else if (dist_to_edge(motion_struct, player_motion) > meleeRange) {
-			printf("Turn Number %i: Charging Projectile!\n", boss.num_turns);
 			world.logText("The King Slime is charging up an attack!");
 			Entity indicator = createAttackIndicator(world.renderer, motion_struct.position, 1000, 8, false);
 			registry.renderRequests.get(indicator).used_layer = RENDER_LAYER_ID::PLAYER;
@@ -1000,7 +986,6 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 		}
 		break;
 	case ENEMY_STATE::CHARGING_MELEE:
-		printf("Turn Number %i: Doing Normal Attack!\n", boss.num_turns);
 		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
 			if (player_in_range(motion_struct.position, registry.motions.get(registry.attackIndicators.entities[i]).scale.x / 2)) {
 				world.logText(deal_damage(enemy, player, 200));
@@ -1010,14 +995,12 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 				wobble.orig_scale = motion_struct.scale;
 				wobble.counter_ms = 2000;
 			}
-			printf("Removed Attack Indicator!\n");
 			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
 		}
 		Mix_PlayChannel(-1, world.kingslime_attack, 0);
 		state = ENEMY_STATE::AGGRO;
 		break;
 	case ENEMY_STATE::CHARGING_RANGED:
-		printf("Turn Number %i: Firing Projectile!\n", boss.num_turns);
 		createProjectile(world.renderer, enemy, motion_struct.position, { 64, 34 }, dir, 120, TEXTURE_ASSET_ID::SLIMEPROJECTILE);
 		registry.solid.remove(enemy);
 		registry.motions.get(enemy).in_motion = true;
@@ -1030,14 +1013,12 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 			registry.solid.remove(enemy);
 		}
 		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
-			printf("Removed Attack Indicator!\n");
 			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
 		}
 		Mix_PlayChannel(-1, world.kingslime_attack, 0);
 		state = ENEMY_STATE::AGGRO;
 		break;
 	case ENEMY_STATE::SUMMON:
-		printf("Turn Number %i: Summoning Adds!\n", boss.num_turns);
 		take_damage(enemy, min(stats.hp - 1, stats.maxhp * 0.04f * num_summons));
 		while (num_summons > 0) {
 			bool valid_summon = true;
@@ -1076,7 +1057,6 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 		break;
 	case ENEMY_STATE::LEAP:
 		num_summons = 0;
-		printf("Turn Number %i: Landing from jump!\n", boss.num_turns);
 		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
 			motion_struct.scale = { ENEMY_BB_WIDTH * 4, ENEMY_BB_HEIGHT * 4 };
 			if (!registry.wobbleTimers.has(enemy)) {
@@ -1111,7 +1091,6 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 			if (num_summons > 0) {
 				heal(enemy, stats.maxhp * 0.03f * num_summons);
 			}
-			printf("Removed Attack Indicator!\n");
 			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
 		}
 		Mix_PlayChannel(-1, world.kingslime_attack, 0);
@@ -1121,7 +1100,6 @@ void AISystem::king_slime_logic(Entity enemy, Entity& player) {
 		// death
 		world.playMusic(Music::BACKGROUND);
 		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
-			printf("Removed Attack Indicator!\n");
 			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
 		}
 		break;
@@ -1395,7 +1373,6 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 
 	// Stand Your Ground
 	if (registry.hidden.has(enemy) && (state == ENEMY_STATE::AGGRO || state == ENEMY_STATE::ATTACK)) {
-		printf("Turn Number %i: Stand Your Ground!\n", boss.num_turns);
 		// Random Dialogue
 		roll = irand(3);
 		if (roll < 1) { world.logText("???: Running won't do you any good!", { 1.0, 0.2, 0.2 }); }
@@ -1447,7 +1424,6 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 	// perform action (trust me, I'm not YandereDev, this is just a sequential state machine)
 	switch (state) {
 	case ENEMY_STATE::IDLE:
-		printf("Turn Number %i: Doing Nothing!\n", boss.num_turns);
 		if (boss.num_turns < 2) { world.logText("???: So you've made it this far...", { 1.0, 0.2, 0.2 }); }
 		else if (boss.num_turns < 3) { world.logText("???: Perhaps, you may have found the answer you're looking for.", { 1.0, 0.2, 0.2 }); }
 		else if (boss.num_turns < 4) { world.logText("???: It would be a shame to have gotten to this point only to fall...", { 1.0, 0.2, 0.2 }); }
@@ -1495,7 +1471,6 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 		}
 		break;
 	case ENEMY_STATE::ATTACK:
-		printf("Turn Number %i: Taking Break!\n", boss.num_turns);
 		state = ENEMY_STATE::AGGRO;
 		break;
 	case ENEMY_STATE::AGGRO:
@@ -1504,7 +1479,6 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 		roll = irand(3);
 		// Choose Your Fate
 		if (roll < 1) { 
-			printf("Turn Number %i: Choose Your Fate!\n", boss.num_turns);
 			Mix_PlayChannel(-1, world.whoosh, 0);
 			// Random Dialogue
 			roll = irand(3);
@@ -1530,7 +1504,6 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 		}
 		// Be Not Alone
 		else if (roll < 2) { 
-			printf("Turn Number %i: Be Not Alone!\n", boss.num_turns);
 			Mix_PlayChannel(-1, world.malediction_sound, 0);
 			// Random Dialogue
 			roll = irand(3);
@@ -1585,7 +1558,6 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 		}
 		// Be Not Afraid
 		else { 
-			printf("Turn Number %i: Be Not Afraid!\n", boss.num_turns);
 			Mix_PlayChannel(-1, world.bag_of_wind_sound, 0);
 			// Random Dialogue
 			roll = irand(3);
@@ -1633,7 +1605,6 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 
 		break;
 	case ENEMY_STATE::CHARGING_MELEE:
-		printf("Turn Number %i: Triggering AoE!\n", boss.num_turns);
 		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
 			if (player_in_range(registry.motions.get(registry.attackIndicators.entities[i]).position, registry.motions.get(registry.attackIndicators.entities[i]).scale.x / 2)) {
 				world.logText(deal_damage(enemy, player, 200));
@@ -1652,7 +1623,6 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 		registry.enemies.get(enemy).state = ENEMY_STATE::ATTACK;
 		break;
 	case ENEMY_STATE::CHARGING_RANGED:
-		printf("Turn Number %i: Triggering Global ATK Buff!\n", boss.num_turns);
 		Mix_PlayChannel(-1, world.special_sound, 0);
 		for (Entity e : registry.enemies.entities) {
 			StatusEffect buff = StatusEffect(0.5, 3, StatusType::ATK_BUFF, true, true);
@@ -1665,7 +1635,6 @@ void AISystem::reflexion_logic(Entity enemy, Entity& player) {
 		world.logText("???: Looks like...you've found what you're looking for...", { 1.0, 0.2, 0.2 });
 		world.playMusic(Music::RUINS);
 		for (int i = (int)registry.attackIndicators.components.size() - 1; i >= 0; --i) {
-			printf("Removed Attack Indicator!\n");
 			registry.remove_all_components_of(registry.attackIndicators.entities[i]);
 		}
 		for (Entity t : registry.traps.entities) {

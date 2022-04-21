@@ -63,29 +63,24 @@ void SaveSystem::saveGameState(std::queue<Entity> entities, RoomSystem& roomSyst
 std::queue<Entity> SaveSystem::getSolidTileInteract(std::queue<Entity> originalqueue)
 {
 	
-	printf("%d size of list beginning\n", originalqueue.size());
 	//int collideTotal = 0;
 	for (Entity collide : registry.collidables.entities) {
 		//int collideTotal++;
 		if (registry.solid.has(collide)) { // is solid + collidable
-			//printf("has a solid + collid is may be a wall\n");
 			originalqueue.push(collide); 
 		}
 		// code to check if it is in the entitylist 
 	}
 
-	printf("%d size of list before tiles added \n:", originalqueue.size());
 	for (Entity tiles : registry.tileUVs.entities) { // push tiles into the entity list
 		 
 		originalqueue.push(tiles);
 	}
-	printf("%d size of list after tiles added \n:", originalqueue.size());
 	
 	
 	for (Entity interact : registry.interactables.entities) {
 		originalqueue.push(interact); // add interact to queue
 	}
-	printf("%d size of list after interact added \n:", originalqueue.size());
 	return originalqueue;
 }
 
@@ -102,7 +97,6 @@ json SaveSystem::jsonifyEntities(std::queue<Entity> entities) {
 		}
 		else if (registry.enemies.has(e)) {
 			entity = jsonifyEnemy(e);
-			//printf("123 working?? \n");
 		}
 		entityList.push_back(entity);
 	}
@@ -375,7 +369,6 @@ json SaveSystem::jsonifyTiles() {
 
 // traps entities in Games 
 json SaveSystem::jsonifyTraps() {
-	printf("in trap json saving data \n");
 	json trapJson;
 	auto trapList = json::array();
 	for (Entity trap : registry.traps.entities) {

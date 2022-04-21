@@ -274,9 +274,6 @@ void WorldSystem::init(RenderSystem* renderer_arg) {
 	// Playing background music indefinitely
 
 	playMusic(Music::CUTSCENE);
-	fprintf(stderr, "Loaded music\n");
-	printf("%d", countCutScene);
-	//set_gamestate(GameStates::CUTSCENE);
 	// call custscene func
 	cut_scene_start();
 	// Set all states to default  
@@ -389,7 +386,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	double mouseXpos, mouseYpos;
 	//getting cursor position
 	glfwGetCursorPos(window, &mouseXpos, &mouseYpos);
-	//printf("Cursor Position at (%f, %f)\n", xpos, ypos);
 
 	// remove previous stylized pointer
 	for (Entity pointer : registry.pointers.entities) {
@@ -839,7 +835,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 		if (counter.counter_ms < 0) {
 			registry.roomTransitions.remove(entity);
 
-			printf("clear count before: %d\n", roomSystem.rooms_cleared_current_floor);
 			if (!counter.floor_change) {
 				roomSystem.updateClearCount();
 			}
@@ -853,7 +848,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				tutorial = false;
 			}
 			generateNewRoom(counter.floor, counter.repeat_allowed);
-			printf("clear count after: %d\n", roomSystem.rooms_cleared_current_floor);
 			return true;
 		}
 	}
@@ -905,15 +899,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					start_game();
 					// remove entities to load in entities
 					removeForLoad();
-					//printf("Removed for load\n");
 					// get saved game data
 					json gameData = saveSystem.getSaveData();
-					//printf("getting gameData\n");
 					// load the entities in
 					loadFromData(gameData);
 					Inventory test = registry.inventories.get(player_main);
-					//printf("load game data?\n");
-					logText("Game state loaded!");
+					logText("Welcome back, wayward soul...", {0.7f, 1.f, 0.7f});
 					remove_fog_of_war();
 					create_fog_of_war();
 				}
@@ -1368,10 +1359,6 @@ void WorldSystem::cut_scene_start() {
 	player_move_click = false;
 	
 	registry.list_all_components();
-	printf("CUT SCENE STARTING \n");
-
-	
-	
 
 	while (registry.motions.entities.size() > 0)
 		registry.remove_all_components_of(registry.motions.entities.back());
@@ -1389,9 +1376,6 @@ void WorldSystem::cut_scene_start() {
 	registry.list_all_components();
 
 	set_gamestate(GameStates::CUTSCENE);
-	//create cut scene 
-
-	// check when the left mouse is clicked move to next picture 
 
 	// on left click change scene to new one (x2)
 	// checks how many times left click was one with countCutScene & makes sure the game state is CutScene 
@@ -1438,16 +1422,6 @@ void WorldSystem::restart_game() {
 		playMusic(Music::MENU);
 	}
 
-	/*if (current_game_state != GameStates::MAIN_MENU) {
-		//current_game_state = GameStates::MAIN_MENU;
-		std::cout << "ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU" << std::endl;
-		//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
-	}*/
-	//current_game_state = GameStates::MAIN_MENU;
-	//printf("ACTION: RESTART THE GAME ON THE MENU SCREEN : Game state = MAIN_MENU");
-
-	
-
 	createMenuStart(renderer, { window_width_px / 6, 500.f * ui_scale });
 	Entity continue_button = createMenuContinue(renderer, { window_width_px / 6, 650.f * ui_scale });
 	createMenuQuit(renderer, { window_width_px / 6, 800.f * ui_scale });
@@ -1455,11 +1429,9 @@ void WorldSystem::restart_game() {
 	createMenuTitle(renderer, { window_width_px / 2, window_height_px / 2 });
 
 	if (saveSystem.saveDataExists()) {
-		printf("%d size of inventory\n", registry.inventories.size());
-		// width: window_width_px / 5, height = (600.f*ui_scale/2)
 		update_background_collection(window_width_px / 5, (600.f*ui_scale / 2));
-
 	}
+
 	// grey out button if game was completed or save file doesn't exist
 	canContinue = saveSystem.canSaveContinue();
 	if (!canContinue) {
@@ -1491,8 +1463,6 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 	// set player's doing_turn to false
 	registry.queueables.get(player).doing_turn = false;
 	set_gamestate(GameStates::ENEMY_TURN);
-
-	printf("Malediction CD status %i\n", has_status(player, StatusType::MALEDICTION_CD));
 }
 
 // spawn tutorial entities
@@ -1883,78 +1853,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// no interactions when being knocked back
 	if (registry.knockbacks.has(player_main)) { return; }
 
-	// DEBUG: HEAL PLAYER
-	if (action == GLFW_RELEASE && key == GLFW_KEY_EQUAL) {
-		Stats& stat = registry.stats.get(player_main);
-		stat.hp = stat.maxhp;
-		stat.mp = stat.maxmp;
-		stat.ep = stat.maxep;
-		registry.players.get(player_main).attacked = false;
-	}
-
-	// DEBUG: Testing artifact/stacking
-	if (action == GLFW_RELEASE && key == GLFW_KEY_9) {
-		int give = (int)ARTIFACT::WINDBAG;
-		for (Entity& p : registry.players.entities) {
-			Inventory& inv = registry.inventories.get(p);
-			inv.artifact[give]++;
-
-			std::string name = artifact_names.at((ARTIFACT)give);
-			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
-			reset_stats(p);
-			calc_stats(p);
-		}
-	}
-
-	// DEBUG: Testing artifact/stacking
-	if (action == GLFW_RELEASE && key == GLFW_KEY_0) {
-		int give = (int)ARTIFACT::FUNGIFIER;
-		for (Entity& p : registry.players.entities) {
-			Inventory& inv = registry.inventories.get(p);
-			inv.artifact[give]++;
-
-			std::string name = artifact_names.at((ARTIFACT)give);
-			std::cout << "Artifact given: " << name << " (" << inv.artifact[give] << ")" << std::endl;
-			reset_stats(p);
-			calc_stats(p);
-		}
-	}
-
-	if (action == GLFW_RELEASE && key == GLFW_KEY_P) {
-		auto& stats = registry.stats.get(player_main);
-		auto& player = registry.players.get(player_main);
-		//StatusEffect test = StatusEffect(10, 2, StatusType::INVINCIBLE, false, true);
-		//apply_status(player_main, test);
-		printf("\nPLAYER STATS:\natk: %f\ndef: %f\nspeed: %f\nhp: %f\nmp: %f\nrange: %f\nepmove: %f\nepatk: %f\nfloor: %i\n", stats.atk, stats.def, stats.speed, stats.maxhp, stats.maxmp, stats.range, stats.epratemove, stats.eprateatk, player.floor);
-	}
-
-	if (action == GLFW_RELEASE && key == GLFW_KEY_O) {
-		roomSystem.updateObjective(roomSystem.current_objective.type, 100);
-	}
-
-	if (action == GLFW_RELEASE && key == GLFW_KEY_Q) {
-		for (Entity& p : registry.players.entities) {
-			StatusEffect test = StatusEffect(20, 5, StatusType::ATK_BUFF, false, true);
-			apply_status(p, test);
-		}
-	}
-
-	// simulating a new room
-	if (action == GLFW_RELEASE && key == GLFW_KEY_N && get_is_player_turn()) {
-		if (!registry.roomTransitions.has(player_main)) {
-			RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
-			transition.floor = roomSystem.current_floor;
-		}
-	}
-
-	// Resetting game
-	if (action == GLFW_RELEASE && key == GLFW_KEY_R) {
-		int w, h;
-		glfwGetWindowSize(window, &w, &h);
-
-		restart_game();
-	}
-
 	///////////////////////////
 	// menu hotkeys
 	///////////////////////////
@@ -2085,7 +1983,6 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				backAction();
 			}
 			else if (current_game_state == GameStates::ATTACK_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ITEM_MENU|| current_game_state == GameStates::COLLECTION_MENU) {
-				printf("In Attack Menu or Item or Movement and escape to go back to main menu\n");
 				backAction();
 			}
 			else {
@@ -2158,7 +2055,6 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 	double xpos, ypos;
 	//getting cursor position
 	glfwGetCursorPos(window, &xpos, &ypos);
-	//printf("Cursor Position at (%f, %f)\n", xpos, ypos);
 
 	// get cursor position relative to world
 	Camera camera = registry.cameras.get(active_camera_entity);
@@ -2169,8 +2065,6 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 		// Advance cutscene
 		if (!player_move_click && current_game_state == GameStates::CUTSCENE) {
-			printf("set to cut scene dialogue\n");
-			printf(":%d\n", countCutScene);
 			countCutScene++;
 
 			cut_scene_start();
@@ -2984,14 +2878,11 @@ void WorldSystem::loadFromData(json data) {
 	for (auto& entity : entityList) {
 		Entity e;
 		if (entity["type"] == "player") {
-			printf("type is player successful... loading player\n");
 			e = loadPlayer(entity);
 			player_main = e;
 		}
 		else {
-			printf(" type is enemy ... loading enemy\n");
 			e = loadEnemy(entity);
-			printf("loading enemy done\n ");
 		}
 		entities.push(e);
 	}
@@ -3043,11 +2934,8 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 	
 	Inventory inv;
 	json inventoryData = playerData["inventory"];
-	printf("YES ???? we are finally in collection loading \n");
 	std::vector<vec2> arifact_type_num; 
 
-	
-	//printf("column :%d \n", column);
 	// Max height for spawning 
 	// width + moves it right 
 	// height + moves it down the screen 
@@ -3058,21 +2946,6 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 	float max_width_left_edge = window_width_px / 3 + 40.f;
 	float max_width_right_edge = window_width_px * (2/3); // greater
 	float w_diff =  max_width_right_edge- max_width_left_edge;
-
-	
-	printf("max_w left :%fl\n", max_width_left_edge);
-	printf("max_w right :%fl\n", max_width_right_edge);
-
-	printf("max height top :%fl\n", max_height_top);
-	printf("max height bot :%fl\n", max_height_bot);
-
-	// copy of the inventory - make sure it's copy by duplicate and not reference 
-	// count up the total nuumer of artifacts in there 
-	// while >0 
-	// irand range random x and y position (feed the boundaries into i rand range)
-	// 2 of artifact want two sitting on the floor 
-	// decrement total artifacts by 1 
-	// get json obj for inventory saved in saveData
 
 	// get artifacts
 	int artifact[static_cast<int>(ARTIFACT::ARTIFACT_COUNT)];
@@ -3090,7 +2963,6 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 			int num_cur_artifacts = static_cast<int>(inv.artifact[i]);
 
 			count_total_artifacts += num_cur_artifacts;
-			printf("count of artifacts :%d\n", count_total_artifacts);
 			
 			while (num_cur_artifacts> 0) {
 				int pos_x = 0;
@@ -3126,9 +2998,6 @@ Inventory WorldSystem::loadPlayerCollectionTitleScreen(json playerData, float fl
 
 	// I don't need to return inventory, just need to check (1) if weapon/ artifact exist if yes 
 	// render the stupid sprite
-
-	printf("done QQ \n");
-	printf("number of total artifacts :%d\n", count_total_artifacts);
 	return inv;
 }
 
@@ -3503,34 +3372,24 @@ void WorldSystem::loadSign(Entity e, json signData) {
 void WorldSystem::loadTraps(json trapList) {
 	//Entity createTrap(RenderSystem* renderer, Entity owner, vec2 pos, vec2 scale, float multiplier, int turns, int triggers, TEXTURE_ASSET_ID texture);
 	// remove all traps 
-	printf("we are loading traps\n");
 	while (registry.traps.entities.size() > 0)
 		registry.remove_all_components_of(registry.traps.entities.back());
 
 	json trap = trapList["traps"];
 	if (trap.size() > 0) {
-		printf("there is smt store there in the json\n");
 		for (auto& traps : trap) {
 			Entity entity = Entity();
 			Entity p;
 			json mData = traps["motions"];
 			Motion& m = registry.motions.emplace(entity);
-			printf("we got the motions for traps\n");
 			m.scale = { mData["scale"]["x"], mData["scale"]["y"] };
 			m.position = { mData["position_x"], mData["position_y"] };
-			printf("we set the motions for scale & position\n");
 			float multipler = traps["multiplier"];
-			printf("we got the multiplier:%fl \n", multipler);
 			int turns = traps["trap_turns"];
-			printf("we got the trap turns :%d \n", turns);
 			int triggers = traps["triggers"];
-			printf("we got the trigger:%d \n", triggers);
 			TEXTURE_ASSET_ID texture = traps["type"];
-			printf("the artifact type is:%d", int(texture));
 			
-			printf("got the data to create traps again\n");
 			if (traps["owner"] == "player") {
-				printf("loading the traps back to page \n");
 				p = player_main;
 				createTrap(renderer, p, m.position, m.scale, multipler, turns, triggers, texture);
 			}
@@ -3542,10 +3401,8 @@ void WorldSystem::loadTraps(json trapList) {
 					}
 				}
 				createTrap(renderer, p, m.position, m.scale, multipler, turns, triggers, texture);
-				printf("loading trap back to page enemy owned\n");
 			}
 			if (traps["colors"] != nullptr) { // if has color insert it 
-				printf("it has colors");
 				registry.colors.insert(p, vec4(traps["colors"]["x"], traps["colors"]["y"], traps["colors"]["z"], traps["colors"]["w"]));
 			}
 
@@ -3857,14 +3714,12 @@ void WorldSystem::doTurnOrderLogic() {
 void WorldSystem::updateTutorial() {
 	if (!(tutorial_flags & SIGN_1)) {
 		if (registry.interactables.has(tutorial_sign_1) && registry.interactables.get(tutorial_sign_1).interacted) {
-			printf("flag 1 triggered\n");
 			tutorial_flags = tutorial_flags | SIGN_1;
 			Mix_PlayChannel(-1, ui_alert, 0);
 		}
 	}
 	else if (!(tutorial_flags & MOVEMENT_SELECTED)) {
 		if (current_game_state == GameStates::MOVEMENT_MENU) {
-			printf("flag 2 triggered\n");
 			tutorial_flags = tutorial_flags | MOVEMENT_SELECTED;
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
@@ -3890,7 +3745,6 @@ void WorldSystem::updateTutorial() {
 	else if (!(tutorial_flags & EP_DEPLETED)) {
 		// check ep depleted
 		if (registry.stats.get(player_main).ep <= 0) {
-			printf("flag 3 triggered\n");
 			tutorial_flags = tutorial_flags | EP_DEPLETED;
 			set_gamestate(GameStates::BATTLE_MENU);
 			set_gamestate(GameStates::DIALOGUE);
@@ -3911,9 +3765,7 @@ void WorldSystem::updateTutorial() {
 	}
 	else if (!(tutorial_flags & SIGN_2)) {
 		if (registry.interactables.has(tutorial_sign_2) && registry.interactables.get(tutorial_sign_2).interacted) {
-			printf("flag 4 triggered\n");
 			tutorial_flags = tutorial_flags | SIGN_2;
-			printf("%u\n", registry.keyIcons.entities.size());
 			// spawn slime
 			Motion& sign_motion = registry.motions.get(tutorial_sign_2);
 			tutorial_slime = createEnemy(renderer, { sign_motion.position.x, sign_motion.position.y + 256.f*ui_scale });
@@ -3924,7 +3776,6 @@ void WorldSystem::updateTutorial() {
 	}
 	else if (!(tutorial_flags & ATTACK_SELECTED)) {
 		if (current_game_state == GameStates::ATTACK_MENU) {
-			printf("flag 5 triggered\n");
 			tutorial_flags = tutorial_flags | ATTACK_SELECTED;
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
@@ -3955,7 +3806,6 @@ void WorldSystem::updateTutorial() {
 	else if (!(tutorial_flags & SLIME1_DEFEATED)) {
 		Motion& sign_motion = registry.motions.get(tutorial_sign_2);
 		if (registry.enemies.size() <= 0) {
-			printf("flag 6 triggered\n");
 			tutorial_flags = tutorial_flags | SLIME1_DEFEATED;
 			// spawn campfire
 			tutorial_campfire = createCampfire(renderer, { sign_motion.position.x, sign_motion.position.y + 128.f*ui_scale });
@@ -3979,7 +3829,6 @@ void WorldSystem::updateTutorial() {
 	}
 	else if (!(tutorial_flags & CAMPFIRE_INTERACTED)) {
 		if (registry.interactables.has(tutorial_campfire) && registry.interactables.get(tutorial_campfire).interacted) {
-			printf("flag 7 triggered\n");
 			tutorial_flags = tutorial_flags | CAMPFIRE_INTERACTED;
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
@@ -3997,7 +3846,6 @@ void WorldSystem::updateTutorial() {
 	}
 	else if (!(tutorial_flags & SIGN_3)) {
 		if (registry.interactables.has(tutorial_sign_3) && registry.interactables.get(tutorial_sign_3).interacted) {
-			printf("flag 8 triggered\n");
 			tutorial_flags = tutorial_flags | SIGN_3;
 			registry.remove_all_components_of(tutorial_wall_3);
 			Mix_PlayChannel(-1, ui_alert, 0);
@@ -4005,7 +3853,6 @@ void WorldSystem::updateTutorial() {
 	}
 	else if (!(tutorial_flags & CHEST_1)) {
 		if (registry.interactables.has(tutorial_chest_1) && registry.interactables.get(tutorial_chest_1).interacted) {
-			printf("flag 9 triggered\n");
 			tutorial_flags = tutorial_flags | CHEST_1;
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
@@ -4046,7 +3893,6 @@ void WorldSystem::updateTutorial() {
 	else if (!(tutorial_flags & SLIME2_DEFEATED)) {
 		Motion& player_motion = registry.motions.get(player_main);
 		if (registry.enemies.size() <= 0) {
-			printf("flag 10 triggered\n");
 			tutorial_flags = tutorial_flags | SLIME2_DEFEATED;
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
@@ -4061,7 +3907,6 @@ void WorldSystem::updateTutorial() {
 	}
 	else if (!(tutorial_flags & CHEST_2)) {
 		if (registry.interactables.has(tutorial_chest_2) && registry.interactables.get(tutorial_chest_2).interacted) {
-			printf("flag 11 triggered\n");
 			tutorial_flags = tutorial_flags | CHEST_2;
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
@@ -4082,7 +3927,6 @@ void WorldSystem::updateTutorial() {
 	}
 	else if (!(tutorial_flags & SIGN_4)) {
 		if (registry.interactables.has(tutorial_sign_4) && registry.interactables.get(tutorial_sign_4).interacted) {
-			printf("flag 12 triggered\n");
 			tutorial_flags = tutorial_flags | SIGN_4;
 			Motion& sign_motion = registry.motions.get(tutorial_sign_4);
 			createConsumable(renderer, {sign_motion.position.x, sign_motion.position.y + 64.f*ui_scale}, CONSUMABLE::INSTANT);
@@ -4092,7 +3936,6 @@ void WorldSystem::updateTutorial() {
 	}
 	else if (!(tutorial_flags & SIGN_5)) {
 		if (registry.interactables.has(tutorial_sign_5) && registry.interactables.get(tutorial_sign_5).interacted) {
-			printf("flag 13 triggered\n");
 			tutorial_flags = tutorial_flags | SIGN_5;
 			objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32});
 			objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
@@ -4105,7 +3948,6 @@ void WorldSystem::updateTutorial() {
 		if (registry.texts.has(objectiveNumberText)) {
 			int remain_obj = std::stoi(registry.texts.get(objectiveNumberText).message);
 			if (remain_obj == 0) {
-				printf("flag 14 triggered\n");
 				tutorial_flags = tutorial_flags | EXIT;
 				// remove door that spawned from objective system
 				for (Entity e : registry.interactables.entities) {
@@ -4417,7 +4259,6 @@ void WorldSystem::backAction() {
 
 void WorldSystem::itemAction() {
 	Inventory& inv = registry.inventories.get(player_main);
-	printf("sprite: %d", inv.equipped[0].sprite);
 	createItemMenu(renderer, { window_width_px - 125.f, 200.f * ui_scale }, inv);
 
 	handleActionButtonPress();
@@ -4524,7 +4365,6 @@ void WorldSystem::generateNewRoom(Floors floor, bool repeat_allowed) {
 	if (!registry.loadingTimers.has(player_main)) {
 		registry.loadingTimers.emplace(player_main);
 	}
-	printf("rooms cleared on current floor: %d\n", roomSystem.rooms_cleared_current_floor);
 }
 
 void WorldSystem::update_turn_ui() {
@@ -4564,23 +4404,14 @@ void WorldSystem::update_background_collection(float floor_w, float floor_h) {
 
 
 	if (current_game_state == GameStates::MAIN_MENU) {
-		printf("!@!@#!@$@$@\n");
 		float x_offset = 0.f;
 		float y_offset = 0.f;
 		vec2 pos = { 0,0 };
 		if (saveSystem.saveDataExists()) {
 			// remove entities to load in entities
-			//removeForLoad();
-			//printf("Removed for load\n");
-			// get saved game data
 			json data = saveSystem.getSaveData();
 			// load player
 			json entityList = data["entities"];
-			//json collidablesList = data["map"]["collidables"];
-			//json interactablesList = data["map"]["interactables"];
-			//json tilesList = data["map"]["tiles"];
-			//json roomSystemJson = data["room"];
-			//json attackIndicatorList = data["attack_indicators"];
 
 			// load enemies
 			std::queue<Entity> entities;
@@ -4588,9 +4419,7 @@ void WorldSystem::update_background_collection(float floor_w, float floor_h) {
 				Entity e;
 				Inventory inv;
 				if (entity["type"] == "player") {
-					printf("111 type is player successful... loading player invetory \n");
 					loadPlayerCollectionTitleScreen(entity,floor_w, floor_h);
-					//player_main = e; 
 				}
 			}
 		}

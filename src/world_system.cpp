@@ -234,7 +234,7 @@ GLFWwindow* WorldSystem::create_window() {
 	smokescreen_sound = Mix_LoadWAV(audio_path("sfx/smoke.wav").c_str());
 	Mix_VolumeChunk(smokescreen_sound, 28);
 	arcane_funnel_sound = Mix_LoadWAV(audio_path("sfx/arcane_funnel.wav").c_str());
-	Mix_VolumeChunk(arcane_funnel_sound, 16);
+	Mix_VolumeChunk(arcane_funnel_sound, 10);
 	rock_summon = Mix_LoadWAV(audio_path("sfx/rock_summon.wav").c_str());
 	Mix_VolumeChunk(rock_summon, 24);
 	trap_sound = Mix_LoadWAV(audio_path("sfx/trap.wav").c_str());
@@ -753,6 +753,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (current_game_state == GameStates::ENEMY_TURN && turnOrderSystem.getCurrentTurnEntity() == enemy) {
 				registry.motions.get(enemy).in_motion = false;
 				registry.motions.get(enemy).velocity = { 0, 0 };
+				if (registry.wobbleTimers.has(enemy)) {
+					registry.wobbleTimers.remove(enemy);
+				}
 				doTurnOrderLogic();
 			}
 			
@@ -1488,6 +1491,8 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 	// set player's doing_turn to false
 	registry.queueables.get(player).doing_turn = false;
 	set_gamestate(GameStates::ENEMY_TURN);
+
+	printf("Malediction CD status %i\n", has_status(player, StatusType::MALEDICTION_CD));
 }
 
 // spawn tutorial entities
@@ -3802,14 +3807,18 @@ void WorldSystem::doTurnOrderLogic() {
 	Entity currentTurnEntity = turnOrderSystem.getCurrentTurnEntity();
 
 	// if current entity is not doing turn and stopped moving, get the next turn entity
-	if (!registry.queueables.get(currentTurnEntity).doing_turn && !registry.motions.get(currentTurnEntity).in_motion) {
-		// if player just finished their turn, set is player turn to false
-		if (registry.players.has(currentTurnEntity)) {
-			set_is_player_turn(false);
-		}
+	if (!registry.queueables.get(currentTurnEntity).doing_turn 
+		&& !registry.motions.get(currentTurnEntity).in_motion) {
+		
 		// perform specific behaviour for bosses
-		else if (registry.bosses.has(currentTurnEntity)) {
-			// TODO: something's gotta go here eventually, right?
+		if (registry.bosses.has(currentTurnEntity)) {
+			if (registry.wobbleTimers.has(currentTurnEntity)) {
+				return;
+			}
+		}
+		// if player just finished their turn, set is player turn to false
+		else if (registry.players.has(currentTurnEntity)) {
+			set_is_player_turn(false);
 		}
 		// perform end-of-movement attacks for enemies
 		else {
@@ -4226,9 +4235,9 @@ void remove_status(Entity e, StatusType status, int number) {
 		if (s.effect == status && number > 0) {
 			statuses.statuses.erase(statuses.statuses.begin() + index);
 			number--;
-			index++;
 			remove_status_particle(e, s);
 		}
+		index++;
 	}
 	reset_stats(e);
 	calc_stats(e);

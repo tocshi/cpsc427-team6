@@ -23,6 +23,7 @@ struct AstarNode {
 
 class AISystem
 {
+bool useSlimeAStar = false;
 public:
 	void step(Entity e);
 	void slime_logic(Entity slime, Entity& player);

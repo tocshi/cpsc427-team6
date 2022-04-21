@@ -178,9 +178,9 @@ GLFWwindow* WorldSystem::create_window() {
 
 	// Sounds and volumes
 	fire_explosion_sound = Mix_LoadWAV(audio_path("feedback/fire_explosion.wav").c_str());
-	Mix_VolumeChunk(fire_explosion_sound, 13);
+	Mix_VolumeChunk(fire_explosion_sound, 12);
 	error_sound = Mix_LoadWAV(audio_path("feedback/error.wav").c_str());
-	Mix_VolumeChunk(error_sound, 13);
+	Mix_VolumeChunk(error_sound, 12);
 	footstep_sound = Mix_LoadWAV(audio_path("feedback/footstep.wav").c_str());
 	Mix_VolumeChunk(footstep_sound, 42);
 	door_sound = Mix_LoadWAV(audio_path("feedback/door_open.wav").c_str());
@@ -190,7 +190,7 @@ GLFWwindow* WorldSystem::create_window() {
 	chest_sound = Mix_LoadWAV(audio_path("feedback/chest_open.wav").c_str());
 	Mix_VolumeChunk(chest_sound, 32);
 	special_sound = Mix_LoadWAV(audio_path("sfx/special.wav").c_str());
-	Mix_VolumeChunk(special_sound, 24);
+	Mix_VolumeChunk(special_sound, 18);
 	whoosh = Mix_LoadWAV(audio_path("sfx/whoosh.wav").c_str());
 	Mix_VolumeChunk(whoosh, 24);
 	sword_end = Mix_LoadWAV(audio_path("sfx/sword_end.wav").c_str());
@@ -240,11 +240,11 @@ GLFWwindow* WorldSystem::create_window() {
 	trap_sound = Mix_LoadWAV(audio_path("sfx/trap.wav").c_str());
 	Mix_VolumeChunk(trap_sound, 8);
 	malediction_sound = Mix_LoadWAV(audio_path("sfx/malediction.wav").c_str());
-	Mix_VolumeChunk(malediction_sound, 24);
+	Mix_VolumeChunk(malediction_sound, 18);
 	thunder_sound = Mix_LoadWAV(audio_path("sfx/thunder.wav").c_str());
 	Mix_VolumeChunk(thunder_sound, 10);
 	bag_of_wind_sound = Mix_LoadWAV(audio_path("sfx/hurricane.wav").c_str());
-	Mix_VolumeChunk(bag_of_wind_sound, 24);
+	Mix_VolumeChunk(bag_of_wind_sound, 20);
 	ghost_sound = Mix_LoadWAV(audio_path("sfx/ghost.wav").c_str());
 	Mix_VolumeChunk(ghost_sound, 8);
 	ghost_move = Mix_LoadWAV(audio_path("sfx/rustle.wav").c_str());

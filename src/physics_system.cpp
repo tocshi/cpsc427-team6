@@ -136,11 +136,11 @@ float dist_to_edge(const Motion motion1, const Motion motion2) {
 }
 
 bool oppositeSign(vec2 v1, vec2 v2) {
-	if ((v1.x > 20.f && v2.x < -20.f) || (v1.x < -20.f && v2.x > 20.f)) {
+	if ((v1.x < 0 && v2.x > 0) || (v1.x > 0 && v2.x < 0)) {
 		return true;
 	}
 
-	if ((v1.y > 20.f && v2.y < 20.f) || (v1.y < 20.f && v2.y > 20.f)) {
+	if ((v1.y < 0 && v2.y > 0) || (v1.y > 0 && v2.y < 0)) {
 		return true;
 	}
 
@@ -261,7 +261,7 @@ void PhysicsSystem::step(float elapsed_ms, WorldSystem* world, RenderSystem* ren
 				// printf("dist to: %f, vel_mag: %f\n", dist_to(pos_final, dest), vel_mag);
 				vec2 deltaStart = aStarMotion.currentDest - motion.position;
 				vec2 deltaEnd = aStarMotion.currentDest - pos_final;
-				if (dist_to(pos_final, aStarMotion.currentDest) <= vel_mag|| oppositeSign(deltaStart, deltaEnd)) {
+				if (dist_to(pos_final, aStarMotion.currentDest) <= vel_mag || oppositeSign(deltaStart, deltaEnd)) {
 					// if it is the final dest
 					if (aStarMotion.path.size() > 0) {
 						vec2 back = aStarMotion.path.back();

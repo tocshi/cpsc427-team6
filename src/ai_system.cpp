@@ -32,6 +32,19 @@ bool entityAtLocation(Entity& main, Motion& enemyMotion) {
 		}
 	}
 
+	// bosses
+	for (Entity b : registry.bosses.entities) {
+		// only check for collisions with other entities
+		if (main != b) {
+			Motion& bossMotion = registry.motions.get(b);
+
+			// if colliding with enemy, return true;
+			if (collides_circle(enemyMotion, bossMotion)) {
+				return true;
+			}
+		}
+	}
+
 	return false;
 }
 

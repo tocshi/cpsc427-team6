@@ -507,10 +507,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				// need to move everything down one in attack menu
 				// TODO: un-hard-code these
 				createKeyIcon(renderer, { window_width_px - 70.f, 140.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_1);
-				createKeyIcon(renderer, { window_width_px - 70.f, 260.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_2);
-				createKeyIcon(renderer, { window_width_px - 70.f, 380.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_3);
-				createKeyIcon(renderer, { window_width_px - 70.f, 500.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_4);
-				createKeyIcon(renderer, { window_width_px - 70.f, 620.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_5);
+				if (registry.attackCards.size() > 1) {
+					createKeyIcon(renderer, { window_width_px - 70.f, 260.f * ui_scale }, TEXTURE_ASSET_ID::KEY_ICON_2);
+					createKeyIcon(renderer, { window_width_px - 70.f, 380.f * ui_scale }, TEXTURE_ASSET_ID::KEY_ICON_3);
+					createKeyIcon(renderer, { window_width_px - 70.f, 500.f * ui_scale }, TEXTURE_ASSET_ID::KEY_ICON_4);
+					createKeyIcon(renderer, { window_width_px - 70.f, 620.f * ui_scale }, TEXTURE_ASSET_ID::KEY_ICON_5);
+				}
 			}
 			else if (current_game_state == GameStates::BATTLE_MENU) {
 				if (tutorial) {
@@ -843,7 +845,9 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (!registry.motions.has(objectiveCounter)) {
 					objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32 });
 					objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
-					objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
+					if (roomSystem.current_objective.type != ObjectiveType::TUTORIAL) {
+						objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
+					}
 				}
 				tutorial = false;
 			}
@@ -875,6 +879,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (tutorial) {
 					start_tutorial();
 					spawn_tutorial_entities();
+					roomSystem.setObjective(ObjectiveType::TUTORIAL, 999);
 				}
 				else {
 					start_game();
@@ -1853,12 +1858,30 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	// no interactions when being knocked back
 	if (registry.knockbacks.has(player_main)) { return; }
 
+	// ALERT IF STARTING TUTORIAL!!
+	if (current_game_state == GameStates::BATTLE_MENU) {
+		if (!(tutorial_flags & SIGN_1)) {
+			set_gamestate(GameStates::DIALOGUE);
+			std::vector<std::vector<std::string>> messages = {
+				{
+					"Welcome to the tutorial!",
+					"",
+					"Please click on the sign to continue...",
+				}
+			};
+			activeTextbox = createTextbox(renderer, vec2(window_width_px / 2.f, window_height_px / 2.f), messages);
+			Mix_PlayChannel(-1, ui_alert, 0);
+			return;
+		}
+	}
+
 	///////////////////////////
 	// menu hotkeys
 	///////////////////////////
 	if (action == GLFW_RELEASE && key == GLFW_KEY_1) {
 		// attack
-		if (current_game_state == GameStates::BATTLE_MENU) {
+		if (current_game_state == GameStates::BATTLE_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ITEM_MENU) {
+			backAction();
 			if (tutorial) {
 				if (tutorial_flags & SIGN_2) {
 					attackAction();
@@ -1870,7 +1893,8 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_2) {
 		// move
-		if (current_game_state == GameStates::BATTLE_MENU) {
+		if (current_game_state == GameStates::BATTLE_MENU || current_game_state == GameStates::ATTACK_MENU || current_game_state == GameStates::ITEM_MENU) {
+			backAction();
 			if (registry.stats.get(player_main).ep <= 0) {
 				logText("Cannot move with 0 EP!");
 				Mix_PlayChannel(-1, error_sound, 0);
@@ -1942,14 +1966,18 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 		}
 	}
 	if (action == GLFW_RELEASE && key == GLFW_KEY_4) {
-		// item
-		if (current_game_state == GameStates::BATTLE_MENU) {
-			if (tutorial) {
-				if (tutorial_flags & SIGN_4) {
+		if (current_game_state == GameStates::BATTLE_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ATTACK_MENU) {
+			backAction();
+			// item
+			if (current_game_state == GameStates::BATTLE_MENU) {
+				if (tutorial) {
+					if (tutorial_flags & SIGN_4) {
+						itemAction();
+					}
+				}
+				else {
 					itemAction();
 				}
-			} else {
-				itemAction();
 			}
 		}
 	}
@@ -2306,7 +2334,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					Player& p = registry.players.get(player_main);
 					Stats& stats = registry.stats.get(player_main);
 					if (p.attacked) {
-						logText("You already attacked this turn!");
+						logText("You can only attack once per turn!");
 						Mix_PlayChannel(-1, error_sound, 0);
 					}
 					else if (stats.mp < attack_mpcosts.at(p.selected_attack) || stats.ep < attack_epcosts.at(p.selected_attack) * stats.eprateatk) {
@@ -2685,9 +2713,9 @@ void WorldSystem::start_tutorial() {
 	createEPBar(renderer, { statbarsX, statbarsY + STAT_BB_HEIGHT * 2 });
 	
 	turnUI = createTurnUI(renderer, { window_width_px * (3.f / 4.f), window_height_px * (1.f / 16.f) });
-	// objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32});
-	// objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
-	// objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
+	objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32});
+	objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
+	objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
 }
 
 void WorldSystem::on_mouse_move(vec2 mouse_position) {
@@ -3740,7 +3768,7 @@ void WorldSystem::updateTutorial() {
 				},
 				{
 					"To exit movement mode, click on the back button.",
-					"You can also right click or hit ESC to exit movement mode."
+					"You can also right click or hit [Esc] to exit movement mode."
 				},
 				{
 					"Move until you run out of EP."
@@ -3762,8 +3790,8 @@ void WorldSystem::updateTutorial() {
 				},
 				{
 					"Your actions are limited with 0 EP.",
-					"To refill your EP, end your turn with the 3 key.",
-					"You can also end your turn immediately at any time with Enter."
+					"To refill your EP, end your turn with the [3] key.",
+					"You can also end your turn immediately at any time with [Enter]."
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
@@ -3801,7 +3829,7 @@ void WorldSystem::updateTutorial() {
 				},
 				{
 					"To exit attack mode, click on the back button.",
-					"You can also right click or hit ESC to exit attack mode."
+					"You can also right click or hit [Esc] to exit attack mode."
 				},
 				{
 					"Defeat the slime to move on."
@@ -3828,7 +3856,8 @@ void WorldSystem::updateTutorial() {
 				},
 				{
 					"To interact with a campfire move close to it",
-					"and left click when not in a sub menu to interact with it."
+					"and left click on the campfire when your cursor",
+					"is a finger icon to interact with it."
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
@@ -3843,8 +3872,7 @@ void WorldSystem::updateTutorial() {
 				{
 					"There are many things that you can interact with.",
 					"If something looks interesting, approach it",
-					"and left click to interact with it!",
-					"Remember to exit out of sub menus before interacting!"
+					"and left click to interact with it!"
 				}
 			};
 			activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), messages);
@@ -3874,17 +3902,25 @@ void WorldSystem::updateTutorial() {
 					"Click the icons to view the attacks."
 				},
 				{
-					"Advanced combat tip:",
-					"If you want to move but still be able to attack,",
+					"When viewing an attack, you can click on the 'Use' button to",
+					"target an enemy or location for that attack.",
+					"",
+					"You can also press [Q] to quickly use an attack when viewing."
+				},
+				{
+					"Advanced Combat Tip:",
+					"If you want to efficiently manage your EP,",
 					"you can prepare an attack action!"
 				},
 				{
-					"Click on an attack and choose 'prepare'",
+					"Click on an attack and choose 'Prepare'",
 					"You can now move without the worry of running low on EP!",
+					"",
+					"You can also press [E] to quickly prepare an attack when viewing."
 				},
 				{
 					"To use the prepared attack,",
-					"Enter attack mode and left click an enemy to use your attack!"
+					"Enter attack mode and left click to use your attack!"
 				},
 				{
 					"Defeat the slime to move on."
@@ -3945,9 +3981,6 @@ void WorldSystem::updateTutorial() {
 	else if (!(tutorial_flags & SIGN_5)) {
 		if (registry.interactables.has(tutorial_sign_5) && registry.interactables.get(tutorial_sign_5).interacted) {
 			tutorial_flags = tutorial_flags | SIGN_5;
-			objectiveCounter = createObjectiveCounter(renderer, { 256, window_height_px * (1.f / 16.f) + 32});
-			objectiveDescText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 76 }, "", 2.f, { 1.0, 1.0, 1.0 });
-			objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
 			roomSystem.setObjective(ObjectiveType::ACTIVATE_SWITCHES, 2);
 			Mix_PlayChannel(-1, ui_alert, 0);
 		}
@@ -4209,6 +4242,7 @@ void WorldSystem::attackAction() {
 			createAttackCard(renderer, { window_width_px - 125.f, button_y }, ATTACK::NONE);
 			for (ATTACK a : weapon.attacks) {
 				button_y += 150 * 4 / 5;
+				if (a == ATTACK::NONE) { continue; }
 				createAttackCard(renderer, { window_width_px - 125.f, button_y }, a);
 			}
 		}
@@ -4244,6 +4278,16 @@ void WorldSystem::backAction() {
 	// hide all the hotkeys if not in attack mode
 	for (Entity ki : registry.keyIcons.entities) {
 		registry.remove_all_components_of(ki);
+	}
+
+	// hide all mode visualizatiions
+	for (Entity mv : registry.modeVisualizationObjects.entities) {
+		registry.remove_all_components_of(mv);
+	}
+
+	// hide all ep ranges
+	for (Entity rn : registry.epRange.entities) {
+		registry.remove_all_components_of(rn);
 	}
 
 	// remove all attack dialog 
@@ -4525,7 +4569,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				}
 			}
 			else {
-				logText("You already attacked this turn!");
+				logText("You can only attack once per turn!");
 				// play error sound
 				Mix_PlayChannel(-1, error_sound, 0);
 			}
@@ -4572,7 +4616,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 			}
 		}
 		else {
-			logText("You already attacked this turn!");
+			logText("You can only attack once per turn!");
 			// play error sound
 			Mix_PlayChannel(-1, error_sound, 0);
 		}
@@ -4619,7 +4663,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 				}
 			}
 			else {
-				logText("You already attacked this turn!");
+				logText("You can only attack once per turn!");
 				// play error sound
 				Mix_PlayChannel(-1, error_sound, 0);
 			}
@@ -4669,7 +4713,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 			}
 		}
 		else {
-			logText("You already attacked this turn!");
+			logText("You can only attack once per turn!");
 			// play error sound
 			Mix_PlayChannel(-1, error_sound, 0);
 		}
@@ -4697,7 +4741,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 			}
 		}
 		else {
-			logText("You already attacked this turn!");
+			logText("You can only attack once per turn!");
 			// play error sound
 			Mix_PlayChannel(-1, error_sound, 0);
 		}
@@ -4774,7 +4818,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 			}
 		}
 		else {
-			logText("You already attacked this turn!");
+			logText("You can only attack once per turn!");
 			// play error sound
 			Mix_PlayChannel(-1, error_sound, 0);
 		}

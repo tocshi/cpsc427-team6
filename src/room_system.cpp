@@ -28,16 +28,19 @@ void RoomSystem::setObjective(ObjectiveType type, int quantity) {
 	current_objective = Objective{type, quantity, false};
 	switch (type) {
 	case ObjectiveType::KILL_ENEMIES:
-		world.logText("Defeat " + std::to_string(quantity) + " enemies to proceed!");
+		world.logText("Defeat " + std::to_string(quantity) + " enemies to proceed!", { 0.7f, 1.f, 0.7f });
 		break;
 	case ObjectiveType::ACTIVATE_SWITCHES:
 		world.spawn_switches_random_location(quantity);
-		world.logText("Find and activate " + std::to_string(quantity) + " switches (black tiles) to proceed!");
+		world.logText("Find and activate " + std::to_string(quantity) + " switches (black tiles) to proceed!", { 0.7f, 1.f, 0.7f });
 		break;
 	case ObjectiveType::DESTROY_SPAWNER:
-		world.logText("Find and destroy the enemy hive!");
+		world.logText("Find and destroy the enemy hive!", { 0.7f, 1.f, 0.7f });
 		break;
 	case ObjectiveType::DEFEAT_BOSS:
+		break;
+	case ObjectiveType::TUTORIAL:
+		world.logText("Follow the signs to complete the tutorial!", { 0.7f, 1.f, 0.7f });
 		break;
 	default:
 		break;
@@ -85,6 +88,10 @@ void RoomSystem::updateObjective(ObjectiveType type, int quantity) {
 		break;
 	case ObjectiveType::DEFEAT_BOSS:
 		desc.message = "Defeat the boss";
+		break;
+	case ObjectiveType::TUTORIAL:
+		desc.message = "Follow the signs to proceed";
+		remaining.message = "";
 		break;
 	default:
 		desc.message = "";

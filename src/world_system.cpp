@@ -2126,6 +2126,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 				switch (action_taken) {
 				case BUTTON_ACTION_ID::MENU_START:
+					// remove all description dialog components
+					for (Entity dd : registry.descriptionDialogs.entities) {
+						registry.remove_all_components_of(dd);
+					}
 					if (registry.fadeTransitionTimers.size() == 0) {
 						Entity temp = Entity();
 						FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
@@ -2149,6 +2153,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				case BUTTON_ACTION_ID::CONTINUE:
 					// if save data exists reset the game
 					if (canContinue) {
+						// remove all description dialog components
+						for (Entity dd : registry.descriptionDialogs.entities) {
+							registry.remove_all_components_of(dd);
+						}
 						if (registry.fadeTransitionTimers.size() == 0) {
 							Entity temp = Entity();
 							FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);

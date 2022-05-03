@@ -1401,7 +1401,7 @@ Entity createActionsBar(RenderSystem* renderer, vec2 pos) {
 }
 
 // Attack button
-Entity createAttackButton(RenderSystem* renderer, vec2 pos) {
+Entity createAttackButton(RenderSystem* renderer, vec2 pos, bool opaque) {
 	auto entity = Entity();
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
@@ -1411,6 +1411,9 @@ Entity createAttackButton(RenderSystem* renderer, vec2 pos) {
 	motion.position = pos;
 
 	motion.scale = vec2({ ACTIONS_BUTTON_BB_WIDTH, ACTIONS_BUTTON_BB_HEIGHT });
+
+	if (opaque) { registry.colors.insert(entity, vec4(1.f, 1.f, 1.f, 1.f)); }
+	else { registry.colors.insert(entity, vec4(0.5f, 0.5f, 0.5f, 0.5f)); }
 
 	registry.actionButtons.emplace(entity);
 	// Create and (empty) ACTIONS_ATTACK component to be able to refer to all attack buttons
@@ -1427,7 +1430,7 @@ Entity createAttackButton(RenderSystem* renderer, vec2 pos) {
 }
 
 // Move button
-Entity createMoveButton(RenderSystem* renderer, vec2 pos) {
+Entity createMoveButton(RenderSystem* renderer, vec2 pos, bool opaque) {
 	auto entity = Entity();
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
@@ -1437,6 +1440,8 @@ Entity createMoveButton(RenderSystem* renderer, vec2 pos) {
 	motion.position = pos;
 
 	motion.scale = vec2({ ACTIONS_BUTTON_BB_WIDTH, ACTIONS_BUTTON_BB_HEIGHT });
+	if (opaque) { registry.colors.insert(entity, vec4(1.f, 1.f, 1.f, 1.f)); }
+	else { registry.colors.insert(entity, vec4(0.5f, 0.5f, 0.5f, 0.5f)); }
 
 	registry.actionButtons.emplace(entity);
 	// Create and (empty) ACTIONS_MOVE component to be able to refer to all move buttons
@@ -1749,7 +1754,7 @@ Entity createItemEquipmentTexture(RenderSystem* renderer, vec2 pos, vec2 scale, 
 }
 
 // Attack type cards
-Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack) {
+Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack, bool opaque) {
 	auto entity = Entity();
 
 	// Initilaize the position, scale, and physics components (more to be changed/added)
@@ -1765,6 +1770,9 @@ Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack) {
 
 	Button& b = registry.buttons.emplace(entity);
 	b.action_taken = BUTTON_ACTION_ID::OPEN_ATTACK_DIALOG;
+
+	if (opaque) { registry.colors.insert(entity, vec4(1.f, 1.f, 1.f, 1.f)); }
+	else { registry.colors.insert(entity, vec4(0.5f, 0.5f, 0.5f, 0.5f)); }
 
 	// get attack texture from map
 	auto iter = attack_textures.find(attack);

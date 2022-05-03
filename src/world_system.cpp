@@ -506,13 +506,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (current_game_state == GameStates::ATTACK_MENU && !player.prepared) {
 				// need to move everything down one in attack menu
 				// TODO: un-hard-code these
+				/*
 				createKeyIcon(renderer, { window_width_px - 70.f, 140.f * ui_scale}, TEXTURE_ASSET_ID::KEY_ICON_1);
 				if (registry.attackCards.size() > 1) {
 					createKeyIcon(renderer, { window_width_px - 70.f, 260.f * ui_scale }, TEXTURE_ASSET_ID::KEY_ICON_2);
 					createKeyIcon(renderer, { window_width_px - 70.f, 380.f * ui_scale }, TEXTURE_ASSET_ID::KEY_ICON_3);
 					createKeyIcon(renderer, { window_width_px - 70.f, 500.f * ui_scale }, TEXTURE_ASSET_ID::KEY_ICON_4);
 					createKeyIcon(renderer, { window_width_px - 70.f, 620.f * ui_scale }, TEXTURE_ASSET_ID::KEY_ICON_5);
-				}
+				}*/
 			}
 			else if (current_game_state == GameStates::BATTLE_MENU) {
 				if (tutorial) {
@@ -549,7 +550,12 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				if (tutorial_flags & SIGN_4 && registry.actionButtons.entities.size() < 4) { createItemButton(renderer, { window_width_px - 125.f, 650.f * ui_scale }); }
 			} else {
 				createAttackButton(renderer, { window_width_px - 125.f, 200.f * ui_scale});
-				createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale });
+				if (registry.stats.get(player_main).ep > 0) {
+					createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale });
+				}
+				else {
+					createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale }, false);
+				}
 				createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD);
 				createItemButton(renderer, { window_width_px - 125.f, 650.f * ui_scale });
 			}
@@ -1594,8 +1600,8 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	//std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 
 	spawnData = createTiles(renderer, next_map);
 
@@ -1859,7 +1865,7 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 	if (registry.knockbacks.has(player_main)) { return; }
 
 	// ALERT IF STARTING TUTORIAL!!
-	if (current_game_state == GameStates::BATTLE_MENU) {
+	if (current_game_state == GameStates::BATTLE_MENU && tutorial) {
 		if (!(tutorial_flags & SIGN_1)) {
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {
@@ -1978,6 +1984,44 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 				else {
 					itemAction();
 				}
+			}
+		}
+	}
+	bool valid = false;
+	for (Button button : registry.buttons.components) {
+		if (button.action_taken == BUTTON_ACTION_ID::USE_ATTACK || button.action_taken == BUTTON_ACTION_ID::PREPARE_ATTACK) {
+			valid = true;
+			break;
+		}
+	}
+	if (valid) {
+		if (action == GLFW_RELEASE && key == GLFW_KEY_Q) {
+
+			registry.players.get(player_main).using_attack = registry.players.get(player_main).selected_attack;
+			for (Entity ad : registry.attackDialogs.entities) {
+				registry.remove_all_components_of(ad);
+			}
+			Mix_PlayChannel(-1, ui_click, 0);
+		}
+		if (action == GLFW_RELEASE && key == GLFW_KEY_E) {
+			Player& p = registry.players.get(player_main);
+			Stats& stats = registry.stats.get(player_main);
+			if (p.attacked) {
+				logText("You can only attack once per turn!");
+				Mix_PlayChannel(-1, error_sound, 0);
+			}
+			else if (stats.mp < attack_mpcosts.at(p.selected_attack) || stats.ep < attack_epcosts.at(p.selected_attack) * stats.eprateatk) {
+				logText("Not enough MP or EP to attack!");
+				Mix_PlayChannel(-1, error_sound, 0);
+			}
+			else {
+				stats.mp -= attack_mpcosts.at(p.selected_attack);
+				stats.ep -= attack_epcosts.at(p.selected_attack) * stats.eprateatk;
+				registry.players.get(player_main).prepared = true;
+				for (Entity ad : registry.attackDialogs.entities) {
+					registry.remove_all_components_of(ad);
+				}
+				cancelAction();
 			}
 		}
 	}
@@ -2190,6 +2234,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 							FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
 							timer.type = TRANSITION_TYPE::CONTINUE_TO_GAME;
 						}
+						tutorial = false;
 						Mix_PlayChannel(-1, ui_click, 0);
 					}
 					else {
@@ -2292,7 +2337,15 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					if (registry.attackCards.has(e)) {
 						ATTACK attack = registry.attackCards.get(e).attack;
 						registry.players.get(player_main).selected_attack = attack;
-						createAttackDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f * ui_scale), attack, registry.players.get(player_main).prepared);
+						if (registry.colors.has(e)) {
+							if (registry.colors.get(e).a >= 1.f) {
+								createAttackDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f * ui_scale), attack, registry.players.get(player_main).prepared);
+							}
+							else {
+
+								createAttackDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f * ui_scale), attack, true);
+							}
+						}
 					}
 					Mix_PlayChannel(-1, ui_open, 0);
 					return;
@@ -4224,6 +4277,7 @@ void WorldSystem::attackAction() {
 	if (current_game_state != GameStates::ENEMY_TURN) {
 		// set player action to attack
 		Player& player = registry.players.get(player_main);
+		Stats stats = registry.stats.get(player_main);
 		Equipment weapon = registry.inventories.get(player_main).equipped[0];
 		player.action = PLAYER_ACTION::ATTACKING;
 		float button_y = 180.f;
@@ -4239,11 +4293,29 @@ void WorldSystem::attackAction() {
 
 			//createAttackModeText(renderer, { window_width_px - 125.f, 200.f });
 			// render attack types 
-			createAttackCard(renderer, { window_width_px - 125.f, button_y }, ATTACK::NONE);
+			if (player.attacked || stats.mp < attack_mpcosts.at(player.selected_attack) || stats.ep < attack_epcosts.at(player.selected_attack) * stats.eprateatk) {
+				createAttackCard(renderer, { window_width_px - 125.f, button_y }, ATTACK::NONE, false);
+			}
+			else {
+				createAttackCard(renderer, { window_width_px - 125.f, button_y }, ATTACK::NONE);
+			}
 			for (ATTACK a : weapon.attacks) {
 				button_y += 150 * 4 / 5;
 				if (a == ATTACK::NONE) { continue; }
-				createAttackCard(renderer, { window_width_px - 125.f, button_y }, a);
+				else if (a == ATTACK::DISENGAGE) {
+					if (stats.mp < attack_mpcosts.at(a)) {
+						createAttackCard(renderer, { window_width_px - 125.f, button_y }, ATTACK::DISENGAGE, false);
+					}
+					else {
+						createAttackCard(renderer, { window_width_px - 125.f, button_y }, ATTACK::DISENGAGE);
+					}
+				}
+				else if (player.attacked || stats.mp < attack_mpcosts.at(a) || stats.ep < attack_epcosts.at(a) * stats.eprateatk) {
+					createAttackCard(renderer, { window_width_px - 125.f, button_y }, a, false);
+				}
+				else {
+					createAttackCard(renderer, { window_width_px - 125.f, button_y }, a);
+				}
 			}
 		}
 		// set game state to attack menu
@@ -4840,7 +4912,7 @@ void WorldSystem::use_attack(vec2 target_pos) {
 		for (Entity ac : registry.attackCards.entities) {
 			registry.remove_all_components_of(ac);
 		}
-		attackAction();
+		backAction();
 	}
 }
 

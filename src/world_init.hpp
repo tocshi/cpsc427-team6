@@ -128,9 +128,9 @@ Entity createKeyIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture)
 // Actions bar
 Entity createActionsBar(RenderSystem* renderer, vec2 pos);
 // Attack button
-Entity createAttackButton(RenderSystem* renderer, vec2 pos);
+Entity createAttackButton(RenderSystem* renderer, vec2 pos, bool opaque = true);
 // Move button
-Entity createMoveButton(RenderSystem* renderer, vec2 pos);
+Entity createMoveButton(RenderSystem* renderer, vec2 pos, bool opaque = true);
 // Guard button
 Entity createGuardButton(RenderSystem* renderer, vec2 pos, BUTTON_ACTION_ID action, TEXTURE_ASSET_ID texture);
 // Item button
@@ -192,7 +192,7 @@ Entity createArtifactIcon(RenderSystem* renderer, vec2 pos, ARTIFACT artifact);
 // Description Dialog (artifact version) - todo: add more definitions with other items (attacks etc.)
 Entity createDescriptionDialog(RenderSystem* renderer, vec2 pos, ARTIFACT artifact);
 // Attack card
-Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack);
+Entity createAttackCard(RenderSystem* renderer, vec2 pos, ATTACK attack, bool opaque = true);
 // Attack type dialog
 Entity createAttackDialog(RenderSystem* renderer, vec2 pos, ATTACK attack, bool prepared);
 // equipment type dialog

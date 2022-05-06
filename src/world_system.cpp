@@ -544,7 +544,14 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// bring back all of the buttons
 			// sequentially add buttons depending on flags
 			if (tutorial) {
-				if (tutorial_flags & SIGN_1 && registry.actionButtons.entities.size() < 1) { createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale }); }
+				if (tutorial_flags & SIGN_1 && registry.actionButtons.entities.size() < 1) { 
+					if (registry.stats.get(player_main).ep > 0) {
+						createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale });
+					}
+					else {
+						createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale }, false);
+					}
+				}
 				if (tutorial_flags & EP_DEPLETED && registry.actionButtons.entities.size() < 2) { createGuardButton(renderer, { window_width_px - 125.f, 500.f * ui_scale }, BUTTON_ACTION_ID::ACTIONS_GUARD, TEXTURE_ASSET_ID::ACTIONS_GUARD); }
 				if (tutorial_flags & SIGN_2 && registry.actionButtons.entities.size() < 3) { createAttackButton(renderer, { window_width_px - 125.f, 200.f * ui_scale}); }
 				if (tutorial_flags & SIGN_4 && registry.actionButtons.entities.size() < 4) { createItemButton(renderer, { window_width_px - 125.f, 650.f * ui_scale }); }
@@ -629,12 +636,60 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			if (ep <= 0) {
 				if (registry.textboxes.size() == 0) {
 					player_motion.destination = player_motion.position;
-					set_gamestate(GameStates::BATTLE_MENU);
+				}
+				if (current_game_state == GameStates::MOVEMENT_MENU) {
+					backAction();
 				}
 			}
 			else { 
 				ep -= 0.06f * player_stats.epratemove * elapsed_ms_since_last_update; 
 				ep = max(0.f, ep);
+
+				// update attack cards based on ep
+				if (current_game_state == GameStates::ATTACK_MENU) {
+					// hide all attack cards
+					for (Entity ac : registry.attackCards.entities) {
+						registry.remove_all_components_of(ac);
+					}
+
+					Player& player = registry.players.get(player_main);
+					Stats stats = registry.stats.get(player_main);
+					Equipment weapon = registry.inventories.get(player_main).equipped[0];
+					float button_y = 180.f;
+
+					// if prepared attack, only show the prepared attack
+					if (player.prepared) {
+						player.using_attack = player.selected_attack;
+						createAttackCard(renderer, { window_width_px - 125.f, button_y }, player.using_attack);
+					}
+					else {
+						// render attack types 
+						if (player.attacked || stats.mp < attack_mpcosts.at(player.selected_attack) || stats.ep < attack_epcosts.at(player.selected_attack) * stats.eprateatk) {
+							createAttackCard(renderer, { window_width_px - 125.f, button_y }, ATTACK::NONE, false);
+						}
+						else {
+							createAttackCard(renderer, { window_width_px - 125.f, button_y }, ATTACK::NONE);
+						}
+						for (ATTACK a : weapon.attacks) {
+							button_y += 150 * 4 / 5;
+							if (a == ATTACK::NONE) { continue; }
+							else if (a == ATTACK::DISENGAGE) {
+								if (stats.mp < attack_mpcosts.at(a)) {
+									createAttackCard(renderer, { window_width_px - 125.f, button_y }, ATTACK::DISENGAGE, false);
+								}
+								else {
+									createAttackCard(renderer, { window_width_px - 125.f, button_y }, ATTACK::DISENGAGE);
+								}
+							}
+							else if (player.attacked || stats.mp < attack_mpcosts.at(a) || stats.ep < attack_epcosts.at(a) * stats.eprateatk) {
+								createAttackCard(renderer, { window_width_px - 125.f, button_y }, a, false);
+							}
+							else {
+								createAttackCard(renderer, { window_width_px - 125.f, button_y }, a);
+							}
+						}
+					}
+				}
 			}
 		}
 
@@ -1473,6 +1528,16 @@ void WorldSystem::handle_end_player_turn(Entity player) {
 	logText("It is now the enemies' turn!", {0.6, 0.6, 0.6});
 	// set player's doing_turn to false
 	registry.queueables.get(player).doing_turn = false;
+
+	// hide all action buttons and key icons
+	for (Entity ab : registry.actionButtons.entities) {
+		registry.remove_all_components_of(ab);
+	}
+	for (Entity ki : registry.keyIcons.entities) {
+		registry.remove_all_components_of(ki);
+	}
+	hideGuardButton = true;
+
 	set_gamestate(GameStates::ENEMY_TURN);
 }
 
@@ -1987,6 +2052,45 @@ void WorldSystem::on_key(int key, int, int action, int mod) {
 			}
 		}
 	}
+	if (action == GLFW_PRESS && (key == GLFW_KEY_W || key == GLFW_KEY_A || key == GLFW_KEY_S || key == GLFW_KEY_D)) {
+		if (current_game_state == GameStates::ATTACK_MENU || current_game_state == GameStates::MOVEMENT_MENU || current_game_state == GameStates::ITEM_MENU) {
+			if (registry.stats.get(player_main).ep <= 0) { return; }
+			Motion& motion_struct = registry.motions.get(player_main);
+			float speed = motion_struct.movement_speed;
+
+			if (key == GLFW_KEY_W) { motion_struct.velocity.y -= speed; }
+			if (key == GLFW_KEY_A) { motion_struct.velocity.x -= speed; }
+			if (key == GLFW_KEY_S) { motion_struct.velocity.y += speed; }
+			if (key == GLFW_KEY_D) { motion_struct.velocity.x += speed; }
+
+			motion_struct.destination = motion_struct.position + (motion_struct.velocity * vec2(1000, 1000 ));
+			motion_struct.in_motion = true;
+			player_move_click = true;
+			registry.players.get(player_main).moved = true;
+
+			// set walk animation
+			if (!registry.animations.has(player_main)) {
+				AnimationData& anim = registry.animations.emplace(player_main);
+				anim.spritesheet_texture = TEXTURE_ASSET_ID::PLAYER_SHEET;
+				anim.frametime_ms = 80;
+				anim.frame_indices = { 0, 1, 2, 3 };
+				anim.spritesheet_columns = 4;
+				anim.spritesheet_rows = 1;
+				anim.spritesheet_width = 128;
+				anim.spritesheet_height = 32;
+				anim.frame_size = { anim.spritesheet_width / anim.spritesheet_columns, anim.spritesheet_height / anim.spritesheet_rows };
+				registry.renderRequests.get(player_main).used_texture = TEXTURE_ASSET_ID::PLAYER_SHEET;
+				registry.renderRequests.get(player_main).used_geometry = GEOMETRY_BUFFER_ID::ANIMATION;
+			}
+		}
+	}
+	if (action == GLFW_RELEASE && (key == GLFW_KEY_W || key == GLFW_KEY_A || key == GLFW_KEY_S || key == GLFW_KEY_D)) {
+		if (current_game_state < GameStates::DIALOGUE && current_game_state >= GameStates::BATTLE_MENU) {
+			Motion& motion_struct = registry.motions.get(player_main);
+			motion_struct.destination = motion_struct.position;
+			motion_struct.in_motion = false;
+		}
+	}
 	bool valid = false;
 	for (Button button : registry.buttons.components) {
 		if (button.action_taken == BUTTON_ACTION_ID::USE_ATTACK || button.action_taken == BUTTON_ACTION_ID::PREPARE_ATTACK) {
@@ -2277,6 +2381,71 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						// render cancel button
 						createCancelButton(renderer, { window_width_px / 2, window_height_px / 2 - 90.f * ui_scale });
 						Mix_PlayChannel(-1, ui_click, 0);
+					}
+					return;
+				case BUTTON_ACTION_ID::HELP:
+					if (current_game_state < GameStates::DIALOGUE && current_game_state >= GameStates::BATTLE_MENU) {
+						backAction();
+						set_gamestate(GameStates::DIALOGUE);
+						std::vector<std::vector<std::string>> messages = {
+							{
+								"HELP AND CONTROLS",
+								"",
+								"Letters and numbers in [square brackets] indicate a hotkey.",
+							},
+							{
+								"[1]: Attack Mode",
+								"",
+								"Left click on an Attack Icon while in Attack Mode to view Attack Details.",
+								"If you have the resources to use an attack, you can press \"Use\" or [Q].",
+								"",
+								"You can also press \"Prepare\" or [E] to save an attack ",
+								"for later during your turn."
+							},
+							{
+								"[2]: Movement Mode",
+								"",
+								"Left click while in Movement Mode to move towards clicked location.",
+								"",
+								"Alternatively, you can use [W][A][S][D] to move up, left, down, and right",
+								"respectively, when in the Attack or Movement modes, or the Item Menu."
+							},
+							{
+								"[3]: End Turn",
+								"",
+								"By ending your turn, you will restore your full EP bar",
+								"at the start of your next turn.",
+								"",
+								"You can also use [Enter] to immediately end your turn from any menu!"
+							},
+							{
+								"[3]: Guard",
+								"",
+								"If you have not moved or attacked during this turn,",
+								"you will \"Guard\" instead.",
+								"Guarding will reduce damage taken to 1, at the cost of EP.",
+								"You will only guard attacks as long as you have over 50 EP,",
+								"and your EP will not refill at the beginning of the next turn!"
+							},
+							{
+								"[4]: Item",
+								"",
+								"You can view your current equipment stats in this menu.",
+								"",
+								"Click on an equipment icon to view detailed stats."
+							},
+							{
+								"[Esc]: Pause",
+								"",
+								"You can save and quit the game from this menu.",
+								"Your game is also automatically saved when entering doors!",
+								"",
+								"Be aware that you cannot save the game in the tutorial,",
+								"or during boss encounters!."
+							}
+						};
+						activeTextbox = createTextbox(renderer, vec2(window_width_px / 2.f, window_height_px / 2.f), messages);
+						Mix_PlayChannel(-1, ui_alert, 0);
 					}
 					return;
 				case BUTTON_ACTION_ID::ACTIONS_CANCEL:
@@ -2697,8 +2866,9 @@ void WorldSystem::start_game() {
 	createItemButton(renderer, { window_width_px - 125.f, 650.f });
 
 	// spawn the collection and pause buttons
-	createPauseButton(renderer, { window_width_px - 80.f, 50.f });
-	createCollectionButton(renderer, { window_width_px - 160.f, 50.f });
+	createPauseButton(renderer, { window_width_px - 50.f, 50.f });
+	createHelpButton(renderer, { window_width_px - 130.f, 50.f });
+	createCollectionButton(renderer, { window_width_px - 210.f, 50.f });
 
 	for (int i = registry.renderRequests.size() - 1; i >= 0; i--) {
 		if (registry.renderRequests.components[i].used_layer == RENDER_LAYER_ID::BG) {
@@ -2742,8 +2912,9 @@ void WorldSystem::start_tutorial() {
 	// createItemButton(renderer, { window_width_px - 125.f, 650.f });
 
 	// spawn the collection and pause buttons
-	createPauseButton(renderer, { window_width_px - 80.f, 50.f });
-	createCollectionButton(renderer, { window_width_px - 160.f, 50.f });
+	createPauseButton(renderer, { window_width_px - 50.f, 50.f });
+	createHelpButton(renderer, { window_width_px - 130.f, 50.f });
+	createCollectionButton(renderer, { window_width_px - 210.f, 50.f });
 
 	for (int i = registry.renderRequests.size() - 1; i >= 0; i--) {
 		if (registry.renderRequests.components[i].used_layer == RENDER_LAYER_ID::BG) {
@@ -3817,7 +3988,10 @@ void WorldSystem::updateTutorial() {
 				},
 				{
 					"In movement mode, click anywhere on the screen to move to that location.",
-					"Energy Points (EP) will be depleted as you move."
+					"Energy Points (EP) will be depleted as you move.",
+					"",
+					"Alternatively, you may use [W][A][S][D] to move.",
+					"These keys can also be done in the Attack Mode or Item Menu too!"
 				},
 				{
 					"To exit movement mode, click on the back button.",
@@ -3835,6 +4009,7 @@ void WorldSystem::updateTutorial() {
 		// check ep depleted
 		if (registry.stats.get(player_main).ep <= 0) {
 			tutorial_flags = tutorial_flags | EP_DEPLETED;
+			registry.motions.get(player_main).destination = registry.motions.get(player_main).position;
 			set_gamestate(GameStates::BATTLE_MENU);
 			set_gamestate(GameStates::DIALOGUE);
 			std::vector<std::vector<std::string>> messages = {

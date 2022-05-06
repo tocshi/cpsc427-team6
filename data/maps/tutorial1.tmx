@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.8" tiledversion="1.8.4" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="55" nextobjectid="460">
+<map version="1.8" tiledversion="1.8.4" orientation="orthogonal" renderorder="right-down" width="50" height="50" tilewidth="16" tileheight="16" infinite="0" nextlayerid="55" nextobjectid="473">
  <tileset firstgid="1" name="roguelikeDungeon_transparent" tilewidth="16" tileheight="16" spacing="1" tilecount="522" columns="29">
   <image source="roguelikeDungeon_transparent.png" width="492" height="305"/>
  </tileset>
@@ -166,19 +166,19 @@
 </data>
  </layer>
  <objectgroup id="3" name="walls">
-  <object id="438" x="0" y="0" width="16" height="800"/>
-  <object id="440" x="0.666667" y="784" width="160" height="16"/>
-  <object id="441" x="144" y="0" width="16" height="286.333"/>
-  <object id="442" x="16.1818" y="31.2727" width="128" height="16"/>
-  <object id="449" x="144.125" y="575.75" width="16" height="224"/>
-  <object id="450" x="1.125" y="399.5" width="158.5" height="31.875"/>
-  <object id="451" x="144.333" y="351.667" width="14.6667" height="160.333"/>
-  <object id="452" x="145" y="479.333" width="62.6667" height="15.6667"/>
-  <object id="454" x="336.75" y="160.25" width="14.8333" height="558.417"/>
-  <object id="456" x="144.333" y="192.333" width="205.333" height="16"/>
-  <object id="457" x="288.091" y="480" width="63.0909" height="16"/>
-  <object id="458" x="240" y="161.25" width="15.75" height="126.75"/>
-  <object id="459" x="146" y="702.5" width="205" height="16.5"/>
+  <object id="460" x="0" y="0" width="16" height="800"/>
+  <object id="461" x="0" y="0" width="160" height="48"/>
+  <object id="462" x="144" y="0" width="16" height="288"/>
+  <object id="463" x="144" y="160" width="208" height="48"/>
+  <object id="464" x="240" y="160" width="16" height="128"/>
+  <object id="465" x="336" y="160" width="16" height="560"/>
+  <object id="466" x="144" y="368" width="16" height="144"/>
+  <object id="467" x="144" y="480" width="64" height="16"/>
+  <object id="468" x="0" y="400" width="160" height="32"/>
+  <object id="469" x="288" y="480" width="64" height="16"/>
+  <object id="470" x="0" y="784" width="160" height="16"/>
+  <object id="471" x="144" y="592" width="16" height="208"/>
+  <object id="472" x="144" y="704" width="208" height="16"/>
  </objectgroup>
  <objectgroup id="8" name="item">
   <properties>

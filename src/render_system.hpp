@@ -179,6 +179,7 @@ class RenderSystem {
 			textures_path("attacks/fate.png"),
 			textures_path("enemy/orb.png"),
 			textures_path("endlight.png"),
+			textures_path("help.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

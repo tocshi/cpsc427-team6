@@ -1629,6 +1629,30 @@ Entity createPauseButton(RenderSystem* renderer, vec2 pos) {
 	return entity;
 }
 
+// Pause button
+Entity createHelpButton(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ PAUSE_BUTTON_BB_WIDTH, PAUSE_BUTTON_BB_HEIGHT });
+
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::HELP;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::HELP,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
 // Collection (book) button
 Entity createCollectionButton(RenderSystem* renderer, vec2 pos) {
 	auto entity = Entity();

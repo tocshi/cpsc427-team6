@@ -141,6 +141,8 @@ Entity createBackButton(RenderSystem* renderer, vec2 pos);
 Entity createCancelButton(RenderSystem* renderer, vec2 pos);
 // Pause button
 Entity createPauseButton(RenderSystem* renderer, vec2 pos);
+// Help button
+Entity createHelpButton(RenderSystem* renderer, vec2 pos);
 // Collection (book) button
 Entity createCollectionButton(RenderSystem* renderer, vec2 pos);
 // Attack mode text

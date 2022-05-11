@@ -391,22 +391,49 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 	for (Entity pointer : registry.pointers.entities) {
 		registry.remove_all_components_of(pointer);
 	}
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+
 	// render stylized pointers
-	if (mouseXpos > window_width_px - 200.f || mouseYpos < 100.f) {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-		createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::NORMAL_POINTER);
+	bool hoveringInteractable = false;
+	bool tooFar = true;
+	double xpos, ypos;
+	//getting cursor position
+	glfwGetCursorPos(window, &xpos, &ypos);
+
+	// get cursor position relative to world
+	Camera camera = registry.cameras.get(active_camera_entity);
+	vec2 world_pos = { xpos + camera.position.x, ypos + camera.position.y };
+	for (Entity& entity : registry.interactables.entities) {
+		if (registry.hidden.has(entity)) { continue; }
+		Motion& motion = registry.motions.get(entity);
+		Interactable& interactable = registry.interactables.get(entity);
+		if (world_pos.x <= motion.position.x + abs(motion.scale.x / 2) &&
+			world_pos.x >= motion.position.x - abs(motion.scale.x / 2) &&
+			world_pos.y <= motion.position.y + abs(motion.scale.y / 2) &&
+			world_pos.y >= motion.position.y - abs(motion.scale.y / 2)) {
+			hoveringInteractable = true;
+			if (dist_to_edge(registry.motions.get(player_main), motion) <= 70) {
+				tooFar = false;
+			}
+			break;
+		}
 	}
-	else if (current_game_state == GameStates::MOVEMENT_MENU) {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-		createPointer(renderer, vec2(mouseXpos, mouseYpos - POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::MOVE_POINTER);
-	}
-	else if (current_game_state == GameStates::ATTACK_MENU) {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-		createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::ATTACK_POINTER);
+	if (hoveringInteractable) {
+		Entity pointer = createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::INTERACT_POINTER);
+		if (tooFar) {
+			registry.colors.insert(pointer, vec4(1.f, 0.3f, 0.3f, 1.f));
+		}
 	}
 	else {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-		createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::NORMAL_POINTER);
+		if (current_game_state == GameStates::MOVEMENT_MENU) {
+			createPointer(renderer, vec2(mouseXpos, mouseYpos - POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::MOVE_POINTER);
+		}
+		else if (current_game_state == GameStates::ATTACK_MENU) {
+			createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::ATTACK_POINTER);
+		}
+		else {
+			createPointer(renderer, vec2(mouseXpos + POINTER_BB_WIDTH / 2, mouseYpos + POINTER_BB_HEIGHT / 2), TEXTURE_ASSET_ID::NORMAL_POINTER);
+		}
 	}
 
 	// handle enemy move sounds
@@ -2279,6 +2306,182 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 			return;
 		}
 
+		// handle interactibles
+		for (Entity& entity : registry.interactables.entities) {
+			Motion& motion = registry.motions.get(entity);
+			Interactable& interactable = registry.interactables.get(entity);
+			if (world_pos.x <= motion.position.x + abs(motion.scale.x / 2) &&
+				world_pos.x >= motion.position.x - abs(motion.scale.x / 2) &&
+				world_pos.y <= motion.position.y + abs(motion.scale.y / 2) &&
+				world_pos.y >= motion.position.y - abs(motion.scale.y / 2)) {
+
+				// Sign behaviour
+				if (registry.signs.has(entity)) {
+					Sign& sign = registry.signs.get(entity);
+					sign.playing = true;
+					interactable.interacted = true;
+					return;
+				}
+				// Chest behaviour
+				else if (interactable.type == INTERACT_TYPE::ARTIFACT_CHEST && dist_to_edge(registry.motions.get(player_main), motion) <= 70) {
+					interactable.interacted = true;
+					Chest& chest = registry.chests.get(entity);
+					if (chest.opened) {
+						continue;
+					}
+					// use gacha system to determine loot
+					int pity = registry.players.get(player_main).gacha_pity;
+					float chance_T4 = 5.f + 1 * pity;
+					float chance_T3 = chance_T4 + 15.f + 0.75 * pity;
+					float chance_T2 = chance_T3 + 30.f + 0.5 * pity;
+					float roll = rand() % 100;
+					int loot = 0;
+
+					// need sizeof() for array element size (yes I know it's 4 but I would like to generalize just in case)
+					if (roll < chance_T4) {
+						loot = artifact_T4[irand(sizeof(artifact_T4) / sizeof(artifact_T4[0]))];
+						registry.players.get(player_main).gacha_pity = 0;
+					}
+					else if (roll < chance_T3) {
+						loot = artifact_T3[irand(sizeof(artifact_T3) / sizeof(artifact_T3[0]))];
+						registry.players.get(player_main).gacha_pity++;
+					}
+					else if (roll < chance_T2) {
+						loot = artifact_T2[irand(sizeof(artifact_T2) / sizeof(artifact_T2[0]))];
+						registry.players.get(player_main).gacha_pity++;
+					}
+					else {
+						loot = artifact_T1[irand(sizeof(artifact_T1) / sizeof(artifact_T1[0]))];
+						registry.players.get(player_main).gacha_pity++;
+					}
+
+					createArtifact(renderer, motion.position + vec2(16, 16), (ARTIFACT)loot);
+
+					std::string name = artifact_names.at((ARTIFACT)loot);
+					logText("You open the chest and find " + name + "!");
+
+					chest.opened = true;
+					chest.needs_retexture = true;
+					Mix_PlayChannel(-1, chest_sound, 0);
+					return;
+				}
+				else if (interactable.type == INTERACT_TYPE::ITEM_CHEST && dist_to_edge(registry.motions.get(player_main), motion) <= 70) {
+					interactable.interacted = true;
+					Chest& chest = registry.chests.get(entity);
+					if (chest.opened) {
+						continue;
+					}
+
+					Player player = registry.players.get(player_main);
+					EQUIPMENT type;
+
+					// choose equipment
+					if (ichoose(0, 1)) {
+						type = EQUIPMENT::SHARP;
+					}
+					else {
+						type = EQUIPMENT::ARMOUR;
+					}
+
+					// If player has no weapon, give them a weapon
+					if (registry.inventories.get(player_main).equipped[0].attacks[1] == ATTACK::NONE) {
+						type = EQUIPMENT::SHARP;
+					}
+
+					Equipment equip = createEquipment(type, player.floor);
+					createEquipmentEntity(renderer, motion.position + vec2(16, 16), equip);
+
+					logText("You open the chest and find some equipment!");
+
+					chest.opened = true;
+					chest.needs_retexture = true;
+					Mix_PlayChannel(-1, chest_sound, 0);
+					return;
+				}
+				// Pickup item behaviour
+				else if (interactable.type == INTERACT_TYPE::PICKUP && dist_to_edge(registry.motions.get(player_main), motion) <= 70) {
+					interactable.interacted = true;
+					return;
+				}
+				// Door Behaviour
+				else if (interactable.type == INTERACT_TYPE::DOOR && dist_to_edge(registry.motions.get(player_main), motion) <= 70) {
+					interactable.interacted = true;
+					if (!registry.roomTransitions.has(player_main)) {
+						RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
+						transition.floor = roomSystem.current_floor;
+					}
+					registry.players.get(player_main).total_rooms++;
+					Mix_PlayChannel(-1, walking, 0);
+					return;
+				}
+				// Boss Door Behaviour
+				else if (interactable.type == INTERACT_TYPE::BOSS_DOOR && dist_to_edge(registry.motions.get(player_main), motion) <= 70) {
+					if (!registry.roomTransitions.has(player_main)) {
+						RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
+						transition.floor = Floors((int)roomSystem.current_floor + 1);
+						transition.floor_change = true;
+						if (transition.floor == Floors::FLOOR1 || transition.floor == Floors::BOSS1) {
+							playMusic(Music::BACKGROUND);
+						}
+						if (transition.floor == Floors::FLOOR2 || transition.floor == Floors::BOSS2) {
+							playMusic(Music::RUINS);
+						}
+						roomSystem.setNextFloor(transition.floor);
+					}
+					registry.players.get(player_main).total_rooms++;
+					Mix_PlayChannel(-1, walking, 0);
+					return;
+				}
+				// End_Light Behaviour
+				else if (interactable.type == INTERACT_TYPE::END_LIGHT && dist_to_edge(registry.motions.get(player_main), motion) <= 70) {
+					Entity temp = Entity();
+					FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+					timer.type = TRANSITION_TYPE::GAME_TO_FINAL_CUTSCENE;
+					registry.players.get(player_main).total_rooms++;
+					return;
+				}
+				// Switch Behaviour
+				else if (interactable.type == INTERACT_TYPE::SWITCH && dist_to_edge(registry.motions.get(player_main), motion) <= 70) {
+					interactable.interacted = true;
+					Switch& switch_component = registry.switches.get(entity);
+					if (!switch_component.activated) {
+						switch_component.activated = true;
+						RenderRequest& rr = registry.renderRequests.get(entity);
+						rr.used_texture = TEXTURE_ASSET_ID::SWITCH_ACTIVE;
+						Mix_PlayChannel(-1, switch_sound, 0);
+						roomSystem.updateObjective(ObjectiveType::ACTIVATE_SWITCHES, 1);
+						return;
+					}
+				}
+				else if (interactable.type == INTERACT_TYPE::CAMPFIRE && dist_to_edge(registry.motions.get(player_main), motion) <= 70) {
+					if (!interactable.interacted) {
+						Stats& stats = registry.stats.get(player_main);
+						heal(player_main, stats.maxhp);
+						stats.mp = stats.maxmp;
+						// Guide to Healthy Eating
+						if (registry.inventories.get(player_main).artifact[(int)ARTIFACT::GUIDE_HEALBUFF] > 0) {
+							StatusEffect buff = StatusEffect(0.2 * registry.inventories.get(player_main).artifact[(int)ARTIFACT::GUIDE_HEALBUFF], 5, StatusType::ATK_BUFF, true, true);
+							if (has_status(player_main, StatusType::ATK_BUFF)) { remove_status(player_main, StatusType::ATK_BUFF); }
+							apply_status(player_main, buff);
+						}
+						interactable.interacted = true;
+						// play campfire sound
+						Mix_PlayChannel(-1, fire_sound, 0);
+						return;
+					}
+				}
+				else if (interactable.type == INTERACT_TYPE::SIGN_2 && dist_to_edge(registry.motions.get(player_main), motion) <= 70) {
+					interactable.interacted = true;
+					if (registry.signs2.has(entity)) {
+						Sign2& sign = registry.signs2.get(entity);
+						activeTextbox = createTextbox(renderer, vec2(window_width_px / 2.f, window_height_px / 2.f), sign.messages);
+						set_gamestate(GameStates::DIALOGUE);
+						return;
+					}
+				}
+			}
+		}
+
 		///////////////////////////
 		// logic for button presses
 		///////////////////////////
@@ -2313,7 +2516,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					Mix_PlayChannel(-1, ui_click, 0);
 					// logic has been moved to when the timer expires in step()
-					break;
+					return;
 				case BUTTON_ACTION_ID::CREDITS:
 					if (registry.fadeTransitionTimers.size() == 0) {
 						Entity temp = Entity();
@@ -2325,7 +2528,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 				case BUTTON_ACTION_ID::MENU_QUIT: 
 					Mix_PlayChannel(-1, ui_click, 0);
 					glfwSetWindowShouldClose(window, true); 
-					break;
+					return;
 				case BUTTON_ACTION_ID::CONTINUE:
 					// if save data exists reset the game
 					if (canContinue) {
@@ -2344,7 +2547,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					else {
 						Mix_PlayChannel(-1, error_sound, 0);
 					}
-					break;
+					return;
 				case BUTTON_ACTION_ID::SAVE_QUIT:
 					if (!tutorial && current_music != Music::BOSS0 && current_music != Music::BOSS1) {
 						saveSystem.saveGameState(turnOrderSystem.getTurnOrder(), roomSystem);
@@ -2352,22 +2555,22 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					Mix_PlayChannel(-1, ui_click, 0);
 					glfwSetWindowShouldClose(window, true); 
-					break;
+					return;
 				case BUTTON_ACTION_ID::ACTIONS_ATTACK:
 					if (current_game_state == GameStates::BATTLE_MENU) {
 						attackAction();
 					}
-					break;
+					return;
 				case BUTTON_ACTION_ID::ACTIONS_MOVE:
 					if (registry.stats.get(player_main).ep <= 0) {
 						logText("Cannot move with 0 EP!");
 						Mix_PlayChannel(-1, error_sound, 0);
-						break;
+						return;
 					}
 					if (current_game_state == GameStates::BATTLE_MENU) {
 						moveAction();
 					}
-					break;
+					return;
 				case BUTTON_ACTION_ID::PAUSE:
 					if (current_game_state != GameStates::GAME_OVER_MENU) {
 						set_gamestate(GameStates::PAUSE_MENU);
@@ -2537,14 +2740,14 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						createEquipmentDialog(renderer, vec2(window_width_px / 2, window_height_px / 2 - 50.f * ui_scale), equipment);
 					}
 					Mix_PlayChannel(-1, ui_open, 0);
-					break;
+					return;
 				case BUTTON_ACTION_ID::CLOSE_EQUIPMENT_DIALOG:
 					// remove all equipment dialog components
 					for (Entity ed : registry.equipmentDialogs.entities) {
 						registry.remove_all_components_of(ed);
 					}
 					Mix_PlayChannel(-1, ui_close, 0);
-					break;
+					return;
 				case BUTTON_ACTION_ID::USE_ATTACK:
 					registry.players.get(player_main).using_attack = registry.players.get(player_main).selected_attack;
 					for (Entity ad : registry.attackDialogs.entities) {
@@ -2613,10 +2816,10 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						logText("You brace yourself...");
 						registry.stats.get(player_main).guard = true;
 						handle_end_player_turn(player_main);
-						break;
+						return;
 					case BUTTON_ACTION_ID::ACTIONS_END_TURN:
 						handle_end_player_turn(player_main);
-						break;
+						return;
 					}
 				}
 			}
@@ -2627,7 +2830,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 		///////////////////////////
 
 		// ensure it is the player's turn and they are not currently moving
-		if (get_is_player_turn() && !player_move_click && xpos < window_width_px - 200.f && ypos > 100.f) {
+		if (get_is_player_turn() && !player_move_click) {
 			if (player_main && current_game_state >= GameStates::GAME_START && current_game_state != GameStates::CUTSCENE) {
 				Player& player = registry.players.get(player_main);
 				Motion& player_motion = registry.motions.get(player_main);
@@ -2670,175 +2873,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					}
 					break;
 				default:
-					for (Entity& entity : registry.interactables.entities) {
-						Motion& motion = registry.motions.get(entity);
-						Interactable& interactable = registry.interactables.get(entity);
-						if (world_pos.x <= motion.position.x + abs(motion.scale.x / 2) &&
-							world_pos.x >= motion.position.x - abs(motion.scale.x / 2) &&
-							world_pos.y <= motion.position.y + abs(motion.scale.y / 2) &&
-							world_pos.y >= motion.position.y - abs(motion.scale.y / 2)) {
-
-							// Sign behaviour
-							if (registry.signs.has(entity)) {
-								Sign& sign = registry.signs.get(entity);
-								sign.playing = true;
-								interactable.interacted = true;
-							}
-							// Chest behaviour
-							else if (interactable.type == INTERACT_TYPE::ARTIFACT_CHEST && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
-								interactable.interacted = true;
-								Chest& chest = registry.chests.get(entity);
-								if (chest.opened) {
-									continue;
-								}
-								// use gacha system to determine loot
-								int pity = registry.players.get(player_main).gacha_pity;
-								float chance_T4 = 5.f + 1 * pity;
-								float chance_T3 = chance_T4 + 15.f + 0.75 * pity;
-								float chance_T2 = chance_T3 + 30.f + 0.5 * pity;
-								float roll = rand() % 100;
-								int loot = 0;
-
-								// need sizeof() for array element size (yes I know it's 4 but I would like to generalize just in case)
-								if (roll < chance_T4) { 
-									loot = artifact_T4[irand(sizeof(artifact_T4) / sizeof(artifact_T4[0]))];
-									registry.players.get(player_main).gacha_pity = 0;
-								}
-								else if (roll < chance_T3) { 
-									loot = artifact_T3[irand(sizeof(artifact_T3) / sizeof(artifact_T3[0]))];
-									registry.players.get(player_main).gacha_pity++;
-								}
-								else if (roll < chance_T2) { 
-									loot = artifact_T2[irand(sizeof(artifact_T2) / sizeof(artifact_T2[0]))];
-									registry.players.get(player_main).gacha_pity++;
-								}
-								else                       { 
-									loot = artifact_T1[irand(sizeof(artifact_T1) / sizeof(artifact_T1[0]))];
-									registry.players.get(player_main).gacha_pity++;
-								}
-								
-								createArtifact(renderer, motion.position + vec2(16, 16), (ARTIFACT)loot);
-
-								std::string name = artifact_names.at((ARTIFACT)loot);
-								logText("You open the chest and find " + name + "!");
-
-								chest.opened = true;
-								chest.needs_retexture = true;
-								Mix_PlayChannel(-1, chest_sound, 0);
-								break;
-							}
-							else if (interactable.type == INTERACT_TYPE::ITEM_CHEST && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
-								interactable.interacted = true;
-								Chest& chest = registry.chests.get(entity);
-								if (chest.opened) {
-									continue;
-								}
-								
-								Player player = registry.players.get(player_main);
-								EQUIPMENT type;
-
-								// choose equipment
-								if (ichoose(0, 1)) {
-									type = EQUIPMENT::SHARP;
-								}
-								else {
-									type = EQUIPMENT::ARMOUR;
-								}
-
-								// If player has no weapon, give them a weapon
-								if (registry.inventories.get(player_main).equipped[0].attacks[1] == ATTACK::NONE) {
-									type = EQUIPMENT::SHARP;
-								}
-
-								Equipment equip = createEquipment(type, player.floor);
-								createEquipmentEntity(renderer, motion.position + vec2(16,16), equip);
-
-								logText("You open the chest and find some equipment!");
-
-								chest.opened = true;
-								chest.needs_retexture = true;
-								Mix_PlayChannel(-1, chest_sound, 0);
-								break;
-							}
-							// Pickup item behaviour
-							else if (interactable.type == INTERACT_TYPE::PICKUP && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
-								interactable.interacted = true;
-								break;
-							}
-							// Door Behaviour
-							else if (interactable.type == INTERACT_TYPE::DOOR && dist_to(registry.motions.get(player_main).position, motion.position) <= 150) {
-								interactable.interacted = true;
-								if (!registry.roomTransitions.has(player_main)) {
-									RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
-									transition.floor = roomSystem.current_floor;
-								}
-								player.total_rooms++;
-								Mix_PlayChannel(-1, walking, 0);
-							}
-							// Boss Door Behaviour
-							else if (interactable.type == INTERACT_TYPE::BOSS_DOOR && dist_to(registry.motions.get(player_main).position, motion.position) <= 150) {
-								if (!registry.roomTransitions.has(player_main)) {
-									RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
-									transition.floor = Floors((int)roomSystem.current_floor + 1);
-									transition.floor_change = true;
-									if (transition.floor == Floors::FLOOR1 || transition.floor == Floors::BOSS1) {
-										playMusic(Music::BACKGROUND);
-									}
-									if (transition.floor == Floors::FLOOR2 || transition.floor == Floors::BOSS2) {
-										playMusic(Music::RUINS);
-									}
-									roomSystem.setNextFloor(transition.floor);
-								}
-								player.total_rooms++;
-								Mix_PlayChannel(-1, walking, 0);
-							}
-							// End_Light Behaviour
-							else if (interactable.type == INTERACT_TYPE::END_LIGHT && dist_to(registry.motions.get(player_main).position, motion.position) <= 200) {
-								Entity temp = Entity();
-								FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
-								timer.type = TRANSITION_TYPE::GAME_TO_FINAL_CUTSCENE;
-								player.total_rooms++;
-							}
-							// Switch Behaviour
-							else if (interactable.type == INTERACT_TYPE::SWITCH && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
-								interactable.interacted = true;
-								Switch& switch_component = registry.switches.get(entity);
-								if (!switch_component.activated) {
-									switch_component.activated = true;
-									RenderRequest& rr = registry.renderRequests.get(entity);
-									rr.used_texture = TEXTURE_ASSET_ID::SWITCH_ACTIVE;
-									Mix_PlayChannel(-1, switch_sound, 0);
-									roomSystem.updateObjective(ObjectiveType::ACTIVATE_SWITCHES, 1);
-									break;
-								}
-							}
-							else if (interactable.type == INTERACT_TYPE::CAMPFIRE && dist_to(registry.motions.get(player_main).position, motion.position) <= 100) {
-								if (!interactable.interacted) {
-									Stats& stats = registry.stats.get(player_main);
-									heal(player_main, stats.maxhp);
-									stats.mp = stats.maxmp;
-									// Guide to Healthy Eating
-									if (registry.inventories.get(player_main).artifact[(int)ARTIFACT::GUIDE_HEALBUFF] > 0) {
-										StatusEffect buff = StatusEffect(0.2 * registry.inventories.get(player_main).artifact[(int)ARTIFACT::GUIDE_HEALBUFF], 5, StatusType::ATK_BUFF, true, true);
-										if (has_status(player_main, StatusType::ATK_BUFF)) { remove_status(player_main, StatusType::ATK_BUFF); }
-										apply_status(player_main, buff);
-									}
-									interactable.interacted = true;
-									// play campfire sound
-									Mix_PlayChannel(-1, fire_sound, 0);
-									break;
-								}
-							}
-							else if (interactable.type == INTERACT_TYPE::SIGN_2 && dist_to(registry.motions.get(player_main).position, motion.position) <= 150) {
-								interactable.interacted = true;
-								if (registry.signs2.has(entity)) {
-									Sign2& sign = registry.signs2.get(entity);
-									activeTextbox = createTextbox(renderer, vec2(window_width_px/2.f, window_height_px/2.f), sign.messages);
-									set_gamestate(GameStates::DIALOGUE);
-								}
-							}
-						}
-					}
+					break;
 				}
 			}
 		}

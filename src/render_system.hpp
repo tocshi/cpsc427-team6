@@ -87,14 +87,14 @@ class RenderSystem {
 			textures_path("roguelikeDungeon_transparent.png"),
 			textures_path("campfire.png"),
 			textures_path("explosion.png"),
-			textures_path("menu/normal_mode_pointer.png"),
-			textures_path("menu/attack_mode_sword.png"),
-			textures_path("menu/move_mode_arrow.png"),
+			textures_path("menu/cursor.png"),
+			textures_path("menu/sword.png"),
+			textures_path("menu/arrow.png"),
 			textures_path("menu/close_cross.png"),
 			textures_path("menu/collection_panel.png"),
 			textures_path("menu/description_dialog.png"),
 			textures_path("menu/artifact_placeholder.png"),
-			textures_path("menu/scroll_arrow.png"),
+			textures_path("menu/pointer.png"),
 			textures_path("cg/bg_bedroom.png"), // add for cutscenes 
 			textures_path("cg/shou_angry.png"),
 			textures_path("cg/shou_confused.png"),
@@ -179,6 +179,7 @@ class RenderSystem {
 			textures_path("attacks/fate.png"),
 			textures_path("enemy/orb.png"),
 			textures_path("endlight.png"),
+			textures_path("help.png"),
 	};
 
 	std::array<GLuint, effect_count> effects;

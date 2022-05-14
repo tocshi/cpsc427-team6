@@ -836,32 +836,6 @@ Entity createArtifact(RenderSystem* renderer, vec2 pos, ARTIFACT type)
 	return entity;
 }
 
-// Item (consumable)
-Entity createConsumable(RenderSystem* renderer, vec2 pos)
-{
-	auto entity = Entity();
-
-	// Initilaize the position, scale, and physics components (more to be changed/added)
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.position = pos;
-
-	motion.scale = vec2({ PICKUP_BB_WIDTH, PICKUP_BB_HEIGHT });
-
-	// Create and (empty) CONSUMABLE component to be able to refer to all consumables
-	//registry.test.emplace(entity);
-	registry.consumables.emplace(entity); // Replace to refer to Consuamble stats
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::CONSUMABLE,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
-	registry.hidables.emplace(entity);
-
-	return entity;
-}
-
 // Chest
 Entity createChest(RenderSystem* renderer, vec2 pos, bool isArtifact)
 {
@@ -1063,33 +1037,6 @@ Entity createTextbox(RenderSystem* renderer, vec2 pos, std::vector<std::vector<s
 		RENDER_LAYER_ID::UI
 		});
 	
-	return entity;
-}
-
-// Stair
-Entity createStair(RenderSystem* renderer, vec2 pos)
-{
-	auto entity = Entity();
-
-	// Initilaize the position, scale, and physics components (more to be changed/added)
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.position = pos;
-
-	motion.scale = vec2({ STAIR_BB_WIDTH, STAIR_BB_HEIGHT });
-
-	// Create and (empty) STAIR component to be able to refer to all stairs
-	registry.test.emplace(entity);
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::STAIR,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE });
-
-	auto& interactable = registry.interactables.emplace(entity);
-	interactable.type = INTERACT_TYPE::STAIRS;
-
 	return entity;
 }
 
@@ -1374,28 +1321,6 @@ Entity createKeyIcon(RenderSystem* renderer, vec2 pos, TEXTURE_ASSET_ID texture)
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI_TOP });
-
-	return entity;
-}
-
-// Actions bar
-Entity createActionsBar(RenderSystem* renderer, vec2 pos) {
-	auto entity = Entity();
-
-	// Initilaize the position, scale, and physics components (more to be changed/added)
-	auto& motion = registry.motions.emplace(entity);
-	motion.angle = 0.f;
-	motion.velocity = { 0.f, 0.f };
-	motion.position = pos;
-
-	motion.scale = vec2({ ACTIONS_BAR_BB_WIDTH, ACTIONS_BAR_BB_HEIGHT });
-
-	registry.renderRequests.insert(
-		entity,
-		{ TEXTURE_ASSET_ID::ACTIONS_BAR,
-		 EFFECT_ASSET_ID::TEXTURED,
-		 GEOMETRY_BUFFER_ID::SPRITE,
-		 RENDER_LAYER_ID::UI });
 
 	return entity;
 }

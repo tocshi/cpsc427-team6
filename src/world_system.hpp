@@ -56,10 +56,6 @@ public:
 
 	void set_is_player_turn(bool val);
 
-	bool get_is_ai_turn();
-
-	void set_is_ai_turn(bool val);
-
 	void start_player_turn();
 
 	void playPlantShootSound();

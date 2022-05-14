@@ -137,6 +137,11 @@ GLFWwindow* WorldSystem::create_window() {
 		fprintf(stderr, "Failed to glfwCreateWindow");
 		return nullptr;
 	}
+	std::string ains_icon_path = textures_path("enemy/slime.png");
+	int icon_width;
+	int icon_height;
+	GLFWimage ains_icon = { 32, 32, stbi_load(ains_icon_path.c_str(), &icon_width, &icon_height, 0, 4) };
+	glfwSetWindowIcon(window, 1, &ains_icon);
 
 	// Setting callbacks to member functions (that's why the redirect is needed)
 	// Input is handled using GLFW, for more info see
@@ -939,6 +944,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 				}
 				tutorial = false;
 			}
+			if (current_game_state != GameStates::BATTLE_MENU) { backAction(); }
 			generateNewRoom(counter.floor, counter.repeat_allowed);
 			return true;
 		}
@@ -2987,14 +2993,6 @@ void WorldSystem::set_is_player_turn(bool val) {
 
 bool WorldSystem::get_is_player_turn() {
 	return is_player_turn;
-}
-
-void WorldSystem::set_is_ai_turn(bool val) {
-	is_ai_turn = val;
-}
-
-bool WorldSystem::get_is_ai_turn() {
-	return is_ai_turn;
 }
 
 void WorldSystem::start_player_turn() {

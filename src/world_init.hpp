@@ -12,8 +12,6 @@ const float ENEMY_BB_WIDTH = 64.f * ui_scale;
 const float ENEMY_BB_HEIGHT = 64.f * ui_scale;
 const float PLANT_PROJECTILE_BB_WIDTH = 16.f * ui_scale;
 const float PLANT_PROJECTILE_BB_HEIGHT = 16.f * ui_scale;
-const float BOSS_BB_WIDTH = 0.6f * 150.f * ui_scale;
-const float BOSS_BB_HEIGHT = 0.6f * 150.f * ui_scale;
 const float PICKUP_BB_WIDTH = 64.f * ui_scale;
 const float PICKUP_BB_HEIGHT = 64.f * ui_scale;
 const float CHEST_BB_WIDTH = 64.f * ui_scale;
@@ -24,8 +22,6 @@ const float SIGN_BB_WIDTH = 64.f * ui_scale;
 const float SIGN_BB_HEIGHT = 64.f * ui_scale;
 const float TEXTBOX_BB_WIDTH = 1200.f * ui_scale;
 const float TEXTBOX_BB_HEIGHT = 300.f * ui_scale;
-const float STAIR_BB_WIDTH = 0.6f * 150.f * ui_scale;
-const float STAIR_BB_HEIGHT = 0.6f * 150.f * ui_scale;
 const float WALL_BB_WIDTH = 100.f * ui_scale;
 const float WALL_BB_HEIGHT = 100.f * ui_scale;
 const float START_BB_WIDTH = 380.f * ui_scale;
@@ -99,8 +95,6 @@ Equipment createEquipment(EQUIPMENT type, int tier);
 Entity createEquipmentEntity(RenderSystem* renderer, vec2 pos, Equipment equipment);
 // Artifact
 Entity createArtifact(RenderSystem* renderer, vec2 pos, ARTIFACT type);
-// Item (consumable)
-Entity createConsumable(RenderSystem* renderer, vec2 pos);
 // Chest
 Entity createChest(RenderSystem* renderer, vec2 pos, bool isArtifact);
 // Door

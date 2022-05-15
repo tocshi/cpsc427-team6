@@ -4274,7 +4274,6 @@ void WorldSystem::updateTutorial() {
 		stat.hp = stat.maxhp;
 		stat.mp = stat.maxmp;
 		stat.ep = stat.maxep;
-		tutorial = false;
 		if (has_status(player_main, StatusType::HP_REGEN)) { remove_status(player_main, StatusType::HP_REGEN); }
 	}
 }

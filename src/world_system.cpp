@@ -942,7 +942,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 						objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
 					}
 				}
-				tutorial = false;
 			}
 			if (current_game_state != GameStates::BATTLE_MENU) { backAction(); }
 			generateNewRoom(counter.floor, counter.repeat_allowed);
@@ -1698,8 +1697,8 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	//std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 
 	spawnData = createTiles(renderer, next_map);
 
@@ -2416,7 +2415,7 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
 						transition.floor = roomSystem.current_floor;
 					}
-					registry.players.get(player_main).total_rooms++;
+					if (!tutorial) { registry.players.get(player_main).total_rooms++; }
 					Mix_PlayChannel(-1, walking, 0);
 					return;
 				}
@@ -2664,11 +2663,18 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					if (current_game_state != GameStates::GAME_OVER_MENU) {
 						// if the button is pressed again while the menu is already open, close the menu
 						if (current_game_state == GameStates::COLLECTION_MENU) {
-							set_gamestate(GameStates::BATTLE_MENU);
-							Mix_PlayChannel(-1, ui_close, 0);
+							backAction();
 						}
 						else {
 							// render the collection menu
+							// hide all item dialogs
+							for (Entity ed : registry.equipmentDialogs.entities) {
+								registry.remove_all_components_of(ed);
+							}
+							// hide all attack dialogs
+							for (Entity ad : registry.attackDialogs.entities) {
+								registry.remove_all_components_of(ad);
+							}
 							createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player_main);
 							set_gamestate(GameStates::COLLECTION_MENU);
 							Mix_PlayChannel(-1, ui_open, 0);

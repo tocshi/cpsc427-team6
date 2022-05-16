@@ -576,6 +576,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// bring back all of the buttons
 			// sequentially add buttons depending on flags
 			if (tutorial) {
+				createSkipButton(renderer, { 160.f, 200.f * ui_scale });
 				if (tutorial_flags & SIGN_1 && registry.actionButtons.entities.size() < 1) { 
 					if (registry.stats.get(player_main).ep > 0) {
 						createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale });
@@ -970,14 +971,17 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			switch (counter.type) {
 			case (TRANSITION_TYPE::MAIN_TO_GAME):
 				if (tutorial) {
+					removeForLoad();
+					removeForNewRoom();
 					start_tutorial();
 					spawn_tutorial_entities();
 					roomSystem.setObjective(ObjectiveType::TUTORIAL, 999);
 				}
 				else {
+					removeForLoad();
+					removeForNewRoom();
 					start_game();
 					spawn_game_entities();
-					roomSystem.setRandomObjective();
 				}
 				break;
 			case (TRANSITION_TYPE::CUTSCENE_TO_MAIN):
@@ -1003,6 +1007,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					loadFromData(gameData);
 					Inventory test = registry.inventories.get(player_main);
 					logText("Welcome back, wayward soul...", {0.7f, 1.f, 0.7f});
+					reset_stats(player_main);
+					calc_stats(player_main);
 					remove_fog_of_war();
 					create_fog_of_war();
 				}
@@ -2510,14 +2516,25 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 				switch (action_taken) {
 				case BUTTON_ACTION_ID::MENU_START:
-					// remove all description dialog components
-					for (Entity dd : registry.descriptionDialogs.entities) {
-						registry.remove_all_components_of(dd);
+					if (current_game_state == GameStates::MAIN_MENU) {
+						// remove all description dialog components
+						for (Entity dd : registry.descriptionDialogs.entities) {
+							registry.remove_all_components_of(dd);
+						}
+						if (registry.fadeTransitionTimers.size() == 0) {
+							Entity temp = Entity();
+							FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+							timer.type = TRANSITION_TYPE::MAIN_TO_GAME;
+						}
 					}
-					if (registry.fadeTransitionTimers.size() == 0) {
-						Entity temp = Entity();
-						FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
-						timer.type = TRANSITION_TYPE::MAIN_TO_GAME;
+					else if (current_game_state < GameStates::DIALOGUE && current_game_state >= GameStates::BATTLE_MENU && tutorial) {
+						backAction();
+						if (registry.fadeTransitionTimers.size() == 0) {
+							tutorial = false;
+							Entity temp = Entity();
+							FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+							timer.type = TRANSITION_TYPE::MAIN_TO_GAME;
+						}
 					}
 					Mix_PlayChannel(-1, ui_click, 0);
 					// logic has been moved to when the timer expires in step()
@@ -2641,6 +2658,14 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								"You can view your current equipment stats in this menu.",
 								"",
 								"Click on an equipment icon to view detailed stats."
+							},
+							{
+								"Collection Menu",
+								"",
+								"The book icon on the top right takes you to the Collection Menu!",
+								"",
+								"You can view the effects of the artifacts you've collected by",
+								"clicking on them!"
 							},
 							{
 								"[Esc]: Pause",
@@ -3075,7 +3100,6 @@ void WorldSystem::removeForLoad() {
 		}
 		registry.remove_all_components_of(enemy);
 	}
-
 	
 	// remove collidables
 	for (Entity collidable : registry.collidables.entities) {
@@ -3106,6 +3130,16 @@ void WorldSystem::removeForLoad() {
 	for (Entity shadow : registry.shadows.entities) {
 		registry.remove_all_components_of(shadow);
 	}
+
+	// remove texts
+	for (Entity text : registry.texts.entities) {
+		registry.remove_all_components_of(text);
+	}
+
+	// remove buttons
+	for (Entity button : registry.buttons.entities) {
+		registry.remove_all_components_of(button);
+	}
 }
 
 void WorldSystem::removeForNewRoom() {
@@ -3114,6 +3148,7 @@ void WorldSystem::removeForNewRoom() {
 		registry.remove_all_components_of(enemy);
 	}
 
+	// remove traps
 	for (Entity trap : registry.traps.entities) {
 		registry.remove_all_components_of(trap);
 	}
@@ -4226,8 +4261,10 @@ void WorldSystem::updateTutorial() {
 					"Left click the artifact to pick it up!"
 				},
 				{
-					"You can see what the artifacts do in the glossary!",
-					"Click the book in the top right to view all the artifacts!",
+					"You can see what the artifacts do in the Collection Menu!",
+					""
+					"Click the book in the top right to view all of your collected",
+					"artifacts, and how much of each you own.",
 					"To see what an artifact does, click on an artifact in the book!"
 				}
 			};

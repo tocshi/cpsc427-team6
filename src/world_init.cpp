@@ -1554,7 +1554,7 @@ Entity createPauseButton(RenderSystem* renderer, vec2 pos) {
 	return entity;
 }
 
-// Pause button
+// Help button
 Entity createHelpButton(RenderSystem* renderer, vec2 pos) {
 	auto entity = Entity();
 
@@ -1571,6 +1571,30 @@ Entity createHelpButton(RenderSystem* renderer, vec2 pos) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::HELP,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+// Skip Tutorial button
+Entity createSkipButton(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ START_BB_WIDTH * 0.8, START_BB_HEIGHT * 0.8 });
+
+	Button& b = registry.buttons.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::MENU_START;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SKIP,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI });

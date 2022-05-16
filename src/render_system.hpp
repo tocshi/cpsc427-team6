@@ -79,6 +79,7 @@ class RenderSystem {
 			textures_path("attack_mode.png"),
 			textures_path("movement_mode.png"),
 			textures_path("pause.png"),
+			textures_path("skip.png"),
 			textures_path("book.png"),
 			textures_path("roguelikeDungeon_transparent.png"),
 			textures_path("campfire.png"),

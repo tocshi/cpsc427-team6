@@ -1244,7 +1244,7 @@ const std::map <ATTACK, std::string>attack_names = {
 };
 
 const std::map <ATTACK, std::string>attack_descriptions = {
-	{ATTACK::NONE, "Deals 100% of ATK in damage to a single target. Restores 10 MP"},
+	{ATTACK::NONE, "Deals 100% of ATK in damage to a single target. Restores 10% of your max MP."},
 	{ATTACK::ROUNDSLASH, "Deals 80% of ATK in damage in a circle around you."},
 	{ATTACK::SAPPING_STRIKE, "Deals 80% of ATK in damage to a single target, and restores 30 MP."},
 	{ATTACK::PIERCING_THRUST, "Deals 120% of ATK in damage in a line, and ignores 40% DEF of any enemies you hit."},

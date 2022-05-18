@@ -982,6 +982,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					removeForNewRoom();
 					start_game();
 					spawn_game_entities();
+					roomSystem.setRandomObjective();
 				}
 				break;
 			case (TRANSITION_TYPE::CUTSCENE_TO_MAIN):

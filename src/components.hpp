@@ -1198,7 +1198,7 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::ARCANE_SPECS, "Gain 50 (+50 per stack) units of sight range."},
 	{ARTIFACT::SCOUT_STRIDE, "Consume 12% (x12% per stack) less EP when moving."},
 	{ARTIFACT::ART_CONSERVE, "Consume 7% (x7% per stack) less EP when attacking."},
-	{ARTIFACT::ARCANE_FUNNEL, "Upon defeating an enemy, gain a buff that doubles your MP regeneration for 1 (+1 per stack) turns."},
+	{ARTIFACT::ARCANE_FUNNEL, "Upon defeating an enemy, gain a buff that doubles your MP regeneration from normal attacks for 1 (+1 per stack) turns."},
 	{ARTIFACT::FUNGIFIER, "Upon defeating an enemy, an explosive mushroom grows at their location on your next turn. When an enemy steps on the mushroom, or after 3 turns, the mushroom explodes, dealing 130% (+130% per stack) ATK in damage in a small AoE."},
 	{ARTIFACT::BURRBAG, "At the start of each turn, leave a patch of burrs on the ground that last for 5 turns or until activated 1 (+1 per stack) times. Enemies that step over the burrs will take 40% ATK in damage."},
 	{ARTIFACT::SMOKE_POWDER, "When opening a chest, release a cloud of smoke that halves the aggro range of enemies within 200 (+75 per stack) units for 1 turn."},

@@ -2423,6 +2423,11 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						transition.floor = roomSystem.current_floor;
 					}
 					if (!tutorial) { registry.players.get(player_main).total_rooms++; }
+					else {
+						for (Entity skip : registry.test.entities) {
+							registry.remove_all_components_of(skip);
+						}
+					}
 					Mix_PlayChannel(-1, walking, 0);
 					return;
 				}
@@ -4601,6 +4606,11 @@ void WorldSystem::backAction() {
 	// hide all the hotkeys if not in attack mode
 	for (Entity ki : registry.keyIcons.entities) {
 		registry.remove_all_components_of(ki);
+	}
+
+	// hide all menu items
+	for (Entity mi : registry.menuItems.entities) {
+		registry.remove_all_components_of(mi);
 	}
 
 	// hide all mode visualizatiions

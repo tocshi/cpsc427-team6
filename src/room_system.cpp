@@ -127,6 +127,9 @@ void RoomSystem::updateClearCount() {
 	if (!world.tutorial) {
 		rooms_cleared_current_floor += 1;
 	}
+	else {
+		world.tutorial = false;
+	}
 }
 
 void RoomSystem::setNextFloor(Floors floor) {

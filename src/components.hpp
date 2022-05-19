@@ -75,7 +75,8 @@ enum class TEXTURE_ASSET_ID {
 	ACTIONS_ATTACK_MODE = ACTIONS_CANCEL + 1,
 	ACTIONS_MOVE_MODE = ACTIONS_ATTACK_MODE + 1,
 	PAUSE = ACTIONS_MOVE_MODE + 1,
-	COLLECTION_BUTTON = PAUSE + 1,
+	SKIP = PAUSE + 1,
+	COLLECTION_BUTTON = SKIP + 1,
 	DUNGEON_TILESHEET = COLLECTION_BUTTON + 1,
 	CAMPFIRE_SPRITESHEET = DUNGEON_TILESHEET + 1,
 	EXPLOSION_SPRITESHEET = CAMPFIRE_SPRITESHEET + 1,
@@ -1196,8 +1197,8 @@ const std::map <ARTIFACT, std::string>artifact_effects = {
 	{ARTIFACT::KB_MALLET, "When attacking an enemy within melee range, knock back struck enemies by 100 units (+50 units per stack)."},
 	{ARTIFACT::ARCANE_SPECS, "Gain 50 (+50 per stack) units of sight range."},
 	{ARTIFACT::SCOUT_STRIDE, "Consume 12% (x12% per stack) less EP when moving."},
-	{ARTIFACT::ART_CONSERVE, "Consume 8% (x8% per stack) less EP when attacking."},
-	{ARTIFACT::ARCANE_FUNNEL, "Upon defeating an enemy, gain a buff that doubles your MP regeneration for 1 (+1 per stack) turns."},
+	{ARTIFACT::ART_CONSERVE, "Consume 7% (x7% per stack) less EP when attacking."},
+	{ARTIFACT::ARCANE_FUNNEL, "Upon defeating an enemy, gain a buff that doubles your MP regeneration from normal attacks for 1 (+1 per stack) turns."},
 	{ARTIFACT::FUNGIFIER, "Upon defeating an enemy, an explosive mushroom grows at their location on your next turn. When an enemy steps on the mushroom, or after 3 turns, the mushroom explodes, dealing 130% (+130% per stack) ATK in damage in a small AoE."},
 	{ARTIFACT::BURRBAG, "At the start of each turn, leave a patch of burrs on the ground that last for 5 turns or until activated 1 (+1 per stack) times. Enemies that step over the burrs will take 40% ATK in damage."},
 	{ARTIFACT::SMOKE_POWDER, "When opening a chest, release a cloud of smoke that halves the aggro range of enemies within 200 (+75 per stack) units for 1 turn."},
@@ -1243,7 +1244,7 @@ const std::map <ATTACK, std::string>attack_names = {
 };
 
 const std::map <ATTACK, std::string>attack_descriptions = {
-	{ATTACK::NONE, "Deals 100% of ATK in damage to a single target. Restores 10 MP"},
+	{ATTACK::NONE, "Deals 100% of ATK in damage to a single target. Restores 10% of your max MP."},
 	{ATTACK::ROUNDSLASH, "Deals 80% of ATK in damage in a circle around you."},
 	{ATTACK::SAPPING_STRIKE, "Deals 80% of ATK in damage to a single target, and restores 30 MP."},
 	{ATTACK::PIERCING_THRUST, "Deals 120% of ATK in damage in a line, and ignores 40% DEF of any enemies you hit."},

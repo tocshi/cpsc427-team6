@@ -576,6 +576,7 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			// bring back all of the buttons
 			// sequentially add buttons depending on flags
 			if (tutorial) {
+				createSkipButton(renderer, { 160.f, 200.f * ui_scale });
 				if (tutorial_flags & SIGN_1 && registry.actionButtons.entities.size() < 1) { 
 					if (registry.stats.get(player_main).ep > 0) {
 						createMoveButton(renderer, { window_width_px - 125.f, 350.f * ui_scale });
@@ -942,7 +943,6 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 						objectiveNumberText = createText(renderer, { 272, window_height_px * (1.f / 16.f) + 204 }, "", 2.f, { 1.0, 1.0, 1.0 });
 					}
 				}
-				tutorial = false;
 			}
 			if (current_game_state != GameStates::BATTLE_MENU) { backAction(); }
 			generateNewRoom(counter.floor, counter.repeat_allowed);
@@ -971,11 +971,15 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 			switch (counter.type) {
 			case (TRANSITION_TYPE::MAIN_TO_GAME):
 				if (tutorial) {
+					removeForLoad();
+					removeForNewRoom();
 					start_tutorial();
 					spawn_tutorial_entities();
 					roomSystem.setObjective(ObjectiveType::TUTORIAL, 999);
 				}
 				else {
+					removeForLoad();
+					removeForNewRoom();
 					start_game();
 					spawn_game_entities();
 					roomSystem.setRandomObjective();
@@ -1004,6 +1008,8 @@ bool WorldSystem::step(float elapsed_ms_since_last_update) {
 					loadFromData(gameData);
 					Inventory test = registry.inventories.get(player_main);
 					logText("Welcome back, wayward soul...", {0.7f, 1.f, 0.7f});
+					reset_stats(player_main);
+					calc_stats(player_main);
 					remove_fog_of_war();
 					create_fog_of_war();
 				}
@@ -1698,8 +1704,8 @@ void WorldSystem::spawn_tutorial_entities() {
 void WorldSystem::spawn_game_entities() {
 
 	// Switch between debug and regular room
-	//std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
-	std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
+	std::string next_map = roomSystem.getRandomRoom(Floors::FLOOR1, true);
+	//std::string next_map = roomSystem.getRandomRoom(Floors::DEBUG, true);
 
 	spawnData = createTiles(renderer, next_map);
 
@@ -2416,7 +2422,12 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 						RoomTransitionTimer& transition = registry.roomTransitions.emplace(player_main);
 						transition.floor = roomSystem.current_floor;
 					}
-					registry.players.get(player_main).total_rooms++;
+					if (!tutorial) { registry.players.get(player_main).total_rooms++; }
+					else {
+						for (Entity skip : registry.test.entities) {
+							registry.remove_all_components_of(skip);
+						}
+					}
 					Mix_PlayChannel(-1, walking, 0);
 					return;
 				}
@@ -2511,14 +2522,25 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 
 				switch (action_taken) {
 				case BUTTON_ACTION_ID::MENU_START:
-					// remove all description dialog components
-					for (Entity dd : registry.descriptionDialogs.entities) {
-						registry.remove_all_components_of(dd);
+					if (current_game_state == GameStates::MAIN_MENU) {
+						// remove all description dialog components
+						for (Entity dd : registry.descriptionDialogs.entities) {
+							registry.remove_all_components_of(dd);
+						}
+						if (registry.fadeTransitionTimers.size() == 0) {
+							Entity temp = Entity();
+							FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+							timer.type = TRANSITION_TYPE::MAIN_TO_GAME;
+						}
 					}
-					if (registry.fadeTransitionTimers.size() == 0) {
-						Entity temp = Entity();
-						FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
-						timer.type = TRANSITION_TYPE::MAIN_TO_GAME;
+					else if (current_game_state < GameStates::DIALOGUE && current_game_state >= GameStates::BATTLE_MENU && tutorial) {
+						backAction();
+						if (registry.fadeTransitionTimers.size() == 0) {
+							tutorial = false;
+							Entity temp = Entity();
+							FadeTransitionTimer& timer = registry.fadeTransitionTimers.emplace(temp);
+							timer.type = TRANSITION_TYPE::MAIN_TO_GAME;
+						}
 					}
 					Mix_PlayChannel(-1, ui_click, 0);
 					// logic has been moved to when the timer expires in step()
@@ -2644,6 +2666,14 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 								"Click on an equipment icon to view detailed stats."
 							},
 							{
+								"Collection Menu",
+								"",
+								"The book icon on the top right takes you to the Collection Menu!",
+								"",
+								"You can view the effects of the artifacts you've collected by",
+								"clicking on them!"
+							},
+							{
 								"[Esc]: Pause",
 								"",
 								"You can save and quit the game from this menu.",
@@ -2664,11 +2694,18 @@ void WorldSystem::on_mouse(int button, int action, int mod) {
 					if (current_game_state != GameStates::GAME_OVER_MENU) {
 						// if the button is pressed again while the menu is already open, close the menu
 						if (current_game_state == GameStates::COLLECTION_MENU) {
-							set_gamestate(GameStates::BATTLE_MENU);
-							Mix_PlayChannel(-1, ui_close, 0);
+							backAction();
 						}
 						else {
 							// render the collection menu
+							// hide all item dialogs
+							for (Entity ed : registry.equipmentDialogs.entities) {
+								registry.remove_all_components_of(ed);
+							}
+							// hide all attack dialogs
+							for (Entity ad : registry.attackDialogs.entities) {
+								registry.remove_all_components_of(ad);
+							}
 							createCollectionMenu(renderer, vec2(window_width_px / 2, window_height_px / 2 - 40.f * ui_scale), player_main);
 							set_gamestate(GameStates::COLLECTION_MENU);
 							Mix_PlayChannel(-1, ui_open, 0);
@@ -3069,7 +3106,6 @@ void WorldSystem::removeForLoad() {
 		}
 		registry.remove_all_components_of(enemy);
 	}
-
 	
 	// remove collidables
 	for (Entity collidable : registry.collidables.entities) {
@@ -3100,6 +3136,16 @@ void WorldSystem::removeForLoad() {
 	for (Entity shadow : registry.shadows.entities) {
 		registry.remove_all_components_of(shadow);
 	}
+
+	// remove texts
+	for (Entity text : registry.texts.entities) {
+		registry.remove_all_components_of(text);
+	}
+
+	// remove buttons
+	for (Entity button : registry.buttons.entities) {
+		registry.remove_all_components_of(button);
+	}
 }
 
 void WorldSystem::removeForNewRoom() {
@@ -3108,6 +3154,7 @@ void WorldSystem::removeForNewRoom() {
 		registry.remove_all_components_of(enemy);
 	}
 
+	// remove traps
 	for (Entity trap : registry.traps.entities) {
 		registry.remove_all_components_of(trap);
 	}
@@ -4220,8 +4267,10 @@ void WorldSystem::updateTutorial() {
 					"Left click the artifact to pick it up!"
 				},
 				{
-					"You can see what the artifacts do in the glossary!",
-					"Click the book in the top right to view all the artifacts!",
+					"You can see what the artifacts do in the Collection Menu!",
+					""
+					"Click the book in the top right to view all of your collected",
+					"artifacts, and how much of each you own.",
 					"To see what an artifact does, click on an artifact in the book!"
 				}
 			};
@@ -4268,7 +4317,6 @@ void WorldSystem::updateTutorial() {
 		stat.hp = stat.maxhp;
 		stat.mp = stat.maxmp;
 		stat.ep = stat.maxep;
-		tutorial = false;
 		if (has_status(player_main, StatusType::HP_REGEN)) { remove_status(player_main, StatusType::HP_REGEN); }
 	}
 }
@@ -4558,6 +4606,11 @@ void WorldSystem::backAction() {
 	// hide all the hotkeys if not in attack mode
 	for (Entity ki : registry.keyIcons.entities) {
 		registry.remove_all_components_of(ki);
+	}
+
+	// hide all menu items
+	for (Entity mi : registry.menuItems.entities) {
+		registry.remove_all_components_of(mi);
 	}
 
 	// hide all mode visualizatiions

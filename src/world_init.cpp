@@ -819,7 +819,6 @@ Entity createArtifact(RenderSystem* renderer, vec2 pos, ARTIFACT type)
 	motion.scale = vec2({ PICKUP_BB_WIDTH, PICKUP_BB_HEIGHT });
 
 	// Create and (empty) ARTIFACT component to be able to refer to all artifacts
-	//registry.test.emplace(entity);
 	auto& artifact = registry.artifacts.emplace(entity); // grab the artifact entity
 	artifact.type = type;
 	auto& interactable = registry.interactables.emplace(entity);
@@ -885,7 +884,6 @@ Entity createDoor(RenderSystem* renderer, vec2 pos, bool boss_door)
 	motion.scale = vec2({ DOOR_BB_WIDTH, DOOR_BB_HEIGHT });
 
 	// Create and (empty) DOOR component to be able to refer to all doors
-	registry.test.emplace(entity);
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::DOOR,
@@ -1554,7 +1552,7 @@ Entity createPauseButton(RenderSystem* renderer, vec2 pos) {
 	return entity;
 }
 
-// Pause button
+// Help button
 Entity createHelpButton(RenderSystem* renderer, vec2 pos) {
 	auto entity = Entity();
 
@@ -1571,6 +1569,31 @@ Entity createHelpButton(RenderSystem* renderer, vec2 pos) {
 	registry.renderRequests.insert(
 		entity,
 		{ TEXTURE_ASSET_ID::HELP,
+		 EFFECT_ASSET_ID::TEXTURED,
+		 GEOMETRY_BUFFER_ID::SPRITE,
+		 RENDER_LAYER_ID::UI });
+
+	return entity;
+}
+
+// Skip Tutorial button
+Entity createSkipButton(RenderSystem* renderer, vec2 pos) {
+	auto entity = Entity();
+
+	// Initilaize the position, scale, and physics components (more to be changed/added)
+	auto& motion = registry.motions.emplace(entity);
+	motion.angle = 0.f;
+	motion.velocity = { 0.f, 0.f };
+	motion.position = pos;
+
+	motion.scale = vec2({ START_BB_WIDTH * 0.8, START_BB_HEIGHT * 0.8 });
+
+	Button& b = registry.buttons.emplace(entity);
+	registry.test.emplace(entity);
+	b.action_taken = BUTTON_ACTION_ID::MENU_START;
+	registry.renderRequests.insert(
+		entity,
+		{ TEXTURE_ASSET_ID::SKIP,
 		 EFFECT_ASSET_ID::TEXTURED,
 		 GEOMETRY_BUFFER_ID::SPRITE,
 		 RENDER_LAYER_ID::UI });
